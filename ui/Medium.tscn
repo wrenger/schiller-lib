@@ -1,0 +1,167 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://ui/Medium.gd" type="Script" id=1]
+
+[node name="Medium" type="GridContainer"]
+margin_right = 1024.0
+margin_bottom = 600.0
+size_flags_vertical = 3
+custom_constants/vseparation = 5
+custom_constants/hseparation = 5
+columns = 2
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="IDLabel" type="Label" parent="."]
+margin_right = 141.0
+margin_bottom = 22.0
+text = ".medium.id"
+align = 2
+
+[node name="ID" type="LineEdit" parent="."]
+margin_left = 146.0
+margin_right = 1024.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+
+[node name="ISBNLabel" type="Label" parent="."]
+margin_top = 27.0
+margin_right = 141.0
+margin_bottom = 49.0
+text = ".medium.isbn"
+align = 2
+
+[node name="ISBN" type="LineEdit" parent="."]
+margin_left = 146.0
+margin_top = 27.0
+margin_right = 1024.0
+margin_bottom = 49.0
+size_flags_horizontal = 3
+
+[node name="TitleLabel" type="Label" parent="."]
+margin_top = 54.0
+margin_right = 141.0
+margin_bottom = 76.0
+text = ".medium.title"
+align = 2
+
+[node name="Title" type="LineEdit" parent="."]
+margin_left = 146.0
+margin_top = 54.0
+margin_right = 1024.0
+margin_bottom = 76.0
+size_flags_horizontal = 3
+
+[node name="PublisherLabel" type="Label" parent="."]
+margin_top = 81.0
+margin_right = 141.0
+margin_bottom = 103.0
+text = ".medium.publisher"
+align = 2
+
+[node name="Publisher" type="LineEdit" parent="."]
+margin_left = 146.0
+margin_top = 81.0
+margin_right = 1024.0
+margin_bottom = 103.0
+size_flags_horizontal = 3
+
+[node name="AuthorsLabel" type="Label" parent="."]
+margin_top = 255.0
+margin_right = 141.0
+margin_bottom = 277.0
+text = ".medium.authors"
+align = 2
+
+[node name="Authors" type="Tree" parent="."]
+margin_left = 146.0
+margin_top = 108.0
+margin_right = 1024.0
+margin_bottom = 425.0
+rect_min_size = Vector2( 0, 100 )
+size_flags_horizontal = 3
+size_flags_vertical = 3
+hide_folding = true
+hide_root = true
+select_mode = 1
+
+[node name="PriceLabel" type="Label" parent="."]
+margin_top = 430.0
+margin_right = 141.0
+margin_bottom = 452.0
+text = ".medium.costs"
+align = 2
+
+[node name="Price" type="SpinBox" parent="."]
+margin_left = 146.0
+margin_top = 430.0
+margin_right = 1024.0
+margin_bottom = 452.0
+size_flags_horizontal = 3
+step = 0.1
+
+[node name="YearLabel" type="Label" parent="."]
+margin_top = 457.0
+margin_right = 141.0
+margin_bottom = 479.0
+text = ".medium.year"
+align = 2
+
+[node name="Year" type="SpinBox" parent="."]
+margin_left = 146.0
+margin_top = 457.0
+margin_right = 1024.0
+margin_bottom = 479.0
+size_flags_horizontal = 3
+min_value = 1900.0
+max_value = 3000.0
+value = 2000.0
+rounded = true
+allow_greater = true
+
+[node name="CategoryLabel" type="Label" parent="."]
+margin_top = 484.0
+margin_right = 141.0
+margin_bottom = 506.0
+text = ".category"
+align = 2
+
+[node name="Category" type="OptionButton" parent="."]
+margin_left = 146.0
+margin_top = 484.0
+margin_right = 1024.0
+margin_bottom = 506.0
+size_flags_horizontal = 3
+
+[node name="NotesLabel" type="Label" parent="."]
+margin_top = 530.0
+margin_right = 141.0
+margin_bottom = 552.0
+text = ".medium.note"
+align = 2
+
+[node name="Notes" type="TextEdit" parent="."]
+margin_left = 146.0
+margin_top = 511.0
+margin_right = 1024.0
+margin_bottom = 571.0
+rect_min_size = Vector2( 0, 60 )
+size_flags_horizontal = 3
+smooth_scrolling = true
+wrap_enabled = true
+
+[node name="BorrowableLabel" type="Label" parent="."]
+margin_top = 577.0
+margin_right = 141.0
+margin_bottom = 599.0
+text = ".medium.borrowable"
+align = 2
+
+[node name="Borrowable" type="CheckBox" parent="."]
+margin_left = 146.0
+margin_top = 576.0
+margin_right = 1024.0
+margin_bottom = 600.0
+size_flags_horizontal = 3

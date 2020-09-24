@@ -1,0 +1,11 @@
+# Rust
+/target/**
+!/target/.gdignore
+Cargo.lock
+
+# Godot
+/.import
+/export/**
+!/export/.gdignore
+/test/**
+!/test/.gdignore

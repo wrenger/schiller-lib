@@ -1,0 +1,169 @@
+,en,de
+.action.add,Add,Hinzufügen
+.action.apply,Apply,Übernehmen
+.action.cancel,Cancel,Abbrechen
+.action.close,Close,Schließen
+.action.copy,Copy,Kopieren
+.action.cut,Cut,Ausschneiden
+.action.delete,Delete,Löschen
+.action.edit,Edit,Bearbeiten
+.action.finish,Finish,Fertigstellen
+.action.new,New,Neu
+.action.next,Next,Weiter
+.action.no,No,Nein
+.action.ok,OK,OK
+.action.paste,Paste,Einfügen
+.action.previous,Previous,Zurück
+.action.redo,Redo,Wiederholen
+.action.select,Select,Auswählen
+.action.selectAll,Select All,Alles auswählen
+.action.undo,Undo,Rückgängig machen
+.action.yes,Yes,Ja
+.alert.choice.content,Please Select:,Bitte auswählen:
+.alert.choice.title,Selection,Auswahl
+.alert.confirm,Confirm,Bestätigung
+.alert.data.title,Select Database,Datenbank auswählen
+.alert.error,Error,Fehler
+.alert.info,Message,Meldung
+.alert.mail.overdue,Send warnings for exceeded borrowing periods now?,Sollen die Mahnungen jetzt versendet werden?
+.alert.mail.send.cancel,The transfer was canceled.\nIt will be tried again on the next application startup.,Emailversand abgebrochen.\nBeim Neustart des Programms wird es erneut versucht.
+.alert.mail.send.content,Sending Mails,Versende Emails
+.alert.mail.send.error,The mail transfer failed.,Fehler beim senden der Emails.
+.alert.mail.send.error.to,Transfer failed for the users:\n{0},Fehler beim senden der Emails an:\n{0}
+.alert.mail.send.success,Finished sending mails.,Senden der Mahnungen erfolgreich.
+.alert.mail.send.title,Mail,Emailversand
+.alert.overdue,Overdues,Überziehungen
+.alert.overdue.date,Effective: {0},Stand: {0}
+.alert.overdue.none,There are currently no expired borrowing periods.,Momentan gibt es keine Überziehungen.
+.alert.update,Welcome to Version {0},Willkommen zu Version {0}
+.alert.update.db,The database has to be updated to version {0}.,Die Datenbank wird jetzt auf Version {0} aktualisiert.
+.alert.update.succeed,Finished changes.,Die Änderungen wurden übernommen.
+.alert.user.title,Select User File,Benutzerdatai auswählen
+.alert.warning,Warning,Warnung
+.category,Category,Kategorie
+.category.empty-input,Empty inputs are not allowed.,Leere Eingaben sind nicht erlaubt.
+.category.id,ID,Abk
+.category.name,Name,Name
+.category.not-empty,IDs can only be changed for empty categories. There {1:is|are} {1} book{1:|s} left in '{0}'.,Es können nur IDs leerer Kategorien geändert werden. Es gibt noch {1} {1:Buch|Bücher} in '{0}'.
+.category.not-empty.del,A category has to be empty to be removed. There {1:is|are} {1} book{1:|s} left in '{0}'.,Eine können nur IDs leerer Kategorien gelöscht werden. Es gibt noch {1} {1:Buch|Bücher} in '{0}'.
+.category.section,Section,Bereich
+.category.title,Edit Categories,Kategorien bearbeiten
+.error.category.existing,The category id '{0}' already exists.,Die Abkürzung '{0}' existiert bereits.
+.error.config.default,Could not access the default preferences.,Die Voreinstellungen konnten nicht geladen werden.
+.error.config.load,Could not load the preferences.\nLoading default preferences instead.,Die Einstellungen konnten nicht geladen werden.\nEs wird auf die Voreinstellungen zurückgegriffen.
+.error.config.save,Unable to save the preferences.\nIs the data path correctly defined?,Die Einstellungen konnten nicht gespeichert werden.\nIst der Data-Ordner richtig konfiguriert?
+.error.data-db,The database could not be opened.,Die Datenbank konnte nicht geöffnet werden.
+.error.data-user,The user file could not be opened.,Die Benutzerdatei konnte nicht geöffnet werden.
+.error.fx,Error during window initialization.,Fehler beim Laden des Fensters.
+.error.input,Malformed User or Book Data.,Fehlerhafte Account- oder Buchdaten.
+.error.medium.existing,The medium id '{0}' already exists.,Es gibt bereits ein anderes Buch mit der Signatur {0}.
+.error.medium.none,No book found.,Kein Buch gefunden.
+.error.reserve.borrowing,The user '{0}' borrows the book already.,Der Benutzer '{0}' leiht das Buch bereits aus.
+.error.sql,Database access failed.,Datenbankzugriff fehlgeschlagen.
+.error.update,Critical error during the update of the database!\nPlease contanct a developer.,Kritischer Fehler beim Aktualisieren der Datenbank!\nBitte kontaktiere einen Entwickler.
+.error.user.existing,The user account '{0}' already exists.,Ein Benutzer mit dem Account '{0}' existiert bereits.
+.error.user.none,No user found.,Kein Benutzer gefunden.
+.info.about,The development of this application started in the 11th grade computer science course in 2015. Lars Wrenger completed its development and now maintains the project.,"Dieses Programm ist 2015 im Rahmen des Jg. 11 Informatikkurses von Herrn Grave entstanden. Fertiggestellt wurde es von Lars Wrenger, der das Projekt nun betreut."
+.info.category-freq,Number of Books per Category:\n\n{0},Anzahl der Bücher in den Kategorien:\n\n{0}
+.info.help,If you have questions please contact\na developer of this application:\n\n	Lars Wrenger (lars@wrenger.net)\n	Bernd Grave\n	Malte Baumann\n	Jonah Brauchitsch\n	Nina Bucher\n	Johannes Decker\n	Tim von Lücken\n	Tobias Nauen\n	Bjarne Ohst\n	Florian Panning\n	Maria Privalova\n	Valentin Volhard,Bei Fragen wende dich bitte an einen\nder Autoren des Programms:\n\n	Lars Wrenger (lars@wrenger.net)\n	Bernd Grave\n	Malte Baumann\n	Jonah Brauchitsch\n	Nina Bucher\n	Johannes Decker\n	Tim von Lücken\n	Tobias Nauen\n	Bjarne Ohst\n	Florian Panning\n	Maria Privalova\n	Valentin Volhard
+.info.help.title,Help,Hilfe
+.info.stats,{0} book{0:|s} total.\n\n{1} authors{1:|s} total\n\n{2} user{2:|s} total.\n\n{3} book{3:|s} borrowed.\n{4} expired periods.\n\n{5} book{5:|s} reserved.\n\nTotal costs of all books: {6}\n(sum of all entered costs),{0} {0:Buch|Bücher} eingetragen.\n\n{1} Autor{1:|en} eingetragen\n\n{2} Benutzer eingetragen.\n\n{3} {3:Buch|Bücher} ausgeliehen.\nDavon {4} {4:Buch|Bücher} überzogen.\n\n{5} {5:Buch|Bücher} vorgemerkt.\n\nGesamtpreis aller Medien: {6}\n(Summe aller eingetragenen Preise)
+.info.title,Info - Version: {0},Info - Version: {0}
+.mail.info,"Keywords: User name = {0}, Book title = {1}\n\nKeywords can be used in both subject and content. They are replace with the respective values before the mail is send.","Schlüsselwörter: Benutzername = {0}, Mediumtitel = {1}\n\nSowohl im Titel und auch im Inhalt können Schlüsselwörter verwendet werden. Diese werden beim Senden der Email durch den entsprechenden Werte ersetzt."
+.mail.info.content,"Hallo [name],\nYou have shown interest in the book '[mediumtitel].'\nNow it is back in the library, reserved for you to borrow.\n\n.","Hallo [name],\nDu hast dich für das Buch '[mediumtitel]' interessiert.\nDas Buch war ausgeliehen und liegt nun wieder in der Schülerbücherei.\nWenn du willst, kannst du es jetzt ausleihen.\n\nViele Grüße vom Schülerbüchereiteam."
+.mail.info.subject,'[mediumtitel]' is back in the library,'[mediumtitel]' ist nun verfügbar!
+.mail.info.title,Info,Info
+.mail.label.content,Content,Inhalt
+.mail.label.title,Subject,Titel
+.mail.overdue.content,"Hello [name],\nThe borrowing period for the book '[mediumtitel]' has expired.\nPlease bring it back to the library.\n\nRegards,\nThe Library Team.","Hallo [name],\nDie Ausleihfrist für das Buch '[mediumtitel]' ist abgelaufen.\nBitte gib das Buch schnellstmöglich wieder in der Schülerbücherei ab.\n\nViele Grüße vom Schülerbüchereiteam."
+.mail.overdue.subject,'[mediumtitel]' has expired,'[mediumtitel]' wird nun überzogen!
+.mail.overdue.title,Expiration,Mahnung
+.mail.overdue2.content,"Hello [name],\nThe borrowing period for the book '[mediumtitel]' has expired two weeks ago.\nFrom now on we have to charge you 1€ for every additional week.\n\nRegards,\nThe Library Team.","Hallo [name],\nDu hat das Buch '[mediumtitel]' schon seit über 2 Wochen\ntrotz täglicher Mahnungen überzogen.\nFür jede weitere Woche fallen ab jetzt 1€ Mahngebühren an.\n\nViele Grüße vom Schülerbüchereiteam."
+.mail.overdue2.subject,Overdue fines for '[mediumtitel]'!,Mahngebühren aufgrund der Überziehung von '[mediumtitel]'.
+.mail.overdue2.title,Expiration 2,Mahnung 2
+.mail.reset,Reset,Reset
+.main.info,Information,Informationen
+.main.lending.none,No matching ID or ISBN found.,Keine passende Signatur oder ISBN gefunden.
+.main.title,School Library System,Schülerbüchereiverwaltung
+.medium,Book,Buch
+.medium.authors,Authors,Autoren
+.medium.authors.def,Forename Surname,Vorname Nachname
+.medium.authors.info-edit,Left mouse button for adding or removing authors.\nDouble click to edit authors.,Linksklick um Autoren hinzuzufügen oder zu löschen.\nDoppelklick um Autoren zu bearbeiten.
+.medium.authors.info-select,Select an author to show related books.,Autor auswählen um weitere Bücher dieses Autors anzuzeigen.
+.medium.available,Not borrowed or reserved,Nicht ausgeliehen oder vorgemerkt
+.medium.borrowable,Borrowable,Ausleihbar
+.medium.borrowed,Borrowed,Ausgeliehen
+.medium.borrowed.by,Borrowed by {0} until {1},Ausgeliehen von {0} bis zum {1}
+.medium.costs,Costs,Preis
+.medium.delete-reservation,Delete Reservation,Vormerkung Löschen
+.medium.delete,Do you want to delete the book '{0}'?,Möchtest du das Buch '{0}' wirklich löschen?
+.medium.from-user,By {0} ({1}),Von {0} ({1})
+.medium.id-isbn,ID or ISBN,Signatur oder ISBN
+.medium.id,ID,Signatur
+.medium.id.action,Suggest,Vorschlagen
+.medium.id.format,"The Book ID has to consist of the category, author and a numeric id.","Die Signatur muss aus der Kategorie, dem Autor und einer ID bestehen."
+.medium.isbn,ISBN,ISBN
+.medium.lend,Lend,Ausleihen
+.medium.lend.date,Return Date,Rückgabedatum
+.medium.lend.to,Lend to {0},Ausleihen an {0}
+.medium.lend.until,Borrowed until {0},Ausgeliehen bis zum {0}
+.medium.new,Add book,Neues Buch
+.medium.new.success,The book has been added successfully.,Das Buch wurde erfolgreich eingetragen.
+.medium.not-borrowable,Not Borrowable,Nicht ausleihbar
+.medium.note,Notes,Notizen
+.medium.period,{0} - {1} ({2}) - Since {3} ({4} day{4:|s}),{0} - {1} ({2}) - Seit dem {3} ({4} Tag{4:|e})
+.medium.publisher,Publisher,Verlag
+.medium.renew,Renew,Verlängern
+.medium.request,Fetch Infos,Infos laden
+.medium.reserved.by,Reserved by {0},Vorgemerkt von {0}
+.medium.reserve,Reserve,Vormerken
+.medium.reserved,Reserved,Vorgemerkt
+.medium.revoke,Return,Zurückgeben
+.medium.revoke.reminder,The book is reserved by '{0}'.\nDo you want to inform him that the book is now available?,Das Buch wurde von '{0}' vorgemerkt.\n\nMöchtest du den Vormerker per Email über die Rückgabe informieren?
+.medium.revoke.success,The book '{0}' was returned successfully.\nNotes: {1},Das Buch '{0}' wurde erfolgreich zurückgegeben.\nNotizen: {1}
+.medium.state,State,Status
+.medium.title,Title,Titel
+.medium.year,Year,Anschaffungsjahr
+.menu.file,File,Datei
+.pref.appearance.dark,Dark Theme,Dunkles Design
+.pref.appearance.header,Appearance,Aussehen
+.pref.borrowing.duration,Duration,Dauer
+.pref.borrowing.header,Borrowing,Ausleihen
+.pref.database.header,Database,Database
+.pref.database.warning,Advanced SQL knowledge is needed for maintaining the database. Please ask a teacher or developer if you want to proceed.,Zur Datenbankwartung werden SQL-Kenntnisse benötigt. Bitte wende dich an einen Informatiklehrer oder Entwickler.
+.pref.general.header,General,Generell
+.pref.local,Local,Lokal
+.pref.local.label,These settings are local to the current user,Diese Optionen betreffen nur den aktuellen Benutzer
+.pref.mail.account.from,From,Absender
+.pref.mail.account.header,Mail Account,Email Account
+.pref.mail.account.host,Hostname,Host
+.pref.mail.account.password,Password,Passwort
+.pref.mail.templates.header,Mail Templates,Email Vorlagen
+.pref.project,Project,Projekt
+.pref.project.label,These settings are global to the whole library,Die globalen Projekteinstellungen betreffen die ganze Bibliothek
+.pref.request.header,Requesting Media Information,Anfrage von Mediendaten
+.pref.request.token,DNB Token,DNB Token
+.pref.title,Settings,Einstellungen
+.pref.user.delimiter,Delimiter,Trennzeichen
+.pref.user.header,User,Benutzer
+.pref.user.update,Update Users,Benutzer aktualisieren
+.search.action,Search,Suchen
+.search.advanced,Advanced,Erweitert
+.search.base,Search,Suche
+.search.medium,Books,Bücher
+.search.medium.entry,"Keyword (e.g. Author, Title or ID)","Suchbegriff (z.B. Autor, Titel oder Signatur)"
+.search.user,Users,Benutzer
+.search.user.entry,Keyword (e.g. Name or Account),Suchbegriff (z.B. Name oder Account)
+.sql.title,Maintain Database,Datenbank warten
+.user.account,Account,Account
+.user.delete,Remove user from library?\nHis borrows and reservations will also be lost.,Möchtest du diesen Benutzer wirklich löschen?\nAlle seine Entleihungen und Vormerkungen gehen dadurch verloren!
+.user.forename,Forename,Vorname
+.user.may-borrow,May Borrow,Darf ausleihen
+.user.may-not-borrow,May not Borrow,Darf nicht ausleihen
+.user.new,Add User,Neuer Benutzer
+.user.no-media,No book borrowed or reserved.,Keine Bücher ausgeliehen oder vorgemerkt.
+.user.permission,Borrowing Permission,Ausleihberechtigung
+.user.role,Role,Gruppe
+.user.role.entry,Role (Class / Grade),Gruppe (Klasse / Jahrgang)
+.user.state,State,Status
+.user.surname,Surname,Nachname
