@@ -19,12 +19,12 @@ onready var _media_list := get_node(media_list) as Tree
 onready var _medium_box := get_node(medium_box) as Control
 onready var _medium_pane := get_node(medium_pane) as Control
 onready var _medium_state := get_node(medium_state) as Label
-onready var _medium_lend := get_node(medium_lend) as Button
-onready var _medium_lend_to := get_node(medium_lend_to) as Button
-onready var _medium_revoke := get_node(medium_revoke) as Button
-onready var _medium_reserve := get_node(medium_reserve) as Button
-onready var _medium_release := get_node(medium_release) as Button
-onready var _medium_edit := get_node(medium_edit) as Button
+onready var _medium_lend := get_node(medium_lend) as Control
+onready var _medium_lend_to := get_node(medium_lend_to) as Control
+onready var _medium_revoke := get_node(medium_revoke) as Control
+onready var _medium_reserve := get_node(medium_reserve) as Control
+onready var _medium_release := get_node(medium_release) as Control
+onready var _medium_edit := get_node(medium_edit) as Control
 onready var _medium_editing := get_node(medium_editing) as Control
 
 

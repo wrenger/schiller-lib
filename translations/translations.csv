@@ -115,9 +115,9 @@
 .medium.publisher,Publisher,Verlag
 .medium.renew,Renew,Verlängern
 .medium.request,Fetch Infos,Infos laden
-.medium.reserved.by,Reserved by {0},Vorgemerkt von {0}
 .medium.reserve,Reserve,Vormerken
 .medium.reserved,Reserved,Vorgemerkt
+.medium.reserved.by,Reserved by {0},Vorgemerkt von {0}
 .medium.revoke,Return,Zurückgeben
 .medium.revoke.reminder,The book is reserved by '{0}'.\nDo you want to inform him that the book is now available?,Das Buch wurde von '{0}' vorgemerkt.\n\nMöchtest du den Vormerker per Email über die Rückgabe informieren?
 .medium.revoke.success,The book '{0}' was returned successfully.\nNotes: {1},Das Buch '{0}' wurde erfolgreich zurückgegeben.\nNotizen: {1}
@@ -160,6 +160,7 @@
 .user.forename,Forename,Vorname
 .user.may-borrow,May Borrow,Darf ausleihen
 .user.may-not-borrow,May not Borrow,Darf nicht ausleihen
+.user.media,Borrowed or Reserved Books,Ausgeliehene oder Vorgemerkte Bücher
 .user.new,Add User,Neuer Benutzer
 .user.no-media,No book borrowed or reserved.,Keine Bücher ausgeliehen oder vorgemerkt.
 .user.permission,Borrowing Permission,Ausleihberechtigung
