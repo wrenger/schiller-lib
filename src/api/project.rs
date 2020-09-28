@@ -1,4 +1,5 @@
 use std::iter::FromIterator;
+use std::time::Instant;
 
 use gdnative::prelude::*;
 
@@ -29,9 +30,17 @@ impl Project {
 
     #[export]
     fn search_media_basic(&self, _owner: &Node, text: GodotString) -> api::Result<VariantArray> {
+        let timer = Instant::now();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.search_media_basic(&text.to_string())?;
-        Ok(VariantArray::from_iter(result.into_iter().map(|x| x.owned_to_variant())).into_shared())
+        let result = Ok(VariantArray::from_iter(result.map(|x| {
+            let instance = api::Medium::new_instance();
+            instance.map_mut(|u, _| u.fill(x)).unwrap();
+            instance.owned_to_variant()
+        }))
+        .into_shared());
+        godot_print!("access time: {}ms", timer.elapsed().as_millis());
+        result
     }
     #[export]
     fn update_medium(
@@ -49,17 +58,28 @@ impl Project {
     }
     #[export]
     fn delete_medium(&self, _owner: &Node, id: GodotString) -> api::Result<()> {
+        let timer = Instant::now();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.delete_medium(&id.to_string())
+        db.delete_medium(&id.to_string())?;
+        godot_print!("access time: {}ms", timer.elapsed().as_millis());
+        Ok(())
     }
 
     // User
 
     #[export]
     fn search_user_basic(&self, _owner: &Node, text: GodotString) -> api::Result<VariantArray> {
+        let timer = Instant::now();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.search_user_basic(&text.to_string())?;
-        Ok(VariantArray::from_iter(result.into_iter().map(|x| x.owned_to_variant())).into_shared())
+        let result = Ok(VariantArray::from_iter(result.map(|x| {
+            let instance = api::User::new_instance();
+            instance.map_mut(|m, _| m.fill(x)).unwrap();
+            instance.owned_to_variant()
+        }))
+        .into_shared());
+        godot_print!("access time: {}ms", timer.elapsed().as_millis());
+        result
     }
     #[export]
     fn update_user(
@@ -76,8 +96,11 @@ impl Project {
     }
     #[export]
     fn delete_user(&self, _owner: &Node, account: GodotString) -> api::Result<()> {
+        let timer = Instant::now();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.delete_user(&account.to_string())
+        db.delete_user(&account.to_string())?;
+        godot_print!("access time: {}ms", timer.elapsed().as_millis());
+        Ok(())
     }
 
     // Lending

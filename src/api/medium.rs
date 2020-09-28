@@ -1,4 +1,8 @@
+use std::iter::FromIterator;
+
 use gdnative::prelude::*;
+
+use crate::db::DBMedium;
 
 /// The Database wrapper "class"
 #[derive(NativeClass, Debug)]
@@ -50,6 +54,22 @@ impl Medium {
             deadline: GodotString::new(),
             reservation: GodotString::new(),
         }
+    }
+
+    pub fn fill(&mut self, medium: DBMedium) {
+        self.id = medium.id.into();
+        self.isbn = medium.isbn.into();
+        self.title = medium.title.into();
+        self.publisher = medium.publisher.into();
+        self.year = medium.year;
+        self.costs = medium.costs;
+        self.note = medium.note.into();
+        self.borrowable = medium.borrowable;
+        self.category = medium.category.into();
+        self.authors = StringArray::from_iter(medium.authors.iter().map(|a| a.into()));
+        self.borrower = medium.borrower.into();
+        self.deadline = medium.deadline.into();
+        self.reservation = medium.reservation.into();
     }
 
     #[export]

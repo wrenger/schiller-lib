@@ -1,5 +1,7 @@
 use gdnative::prelude::*;
 
+use crate::db::DBUser;
+
 /// The Database wrapper "class"
 #[derive(NativeClass, Debug)]
 #[inherit(Object)]
@@ -26,6 +28,14 @@ impl User {
             role: GodotString::new(),
             may_borrow: true,
         }
+    }
+
+    pub fn fill(&mut self, user: DBUser) {
+        self.account = user.account.into();
+        self.forename = user.forename.into();
+        self.surname = user.surname.into();
+        self.role = user.role.into();
+        self.may_borrow = user.may_borrow;
     }
 
     #[export]

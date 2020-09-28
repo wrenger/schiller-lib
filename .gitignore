@@ -9,3 +9,6 @@ Cargo.lock
 !/export/.gdignore
 /test/**
 !/test/.gdignore
+
+# Misc
+.vscode

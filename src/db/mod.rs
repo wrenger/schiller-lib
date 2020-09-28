@@ -1,5 +1,4 @@
 use std::fmt;
-use std::iter::FromIterator;
 use std::path::PathBuf;
 
 use gdnative::prelude::*;
@@ -19,14 +18,19 @@ costs,
 note,
 borrowable,
 category,
-ifnull(group_concat(author.name),''),
+ifnull(group_concat(author.name),'') as authors,
 borrower,
 deadline,
 reservation
 from medium
 left join author on author.medium=id
-where title like '%'||?||'%'
 group by id
+having id like '%'||?||'%'
+or isbn like '%'||?||'%'
+or title like '%'||?||'%'
+or publisher like '%'||?||'%'
+or note like '%'||?||'%'
+or authors like '%'||?||'%'
 "#;
 
 const QUERY_USER_LIST: &str = r#"
@@ -38,6 +42,9 @@ role,
 may_borrow
 from user
 where account like '%'||?||'%'
+or forename like '%'||?||'%'
+or surname like '%'||?||'%'
+or role like '%'||?||'%'
 "#;
 
 pub struct Database {
@@ -64,41 +71,24 @@ impl Database {
         }
     }
 
-    pub fn search_media_basic(
-        &self,
-        text: &str,
-    ) -> api::Result<Vec<Instance<api::Medium, Unique>>> {
+    pub fn search_media_basic(&self, text: &str) -> api::Result<DBIter<DBMedium>> {
         let mut stmt = self.db.prepare(QUERY_MEDIA_LIST)?;
         stmt.bind(1, text)?;
-
-        let mut result = vec![];
-
-        while stmt.next()? != sqlite::State::Done {
-            let instance = api::Medium::new_instance();
-            instance
-                .map_mut(|medium, _| fill_medium(medium, &stmt))
-                .unwrap()?;
-            result.push(instance);
-        }
-
-        Ok(result)
+        stmt.bind(2, text)?;
+        stmt.bind(3, text)?;
+        stmt.bind(4, text)?;
+        stmt.bind(5, text)?;
+        stmt.bind(6, text)?;
+        Ok(DBIter::new(stmt))
     }
 
-    pub fn search_user_basic(&self, text: &str) -> api::Result<Vec<Instance<api::User, Unique>>> {
+    pub fn search_user_basic(&self, text: &str) -> api::Result<DBIter<DBUser>> {
         let mut stmt = self.db.prepare(QUERY_USER_LIST)?;
         stmt.bind(1, text)?;
-
-        let mut result = vec![];
-
-        while stmt.next()? != sqlite::State::Done {
-            let instance = api::User::new_instance();
-            instance
-                .map_mut(|user, _| fill_user(user, &stmt))
-                .unwrap()?;
-            result.push(instance);
-        }
-
-        Ok(result)
+        stmt.bind(2, text)?;
+        stmt.bind(3, text)?;
+        stmt.bind(4, text)?;
+        Ok(DBIter::new(stmt))
     }
 
     pub fn update_medium(&self, previous_id: &str, medium: &api::Medium) -> api::Result<()> {
@@ -122,28 +112,108 @@ impl Database {
     }
 }
 
-fn fill_user(user: &mut api::User, stmt: &sqlite::Statement) -> api::Result<()> {
-    user.account = stmt.read::<String>(0)?.into();
-    user.forename = stmt.read::<String>(1)?.into();
-    user.surname = stmt.read::<String>(2)?.into();
-    user.role = stmt.read::<String>(3)?.into();
-    user.may_borrow = stmt.read::<i64>(4)? != 0;
-    Ok(())
+pub struct DBIter<'a, T> {
+    stmt: sqlite::Statement<'a>,
+    ty: std::marker::PhantomData<T>,
 }
 
-fn fill_medium(medium: &mut api::Medium, stmt: &sqlite::Statement) -> api::Result<()> {
-    medium.id = stmt.read::<String>(0)?.into();
-    medium.isbn = stmt.read::<String>(1)?.into();
-    medium.title = stmt.read::<String>(2)?.into();
-    medium.publisher = stmt.read::<String>(3)?.into();
-    medium.year = stmt.read(4)?;
-    medium.costs = stmt.read(5)?;
-    medium.note = stmt.read::<String>(6)?.into();
-    medium.borrowable = stmt.read::<i64>(7)? != 0;
-    medium.category = stmt.read::<String>(8)?.into();
-    medium.authors = StringArray::from_iter(stmt.read::<String>(9)?.split(',').map(|a| a.into()));
-    medium.borrower = stmt.read::<String>(10)?.into();
-    medium.deadline = stmt.read::<String>(11)?.into();
-    medium.reservation = stmt.read::<String>(12)?.into();
-    Ok(())
+impl<'a, T> DBIter<'a, T> {
+    fn new(stmt: sqlite::Statement<'a>) -> Self {
+        DBIter {
+            stmt,
+            ty: std::marker::PhantomData,
+        }
+    }
+}
+
+pub trait ReadStmt: Sized {
+    type Error: std::fmt::Debug;
+    fn read(stmt: &sqlite::Statement) -> Result<Self, Self::Error>;
+}
+
+impl<'a, T: ReadStmt> Iterator for DBIter<'a, T> {
+    type Item = T;
+    fn next(&mut self) -> Option<T> {
+        if let Ok(state) = self.stmt.next() {
+            if state != sqlite::State::Done {
+                match T::read(&self.stmt) {
+                    Ok(r) => Some(r),
+                    Err(e) => {
+                        godot_print!("SQLError! {:?}", e);
+                        None
+                    }
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct DBMedium {
+    pub id: String,
+    pub isbn: String,
+    pub title: String,
+    pub publisher: String,
+    pub year: i64,
+    pub costs: f64,
+    pub note: String,
+    pub borrowable: bool,
+    pub category: String,
+    pub authors: Vec<String>,
+    pub borrower: String,
+    pub deadline: String,
+    pub reservation: String,
+}
+
+impl ReadStmt for DBMedium {
+    type Error = api::Error;
+
+    fn read(stmt: &sqlite::Statement<'_>) -> api::Result<DBMedium> {
+        Ok(DBMedium {
+            id: stmt.read(0)?,
+            isbn: stmt.read(1)?,
+            title: stmt.read(2)?,
+            publisher: stmt.read(3)?,
+            year: stmt.read(4)?,
+            costs: stmt.read(5)?,
+            note: stmt.read(6)?,
+            borrowable: stmt.read::<i64>(7)? != 0,
+            category: stmt.read(8)?,
+            authors: stmt
+                .read::<String>(9)?
+                .split(',')
+                .map(|a| a.to_string())
+                .collect(),
+            borrower: stmt.read(10)?,
+            deadline: stmt.read(11)?,
+            reservation: stmt.read(12)?,
+        })
+    }
+}
+
+#[derive(Debug)]
+pub struct DBUser {
+    pub account: String,
+    pub forename: String,
+    pub surname: String,
+    pub role: String,
+    pub may_borrow: bool,
+}
+
+impl ReadStmt for DBUser {
+    type Error = api::Error;
+
+    fn read(stmt: &sqlite::Statement<'_>) -> api::Result<DBUser> {
+        Ok(DBUser {
+            account: stmt.read(0)?,
+            forename: stmt.read(1)?,
+            surname: stmt.read(2)?,
+            role: stmt.read(3)?,
+            may_borrow: stmt.read::<i64>(4)? != 0,
+        })
+    }
 }
