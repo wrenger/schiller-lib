@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/icon.png-66e56a551f174bdc993eb27d415a6710.stex"
+path="res://.import/Time.svg-b399f8ee33be482deca30e8ef4f9ae4c.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://icons/icon.png"
-dest_files=[ "res://.import/icon.png-66e56a551f174bdc993eb27d415a6710.stex" ]
+source_file="res://images/Time.svg"
+dest_files=[ "res://.import/Time.svg-b399f8ee33be482deca30e8ef4f9ae4c.stex" ]
 
 [params]
 

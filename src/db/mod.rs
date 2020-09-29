@@ -4,8 +4,8 @@ use std::path::PathBuf;
 use gdnative::prelude::*;
 
 mod raw;
-
 use crate::api;
+use raw::DatabaseExt;
 
 const QUERY_MEDIA_LIST: &str = r#"
 select
@@ -33,6 +33,20 @@ or note like '%'||?||'%'
 or authors like '%'||?||'%'
 "#;
 
+const UPDATE_MEDIUM: &str = r#"
+update medium set id=?, isbn=?, title=?, publisher=?, year=?, costs=?, note=?, borrowable=?, category=? where id=?
+"#;
+const UPDATE_MEDIUM_AUTHORS: &str = r#"
+update author set medium=? where medium=?
+"#;
+
+const DELETE_MEDIUM: &str = r#"
+delete from medium where id=?
+"#;
+const DELETE_UNUSED_AUTHORS: &str = r#"
+delete from author where medium not in (select id from medium)
+"#;
+
 const QUERY_USER_LIST: &str = r#"
 select
 account,
@@ -45,6 +59,24 @@ where account like '%'||?||'%'
 or forename like '%'||?||'%'
 or surname like '%'||?||'%'
 or role like '%'||?||'%'
+"#;
+
+const UPDATE_USER: &str = r#"
+update user set account=?, forename=?, surname=?, role=?, may_borrow=? where account=?
+"#;
+const UPDATE_USER_BORROWS: &str = r#"
+update medium set borrower=? where borrower=?;
+"#;
+const UPDATE_USER_RESERVATIONS: &str = r#"
+update medium set reservation=? where reservation=?;
+"#;
+
+const DELETE_USER: &str = r#"
+delete from user where account=?
+"#;
+const DELETE_UNUSED_USERS: &str = r#"
+update medium set reservation='' where reservation not in (select account from user);
+update medium set borrower='' where reservation not in (select account from user);
 "#;
 
 pub struct Database {
@@ -91,23 +123,99 @@ impl Database {
         Ok(DBIter::new(stmt))
     }
 
-    pub fn update_medium(&self, previous_id: &str, medium: &api::Medium) -> api::Result<()> {
+    pub fn update_medium(&self, previous_id: &str, medium: &DBMedium) -> api::Result<()> {
         godot_print!("update_medium {} -> {:?}", previous_id, medium);
+        let transaction = self.db.transaction()?;
+        // update medium
+        let mut stmt = self.db.prepare(UPDATE_MEDIUM)?;
+        stmt.bind(1, medium.id.as_str())?;
+        stmt.bind(2, medium.isbn.as_str())?;
+        stmt.bind(3, medium.title.as_str())?;
+        stmt.bind(4, medium.publisher.as_str())?;
+        stmt.bind(5, medium.year)?;
+        stmt.bind(6, medium.costs)?;
+        stmt.bind(7, medium.note.as_str())?;
+        stmt.bind(8, medium.borrowable as i64)?;
+        stmt.bind(9, medium.category.as_str())?;
+        stmt.bind(10, previous_id)?;
+        if stmt.next()? != sqlite::State::Done {
+            return Err(api::Error::SQLError);
+        }
+
+        // update authors
+        let mut stmt = self.db.prepare(UPDATE_MEDIUM_AUTHORS)?;
+        stmt.bind(1, medium.id.as_str())?;
+        stmt.bind(2, previous_id)?;
+        if stmt.next()? != sqlite::State::Done {
+            return Err(api::Error::SQLError);
+        }
+        transaction.commit()?;
         Ok(())
     }
 
     pub fn delete_medium(&self, id: &str) -> api::Result<()> {
         godot_print!("delete_medium {}", id);
+        let transaction = self.db.transaction()?;
+        // delete medium
+        let mut stmt = self.db.prepare(DELETE_MEDIUM)?;
+        stmt.bind(1, id)?;
+        if stmt.next()? != sqlite::State::Done {
+            return Err(api::Error::SQLError);
+        }
+
+        // delete missing authors
+        self.db.execute(DELETE_UNUSED_AUTHORS)?;
+        transaction.commit()?;
         Ok(())
     }
 
-    pub fn update_user(&self, previous_account: &str, user: &api::User) -> api::Result<()> {
+    pub fn update_user(&self, previous_account: &str, user: &DBUser) -> api::Result<()> {
         godot_print!("update_user {} -> {:?}", previous_account, user);
+        let transaction = self.db.transaction()?;
+        // update user
+        let mut stmt = self.db.prepare(UPDATE_USER)?;
+        stmt.bind(1, user.account.as_str())?;
+        stmt.bind(2, user.forename.as_str())?;
+        stmt.bind(3, user.surname.as_str())?;
+        stmt.bind(4, user.role.as_str())?;
+        stmt.bind(5, user.may_borrow as i64)?;
+        stmt.bind(6, previous_account)?;
+        if stmt.next()? != sqlite::State::Done {
+            return Err(api::Error::SQLError);
+        }
+
+        // update borrows
+        let mut stmt = self.db.prepare(UPDATE_USER_BORROWS)?;
+        stmt.bind(1, user.account.as_str())?;
+        stmt.bind(2, previous_account)?;
+        if stmt.next()? != sqlite::State::Done {
+            return Err(api::Error::SQLError);
+        }
+
+        // update reservations
+        let mut stmt = self.db.prepare(UPDATE_USER_RESERVATIONS)?;
+        stmt.bind(1, user.account.as_str())?;
+        stmt.bind(2, previous_account)?;
+        if stmt.next()? != sqlite::State::Done {
+            return Err(api::Error::SQLError);
+        }
+        transaction.commit()?;
         Ok(())
     }
 
     pub fn delete_user(&self, account: &str) -> api::Result<()> {
         godot_print!("delete_user {}", account);
+        let transaction = self.db.transaction()?;
+        // remove user
+        let mut stmt = self.db.prepare(DELETE_USER)?;
+        stmt.bind(1, account)?;
+        if stmt.next()? != sqlite::State::Done {
+            return Err(api::Error::SQLError);
+        }
+
+        // remove borrows & reservations
+        self.db.execute(DELETE_UNUSED_USERS)?;
+        transaction.commit()?;
         Ok(())
     }
 }

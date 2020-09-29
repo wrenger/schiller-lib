@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://ui/OverduesText.gd" type="Script" id=1]
+[ext_resource path="res://ui/Overdues.gd" type="Script" id=2]
 
 [node name="Overdues" type="MarginContainer"]
 anchor_right = 1.0
@@ -13,15 +14,16 @@ custom_constants/margin_right = 5
 custom_constants/margin_top = 10
 custom_constants/margin_left = 5
 custom_constants/margin_bottom = 5
+script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="TextEdit" type="TextEdit" parent="."]
+[node name="Text" type="TextEdit" parent="."]
 margin_left = 5.0
 margin_top = 10.0
-margin_right = 1011.0
-margin_bottom = 559.0
+margin_right = 1187.0
+margin_bottom = 759.0
 readonly = true
 smooth_scrolling = true
 wrap_enabled = true

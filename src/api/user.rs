@@ -38,6 +38,16 @@ impl User {
         self.may_borrow = user.may_borrow;
     }
 
+    pub fn db(&self) -> DBUser {
+        DBUser {
+            account: self.account.to_string(),
+            forename: self.forename.to_string(),
+            surname: self.surname.to_string(),
+            role: self.role.to_string(),
+            may_borrow: self.may_borrow,
+        }
+    }
+
     #[export]
     pub fn demo(&mut self, _owner: &Object) {
         self.account = "demo.test".into();

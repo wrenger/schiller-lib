@@ -41,9 +41,9 @@ _global_script_class_icons={
 config/name="sbv-gd"
 config/description="The schiller library software."
 run/main_scene="res://ui/Main.tscn"
-boot_splash/image="res://icons/icon.png"
+boot_splash/image="res://images/icon.png"
 boot_splash/fullsize=false
-config/icon="res://icons/icon.png"
+config/icon="res://images/icon.png"
 config/macos_native_icon="res://icons/icon.icns"
 config/windows_native_icon="res://icons/icon.ico"
 

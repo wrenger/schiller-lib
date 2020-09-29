@@ -72,6 +72,28 @@ impl Medium {
         self.reservation = medium.reservation.into();
     }
 
+    pub fn db(&self) -> DBMedium {
+        let mut authors = Vec::with_capacity(self.authors.len() as _);
+        for i in 0..self.authors.len() {
+            authors.push(self.authors.get(i).to_string());
+        }
+        DBMedium {
+            id: self.id.to_string(),
+            isbn: self.isbn.to_string(),
+            title: self.title.to_string(),
+            publisher: self.publisher.to_string(),
+            year: self.year,
+            costs: self.costs,
+            note: self.note.to_string(),
+            borrowable: self.borrowable,
+            category: self.category.to_string(),
+            authors,
+            borrower: self.borrower.to_string(),
+            deadline: self.deadline.to_string(),
+            reservation: self.reservation.to_string(),
+        }
+    }
+
     #[export]
     pub fn demo(&mut self, _owner: &Object) {
         self.id = "FANT ABNT 1".into();

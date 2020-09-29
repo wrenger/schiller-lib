@@ -21,6 +21,7 @@ impl Project {
 
     #[export]
     fn open(&mut self, _owner: &Node, file: GodotString) -> bool {
+        godot_print!("sqlite version: {}", sqlite::version());
         godot_print!("opening {}", file);
         self.db = Database::new(&file.to_string()).ok();
         self.db.is_some()
@@ -53,7 +54,7 @@ impl Project {
             .ok_or(Error::InvalidArguments)?;
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         medium
-            .map(|medium, _| db.update_medium(&previous_id.to_string(), medium))
+            .map(|medium, _| db.update_medium(&previous_id.to_string(), &medium.db()))
             .unwrap()
     }
     #[export]
@@ -91,7 +92,7 @@ impl Project {
         let user = Instance::<api::User, Unique>::from_base(unsafe { user.assume_unique() })
             .ok_or(Error::InvalidArguments)?;
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        user.map(|user, _| db.update_user(&previous_account.to_string(), user))
+        user.map(|user, _| db.update_user(&previous_account.to_string(), &user.db()))
             .unwrap()
     }
     #[export]

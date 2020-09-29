@@ -41,6 +41,8 @@ func update_selected(object):
     var item := get_selected()
     if object:
         var fields = object.list_item()
+        self.results.erase(fields[0])
+        self.results[fields[0]] = object
         assert(len(fields) == columns)
         for i in range(columns):
             item.set_text(i, fields[i])

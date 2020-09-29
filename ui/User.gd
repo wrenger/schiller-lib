@@ -8,9 +8,8 @@ func _ready():
     set_editable(editable)
 
 
-func set_user(m):
-    user = m
-    if user:
+func set_user(m: Object):
+    if m != null:
         $Account.text = m.account
         $Forename.text = m.forename
         $Surname.text = m.surname
@@ -24,14 +23,13 @@ func set_user(m):
         $MayBorrow.pressed = true
 
 
-func get_user():
-    if editable:
-        user.account = $Account.text
-        user.forename = $Forename.text
-        user.surname = $Surname.text
-        user.role = $Role.text
-        user.may_borrow = $MayBorrow.pressed
-
+func get_user() -> Object:
+    var user := Medium.new()
+    user.account = $Account.text
+    user.forename = $Forename.text
+    user.surname = $Surname.text
+    user.role = $Role.text
+    user.may_borrow = $MayBorrow.pressed
     return user
 
 

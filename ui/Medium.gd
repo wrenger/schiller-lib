@@ -4,13 +4,16 @@ export var editable := false setget set_editable
 
 var medium: Object = null setget set_medium, get_medium
 
+var _borrower := ""
+var _deadline := ""
+var _reservation := ""
+
 func _ready():
     set_editable(editable)
 
 
-func set_medium(m):
-    medium = m
-    if medium:
+func set_medium(m: Object):
+    if m != null:
         $ID.text = m.id
         $ISBN.text = m.isbn
         $Title.text = m.title
@@ -35,27 +38,32 @@ func set_medium(m):
         $Year.value = 2000
         $Authors.clear()
         $Category.clear()
-        $Notes.clear()
+        $Notes.text = ""
         $Borrowable.pressed = true
+        _borrower = ""
+        _deadline = ""
+        _reservation = ""
 
 
-func get_medium():
-    if editable:
-        medium.id = $ID.text
-        medium.isbn = $ISBN.text
-        medium.title = $Title.text
-        medium.publisher = $Publisher.text
-        medium.costs = $Price.value
-        medium.year = $Year.value as int
-        if $Authors.get_root():
-            var child := $Authors.get_root().get_children() as TreeItem
-            while child:
-                medium.authors.append(child.get_text(0))
-                child = child.get_next()
-        medium.category = $Category.get_item_text($Category.selected)
-        medium.note = $Notes.text
-        medium.borrowable = $Borrowable.pressed
-
+func get_medium() -> Object:
+    var medium := Medium.new()
+    medium.id = $ID.text
+    medium.isbn = $ISBN.text
+    medium.title = $Title.text
+    medium.publisher = $Publisher.text
+    medium.costs = $Price.value
+    medium.year = $Year.value as int
+    if $Authors.get_root():
+        var child := $Authors.get_root().get_children() as TreeItem
+        while child:
+            medium.authors.append(child.get_text(0))
+            child = child.get_next()
+    medium.category = $Category.get_item_text($Category.selected)
+    medium.note = $Notes.text
+    medium.borrowable = $Borrowable.pressed
+    medium.borrower = _borrower
+    medium.deadline = _deadline
+    medium.reservation = _reservation
     return medium
 
 

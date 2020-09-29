@@ -63,22 +63,29 @@ func _on_show_media() -> void:
 
 func _on_edit_cancel() -> void:
     set_user(before_edit)
+    before_edit.free()
     before_edit = null
 
 
 func _on_edit_apply() -> void:
     var result = project.update_user(before_edit.account, _user_pane.user)
     if result.has("Err"):
-        MessageDialog.alert(get_tree(), "Error: " + result["Err"])
-    set_user(_user_pane.user, false)
-    _user_list.update_selected(_user_pane.user)
-    before_edit = null
+        MessageDialog.alert(get_tree(), "Error: " + String(result["Err"]))
+        _on_edit_cancel()
+    else:
+        set_user(_user_pane.user, false)
+        _user_list.update_selected(_user_pane.user)
+        before_edit.free()
+        before_edit = null
 
 
 func _on_edit_delete() -> void:
     var result = project.delete_user(before_edit.account)
     if result.has("Err"):
-        MessageDialog.alert(get_tree(), "Error: " + result["Err"])
-    set_user(null)
-    _user_list.update_selected(null)
-    before_edit = null
+        MessageDialog.alert(get_tree(), "Error: " + String(result["Err"]))
+        _on_edit_cancel()
+    else:
+        set_user(null)
+        _user_list.update_selected(null)
+        before_edit.free()
+        before_edit = null

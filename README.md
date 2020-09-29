@@ -13,6 +13,19 @@ This application follows the 3-tier principle.
 It contains the business logic and most of the computation is done in this layer.
 * **Database Layer:** The sqlite database that stores the persistand data specific to a project.
 
+### UI Layer
+
+### Application Layer
+
+### Database Layer
+
+The sqlite database has the following schema.
+
+![Database Schema](images/sbv_db.svg)
+
+It contains any project specific information and can be distributed as such.
+
+
 ## Building the GDNative Library
 
 The application layer is written in [rust](https://www.rust-lang.org/), which has to be installed first.
