@@ -28,13 +28,13 @@ onready var _medium_edit := get_node(medium_edit) as Control
 onready var _medium_editing := get_node(medium_editing) as Control
 
 
-var before_edit = null
+var before_edit: Reference = null
 
 func _ready() -> void:
     set_medium(null)
 
 
-func set_medium(medium: Object, update_pane = true):
+func set_medium(medium: Reference, update_pane = true):
     _medium_box.visible = medium != null
 
     if medium != null:
@@ -66,15 +66,15 @@ func set_medium(medium: Object, update_pane = true):
 
 
 func _on_basic_search(new_text):
-    var result = project.search_media_basic(new_text)
+    var result: Dictionary = project.search_media(new_text)
 
     if result.has("Ok"):
         _media_list.fill(result["Ok"])
     else:
-        MessageDialog.alert(get_tree(), "Search Error: " + result["Err"])
+        MessageDialog.alert(get_tree(), "Search Error: " + String(result["Err"]))
 
 
-func _on_medium_selected(medium):
+func _on_medium_selected(medium: Reference):
     assert(not _medium_pane.editable)
     set_medium(medium)
 
@@ -114,29 +114,26 @@ func _on_edit():
 
 func _on_edit_cancel() -> void:
     set_medium(before_edit)
-    before_edit.free()
     before_edit = null
 
 
 func _on_edit_apply() -> void:
-    var result = project.update_medium(before_edit.id, _medium_pane.medium)
-    if result.has("Err"):
-        MessageDialog.alert(get_tree(), "Error: " + String(result["Err"]))
-        _on_edit_cancel()
-    else:
+    var result: Dictionary = project.update_medium(before_edit.id, _medium_pane.medium)
+    if result.has("Ok"):
         set_medium(_medium_pane.medium, false)
         _media_list.update_selected(_medium_pane.medium)
-        before_edit.free()
         before_edit = null
+    else:
+        MessageDialog.alert(get_tree(), "Error: " + String(result["Err"]))
+        _on_edit_cancel()
 
 
 func _on_edit_delete() -> void:
-    var result = project.delete_medium(before_edit.id)
-    if result.has("Err"):
-        MessageDialog.alert(get_tree(), "Error: " + result["Err"])
-        _on_edit_cancel()
-    else:
+    var result: Dictionary = project.delete_medium(before_edit.id)
+    if result.has("Ok"):
         set_medium(null)
         _media_list.update_selected(null)
-        before_edit.free()
         before_edit = null
+    else:
+        MessageDialog.alert(get_tree(), "Error: " + String(result["Err"]))
+        _on_edit_cancel()

@@ -13,8 +13,6 @@ func _ready():
         set_tab_icon(i, icons[i])
 
 
-
-
 func _on_tab_changed(tab: int) -> void:
     match tab:
         3: emit_signal("show_overdues")

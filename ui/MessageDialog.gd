@@ -5,8 +5,7 @@ onready var window_content := $"../Content" as Control
 
 static func alert(scene: SceneTree, text: String):
     var nodes = scene.get_nodes_in_group("MessageDialog")
-    if nodes:
-        nodes.front()._alert(text)
+    if nodes: nodes.front()._alert(text)
 
 func _alert(text: String):
     if not visible:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://ui/SearchMedia.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/AddMedium.tscn" type="PackedScene" id=2]
@@ -13,8 +13,13 @@
 [ext_resource path="res://ui/Main.gd" type="Script" id=11]
 [ext_resource path="res://ui/dark.tres" type="Theme" id=12]
 [ext_resource path="res://ui/MessageDialog.gd" type="Script" id=13]
+[ext_resource path="res://ui/ProjectDialog.gd" type="Script" id=14]
+[ext_resource path="res://ui/Persistant.gd" type="Script" id=15]
 
-[node name="MainWindow" type="Panel"]
+[node name="MainWindow" type="Panel" groups=[
+"CategoryChanger",
+"Persist",
+]]
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme = ExtResource( 12 )
@@ -107,6 +112,35 @@ script = ExtResource( 13 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="ProjectDialog" type="FileDialog" parent="." groups=[
+"ProjectDialog",
+]]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -454.5
+margin_top = -301.0
+margin_right = 454.5
+margin_bottom = 301.0
+popup_exclusive = true
+window_title = "Open a File"
+resizable = true
+mode = 0
+access = 2
+filters = PoolStringArray( "*.db ; SQLite DB" )
+current_dir = "/home/lars/Documents/projects/sbv-gd"
+current_path = "/home/lars/Documents/projects/sbv-gd/"
+script = ExtResource( 14 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Persist" type="Node" parent="."]
+script = ExtResource( 15 )
 [connection signal="show_overdues" from="Content/Tabs" to="Content/Tabs/Overdues" method="_on_show_overdues"]
 [connection signal="tab_changed" from="Content/Tabs" to="Content/Tabs" method="_on_tab_changed"]
 [connection signal="popup_hide" from="MessageDialog" to="MessageDialog" method="_popup_hide"]
+[connection signal="file_selected" from="ProjectDialog" to="." method="_on_project_selected"]
+[connection signal="popup_hide" from="ProjectDialog" to="ProjectDialog" method="_popup_hide"]

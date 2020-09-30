@@ -10,6 +10,16 @@ var _reservation := ""
 
 func _ready():
     set_editable(editable)
+    for node in get_tree().get_nodes_in_group("CategoryChanger"):
+        assert(node.connect("categories_changed", self, "_on_categories_changed") == OK)
+
+
+func _on_categories_changed(categories: Array):
+    var ctrl := $Category as OptionButton
+    ctrl.clear()
+    for category in categories:
+        var text: String = category.id + " - " + category.name + " - " + category.section
+        ctrl.add_item(text,  category.id.hash())
 
 
 func set_medium(m: Object):
@@ -25,8 +35,7 @@ func set_medium(m: Object):
         for author in m.authors:
             var item := $Authors.create_item(root) as TreeItem
             item.set_text(0, author)
-        $Category.clear()
-        $Category.add_item(m.category)
+        $Category.select($Category.get_item_index(m.category.hash()))
         $Notes.text = m.note
         $Borrowable.pressed = m.borrowable
     else:
@@ -58,7 +67,8 @@ func get_medium() -> Object:
         while child:
             medium.authors.append(child.get_text(0))
             child = child.get_next()
-    medium.category = $Category.get_item_text($Category.selected)
+    var text: String = $Category.get_item_text($Category.selected)
+    medium.category = text.split(" - ", true, 1)[1]
     medium.note = $Notes.text
     medium.borrowable = $Borrowable.pressed
     medium.borrower = _borrower

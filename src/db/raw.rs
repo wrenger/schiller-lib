@@ -115,6 +115,11 @@ mod tests {
             ],
             db.fetch("select * from abc").unwrap()
         );
+
+        let mut stmt = db.prepare("select a from abc where a='1'").unwrap();
+        assert_eq!(stmt.next().unwrap(), sqlite::State::Row);
+        assert_eq!(stmt.read::<i64>(0).unwrap(), 1);
+        assert_eq!(stmt.next().unwrap(), sqlite::State::Done);
     }
 
     #[test]

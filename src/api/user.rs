@@ -2,9 +2,9 @@ use gdnative::prelude::*;
 
 use crate::db::DBUser;
 
-/// The Database wrapper "class"
+/// The User wrapper "class"
 #[derive(NativeClass, Debug)]
-#[inherit(Object)]
+#[inherit(Reference)]
 pub struct User {
     #[property]
     pub account: GodotString,
@@ -20,7 +20,7 @@ pub struct User {
 
 #[methods]
 impl User {
-    fn new(_owner: &Object) -> Self {
+    fn new(_owner: &Reference) -> Self {
         User {
             account: GodotString::new(),
             forename: GodotString::new(),
@@ -49,16 +49,7 @@ impl User {
     }
 
     #[export]
-    pub fn demo(&mut self, _owner: &Object) {
-        self.account = "demo.test".into();
-        self.forename = "Demo".into();
-        self.surname = "Test".into();
-        self.role = "Admin".into();
-        self.may_borrow = true;
-    }
-
-    #[export]
-    fn list_item(&mut self, _owner: &Object) -> StringArray {
+    fn list_item(&mut self, _owner: &Reference) -> StringArray {
         StringArray::from_vec(vec![
             self.account.clone(),
             self.forename.clone(),

@@ -16,13 +16,13 @@ onready var _user_show_media := get_node(user_show_media) as Control
 onready var _user_edit := get_node(user_edit) as Control
 onready var _user_editing := get_node(user_editing) as Control
 
-var before_edit = null
+var before_edit: Reference = null
 
 func _ready() -> void:
     set_user(null)
 
 
-func set_user(user, update_pane = true):
+func set_user(user: Reference, update_pane: bool = true):
     _user_box.visible = user != null
 
     if user:
@@ -35,14 +35,14 @@ func set_user(user, update_pane = true):
 
 
 func _on_search(text: String) -> void:
-    var result = project.search_user_basic(text)
+    var result = project.search_users(text)
     if result.has("Ok"):
         _user_list.fill(result["Ok"])
     else:
-        MessageDialog.alert(get_tree(), "Search Error: " + result["Err"])
+        MessageDialog.alert(get_tree(), "Search Error: " + String(result["Err"]))
 
 
-func _on_user_selected(user) -> void:
+func _on_user_selected(user: Reference) -> void:
     assert(not _user_pane.editable)
     set_user(user)
 
@@ -63,29 +63,26 @@ func _on_show_media() -> void:
 
 func _on_edit_cancel() -> void:
     set_user(before_edit)
-    before_edit.free()
     before_edit = null
 
 
 func _on_edit_apply() -> void:
-    var result = project.update_user(before_edit.account, _user_pane.user)
-    if result.has("Err"):
-        MessageDialog.alert(get_tree(), "Error: " + String(result["Err"]))
-        _on_edit_cancel()
-    else:
+    var result: Dictionary = project.update_user(before_edit.account, _user_pane.user)
+    if result.has("Ok"):
         set_user(_user_pane.user, false)
         _user_list.update_selected(_user_pane.user)
-        before_edit.free()
         before_edit = null
+    else:
+        MessageDialog.alert(get_tree(), "Error: " + String(result["Err"]))
+        _on_edit_cancel()
 
 
 func _on_edit_delete() -> void:
-    var result = project.delete_user(before_edit.account)
-    if result.has("Err"):
-        MessageDialog.alert(get_tree(), "Error: " + String(result["Err"]))
-        _on_edit_cancel()
-    else:
+    var result: Dictionary = project.delete_user(before_edit.account)
+    if result.has("Ok"):
         set_user(null)
         _user_list.update_selected(null)
-        before_edit.free()
         before_edit = null
+    else:
+        MessageDialog.alert(get_tree(), "Error: " + String(result["Err"]))
+        _on_edit_cancel()

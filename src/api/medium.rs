@@ -4,9 +4,9 @@ use gdnative::prelude::*;
 
 use crate::db::DBMedium;
 
-/// The Database wrapper "class"
+/// The Medium wrapper "class"
 #[derive(NativeClass, Debug)]
-#[inherit(Object)]
+#[inherit(Reference)]
 pub struct Medium {
     #[property]
     pub id: GodotString,
@@ -38,7 +38,7 @@ pub struct Medium {
 
 #[methods]
 impl Medium {
-    fn new(_owner: &Object) -> Self {
+    fn new(_owner: &Reference) -> Self {
         Medium {
             id: GodotString::new(),
             isbn: GodotString::new(),
@@ -95,22 +95,7 @@ impl Medium {
     }
 
     #[export]
-    pub fn demo(&mut self, _owner: &Object) {
-        self.id = "FANT ABNT 1".into();
-        self.isbn = "123456789".into();
-        self.title = "Into The Abyss".into();
-        self.publisher = "Cruel World".into();
-        self.year = 2020;
-        self.costs = 9.99;
-        self.note = "TEST".into();
-        self.borrowable = true;
-        self.category = "FANT".into();
-        self.authors.push("Lars Wrenger".into());
-        self.authors.push("Rek".into());
-    }
-
-    #[export]
-    fn list_item(&mut self, owner: &Object) -> StringArray {
+    fn list_item(&mut self, owner: &Reference) -> StringArray {
         StringArray::from_vec(vec![
             self.id.clone(),
             self.title.clone(),
