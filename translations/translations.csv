@@ -105,7 +105,7 @@
 .medium.id.format,"The Book ID has to consist of the category, author and a numeric id.","Die Signatur muss aus der Kategorie, dem Autor und einer ID bestehen."
 .medium.isbn,ISBN,ISBN
 .medium.lend,Lend,Ausleihen
-.medium.lend.date,Return Date,Rückgabedatum
+.medium.lend.period,Period,Dauer
 .medium.lend.to,Lend to {0},Ausleihen an {0}
 .medium.lend.until,Borrowed until {0},Ausgeliehen bis zum {0}
 .medium.new,Add book,Neues Buch
@@ -113,6 +113,7 @@
 .medium.not-borrowable,Not Borrowable,Nicht ausleihbar
 .medium.note,Notes,Notizen
 .medium.period,{0} - {1} ({2}) - Since {3} ({4} day{4:|s}),{0} - {1} ({2}) - Seit dem {3} ({4} Tag{4:|e})
+.medium.period.days,days,Tage
 .medium.publisher,Publisher,Verlag
 .medium.renew,Renew,Verlängern
 .medium.request,Fetch Infos,Infos laden

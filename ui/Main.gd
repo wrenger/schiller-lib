@@ -8,7 +8,6 @@ var project_path: String = ""
 
 
 func _ready() -> void:
-    print("_ready")
     get_tree().set_auto_accept_quit(false)
     if project_path:
         _on_project_selected(project_path)

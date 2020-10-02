@@ -125,7 +125,6 @@ func _on_author_add() -> void:
 
 
 func _on_author_remove() -> void:
-    print("_on_author_remove")
     var selected = $Authors/List.get_selected()
     if selected:
         selected.deselect(0)
@@ -134,4 +133,3 @@ func _on_author_remove() -> void:
 
 func _on_author_selected() -> void:
      $Authors/Box/Remove.disabled = $Authors/List.get_selected() == null
-

@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://ui/Medium.tscn" type="PackedScene" id=1]
 [ext_resource path="res://images/Search.svg" type="Texture" id=2]
 [ext_resource path="res://ui/ObjectList.gd" type="Script" id=3]
 [ext_resource path="res://ui/SearchMedia.gd" type="Script" id=4]
 [ext_resource path="res://images/Remove.svg" type="Texture" id=5]
+[ext_resource path="res://ui/MediumPanel.gd" type="Script" id=6]
 
 [node name="Media" type="MarginContainer"]
 anchor_right = 1.0
@@ -23,18 +24,6 @@ script = ExtResource( 4 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
-media_list = NodePath("Split/Search/MediaList")
-medium_box = NodePath("Split/Panel/Box")
-medium_pane = NodePath("Split/Panel/Box/Medium")
-medium_state = NodePath("Split/Panel/Box/State")
-medium_lend = NodePath("Split/Panel/Box/Lend")
-medium_lend_to = NodePath("Split/Panel/Box/LendTo")
-medium_revoke = NodePath("Split/Panel/Box/Revoke")
-medium_reserve = NodePath("Split/Panel/Box/Reserve")
-medium_release = NodePath("Split/Panel/Box/Release")
-medium_edit = NodePath("Split/Panel/Box/Edit")
-medium_editing = NodePath("Split/Panel/Box/Editing")
-medium_adding = NodePath("Split/Panel/Box/Adding")
 
 [node name="Split" type="HSplitContainer" parent="."]
 margin_left = 5.0
@@ -88,6 +77,7 @@ margin_top = 4.0
 margin_right = 568.0
 margin_bottom = 745.0
 custom_constants/separation = 5
+script = ExtResource( 6 )
 
 [node name="Medium" parent="Split/Panel/Box" instance=ExtResource( 1 )]
 margin_right = 562.0
@@ -186,16 +176,18 @@ size_flags_horizontal = 3
 text = ".action.add"
 [connection signal="text_entered" from="Split/Search/Input" to="." method="_on_basic_search"]
 [connection signal="item_selected" from="Split/Search/MediaList" to="Split/Search/MediaList" method="_on_item_selected"]
-[connection signal="object_selected" from="Split/Search/MediaList" to="." method="_on_medium_selected"]
-[connection signal="pressed" from="Split/Search/Add" to="." method="_on_add_medium"]
-[connection signal="pressed" from="Split/Panel/Box/Lend" to="." method="_on_lend"]
-[connection signal="pressed" from="Split/Panel/Box/LendTo" to="." method="_on_lend_to"]
-[connection signal="pressed" from="Split/Panel/Box/Reserve" to="." method="_on_reserve"]
-[connection signal="pressed" from="Split/Panel/Box/Release" to="." method="_on_release"]
-[connection signal="pressed" from="Split/Panel/Box/Revoke" to="." method="_on_revoke"]
-[connection signal="pressed" from="Split/Panel/Box/Edit" to="." method="_on_edit"]
-[connection signal="pressed" from="Split/Panel/Box/Editing/Cancel" to="." method="_on_edit_cancel"]
-[connection signal="pressed" from="Split/Panel/Box/Editing/Apply" to="." method="_on_edit_apply"]
-[connection signal="pressed" from="Split/Panel/Box/Editing/Delete" to="." method="_on_edit_delete"]
-[connection signal="pressed" from="Split/Panel/Box/Adding/Cancel" to="." method="_on_edit_cancel"]
-[connection signal="pressed" from="Split/Panel/Box/Adding/Add" to="." method="_on_edit_add"]
+[connection signal="object_selected" from="Split/Search/MediaList" to="Split/Panel/Box" method="_on_medium_selected"]
+[connection signal="pressed" from="Split/Search/Add" to="Split/Panel/Box" method="_on_add_medium"]
+[connection signal="add_medium" from="Split/Panel/Box" to="Split/Search/MediaList" method="add_and_select_object"]
+[connection signal="update_medium" from="Split/Panel/Box" to="Split/Search/MediaList" method="update_selected"]
+[connection signal="pressed" from="Split/Panel/Box/Lend" to="Split/Panel/Box" method="_on_lend"]
+[connection signal="pressed" from="Split/Panel/Box/LendTo" to="Split/Panel/Box" method="_on_lend_to"]
+[connection signal="pressed" from="Split/Panel/Box/Reserve" to="Split/Panel/Box" method="_on_reserve"]
+[connection signal="pressed" from="Split/Panel/Box/Release" to="Split/Panel/Box" method="_on_release"]
+[connection signal="pressed" from="Split/Panel/Box/Revoke" to="Split/Panel/Box" method="_on_revoke"]
+[connection signal="pressed" from="Split/Panel/Box/Edit" to="Split/Panel/Box" method="_on_edit"]
+[connection signal="pressed" from="Split/Panel/Box/Editing/Cancel" to="Split/Panel/Box" method="_on_edit_cancel"]
+[connection signal="pressed" from="Split/Panel/Box/Editing/Apply" to="Split/Panel/Box" method="_on_edit_apply"]
+[connection signal="pressed" from="Split/Panel/Box/Editing/Delete" to="Split/Panel/Box" method="_on_edit_delete"]
+[connection signal="pressed" from="Split/Panel/Box/Adding/Cancel" to="Split/Panel/Box" method="_on_edit_cancel"]
+[connection signal="pressed" from="Split/Panel/Box/Adding/Add" to="Split/Panel/Box" method="_on_edit_add"]

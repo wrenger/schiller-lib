@@ -25,11 +25,9 @@ func _exit_tree() -> void:
     var settings := {}
     var save_nodes := get_tree().get_nodes_in_group("Persist")
     for node in save_nodes:
-        print("persist ", node.get_path())
         settings[String(node.get_path())] = node.persistant_save()
 
     var file := File.new()
     assert(file.open(savepath, File.WRITE) == OK)
     file.store_string(JSON.print(settings, "  "))
     file.close()
-

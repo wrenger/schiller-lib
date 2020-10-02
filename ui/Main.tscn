@@ -165,7 +165,8 @@ __meta__ = {
 
 [node name="Lend" type="VBoxContainer" parent="LendDialog/Box"]
 margin_right = 458.0
-margin_bottom = 126.0
+margin_bottom = 192.0
+custom_constants/separation = 10
 
 [node name="Medium" type="VBoxContainer" parent="LendDialog/Box/Lend"]
 margin_right = 458.0
@@ -180,34 +181,58 @@ text = ".medium"
 margin_top = 26.0
 margin_right = 458.0
 margin_bottom = 48.0
+text = "-"
 
 [node name="User" type="VBoxContainer" parent="LendDialog/Box/Lend"]
-margin_top = 52.0
+margin_top = 58.0
 margin_right = 458.0
-margin_bottom = 126.0
+margin_bottom = 134.0
 
 [node name="Label" type="Label" parent="LendDialog/Box/Lend/User"]
 margin_right = 458.0
 margin_bottom = 22.0
 text = ".user"
 
-[node name="Account" type="LineEdit" parent="LendDialog/Box/Lend/User"]
+[node name="Search" type="LineEdit" parent="LendDialog/Box/Lend/User"]
+margin_top = 26.0
+margin_right = 458.0
+margin_bottom = 50.0
+right_icon = ExtResource( 7 )
+
+[node name="Popup" type="PopupMenu" parent="LendDialog/Box/Lend/User/Search"]
+margin_left = -371.0
+margin_top = -354.5
+margin_right = -355.0
+margin_bottom = -338.5
+
+[node name="State" type="Label" parent="LendDialog/Box/Lend/User"]
+margin_top = 54.0
+margin_right = 458.0
+margin_bottom = 76.0
+text = "-"
+
+[node name="Period" type="VBoxContainer" parent="LendDialog/Box/Lend"]
+margin_top = 144.0
+margin_right = 458.0
+margin_bottom = 192.0
+
+[node name="Label" type="Label" parent="LendDialog/Box/Lend/Period"]
+margin_right = 458.0
+margin_bottom = 22.0
+text = ".medium.lend.period"
+
+[node name="Days" type="SpinBox" parent="LendDialog/Box/Lend/Period"]
 margin_top = 26.0
 margin_right = 458.0
 margin_bottom = 48.0
-
-[node name="Name" type="LineEdit" parent="LendDialog/Box/Lend/User"]
-margin_top = 52.0
-margin_right = 458.0
-margin_bottom = 74.0
-
-[node name="Role" type="Label" parent="LendDialog/Box/Lend/User"]
-margin_right = 8.0
-margin_bottom = 22.0
+min_value = 1.0
+value = 14.0
+rounded = true
+allow_greater = true
+suffix = ".medium.period.days"
 [connection signal="menu_close" from="Content/Menu/File" to="." method="_on_close_project"]
 [connection signal="menu_open" from="Content/Menu/File" to="." method="_on_open_project"]
-[connection signal="show_overdues" from="Content/Tabs" to="Content/Tabs/Overdues" method="_on_show_overdues"]
-[connection signal="tab_changed" from="Content/Tabs" to="Content/Tabs" method="_on_tab_changed"]
+[connection signal="visibility_changed" from="Content/Tabs/Overdues" to="Content/Tabs/Overdues" method="_on_visibility_changed"]
 [connection signal="popup_hide" from="MessageDialog" to="MessageDialog" method="_popup_hide"]
 [connection signal="file_selected" from="ProjectDialog" to="." method="_on_project_selected"]
 [connection signal="popup_hide" from="ProjectDialog" to="ProjectDialog" method="_popup_hide"]

@@ -8,6 +8,10 @@ static func lend(scene: SceneTree, medium: Reference):
     if nodes: nodes.front()._lend(medium)
 
 
+func _ready() -> void:
+    $Box/Lend/Period/Days.suffix = tr(".medium.period.days")
+
+
 func _lend(medium: Reference):
     if not visible:
         window_content.modulate.a = 0.5

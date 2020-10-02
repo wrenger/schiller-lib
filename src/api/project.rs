@@ -23,7 +23,6 @@ impl Project {
     #[export]
     fn open(&mut self, _owner: &Node, file: GodotString) -> bool {
         godot_print!("sqlite version: {}", sqlite::version());
-        godot_print!("opening {}", file);
         self.db = Database::new(&file.to_string()).ok();
         self.db.is_some()
     }
