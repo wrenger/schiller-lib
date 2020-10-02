@@ -35,15 +35,14 @@ func set_user(user: Reference, update_pane: bool = true):
 
 
 func _on_search(text: String) -> void:
-    var result = project.search_users(text)
+    var result = project.user_search(text)
     if result.has("Ok"):
         _user_list.fill(result["Ok"])
     else:
-        MessageDialog.alert(get_tree(), "Search Error: " + String(result["Err"]))
+        MessageDialog.alert(get_tree(), tr(Util.error_msg(result["Err"])))
 
 
 func _on_user_selected(user: Reference) -> void:
-    assert(not _user_pane.editable)
     set_user(user)
 
 
@@ -67,22 +66,22 @@ func _on_edit_cancel() -> void:
 
 
 func _on_edit_apply() -> void:
-    var result: Dictionary = project.update_user(before_edit.account, _user_pane.user)
+    var result: Dictionary = project.user_update(before_edit.account, _user_pane.user)
     if result.has("Ok"):
         set_user(_user_pane.user, false)
         _user_list.update_selected(_user_pane.user)
         before_edit = null
     else:
-        MessageDialog.alert(get_tree(), "Error: " + String(result["Err"]))
+        MessageDialog.alert(get_tree(), tr(Util.error_msg(result["Err"])))
         _on_edit_cancel()
 
 
 func _on_edit_delete() -> void:
-    var result: Dictionary = project.delete_user(before_edit.account)
+    var result: Dictionary = project.user_delete(before_edit.account)
     if result.has("Ok"):
         set_user(null)
         _user_list.update_selected(null)
         before_edit = null
     else:
-        MessageDialog.alert(get_tree(), "Error: " + String(result["Err"]))
+        MessageDialog.alert(get_tree(), tr(Util.error_msg(result["Err"])))
         _on_edit_cancel()

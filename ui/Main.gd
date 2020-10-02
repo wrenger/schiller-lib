@@ -29,16 +29,24 @@ func _unhandled_key_input(event):
             MessageDialog.alert(get_tree(), "ctrl+P pressed")
 
 
+func _on_open_project():
+    ProjectDialog.open(get_tree())
+
+
+func _on_close_project():
+    project.close()
+
+
 func _on_project_selected(path: String) -> void:
     if project.open(path):
-        var result = project.categories()
+        var result = project.category_list()
         if result.has("Ok"):
             project_path = path
             emit_signal("categories_changed", result["Ok"])
         else:
-            print("ERROR: loading categories")
+            MessageDialog.error(get_tree(), tr(result["Err"]))
     else:
-        print("ERROR: opening project")
+        MessageDialog.error(get_tree(), tr(".error.db"))
 
 
 func persistant_save() -> Dictionary:

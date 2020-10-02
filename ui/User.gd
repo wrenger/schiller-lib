@@ -2,13 +2,13 @@ extends GridContainer
 
 export var editable := false setget set_editable
 
-var user: Object = null setget set_user, get_user
+var user: Reference = null setget set_user, get_user
 
 func _ready():
     set_editable(editable)
 
 
-func set_user(m: Object):
+func set_user(m: Reference):
     if m != null:
         $Account.text = m.account
         $Forename.text = m.forename
@@ -23,7 +23,7 @@ func set_user(m: Object):
         $MayBorrow.pressed = true
 
 
-func get_user() -> Object:
+func get_user() -> Reference:
     var user := Medium.new()
     user.account = $Account.text
     user.forename = $Forename.text

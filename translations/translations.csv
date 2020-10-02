@@ -52,20 +52,21 @@
 .error.config.default,Could not access the default preferences.,Die Voreinstellungen konnten nicht geladen werden.
 .error.config.load,Could not load the preferences.\nLoading default preferences instead.,Die Einstellungen konnten nicht geladen werden.\nEs wird auf die Voreinstellungen zurückgegriffen.
 .error.config.save,Unable to save the preferences.\nIs the data path correctly defined?,Die Einstellungen konnten nicht gespeichert werden.\nIst der Data-Ordner richtig konfiguriert?
-.error.data-db,The database could not be opened.,Die Datenbank konnte nicht geöffnet werden.
-.error.data-user,The user file could not be opened.,Die Benutzerdatei konnte nicht geöffnet werden.
+.error.db,The database could not be opened.,Die Datenbank konnte nicht geöffnet werden.
+.error.file-open,The file could not be opened,Die Datei konnte nicht geöffnet werden.
 .error.fx,Error during window initialization.,Fehler beim Laden des Fensters.
 .error.input,Malformed User or Book Data.,Fehlerhafte Account- oder Buchdaten.
 .error.medium.existing,The medium id '{0}' already exists.,Es gibt bereits ein anderes Buch mit der Signatur {0}.
 .error.medium.none,No book found.,Kein Buch gefunden.
+.error.no-project,No project has been opened.,Es wurde noch kein Projekt geöffnet.
 .error.reserve.borrowing,The user '{0}' borrows the book already.,Der Benutzer '{0}' leiht das Buch bereits aus.
 .error.sql,Database access failed.,Datenbankzugriff fehlgeschlagen.
 .error.update,Critical error during the update of the database!\nPlease contanct a developer.,Kritischer Fehler beim Aktualisieren der Datenbank!\nBitte kontaktiere einen Entwickler.
 .error.user.existing,The user account '{0}' already exists.,Ein Benutzer mit dem Account '{0}' existiert bereits.
 .error.user.none,No user found.,Kein Benutzer gefunden.
+.error.userfile,The user file could not be opened.,Die Benutzerdatei konnte nicht geöffnet werden.
 .info.about,The development of this application started in the 11th grade computer science course in 2015. Lars Wrenger completed its development and now maintains the project.,"Dieses Programm ist 2015 im Rahmen des Jg. 11 Informatikkurses von Herrn Grave entstanden. Fertiggestellt wurde es von Lars Wrenger, der das Projekt nun betreut."
 .info.category-freq,Number of Books per Category:\n\n{0},Anzahl der Bücher in den Kategorien:\n\n{0}
-.info.help,If you have questions please contact\na developer of this application:\n\n	Lars Wrenger (lars@wrenger.net)\n	Bernd Grave\n	Malte Baumann\n	Jonah Brauchitsch\n	Nina Bucher\n	Johannes Decker\n	Tim von Lücken\n	Tobias Nauen\n	Bjarne Ohst\n	Florian Panning\n	Maria Privalova\n	Valentin Volhard,Bei Fragen wende dich bitte an einen\nder Autoren des Programms:\n\n	Lars Wrenger (lars@wrenger.net)\n	Bernd Grave\n	Malte Baumann\n	Jonah Brauchitsch\n	Nina Bucher\n	Johannes Decker\n	Tim von Lücken\n	Tobias Nauen\n	Bjarne Ohst\n	Florian Panning\n	Maria Privalova\n	Valentin Volhard
 .info.help.title,Help,Hilfe
 .info.stats,{0} book{0:|s} total.\n\n{1} authors{1:|s} total\n\n{2} user{2:|s} total.\n\n{3} book{3:|s} borrowed.\n{4} expired periods.\n\n{5} book{5:|s} reserved.\n\nTotal costs of all books: {6}\n(sum of all entered costs),{0} {0:Buch|Bücher} eingetragen.\n\n{1} Autor{1:|en} eingetragen\n\n{2} Benutzer eingetragen.\n\n{3} {3:Buch|Bücher} ausgeliehen.\nDavon {4} {4:Buch|Bücher} überzogen.\n\n{5} {5:Buch|Bücher} vorgemerkt.\n\nGesamtpreis aller Medien: {6}\n(Summe aller eingetragenen Preise)
 .info.title,Info - Version: {0},Info - Version: {0}
@@ -155,6 +156,7 @@
 .search.user,Users,Benutzer
 .search.user.entry,Keyword (e.g. Name or Account),Suchbegriff (z.B. Name oder Account)
 .sql.title,Maintain Database,Datenbank warten
+.user,User,Benutzer
 .user.account,Account,Account
 .user.delete,Remove user from library?\nHis borrows and reservations will also be lost.,Möchtest du diesen Benutzer wirklich löschen?\nAlle seine Entleihungen und Vormerkungen gehen dadurch verloren!
 .user.forename,Forename,Vorname

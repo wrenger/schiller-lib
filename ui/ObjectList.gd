@@ -1,4 +1,5 @@
 extends Tree
+class_name ObjectList
 
 signal object_selected(object)
 
@@ -27,14 +28,7 @@ func fill(rows: Array):
     clear()
     var root := create_item()
     for object in rows:
-        var fields = object.list_item()
-        assert(len(fields) == columns)
-
-        self.results[fields[0]] = object
-
-        var item := create_item(root)
-        for i in range(columns):
-            item.set_text(i, fields[i])
+        add_object(object)
 
 
 func update_selected(object):
@@ -49,6 +43,23 @@ func update_selected(object):
     else:
         get_root().remove_child(item)
         update()
+
+
+func add_object(object) -> TreeItem:
+    var fields = object.list_item()
+    assert(len(fields) == columns)
+
+    self.results[fields[0]] = object
+
+    var item := create_item(get_root())
+    for i in range(columns):
+        item.set_text(i, fields[i])
+    return item
+
+
+func add_and_select_object(object):
+    var item := add_object(object)
+    item.select(0)
 
 
 func _on_item_selected():

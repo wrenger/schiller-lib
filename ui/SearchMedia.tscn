@@ -34,6 +34,7 @@ medium_reserve = NodePath("Split/Panel/Box/Reserve")
 medium_release = NodePath("Split/Panel/Box/Release")
 medium_edit = NodePath("Split/Panel/Box/Edit")
 medium_editing = NodePath("Split/Panel/Box/Editing")
+medium_adding = NodePath("Split/Panel/Box/Adding")
 
 [node name="Split" type="HSplitContainer" parent="."]
 margin_left = 5.0
@@ -43,21 +44,21 @@ margin_bottom = 759.0
 split_offset = 500
 
 [node name="Search" type="VBoxContainer" parent="Split"]
-margin_right = 560.0
+margin_right = 600.0
 margin_bottom = 749.0
 size_flags_vertical = 3
 custom_constants/separation = 5
 
 [node name="Input" type="LineEdit" parent="Split/Search"]
-margin_right = 560.0
+margin_right = 600.0
 margin_bottom = 24.0
 right_icon = ExtResource( 2 )
 placeholder_text = "ID or ISBN"
 
 [node name="MediaList" type="Tree" parent="Split/Search"]
 margin_top = 29.0
-margin_right = 560.0
-margin_bottom = 749.0
+margin_right = 600.0
+margin_bottom = 722.0
 size_flags_vertical = 3
 columns = 4
 hide_folding = true
@@ -68,8 +69,14 @@ column_names = PoolStringArray( ".medium.id", ".medium.title", ".medium.authors"
 column_sizes = PoolIntArray( 100, 150, 100, 100 )
 column_expand = PoolByteArray( 0, 1, 1, 0 )
 
+[node name="Add" type="Button" parent="Split/Search"]
+margin_top = 727.0
+margin_right = 600.0
+margin_bottom = 749.0
+text = ".medium.new"
+
 [node name="Panel" type="PanelContainer" parent="Split"]
-margin_left = 568.0
+margin_left = 608.0
 margin_right = 1182.0
 margin_bottom = 749.0
 size_flags_horizontal = 3
@@ -78,17 +85,17 @@ size_flags_vertical = 3
 [node name="Box" type="VBoxContainer" parent="Split/Panel"]
 margin_left = 6.0
 margin_top = 4.0
-margin_right = 608.0
+margin_right = 568.0
 margin_bottom = 745.0
 custom_constants/separation = 5
 
 [node name="Medium" parent="Split/Panel/Box" instance=ExtResource( 1 )]
-margin_right = 602.0
+margin_right = 562.0
 margin_bottom = 687.0
 
 [node name="State" type="Label" parent="Split/Panel/Box"]
 margin_top = 692.0
-margin_right = 602.0
+margin_right = 562.0
 margin_bottom = 714.0
 
 [node name="Lend" type="Button" parent="Split/Panel/Box"]
@@ -128,7 +135,7 @@ text = ".medium.revoke"
 
 [node name="Edit" type="Button" parent="Split/Panel/Box"]
 margin_top = 719.0
-margin_right = 602.0
+margin_right = 562.0
 margin_bottom = 741.0
 text = ".action.edit"
 
@@ -158,9 +165,29 @@ margin_bottom = 24.0
 rect_min_size = Vector2( 120, 0 )
 text = ".action.delete"
 icon = ExtResource( 5 )
+
+[node name="Adding" type="HBoxContainer" parent="Split/Panel/Box"]
+visible = false
+margin_top = 719.0
+margin_right = 562.0
+margin_bottom = 741.0
+
+[node name="Cancel" type="Button" parent="Split/Panel/Box/Adding"]
+margin_right = 120.0
+margin_bottom = 22.0
+rect_min_size = Vector2( 120, 0 )
+text = ".action.cancel"
+
+[node name="Add" type="Button" parent="Split/Panel/Box/Adding"]
+margin_left = 124.0
+margin_right = 562.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+text = ".action.add"
 [connection signal="text_entered" from="Split/Search/Input" to="." method="_on_basic_search"]
 [connection signal="item_selected" from="Split/Search/MediaList" to="Split/Search/MediaList" method="_on_item_selected"]
 [connection signal="object_selected" from="Split/Search/MediaList" to="." method="_on_medium_selected"]
+[connection signal="pressed" from="Split/Search/Add" to="." method="_on_add_medium"]
 [connection signal="pressed" from="Split/Panel/Box/Lend" to="." method="_on_lend"]
 [connection signal="pressed" from="Split/Panel/Box/LendTo" to="." method="_on_lend_to"]
 [connection signal="pressed" from="Split/Panel/Box/Reserve" to="." method="_on_reserve"]
@@ -170,3 +197,5 @@ icon = ExtResource( 5 )
 [connection signal="pressed" from="Split/Panel/Box/Editing/Cancel" to="." method="_on_edit_cancel"]
 [connection signal="pressed" from="Split/Panel/Box/Editing/Apply" to="." method="_on_edit_apply"]
 [connection signal="pressed" from="Split/Panel/Box/Editing/Delete" to="." method="_on_edit_delete"]
+[connection signal="pressed" from="Split/Panel/Box/Adding/Cancel" to="." method="_on_edit_cancel"]
+[connection signal="pressed" from="Split/Panel/Box/Adding/Add" to="." method="_on_edit_add"]
