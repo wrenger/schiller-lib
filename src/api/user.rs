@@ -49,7 +49,7 @@ impl User {
     }
 
     #[export]
-    fn list_item(&mut self, _owner: &Reference) -> StringArray {
+    pub fn list_item(&mut self, _owner: &Reference) -> StringArray {
         StringArray::from_vec(vec![
             self.account.clone(),
             self.forename.clone(),

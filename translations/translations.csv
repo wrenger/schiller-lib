@@ -103,6 +103,7 @@
 .medium.id,ID,Signatur
 .medium.id.action,Suggest,Vorschlagen
 .medium.id.format,"The Book ID has to consist of the category, author and a numeric id.","Die Signatur muss aus der Kategorie, dem Autor und einer ID bestehen."
+.medium.invalid,"ID, Title and Category are mandatory.","ID, Titel und Kategory dürfen nicht leer bleiben."
 .medium.isbn,ISBN,ISBN
 .medium.lend,Lend,Ausleihen
 .medium.lend.period,Period,Dauer
@@ -161,6 +162,7 @@
 .user.account,Account,Account
 .user.delete,Remove user from library?\nHis borrows and reservations will also be lost.,Möchtest du diesen Benutzer wirklich löschen?\nAlle seine Entleihungen und Vormerkungen gehen dadurch verloren!
 .user.forename,Forename,Vorname
+.user.invalid,"Account, Forename and Surname are mendatory.","Account, Vorname und Nachname dürfen nicht leer bleiben."
 .user.may-borrow,May Borrow,Darf ausleihen
 .user.may-not-borrow,May not Borrow,Darf nicht ausleihen
 .user.media,Borrowed or Reserved Books,Ausgeliehene oder Vorgemerkte Bücher

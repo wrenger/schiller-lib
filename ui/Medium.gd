@@ -2,9 +2,23 @@ extends GridContainer
 
 export var editable := false setget set_editable
 
-onready var project := get_node("/root/Project") as Project
-
 var medium: Reference = null setget set_medium, get_medium
+
+onready var _project := get_node("/root/Project") as Project
+
+onready var _id := $ID/Input as LineEdit
+onready var _id_btn := $ID/Generate as Button
+onready var _isbn := $ISBN as LineEdit
+onready var _title := $Title as LineEdit
+onready var _publisher := $Publisher as LineEdit
+onready var _price := $Price as SpinBox
+onready var _year := $Year as SpinBox
+onready var _authors := $Authors/List as Tree
+onready var _authors_btns := $Authors/Box as Control
+onready var _authors_remove := $Authors/Box/Remove as Button
+onready var _category := $Category as OptionButton
+onready var _notes := $Notes as TextEdit
+onready var _borrowable := $Borrowable as CheckBox
 
 var _borrower := ""
 var _deadline := ""
@@ -18,7 +32,7 @@ func _ready():
 
 
 func _on_categories_changed(categories: Array):
-    var ctrl := $Category as OptionButton
+    var ctrl := _category as OptionButton
     ctrl.clear()
     for category in categories:
         var text: String = category.id + " - " + category.name + " - " + category.section
@@ -27,31 +41,31 @@ func _on_categories_changed(categories: Array):
 
 func set_medium(m: Reference):
     if m != null:
-        $ID/Input.text = m.id
-        $ISBN.text = m.isbn
-        $Title.text = m.title
-        $Publisher.text = m.publisher
-        $Price.value = m.costs
-        $Year.value = m.year
-        $Authors/List.clear()
-        var root := $Authors/List.create_item() as TreeItem
+        _id.text = m.id
+        _isbn.text = m.isbn
+        _title.text = m.title
+        _publisher.text = m.publisher
+        _price.value = m.costs
+        _year.value = m.year
+        _authors.clear()
+        var root := _authors.create_item() as TreeItem
         for author in m.authors:
-            var item := $Authors/List.create_item(root) as TreeItem
+            var item := _authors.create_item(root) as TreeItem
             item.set_text(0, author)
-        $Category.select($Category.get_item_index(m.category.hash()))
-        $Notes.text = m.note
-        $Borrowable.pressed = m.borrowable
+        _category.select(_category.get_item_index(m.category.hash()))
+        _notes.text = m.note
+        _borrowable.pressed = m.borrowable
     else:
-        $ID/Input.clear()
-        $ISBN.clear()
-        $Title.clear()
-        $Publisher.clear()
-        $Price.value = 0
-        $Year.value = 2000
-        $Authors/List.clear()
-        $Category.select(0)
-        $Notes.text = ""
-        $Borrowable.pressed = true
+        _id.clear()
+        _isbn.clear()
+        _title.clear()
+        _publisher.clear()
+        _price.value = 0
+        _year.value = 2000
+        _authors.clear()
+        _category.select(0)
+        _notes.text = ""
+        _borrowable.pressed = true
         _borrower = ""
         _deadline = ""
         _reservation = ""
@@ -59,24 +73,24 @@ func set_medium(m: Reference):
 
 func get_medium() -> Reference:
     var medium := Medium.new()
-    medium.id = $ID/Input.text
-    medium.isbn = $ISBN.text
-    medium.title = $Title.text
-    medium.publisher = $Publisher.text
-    medium.costs = $Price.value
-    medium.year = $Year.value as int
+    medium.id = _id.text
+    medium.isbn = _isbn.text
+    medium.title = _title.text
+    medium.publisher = _publisher.text
+    medium.costs = _price.value
+    medium.year = _year.value as int
     var authors := []
-    if $Authors/List.get_root():
-        var child := $Authors/List.get_root().get_children() as TreeItem
+    if _authors.get_root():
+        var child := _authors.get_root().get_children() as TreeItem
         while child:
             authors.push_back(child.get_text(0))
             child = child.get_next()
     medium.authors = PoolStringArray(authors)
-    if $Category.selected >= 0:
-        var text: String = $Category.get_item_text($Category.selected)
+    if _category.selected >= 0:
+        var text: String = _category.get_item_text(_category.selected)
         medium.category = text.split(" - ", true, 1)[0]
-    medium.note = $Notes.text
-    medium.borrowable = $Borrowable.pressed
+    medium.note = _notes.text
+    medium.borrowable = _borrowable.pressed
     medium.borrower = _borrower
     medium.deadline = _deadline
     medium.reservation = _reservation
@@ -84,24 +98,24 @@ func get_medium() -> Reference:
 
 
 func set_editable(e: bool):
-    if e: _id_before_edit = $ID/Input.text
+    if e: _id_before_edit = _id.text
     else: _id_before_edit = ""
 
     editable = e
-    $ID/Input.editable = e
-    $ID/GenerateID.visible = e
-    $ISBN.editable = e
-    $Title.editable = e
-    $Publisher.editable = e
-    $Price.editable = e
-    $Year.editable = e
-    $Category.disabled = not e
-    $Notes.readonly = not e
-    $Borrowable.disabled = not e
-    $Authors/Box.visible = e
-    $Authors/Box/Remove.disabled = true
-    if $Authors/List.get_root():
-        var child := $Authors/List.get_root().get_children() as TreeItem
+    _id.editable = e
+    _id_btn.visible = e
+    _isbn.editable = e
+    _title.editable = e
+    _publisher.editable = e
+    _price.editable = e
+    _year.editable = e
+    _category.disabled = not e
+    _notes.readonly = not e
+    _borrowable.disabled = not e
+    _authors_btns.visible = e
+    _authors_remove.disabled = true
+    if _authors.get_root():
+        var child := _authors.get_root().get_children() as TreeItem
         while child:
             child.set_editable(0, e)
             child = child.get_next()
@@ -111,25 +125,25 @@ func _on_generate_id() -> void:
     if editable:
         var medium = get_medium()
         medium.id = _id_before_edit
-        var result = project.medium_generate_id(medium)
+        var result = _project.medium_generate_id(medium)
         if result.has("Ok"):
-            $ID/Input.text = result["Ok"]
+            _id.text = result["Ok"]
         else:
             MessageDialog.error(get_tree(), tr(Util.error_msg(result["Err"])))
 
 
 func _on_author_add() -> void:
-    var item = $Authors/List.create_item($Authors/List.get_root())
+    var item = _authors.create_item(_authors.get_root())
     item.set_text(0, tr(".medium.authors.def"))
     item.set_editable(0, true)
 
 
 func _on_author_remove() -> void:
-    var selected = $Authors/List.get_selected()
+    var selected = _authors.get_selected()
     if selected:
         selected.deselect(0)
-        $Authors/List.get_root().remove_child(selected)
+        _authors.get_root().remove_child(selected)
 
 
 func _on_author_selected() -> void:
-     $Authors/Box/Remove.disabled = $Authors/List.get_selected() == null
+     _authors_remove.disabled = _authors.get_selected() == null

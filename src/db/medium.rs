@@ -72,6 +72,12 @@ pub struct DBMedium {
     pub reservation: String,
 }
 
+impl DBMedium {
+    fn is_valid(&self) -> bool {
+        !self.id.is_empty() && !self.title.is_empty() && !self.category.is_empty()
+    }
+}
+
 impl ReadStmt for DBMedium {
     type Error = api::Error;
 
@@ -115,6 +121,9 @@ pub trait DatabaseMedium {
 
     /// Adds a new medium.
     fn medium_add(&self, medium: &DBMedium) -> api::Result<()> {
+        if !medium.is_valid() {
+            return Err(api::Error::LogicError);
+        }
         // Add medium
         let transaction = self.db().transaction()?;
         let mut stmt = self.db().prepare(ADD)?;
@@ -145,6 +154,9 @@ pub trait DatabaseMedium {
 
     /// Updates the medium and all references if its id changes.
     fn medium_update(&self, previous_id: &str, medium: &DBMedium) -> api::Result<()> {
+        if !medium.is_valid() {
+            return Err(api::Error::LogicError);
+        }
         let transaction = self.db().transaction()?;
         // update medium
         let mut stmt = self.db().prepare(UPDATE)?;

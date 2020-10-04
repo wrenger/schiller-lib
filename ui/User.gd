@@ -24,7 +24,7 @@ func set_user(m: Reference):
 
 
 func get_user() -> Reference:
-    var user := Medium.new()
+    var user := User.new()
     user.account = $Account.text
     user.forename = $Forename.text
     user.surname = $Surname.text

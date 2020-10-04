@@ -16,7 +16,7 @@ func _enter_tree() -> void:
                 for key in settings.keys():
                     var node := get_node(key)
                     if node and node.is_in_group("Persist"):
-                        node.persistant_load(settings[key])
+                        node.persist_load(settings[key])
                     else:
                         print("Error missing node: ", key)
 
@@ -25,7 +25,7 @@ func _exit_tree() -> void:
     var settings := {}
     var save_nodes := get_tree().get_nodes_in_group("Persist")
     for node in save_nodes:
-        settings[String(node.get_path())] = node.persistant_save()
+        settings[String(node.get_path())] = node.persist_save()
 
     var file := File.new()
     assert(file.open(savepath, File.WRITE) == OK)

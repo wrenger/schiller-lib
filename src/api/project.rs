@@ -1,5 +1,4 @@
 use std::iter::FromIterator;
-use std::time::Instant;
 
 use gdnative::prelude::*;
 
@@ -46,17 +45,14 @@ impl Project {
     /// Performes a simple media search with the given `text`.
     #[export]
     fn medium_search(&self, _owner: &Node, text: GodotString) -> api::Result<VariantArray> {
-        let timer = Instant::now();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.medium_search(&text.to_string())?;
-        let result = Ok(VariantArray::from_iter(result.map(|x| {
+        Ok(VariantArray::from_iter(result.map(|x| {
             let instance = api::Medium::new_instance();
             instance.map_mut(|u, _| u.fill(x)).unwrap();
             instance.owned_to_variant()
         }))
-        .into_shared());
-        godot_print!("access time: {}ms", timer.elapsed().as_millis());
-        result
+        .into_shared())
     }
 
     /// Adds a new medium.
@@ -65,7 +61,7 @@ impl Project {
         let medium = Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
             .ok_or(Error::InvalidArguments)?;
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        medium.map(|medium, _| db.medium_add(&medium.db())).unwrap()
+        medium.map(|m, _| db.medium_add(&m.db())).unwrap()
     }
 
     /// Updates the medium and all references if its id changes.
@@ -80,7 +76,7 @@ impl Project {
             .ok_or(Error::InvalidArguments)?;
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         medium
-            .map(|medium, _| db.medium_update(&previous_id.to_string(), &medium.db()))
+            .map(|m, _| db.medium_update(&previous_id.to_string(), &m.db()))
             .unwrap()
     }
 
@@ -101,24 +97,21 @@ impl Project {
             .ok_or(Error::InvalidArguments)?;
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         medium
-            .map(|medium, _| db.medium_generate_id(&medium.db()).map(|x| x.into()))
+            .map(|m, _| db.medium_generate_id(&m.db()).map(|x| x.into()))
             .unwrap()
     }
 
     /// Performes a simple user search with the given `text`.
     #[export]
     fn user_search(&self, _owner: &Node, text: GodotString) -> api::Result<VariantArray> {
-        let timer = Instant::now();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.user_search(&text.to_string())?;
-        let result = Ok(VariantArray::from_iter(result.map(|x| {
+        Ok(VariantArray::from_iter(result.map(|x| {
             let instance = api::User::new_instance();
-            instance.map_mut(|m, _| m.fill(x)).unwrap();
+            instance.map_mut(|u, _| u.fill(x)).unwrap();
             instance.owned_to_variant()
         }))
-        .into_shared());
-        godot_print!("access time: {}ms", timer.elapsed().as_millis());
-        result
+        .into_shared())
     }
 
     /// Adds a new user.
@@ -127,7 +120,7 @@ impl Project {
         let user = Instance::<api::User, Unique>::from_base(unsafe { user.assume_unique() })
             .ok_or(Error::InvalidArguments)?;
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        user.map(|user, _| db.user_add(&user.db())).unwrap()
+        user.map(|u, _| db.user_add(&u.db())).unwrap()
     }
 
     /// Updates the user and all references if its account changes.
@@ -141,7 +134,7 @@ impl Project {
         let user = Instance::<api::User, Unique>::from_base(unsafe { user.assume_unique() })
             .ok_or(Error::InvalidArguments)?;
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        user.map(|user, _| db.user_update(&account.to_string(), &user.db()))
+        user.map(|u, _| db.user_update(&account.to_string(), &u.db()))
             .unwrap()
     }
 
@@ -156,17 +149,14 @@ impl Project {
     /// Performes a simple user search with the given `text`.
     #[export]
     fn category_list(&self, _owner: &Node) -> api::Result<VariantArray> {
-        let timer = Instant::now();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.category_list()?;
-        let result = Ok(VariantArray::from_iter(result.map(|x| {
+        Ok(VariantArray::from_iter(result.map(|x| {
             let instance = api::Category::new_instance();
             instance.map_mut(|c, _| c.fill(x)).unwrap();
             instance.owned_to_variant()
         }))
-        .into_shared());
-        godot_print!("access time: {}ms", timer.elapsed().as_millis());
-        result
+        .into_shared())
     }
 
     /// Adds a new category.

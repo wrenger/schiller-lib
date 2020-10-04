@@ -49,6 +49,12 @@ pub struct DBUser {
     pub may_borrow: bool,
 }
 
+impl DBUser {
+    fn is_valid(&self) -> bool {
+        !self.account.is_empty() && !self.forename.is_empty() && !self.surname.is_empty()
+    }
+}
+
 impl ReadStmt for DBUser {
     type Error = api::Error;
 
@@ -78,6 +84,9 @@ pub trait DatabaseUser {
 
     /// Adds a new user.
     fn user_add(&self, user: &DBUser) -> api::Result<()> {
+        if !user.is_valid() {
+            return Err(api::Error::LogicError);
+        }
         let mut stmt = self.db().prepare(ADD_USER)?;
         stmt.bind(1, user.account.as_str())?;
         stmt.bind(2, user.forename.as_str())?;
@@ -92,6 +101,9 @@ pub trait DatabaseUser {
 
     /// Updates the user and all references if its account changes.
     fn user_update(&self, previous_account: &str, user: &DBUser) -> api::Result<()> {
+        if !user.is_valid() {
+            return Err(api::Error::LogicError);
+        }
         let transaction = self.db().transaction()?;
         // update user
         let mut stmt = self.db().prepare(UPDATE_USER)?;

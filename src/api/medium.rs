@@ -95,7 +95,7 @@ impl Medium {
     }
 
     #[export]
-    fn list_item(&mut self, owner: &Reference) -> StringArray {
+    pub fn list_item(&mut self, owner: &Reference) -> StringArray {
         StringArray::from_vec(vec![
             self.id.clone(),
             self.title.clone(),

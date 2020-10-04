@@ -116,8 +116,8 @@ func _on_add_medium() -> void:
     _medium_edit.visible = false
     _medium_editing.visible = false
 
-    _medium_adding.visible = true
     visible = true
+    _medium_adding.visible = true
     _medium_pane.editable = true
 
 
@@ -134,8 +134,10 @@ func _on_edit_add() -> void:
         emit_signal("add_medium", medium)
         _before_edit = null
     else:
-        MessageDialog.alert(get_tree(), tr(Util.error_msg(result["Err"])))
-        _on_edit_cancel()
+        if result["Err"] == Util.SbvError.LogicError:
+            MessageDialog.alert(get_tree(), tr(".medium.invalid"))
+        else:
+            MessageDialog.alert(get_tree(), tr(Util.error_msg(result["Err"])))
 
 
 func _on_edit_apply() -> void:
@@ -146,8 +148,10 @@ func _on_edit_apply() -> void:
         emit_signal("update_medium", medium)
         _before_edit = null
     else:
-        MessageDialog.alert(get_tree(), tr(Util.error_msg(result["Err"])))
-        _on_edit_cancel()
+        if result["Err"] == Util.SbvError.LogicError:
+            MessageDialog.alert(get_tree(), tr(".medium.invalid"))
+        else:
+            MessageDialog.alert(get_tree(), tr(Util.error_msg(result["Err"])))
 
 
 func _on_edit_delete() -> void:
@@ -158,5 +162,3 @@ func _on_edit_delete() -> void:
         _before_edit = null
     else:
         MessageDialog.alert(get_tree(), tr(Util.error_msg(result["Err"])))
-        _on_edit_cancel()
-

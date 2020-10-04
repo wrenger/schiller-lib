@@ -7,8 +7,6 @@ export var column_names: PoolStringArray
 export var column_sizes: PoolIntArray
 export var column_expand: PoolByteArray
 
-var results := {}
-
 
 func _ready():
     assert(columns == len(column_names))
@@ -24,7 +22,6 @@ func _ready():
 
 
 func fill(rows: Array):
-    self.results.clear()
     clear()
     var root := create_item()
     for object in rows:
@@ -34,9 +31,8 @@ func fill(rows: Array):
 func update_selected(object):
     var item := get_selected()
     if object:
+        item.set_meta("object", object)
         var fields = object.list_item()
-        self.results.erase(fields[0])
-        self.results[fields[0]] = object
         assert(len(fields) == columns)
         for i in range(columns):
             item.set_text(i, fields[i])
@@ -49,9 +45,8 @@ func add_object(object) -> TreeItem:
     var fields = object.list_item()
     assert(len(fields) == columns)
 
-    self.results[fields[0]] = object
-
     var item := create_item(get_root())
+    item.set_meta("object", object)
     for i in range(columns):
         item.set_text(i, fields[i])
     return item
@@ -64,6 +59,6 @@ func add_and_select_object(object):
 
 func _on_item_selected():
     var selected := get_selected()
-    var object = results[selected.get_text(0)]
+    var object = selected.get_meta("object")
     emit_signal("object_selected", object)
 

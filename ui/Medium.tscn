@@ -35,10 +35,11 @@ margin_right = 846.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 
-[node name="GenerateID" type="ToolButton" parent="ID"]
+[node name="Generate" type="ToolButton" parent="ID"]
 margin_left = 850.0
 margin_right = 878.0
 margin_bottom = 24.0
+hint_tooltip = ".medium.id.action"
 icon = ExtResource( 2 )
 
 [node name="ISBNLabel" type="Label" parent="."]
@@ -201,7 +202,7 @@ margin_top = 576.0
 margin_right = 1024.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
-[connection signal="pressed" from="ID/GenerateID" to="." method="_on_generate_id"]
+[connection signal="pressed" from="ID/Generate" to="." method="_on_generate_id"]
 [connection signal="item_selected" from="Authors/List" to="." method="_on_author_selected"]
 [connection signal="pressed" from="Authors/Box/Add" to="." method="_on_author_add"]
 [connection signal="pressed" from="Authors/Box/Remove" to="." method="_on_author_remove"]
