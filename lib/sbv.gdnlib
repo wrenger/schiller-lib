@@ -1,6 +1,6 @@
 [entry]
 
-X11.64="res://target/debug/libsbv_gd.so"
+X11.64="res://target/release/libsbv_gd.so"
 OSX.64="res://target/release/libsbv_gd.dylib"
 Windows.64="res://target/x86_64-pc-windows-gnu/release/sbv_gd.dll"
 

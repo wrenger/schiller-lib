@@ -42,7 +42,7 @@ func set_medium(medium: Reference):
         if not borrowed and not reserved:
             _medium_state.text = tr(".medium.available")
 
-        _medium_lend.visible = not borrowed and not reserved
+        _medium_lend.visible = medium.borrowable and not borrowed and not reserved
         _medium_lend_to.visible = reserved
         if reserved: _medium_lend_to.text = tr(".medium.lend.to").replace("{0}", medium.reservation)
         _medium_revoke.visible = borrowed
@@ -60,7 +60,7 @@ func _on_medium_selected(medium: Reference):
 
 
 func _on_lend():
-    LendDialog.lend(get_tree(), _medium_pane.medium)
+    LendDialog.lend(self, _medium_pane.medium)
 
 
 func _on_lend_to():
@@ -89,6 +89,11 @@ func _on_revoke():
         emit_signal("update_medium", medium)
     else:
         MessageDialog.error(get_tree(), tr(Util.error_msg(result["Err"])))
+
+
+func _on_lend_update(medium: Reference):
+    set_medium(medium)
+    emit_signal("update_medium", medium)
 
 
 func _on_edit():

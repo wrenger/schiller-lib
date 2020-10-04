@@ -3,6 +3,27 @@ use crate::api;
 use super::raw::DatabaseExt;
 use super::{DBIter, ReadStmt};
 
+const GET_MEDIUM: &str = r#"
+select
+id,
+isbn,
+title,
+publisher,
+year,
+costs,
+note,
+borrowable,
+category,
+ifnull(group_concat(author.name),'') as authors,
+borrower,
+deadline,
+reservation
+from medium
+left join author on author.medium=id
+where id=?
+group by id
+"#;
+
 const QUERY_MEDIA: &str = r#"
 select
 id,
@@ -55,7 +76,7 @@ select max(substr(id, ? + 2)) from medium where id like ?||'%' order by id
 "#;
 
 /// Data object for medium.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DBMedium {
     pub id: String,
     pub isbn: String,
@@ -106,6 +127,17 @@ impl ReadStmt for DBMedium {
 
 pub trait DatabaseMedium {
     fn db(&self) -> &sqlite::Connection;
+
+    /// Returns the medium with the given `id`.
+    fn medium_get(&self, id: &str) -> api::Result<DBMedium> {
+        let mut stmt = self.db().prepare(GET_MEDIUM)?;
+        stmt.bind(1, id)?;
+        if stmt.next()? == sqlite::State::Row {
+            DBMedium::read(&stmt)
+        } else {
+            Err(api::Error::SQLError)
+        }
+    }
 
     /// Performes a simple media search with the given `text`.
     fn medium_search(&self, text: &str) -> api::Result<DBIter<DBMedium>> {

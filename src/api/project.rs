@@ -208,26 +208,41 @@ impl Project {
     fn rental_lend(
         &self,
         _owner: &Node,
-        medium: GodotString,
-        user: GodotString,
+        medium: Ref<Reference>,
+        user: Ref<Reference>,
         days: i64,
-    ) -> api::Result<()> {
-        let until = chrono::Utc::today() + chrono::Duration::days(days);
-        godot_print!("Lend {} to {} until {}", medium, user, until.format("%F"));
+    ) -> api::Result<Instance<api::Medium, Shared>> {
+        let medium = Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
+            .ok_or(Error::InvalidArguments)?
+            .map(|m, _| m.db())
+            .unwrap();
+        let user = Instance::<api::User, Unique>::from_base(unsafe { user.assume_unique() })
+            .ok_or(Error::InvalidArguments)?
+            .map(|u, _| u.db())
+            .unwrap();
+        if days < 0 {
+            return Err(api::Error::InvalidArguments);
+        }
+
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.rental_lend(
-            &medium.to_string(),
-            &user.to_string(),
-            &until.format("%F").to_string(),
-        )
+
+        let medium = db.rental_lend(&medium, &user, days as _)?;
+        let instance = api::Medium::new_instance();
+        instance.map_mut(|m, _| m.fill(medium)).unwrap();
+        Ok(instance.into_shared())
     }
 
     /// Revokes the borrowing when a borrowed medium is returned.
     #[export]
     fn rental_revoke(&self, _owner: &Node, medium: GodotString) -> api::Result<()> {
+        let medium_s = medium.to_string();
+        let medium = medium_s.trim();
+        if medium.is_empty() {
+            return Err(api::Error::LogicError);
+        }
         godot_print!("revoke {}", medium);
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.rental_revoke(&medium.to_string())
+        db.rental_revoke(medium)
     }
 
     /// Creates a reservation for the borrowed medium.
@@ -235,19 +250,32 @@ impl Project {
     fn rental_reserve(
         &self,
         _owner: &Node,
-        medium: GodotString,
-        user: GodotString,
+        medium: Ref<Reference>,
+        user: Ref<Reference>,
     ) -> api::Result<()> {
-        godot_print!("reserve {} for {}", medium, user);
+        let medium = Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
+            .ok_or(Error::InvalidArguments)?
+            .map(|m, _| m.db())
+            .unwrap();
+        let user = Instance::<api::User, Unique>::from_base(unsafe { user.assume_unique() })
+            .ok_or(Error::InvalidArguments)?
+            .map(|u, _| u.db())
+            .unwrap();
+        godot_print!("reserve {} for {}", &medium.id, &user.account);
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.rental_reserve(&medium.to_string(), &user.to_string())
+        db.rental_reserve(&medium, &user)
     }
 
     /// Removes the reservation from the specified medium.
     #[export]
     fn rental_release(&self, _owner: &Node, medium: GodotString) -> api::Result<()> {
+        let medium_s = medium.to_string();
+        let medium = medium_s.trim();
+        if medium.is_empty() {
+            return Err(api::Error::LogicError);
+        }
         godot_print!("delete reservation {} ", medium);
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.rental_release(&medium.to_string())
+        db.rental_release(medium)
     }
 }

@@ -9,6 +9,13 @@ pub enum Error {
     FileNotFound,
     FileOpenError,
     SQLError,
+    // Rental errors
+    RentalUserMayNotBorrow,
+    RentalMediumNotBorrowable,
+    RentalMediumAlreadyBorrowed,
+    RentalMediumAlreadyBorrowedByUser,
+    RentalMediumNotBorrowed,
+    RentalMediumAlreadyReserved,
 }
 
 impl From<sqlite::Error> for Error {

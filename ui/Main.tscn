@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=2]
+[gd_scene load_steps=19 format=2]
 
 [ext_resource path="res://ui/SearchMedia.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/MenuEdit.gd" type="Script" id=2]
@@ -17,6 +17,7 @@
 [ext_resource path="res://ui/Persistant.gd" type="Script" id=15]
 [ext_resource path="res://ui/LendDialog.gd" type="Script" id=16]
 [ext_resource path="res://ui/MenuFile.gd" type="Script" id=17]
+[ext_resource path="res://ui/LendUserSearch.gd" type="Script" id=18]
 
 [node name="MainWindow" type="Panel" groups=[
 "CategoryChanger",
@@ -93,24 +94,95 @@ margin_top = 29.0
 margin_right = -5.0
 margin_bottom = -5.0
 
-[node name="MessageDialog" type="AcceptDialog" parent="." groups=[
-"MessageDialog",
+[node name="LendDialog" type="ConfirmationDialog" parent="." groups=[
+"LendDialog",
 ]]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = -82.0
-margin_top = -34.0
-margin_right = 82.0
-margin_bottom = 34.0
+margin_left = -237.0
+margin_top = -104.0
+margin_right = 237.0
+margin_bottom = 104.0
 popup_exclusive = true
-window_title = ".alert.info"
+window_title = ""
 resizable = true
-script = ExtResource( 13 )
+script = ExtResource( 16 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Box" type="VBoxContainer" parent="LendDialog"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 8.0
+margin_right = -8.0
+margin_bottom = -38.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Lend" type="VBoxContainer" parent="LendDialog/Box"]
+margin_right = 458.0
+margin_bottom = 166.0
+custom_constants/separation = 10
+
+[node name="User" type="VBoxContainer" parent="LendDialog/Box/Lend"]
+margin_right = 458.0
+margin_bottom = 76.0
+
+[node name="Label" type="Label" parent="LendDialog/Box/Lend/User"]
+margin_right = 458.0
+margin_bottom = 22.0
+text = ".user"
+
+[node name="Search" type="LineEdit" parent="LendDialog/Box/Lend/User"]
+margin_top = 26.0
+margin_right = 458.0
+margin_bottom = 50.0
+right_icon = ExtResource( 7 )
+placeholder_text = ".user.account"
+script = ExtResource( 18 )
+
+[node name="Popup" type="PopupMenu" parent="LendDialog/Box/Lend/User/Search"]
+margin_left = -371.0
+margin_top = -354.5
+margin_right = -355.0
+margin_bottom = -338.5
+
+[node name="State" type="Label" parent="LendDialog/Box/Lend/User"]
+margin_top = 54.0
+margin_right = 458.0
+margin_bottom = 76.0
+text = "-"
+
+[node name="Period" type="VBoxContainer" parent="LendDialog/Box/Lend"]
+margin_top = 86.0
+margin_right = 458.0
+margin_bottom = 134.0
+
+[node name="Label" type="Label" parent="LendDialog/Box/Lend/Period"]
+margin_right = 458.0
+margin_bottom = 22.0
+text = ".medium.lend.period"
+
+[node name="Days" type="SpinBox" parent="LendDialog/Box/Lend/Period"]
+margin_top = 26.0
+margin_right = 458.0
+margin_bottom = 48.0
+min_value = 1.0
+max_value = 30.0
+value = 14.0
+rounded = true
+allow_greater = true
+suffix = ".medium.period.days"
+
+[node name="State" type="Label" parent="LendDialog/Box/Lend"]
+margin_top = 144.0
+margin_right = 458.0
+margin_bottom = 166.0
 
 [node name="ProjectDialog" type="FileDialog" parent="." groups=[
 "ProjectDialog",
@@ -136,111 +208,37 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Persist" type="Node" parent="."]
-script = ExtResource( 15 )
-
-[node name="LendDialog" type="ConfirmationDialog" parent="." groups=[
-"LendDialog",
+[node name="MessageDialog" type="AcceptDialog" parent="." groups=[
+"MessageDialog",
 ]]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = -237.0
-margin_top = -137.5
-margin_right = 237.0
-margin_bottom = 137.5
-window_title = ""
+margin_left = -82.0
+margin_top = -34.0
+margin_right = 82.0
+margin_bottom = 34.0
+popup_exclusive = true
+window_title = ".alert.info"
 resizable = true
-script = ExtResource( 16 )
+script = ExtResource( 13 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Box" type="VBoxContainer" parent="LendDialog"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-margin_left = 8.0
-margin_top = 8.0
-margin_right = -8.0
-margin_bottom = -38.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Lend" type="VBoxContainer" parent="LendDialog/Box"]
-margin_right = 458.0
-margin_bottom = 192.0
-custom_constants/separation = 10
-
-[node name="Medium" type="VBoxContainer" parent="LendDialog/Box/Lend"]
-margin_right = 458.0
-margin_bottom = 48.0
-
-[node name="Label" type="Label" parent="LendDialog/Box/Lend/Medium"]
-margin_right = 458.0
-margin_bottom = 22.0
-text = ".medium"
-
-[node name="Data" type="Label" parent="LendDialog/Box/Lend/Medium"]
-margin_top = 26.0
-margin_right = 458.0
-margin_bottom = 48.0
-text = "-"
-
-[node name="User" type="VBoxContainer" parent="LendDialog/Box/Lend"]
-margin_top = 58.0
-margin_right = 458.0
-margin_bottom = 134.0
-
-[node name="Label" type="Label" parent="LendDialog/Box/Lend/User"]
-margin_right = 458.0
-margin_bottom = 22.0
-text = ".user"
-
-[node name="Search" type="LineEdit" parent="LendDialog/Box/Lend/User"]
-margin_top = 26.0
-margin_right = 458.0
-margin_bottom = 50.0
-right_icon = ExtResource( 7 )
-
-[node name="Popup" type="PopupMenu" parent="LendDialog/Box/Lend/User/Search"]
-margin_left = -371.0
-margin_top = -354.5
-margin_right = -355.0
-margin_bottom = -338.5
-
-[node name="State" type="Label" parent="LendDialog/Box/Lend/User"]
-margin_top = 54.0
-margin_right = 458.0
-margin_bottom = 76.0
-text = "-"
-
-[node name="Period" type="VBoxContainer" parent="LendDialog/Box/Lend"]
-margin_top = 144.0
-margin_right = 458.0
-margin_bottom = 192.0
-
-[node name="Label" type="Label" parent="LendDialog/Box/Lend/Period"]
-margin_right = 458.0
-margin_bottom = 22.0
-text = ".medium.lend.period"
-
-[node name="Days" type="SpinBox" parent="LendDialog/Box/Lend/Period"]
-margin_top = 26.0
-margin_right = 458.0
-margin_bottom = 48.0
-min_value = 1.0
-value = 14.0
-rounded = true
-allow_greater = true
-suffix = ".medium.period.days"
+[node name="Persist" type="Node" parent="."]
+script = ExtResource( 15 )
 [connection signal="menu_close" from="Content/Menu/File" to="." method="_on_close_project"]
 [connection signal="menu_open" from="Content/Menu/File" to="." method="_on_open_project"]
 [connection signal="theme_changed" from="Content/Menu/Edit" to="." method="_on_theme_changed"]
 [connection signal="visibility_changed" from="Content/Tabs/Overdues" to="Content/Tabs/Overdues" method="_on_visibility_changed"]
-[connection signal="popup_hide" from="MessageDialog" to="MessageDialog" method="_popup_hide"]
-[connection signal="file_selected" from="ProjectDialog" to="." method="_on_project_selected"]
-[connection signal="popup_hide" from="ProjectDialog" to="ProjectDialog" method="_popup_hide"]
+[connection signal="about_to_show" from="LendDialog" to="LendDialog" method="_on_about_to_show"]
 [connection signal="confirmed" from="LendDialog" to="LendDialog" method="_on_confirmed"]
 [connection signal="popup_hide" from="LendDialog" to="LendDialog" method="_popup_hide"]
+[connection signal="text_entered" from="LendDialog/Box/Lend/User/Search" to="LendDialog/Box/Lend/User/Search" method="_on_text_entered"]
+[connection signal="user_entered" from="LendDialog/Box/Lend/User/Search" to="LendDialog" method="_on_user_entered"]
+[connection signal="index_pressed" from="LendDialog/Box/Lend/User/Search/Popup" to="LendDialog/Box/Lend/User/Search" method="_on_user_selected"]
+[connection signal="file_selected" from="ProjectDialog" to="." method="_on_project_selected"]
+[connection signal="popup_hide" from="ProjectDialog" to="ProjectDialog" method="_popup_hide"]
+[connection signal="popup_hide" from="MessageDialog" to="MessageDialog" method="_popup_hide"]

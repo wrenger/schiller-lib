@@ -59,7 +59,12 @@
 .error.medium.existing,The medium id '{0}' already exists.,Es gibt bereits ein anderes Buch mit der Signatur {0}.
 .error.medium.none,No book found.,Kein Buch gefunden.
 .error.no-project,No project has been opened.,Es wurde noch kein Projekt geöffnet.
-.error.reserve.borrowing,The user '{0}' borrows the book already.,Der Benutzer '{0}' leiht das Buch bereits aus.
+.error.rental.already-borrowed-by,The user borrows the book already.,Der Benutzer leiht das Buch bereits aus.
+.error.rental.already-borrowed,The book is already borrowed.,Das Buch ist bereits ausgeliehen.
+.error.rental.already-reserved,The book is already reserved.,Das Buch wurde bereits reserviert.
+.error.rental.medium,The book may not be borrowed.,Das Buch darf nicht ausgeliehen werden.
+.error.rental.not-borrowed,The book may not be reserved because it is not borrowed yet.,"Das Buch kann nicht reserviert werden, da es noch nicht ausgeliehen wurde."
+.error.rental.user,The user may not borrow books.,Der Benutzer darf keine Bücher ausleihen.
 .error.sql,Database access failed.,Datenbankzugriff fehlgeschlagen.
 .error.update,Critical error during the update of the database!\nPlease contanct a developer.,Kritischer Fehler beim Aktualisieren der Datenbank!\nBitte kontaktiere einen Entwickler.
 .error.user.existing,The user account '{0}' already exists.,Ein Benutzer mit dem Account '{0}' existiert bereits.
