@@ -18,9 +18,9 @@ var _user: Reference = null
 var _user_result := []
 
 
-static func lend(medium_panel: Control, medium: Reference):
+static func lend(medium_panel: Control, medium: Reference, user: Reference = null):
     var nodes = medium_panel.get_tree().get_nodes_in_group("LendDialog")
-    if nodes: nodes.front()._lend(medium_panel, medium)
+    if nodes: nodes.front()._lend(medium_panel, medium, user)
 
 
 static func reserve(medium_panel: Control, medium: Reference):
@@ -32,13 +32,11 @@ func _ready():
     _period.suffix = tr(".medium.period.days")
 
 
-func _lend(medium_panel: Control, medium: Reference):
+func _lend(medium_panel: Control, medium: Reference, user: Reference):
     if not visible:
         _medium_panel = medium_panel
         _medium = medium
-        _user = null
-        _user_input.clear()
-        _user_state.text = ""
+        _set_user(user)
         _period_panel.visible = true
         window_title = tr(".medium.lend") + " - " + medium.id + ": " + medium.title
         get_ok().text = tr(".medium.lend")
@@ -49,9 +47,7 @@ func _reserve(medium_panel: Control, medium: Reference):
     if not visible:
         _medium_panel = medium_panel
         _medium = medium
-        _user = null
-        _user_input.clear()
-        _user_state.text = ""
+        _set_user(null)
         _period_panel.visible = false
         window_title = tr(".medium.reserve") + " - " + medium.id + ": " + medium.title
         get_ok().text = tr(".medium.reserve")
@@ -70,8 +66,7 @@ func _on_user_input_entered(new_text: String):
     if not new_text: new_text = _user_input.text
     var result: Dictionary = _project.user_search(new_text)
     if result.has("Ok"):
-        _user = null
-        _user_state.text = ""
+        _set_user(null)
         _user_popup.clear()
         _user_result = result["Ok"]
         for user in _user_result:
@@ -84,10 +79,18 @@ func _on_user_input_entered(new_text: String):
 
 
 func _on_user_selected(index: int):
-    var user = _user_result[index]
-    _user_input.text = user.account
-    _user_state.text = user.forename + " " + user.surname + " (" + user.role + ")"
+    if index >= 0: _set_user(_user_result[index])
+    else: _set_user(null)
+
+
+func _set_user(user: Reference):
     _user = user
+    if user:
+        _user_input.text = user.account
+        _user_state.text = user.forename + " " + user.surname + " (" + user.role + ")"
+    else:
+        _user_input.text = ""
+        _user_state.text = ""
 
 
 func _on_confirmed():

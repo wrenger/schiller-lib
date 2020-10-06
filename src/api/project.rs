@@ -85,6 +85,8 @@ impl Project {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         db.medium_delete(&id.to_string())
     }
+
+    /// Generates a new medium id.
     #[export]
     fn medium_generate_id(
         &self,
@@ -97,6 +99,18 @@ impl Project {
         medium
             .map(|m, _| db.medium_generate_id(&m.db()).map(|x| x.into()))
             .unwrap()
+    }
+
+    /// Returns the user with the given `account`.
+    #[export]
+    fn user_get(
+        &self,
+        _owner: &Node,
+        account: GodotString,
+    ) -> api::Result<Instance<api::User, Shared>> {
+        let db = self.db.as_ref().ok_or(Error::NoProject)?;
+        db.user_get(&account.to_string())
+            .map(|u| api::User::db_instance(u).into_shared())
     }
 
     /// Performes a simple user search with the given `text`.

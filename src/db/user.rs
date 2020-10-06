@@ -4,6 +4,17 @@ use super::raw::DatabaseExt;
 use super::{DBIter, ReadStmt};
 
 // Query
+const GET_USER: &str = r#"
+select
+account,
+forename,
+surname,
+role,
+may_borrow
+from user
+where account=?
+"#;
+
 const QUERY_USERS: &str = r#"
 select
 account,
@@ -71,6 +82,17 @@ impl ReadStmt for DBUser {
 
 pub trait DatabaseUser {
     fn db(&self) -> &sqlite::Connection;
+
+    /// Returns the medium with the given `id`.
+    fn user_get(&self, id: &str) -> api::Result<DBUser> {
+        let mut stmt = self.db().prepare(GET_USER)?;
+        stmt.bind(1, id)?;
+        if stmt.next()? == sqlite::State::Row {
+            DBUser::read(&stmt)
+        } else {
+            Err(api::Error::SQLError)
+        }
+    }
 
     /// Performes a simple user search with the given `text`.
     fn user_search(&self, text: &str) -> api::Result<DBIter<DBUser>> {

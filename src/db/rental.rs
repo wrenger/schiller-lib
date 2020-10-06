@@ -28,8 +28,12 @@ pub trait DatabaseRental {
         if !medium.borrower.is_empty() {
             return Err(api::Error::RentalMediumAlreadyBorrowed);
         }
-        if !medium.reservation.is_empty() && medium.reservation != user.account {
-            return Err(api::Error::RentalMediumAlreadyReserved);
+        if !medium.reservation.is_empty() {
+            if medium.reservation == user.account {
+                self.rental_release(medium)?; // Allow lending to reserver
+            } else {
+                return Err(api::Error::RentalMediumAlreadyReserved);
+            }
         }
 
         let deadline = chrono::Utc::today() + chrono::Duration::days(days as _);
