@@ -11,8 +11,7 @@ func _ready():
     assert(menu.connect("index_pressed", self, "_on_index_pressed") == OK)
 
 
-func _on_index_pressed(index: int) -> void:
+func _on_index_pressed(index: int):
     match index:
         0: emit_signal("menu_open")
         1: emit_signal("menu_close")
-

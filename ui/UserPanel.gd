@@ -4,7 +4,7 @@ signal add_user(user)
 signal update_user(user)
 signal show_media(user)
 
-onready var _project := $"/root/Project" as Project
+onready var _project: Project = $"/root/Project"
 
 onready var _user_pane := $User as Control
 onready var _user_show_media := $ShowMedia as Control
@@ -14,7 +14,7 @@ onready var _user_adding := $Adding as Control
 
 var before_edit: Reference = null
 
-func _ready() -> void:
+func _ready():
     set_user(null)
 
 
@@ -31,11 +31,11 @@ func set_user(user: Reference):
     _user_pane.editable = false
 
 
-func _on_user_selected(user: Reference) -> void:
+func _on_user_selected(user: Reference):
     set_user(user)
 
 
-func _on_edit() -> void:
+func _on_edit():
     before_edit = _user_pane.user
     _user_show_media.visible = false
     _user_edit.visible = false
@@ -45,7 +45,7 @@ func _on_edit() -> void:
     _user_pane.editable = true
 
 
-func _on_add() -> void:
+func _on_add():
     before_edit = null
     _user_pane.user = null
     _user_show_media.visible = false
@@ -57,17 +57,17 @@ func _on_add() -> void:
     _user_pane.editable = true
 
 
-func _on_show_media() -> void:
+func _on_show_media():
     print("Show media")
     emit_signal("show_media", _user_pane.user)
 
 
-func _on_edit_cancel() -> void:
+func _on_edit_cancel():
     set_user(before_edit)
     before_edit = null
 
 
-func _on_edit_add() -> void:
+func _on_edit_add():
     var result: Dictionary = _project.user_add(_user_pane.user)
     if result.has("Ok"):
         set_user(_user_pane.user)
@@ -75,12 +75,12 @@ func _on_edit_add() -> void:
         before_edit = null
     else:
         if result["Err"] == Util.SbvError.LogicError:
-            MessageDialog.alert(get_tree(), tr(".user.invalid"))
+            MessageDialog.error(tr(".user.invalid"))
         else:
-            MessageDialog.alert(get_tree(), tr(Util.error_msg(result["Err"])))
+            MessageDialog.error_code(result["Err"])
 
 
-func _on_edit_apply() -> void:
+func _on_edit_apply():
     var result: Dictionary = _project.user_update(before_edit.account, _user_pane.user)
     if result.has("Ok"):
         set_user(_user_pane.user)
@@ -88,17 +88,16 @@ func _on_edit_apply() -> void:
         before_edit = null
     else:
         if result["Err"] == Util.SbvError.LogicError:
-            MessageDialog.alert(get_tree(), tr(".user.invalid"))
+            MessageDialog.error(tr(".user.invalid"))
         else:
-            MessageDialog.alert(get_tree(), tr(Util.error_msg(result["Err"])))
+            MessageDialog.error_code(result["Err"])
 
 
-func _on_edit_delete() -> void:
+func _on_edit_delete():
     var result: Dictionary = _project.user_delete(before_edit.account)
     if result.has("Ok"):
         set_user(null)
         emit_signal("update_user", null)
         before_edit = null
     else:
-        MessageDialog.alert(get_tree(), tr(Util.error_msg(result["Err"])))
-
+        MessageDialog.error_code(result["Err"])

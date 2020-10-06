@@ -32,14 +32,14 @@ static func error_msg(error: int) -> String:
     match error:
         SbvError.InvalidArguments: return "Internal: Invalid Arguments Error"
         SbvError.LogicError: return "Internal: Logic Error"
-        SbvError.NoProject: return ".error.no-project"
-        SbvError.FileNotFound: return ".error.file-open"
-        SbvError.FileOpenError: return ".error.file-open"
-        SbvError.SQLError: return ".error.sql"
-        SbvError.RentalUserMayNotBorrow: return ".error.rental.user"
-        SbvError.RentalMediumNotBorrowable: return ".error.rental.medium"
-        SbvError.RentalMediumAlreadyBorrowed: return ".error.rental.already-borrowed"
-        SbvError.RentalMediumAlreadyBorrowedByUser: return ".error.rental.already-borrowed-by"
-        SbvError.RentalMediumNotBorrowed: return ".error.rental.not-borrowed"
-        SbvError.RentalMediumAlreadyReserved: return ".error.rental.already-reserved"
+        SbvError.NoProject: return TranslationServer.tr(".error.no-project")
+        SbvError.FileNotFound: return TranslationServer.tr(".error.file-open")
+        SbvError.FileOpenError: return TranslationServer.tr(".error.file-open")
+        SbvError.SQLError: return TranslationServer.tr(".error.sql")
+        SbvError.RentalUserMayNotBorrow: return TranslationServer.tr(".error.rental.user")
+        SbvError.RentalMediumNotBorrowable: return TranslationServer.tr(".error.rental.medium")
+        SbvError.RentalMediumAlreadyBorrowed: return TranslationServer.tr(".error.rental.already-borrowed")
+        SbvError.RentalMediumAlreadyBorrowedByUser: return TranslationServer.tr(".error.rental.already-borrowed-by")
+        SbvError.RentalMediumNotBorrowed: return TranslationServer.tr(".error.rental.not-borrowed")
+        SbvError.RentalMediumAlreadyReserved: return TranslationServer.tr(".error.rental.already-reserved")
         _: return "Internal: Unknown Error"

@@ -38,6 +38,12 @@ impl User {
         self.may_borrow = user.may_borrow;
     }
 
+    pub fn db_instance(user: DBUser) -> Instance<User, Unique> {
+        let instance = User::new_instance();
+        instance.map_mut(|u, _| u.fill(user)).unwrap();
+        instance
+    }
+
     pub fn db(&self) -> DBUser {
         DBUser {
             account: self.account.to_string(),

@@ -72,6 +72,12 @@ impl Medium {
         self.reservation = medium.reservation.into();
     }
 
+    pub fn db_instance(medium: DBMedium) -> Instance<Medium, Unique> {
+        let instance = Medium::new_instance();
+        instance.map_mut(|m, _| m.fill(medium)).unwrap();
+        instance
+    }
+
     pub fn db(&self) -> DBMedium {
         let mut authors = Vec::with_capacity(self.authors.len() as _);
         for i in 0..self.authors.len() {

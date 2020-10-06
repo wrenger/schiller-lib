@@ -4,7 +4,7 @@ export var editable := false setget set_editable
 
 var medium: Reference = null setget set_medium, get_medium
 
-onready var _project := get_node("/root/Project") as Project
+onready var _project: Project = $"/root/Project"
 
 onready var _id := $ID/Input as LineEdit
 onready var _id_btn := $ID/Generate as Button
@@ -55,6 +55,9 @@ func set_medium(m: Reference):
         _category.select(_category.get_item_index(m.category.hash()))
         _notes.text = m.note
         _borrowable.pressed = m.borrowable
+        _borrower = m.borrower
+        _deadline = m.deadline
+        _reservation = m.reservation
     else:
         _id.clear()
         _isbn.clear()
@@ -121,7 +124,7 @@ func set_editable(e: bool):
             child = child.get_next()
 
 
-func _on_generate_id() -> void:
+func _on_generate_id():
     if editable:
         var medium = get_medium()
         medium.id = _id_before_edit
@@ -129,21 +132,21 @@ func _on_generate_id() -> void:
         if result.has("Ok"):
             _id.text = result["Ok"]
         else:
-            MessageDialog.error(get_tree(), tr(Util.error_msg(result["Err"])))
+            MessageDialog.error_code(result["Err"])
 
 
-func _on_author_add() -> void:
+func _on_author_add():
     var item = _authors.create_item(_authors.get_root())
     item.set_text(0, tr(".medium.authors.def"))
     item.set_editable(0, true)
 
 
-func _on_author_remove() -> void:
+func _on_author_remove():
     var selected = _authors.get_selected()
     if selected:
         selected.deselect(0)
         _authors.get_root().remove_child(selected)
 
 
-func _on_author_selected() -> void:
+func _on_author_selected():
      _authors_remove.disabled = _authors.get_selected() == null

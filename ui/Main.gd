@@ -2,12 +2,12 @@ extends Panel
 
 signal categories_changed(categories)
 
-onready var project := get_node("/root/Project") as Project
+onready var _project: Project = $"/root/Project"
 
 var project_path: String = ""
 
 
-func _ready() -> void:
+func _ready():
     get_tree().set_auto_accept_quit(false)
     if project_path:
         _on_project_selected(project_path)
@@ -15,17 +15,17 @@ func _ready() -> void:
         ProjectDialog.open(get_tree())
 
 
-func _notification(what: int) -> void:
+func _notification(what: int):
     match what:
         MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
-            project.close()
+            _project.close()
             get_tree().quit()
 
 func _unhandled_key_input(event):
     if event is InputEventKey:
         var key_event := event as InputEventKey
         if key_event.scancode == KEY_P and key_event.control and key_event.pressed:
-            MessageDialog.alert(get_tree(), "ctrl+P pressed")
+            MessageDialog.alert("ctrl+P pressed")
 
 
 func _on_open_project():
@@ -33,23 +33,23 @@ func _on_open_project():
 
 
 func _on_close_project():
-    project.close()
+    _project.close()
     OS.set_window_title(ProjectSettings.get("application/config/name"))
 
 
-func _on_project_selected(path: String) -> void:
-    if project.open(path):
-        var result: Dictionary = project.category_list()
+func _on_project_selected(path: String):
+    if _project.open(path):
+        var result: Dictionary = _project.category_list()
         if result.has("Ok"):
             project_path = path
             OS.set_window_title(ProjectSettings.get("application/config/name") + " - " + path.get_file())
             emit_signal("categories_changed", result["Ok"])
         else:
-            MessageDialog.error(get_tree(), tr(result["Err"]))
+            MessageDialog.error(tr(result["Err"]))
             _on_close_project()
     else:
         OS.set_window_title(ProjectSettings.get("application/config/name"))
-        MessageDialog.error(get_tree(), tr(".error.db"))
+        MessageDialog.error(tr(".error.db"))
 
 
 func persist_save() -> Dictionary:
@@ -68,9 +68,9 @@ func persist_load(data: Dictionary):
     OS.window_position = Vector2(data.get("x", OS.window_position.x), data.get("y", OS.window_position.y))
 
 
-func _enter_tree() -> void:
+func _enter_tree():
     TranslationServer.set_locale("de")
 
 
-func _on_theme_changed(theme) -> void:
+func _on_theme_changed(theme):
     self.theme = theme

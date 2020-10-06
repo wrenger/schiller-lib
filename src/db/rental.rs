@@ -18,7 +18,7 @@ pub trait DatabaseRental {
     fn db(&self) -> &sqlite::Connection;
 
     /// Lends the medium to the specified user.
-    fn rental_lend(&self, medium: &DBMedium, user: &DBUser, days: u32) -> api::Result<DBMedium> {
+    fn rental_lend(&self, medium: &mut DBMedium, user: &DBUser, days: u32) -> api::Result<()> {
         if !user.may_borrow {
             return Err(api::Error::RentalUserMayNotBorrow);
         }
@@ -49,24 +49,25 @@ pub trait DatabaseRental {
             return Err(api::Error::SQLError);
         }
 
-        let mut medium = medium.clone();
         medium.borrower = user.account.clone();
         medium.deadline = deadline;
-        Ok(medium)
+        Ok(())
     }
 
     /// Revokes the borrowing when a borrowed medium is returned.
-    fn rental_revoke(&self, id: &str) -> api::Result<()> {
+    fn rental_revoke(&self, medium: &mut DBMedium) -> api::Result<()> {
         let mut stmt = self.db().prepare(UPDATE_REVOKE)?;
-        stmt.bind(1, id)?;
+        stmt.bind(1, medium.id.as_str())?;
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
         }
+        medium.borrower = String::new();
+        medium.deadline = String::new();
         Ok(())
     }
 
     /// Creates a reservation for the borrowed medium.
-    fn rental_reserve(&self, medium: &DBMedium, user: &DBUser) -> api::Result<()> {
+    fn rental_reserve(&self, medium: &mut DBMedium, user: &DBUser) -> api::Result<()> {
         if !user.may_borrow {
             return Err(api::Error::RentalUserMayNotBorrow);
         }
@@ -89,16 +90,18 @@ pub trait DatabaseRental {
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
         }
+        medium.reservation = user.account.clone();
         Ok(())
     }
 
     /// Removes the reservation from the specified medium.
-    fn rental_release(&self, id: &str) -> api::Result<()> {
+    fn rental_release(&self, medium: &mut DBMedium) -> api::Result<()> {
         let mut stmt = self.db().prepare(UPDATE_RELEASE)?;
-        stmt.bind(1, id)?;
+        stmt.bind(1, medium.id.as_str())?;
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
         }
+        medium.reservation = String::new();
         Ok(())
     }
 }

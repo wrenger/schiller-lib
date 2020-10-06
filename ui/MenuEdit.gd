@@ -13,7 +13,7 @@ func _ready():
     assert(menu.connect("index_pressed", self, "_on_index_pressed") == OK)
 
 
-func _on_index_pressed(index: int) -> void:
+func _on_index_pressed(index: int):
     match index:
         0: _set_theme(not get_popup().is_item_checked(0))
 
@@ -30,4 +30,3 @@ func persist_save() -> Dictionary:
 
 func persist_load(data: Dictionary):
     _set_theme(data.get("dark_theme", true))
-

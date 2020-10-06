@@ -2,7 +2,7 @@ extends Node
 
 var savepath := "user://ui.json"
 
-func _enter_tree() -> void:
+func _enter_tree():
     var file := File.new()
     if file.open(savepath, File.READ) == OK:
         var result := JSON.parse(file.get_as_text())
@@ -21,7 +21,7 @@ func _enter_tree() -> void:
                         print("Error missing node: ", key)
 
 
-func _exit_tree() -> void:
+func _exit_tree():
     var settings := {}
     var save_nodes := get_tree().get_nodes_in_group("Persist")
     for node in save_nodes:

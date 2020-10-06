@@ -47,12 +47,10 @@ impl Project {
     fn medium_search(&self, _owner: &Node, text: GodotString) -> api::Result<VariantArray> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.medium_search(&text.to_string())?;
-        Ok(VariantArray::from_iter(result.map(|x| {
-            let instance = api::Medium::new_instance();
-            instance.map_mut(|u, _| u.fill(x)).unwrap();
-            instance.owned_to_variant()
-        }))
-        .into_shared())
+        Ok(
+            VariantArray::from_iter(result.map(|x| api::Medium::db_instance(x).owned_to_variant()))
+                .into_shared(),
+        )
     }
 
     /// Adds a new medium.
@@ -106,12 +104,10 @@ impl Project {
     fn user_search(&self, _owner: &Node, text: GodotString) -> api::Result<VariantArray> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.user_search(&text.to_string())?;
-        Ok(VariantArray::from_iter(result.map(|x| {
-            let instance = api::User::new_instance();
-            instance.map_mut(|u, _| u.fill(x)).unwrap();
-            instance.owned_to_variant()
-        }))
-        .into_shared())
+        Ok(
+            VariantArray::from_iter(result.map(|x| api::User::db_instance(x).owned_to_variant()))
+                .into_shared(),
+        )
     }
 
     /// Adds a new user.
@@ -212,10 +208,11 @@ impl Project {
         user: Ref<Reference>,
         days: i64,
     ) -> api::Result<Instance<api::Medium, Shared>> {
-        let medium = Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
-            .ok_or(Error::InvalidArguments)?
-            .map(|m, _| m.db())
-            .unwrap();
+        let mut medium =
+            Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
+                .ok_or(Error::InvalidArguments)?
+                .map(|m, _| m.db())
+                .unwrap();
         let user = Instance::<api::User, Unique>::from_base(unsafe { user.assume_unique() })
             .ok_or(Error::InvalidArguments)?
             .map(|u, _| u.db())
@@ -223,26 +220,31 @@ impl Project {
         if days < 0 {
             return Err(api::Error::InvalidArguments);
         }
-
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
 
-        let medium = db.rental_lend(&medium, &user, days as _)?;
-        let instance = api::Medium::new_instance();
-        instance.map_mut(|m, _| m.fill(medium)).unwrap();
-        Ok(instance.into_shared())
+        db.rental_lend(&mut medium, &user, days as _)?;
+        Ok(api::Medium::db_instance(medium).into_shared())
     }
 
     /// Revokes the borrowing when a borrowed medium is returned.
     #[export]
-    fn rental_revoke(&self, _owner: &Node, medium: GodotString) -> api::Result<()> {
-        let medium_s = medium.to_string();
-        let medium = medium_s.trim();
-        if medium.is_empty() {
+    fn rental_revoke(
+        &self,
+        _owner: &Node,
+        medium: Ref<Reference>,
+    ) -> api::Result<Instance<api::Medium, Shared>> {
+        let mut medium =
+            Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
+                .ok_or(Error::InvalidArguments)?
+                .map(|m, _| m.db())
+                .unwrap();
+        let db = self.db.as_ref().ok_or(Error::NoProject)?;
+        if medium.borrower.is_empty() {
             return Err(api::Error::LogicError);
         }
-        godot_print!("revoke {}", medium);
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.rental_revoke(medium)
+
+        db.rental_revoke(&mut medium)?;
+        Ok(api::Medium::db_instance(medium).into_shared())
     }
 
     /// Creates a reservation for the borrowed medium.
@@ -252,30 +254,40 @@ impl Project {
         _owner: &Node,
         medium: Ref<Reference>,
         user: Ref<Reference>,
-    ) -> api::Result<()> {
-        let medium = Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
+    ) -> api::Result<Instance<api::Medium, Shared>> {
+        let mut medium =
+            Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
+                .ok_or(Error::InvalidArguments)?
+                .map(|m, _| m.db())
+                .unwrap();
+        let user = Instance::<api::User, Unique>::from_base(unsafe { user.assume_unique() })
             .ok_or(Error::InvalidArguments)?
             .map(|m, _| m.db())
             .unwrap();
-        let user = Instance::<api::User, Unique>::from_base(unsafe { user.assume_unique() })
-            .ok_or(Error::InvalidArguments)?
-            .map(|u, _| u.db())
-            .unwrap();
-        godot_print!("reserve {} for {}", &medium.id, &user.account);
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.rental_reserve(&medium, &user)
+
+        db.rental_reserve(&mut medium, &user)?;
+        Ok(api::Medium::db_instance(medium).into_shared())
     }
 
     /// Removes the reservation from the specified medium.
     #[export]
-    fn rental_release(&self, _owner: &Node, medium: GodotString) -> api::Result<()> {
-        let medium_s = medium.to_string();
-        let medium = medium_s.trim();
-        if medium.is_empty() {
+    fn rental_release(
+        &self,
+        _owner: &Node,
+        medium: Ref<Reference>,
+    ) -> api::Result<Instance<api::Medium, Shared>> {
+        let mut medium =
+            Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
+                .ok_or(Error::InvalidArguments)?
+                .map(|m, _| m.db())
+                .unwrap();
+        let db = self.db.as_ref().ok_or(Error::NoProject)?;
+        if medium.reservation.is_empty() {
             return Err(api::Error::LogicError);
         }
-        godot_print!("delete reservation {} ", medium);
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.rental_release(medium)
+
+        db.rental_release(&mut medium)?;
+        Ok(api::Medium::db_instance(medium).into_shared())
     }
 }

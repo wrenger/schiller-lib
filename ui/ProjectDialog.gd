@@ -1,7 +1,7 @@
 extends FileDialog
 class_name ProjectDialog
 
-onready var window_content := $"../Content" as Control
+onready var window_content: Control = $"../Content"
 
 static func open(scene: SceneTree):
     var nodes = scene.get_nodes_in_group("ProjectDialog")
@@ -9,10 +9,13 @@ static func open(scene: SceneTree):
 
 func _open():
     if not visible:
-        window_content.modulate.a = 0.5
         window_title = tr(".alert.data.title")
         popup_centered()
 
 
 func _popup_hide():
     window_content.modulate.a = 1
+
+
+func _about_to_show():
+    window_content.modulate.a = 0.5
