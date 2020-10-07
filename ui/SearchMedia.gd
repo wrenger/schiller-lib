@@ -11,3 +11,8 @@ func _on_search(text: String):
         emit_signal("search_results", result["Ok"])
     else:
         MessageDialog.error_code(result["Err"])
+
+
+func _on_advanced_search():
+    print("Advanced search")
+    _on_search("")

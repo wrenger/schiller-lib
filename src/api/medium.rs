@@ -119,4 +119,18 @@ impl Medium {
             },
         ])
     }
+
+    #[export]
+    pub fn deadline_local(&self, _owner: &Reference) -> GodotString {
+        chrono::NaiveDate::parse_from_str(&self.deadline.to_string(), "%Y-%m-%d")
+            .map(|d| d.format("%x").to_string().into())
+            .unwrap_or_else(|_| self.deadline.clone())
+    }
+
+    #[export]
+    pub fn deadline_days(&self, _owner: &Reference) -> i64 {
+        chrono::NaiveDate::parse_from_str(&self.deadline.to_string(), "%Y-%m-%d")
+            .map(|d| (chrono::Local::today().naive_local() - d).num_days())
+            .unwrap_or(-1)
+    }
 }

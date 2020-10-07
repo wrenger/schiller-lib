@@ -1,10 +1,12 @@
+use std::collections::HashMap;
+
 use crate::api;
 
 use super::raw::DatabaseExt;
 use super::{DBIter, ReadStmt};
 
 const LIST: &str = r#"
-select * from category order by section, id
+select id, name, section from category order by section, id
 "#;
 
 const ADD: &str = r#"
@@ -37,11 +39,14 @@ pub struct DBCategory {
 impl ReadStmt for DBCategory {
     type Error = api::Error;
 
-    fn read(stmt: &sqlite::Statement<'_>) -> api::Result<DBCategory> {
+    fn read(
+        stmt: &sqlite::Statement<'_>,
+        columns: &HashMap<String, usize>,
+    ) -> api::Result<DBCategory> {
         Ok(DBCategory {
-            id: stmt.read(0)?,
-            name: stmt.read(1)?,
-            section: stmt.read(2)?,
+            id: stmt.read(columns["id"])?,
+            name: stmt.read(columns["name"])?,
+            section: stmt.read(columns["section"])?,
         })
     }
 }

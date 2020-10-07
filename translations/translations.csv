@@ -4,6 +4,7 @@
 .action.cancel,Cancel,Abbrechen
 .action.close,Close,Schließen
 .action.copy,Copy,Kopieren
+.action.copy.long,Copy to Clipboard,In Zwischenablage Kopieren
 .action.cut,Cut,Ausschneiden
 .action.delete,Delete,Löschen
 .action.edit,Edit,Bearbeiten
@@ -118,7 +119,7 @@
 .medium.new.success,The book has been added successfully.,Das Buch wurde erfolgreich eingetragen.
 .medium.not-borrowable,Not Borrowable,Nicht ausleihbar
 .medium.note,Notes,Notizen
-.medium.period,{0} - {1} ({2}) - Since {3} ({4} day{4:|s}),{0} - {1} ({2}) - Seit dem {3} ({4} Tag{4:|e})
+.medium.period,Since {0} ({1} day{1:|s}),Seit dem {0} ({1} Tag{1:|e})
 .medium.period.days,days,Tage
 .medium.publisher,Publisher,Verlag
 .medium.renew,Renew,Verlängern
@@ -157,7 +158,7 @@
 .pref.user.update,Update Users,Benutzer aktualisieren
 .search.action,Search,Suchen
 .search.advanced,Advanced,Erweitert
-.search.base,Search,Suche
+.search.base,Basic,Basic
 .search.medium,Books,Bücher
 .search.medium.entry,"Keyword (e.g. Author, Title or ID)","Suchbegriff (z.B. Autor, Titel oder Signatur)"
 .search.user,Users,Benutzer

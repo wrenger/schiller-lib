@@ -34,7 +34,7 @@ func set_medium(medium: Reference):
 
         _medium_state.text = ""
         if borrowed:
-            _medium_state.text = tr(".medium.borrowed.by").replace("{0}", medium.borrower).replace("{1}", medium.deadline)
+            _medium_state.text = tr(".medium.borrowed.by").replace("{0}", medium.borrower).replace("{1}", medium.deadline_local())
         if reserved:
             if medium.borrower:
                 _medium_state.text += "\n"

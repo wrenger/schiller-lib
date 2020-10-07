@@ -12,6 +12,24 @@ pub struct Project {
     db: Option<Database>,
 }
 
+struct DebugTimer {
+    time: std::time::Instant,
+}
+
+impl DebugTimer {
+    fn new() -> DebugTimer {
+        DebugTimer {
+            time: std::time::Instant::now(),
+        }
+    }
+}
+
+impl Drop for DebugTimer {
+    fn drop(&mut self) {
+        godot_print!("Elapsed time: {}", self.time.elapsed().as_micros());
+    }
+}
+
 #[methods]
 impl Project {
     fn new(_owner: &Node) -> Self {
@@ -45,6 +63,7 @@ impl Project {
     /// Performes a simple media search with the given `text`.
     #[export]
     fn medium_search(&self, _owner: &Node, text: GodotString) -> api::Result<VariantArray> {
+        let _timer = DebugTimer::new();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.medium_search(&text.to_string())?;
         Ok(
@@ -116,6 +135,7 @@ impl Project {
     /// Performes a simple user search with the given `text`.
     #[export]
     fn user_search(&self, _owner: &Node, text: GodotString) -> api::Result<VariantArray> {
+        let _timer = DebugTimer::new();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.user_search(&text.to_string())?;
         Ok(
@@ -159,6 +179,7 @@ impl Project {
     /// Performes a simple user search with the given `text`.
     #[export]
     fn category_list(&self, _owner: &Node) -> api::Result<VariantArray> {
+        let _timer = DebugTimer::new();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.category_list()?;
         Ok(VariantArray::from_iter(result.map(|x| {
@@ -231,12 +252,10 @@ impl Project {
             .ok_or(Error::InvalidArguments)?
             .map(|u, _| u.db())
             .unwrap();
-        if days < 0 {
-            return Err(api::Error::InvalidArguments);
-        }
+
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
 
-        db.rental_lend(&mut medium, &user, days as _)?;
+        db.rental_lend(&mut medium, &user, days)?;
         Ok(api::Medium::db_instance(medium).into_shared())
     }
 
@@ -303,5 +322,19 @@ impl Project {
 
         db.rental_release(&mut medium)?;
         Ok(api::Medium::db_instance(medium).into_shared())
+    }
+
+    /// Return the list of exceeded borrowing periods.
+    #[export]
+    fn rental_overdues(&self, _owner: &Node) -> api::Result<VariantArray> {
+        let _timer = DebugTimer::new();
+        let db = self.db.as_ref().ok_or(Error::NoProject)?;
+        let result = db.rental_overdues()?;
+        Ok(VariantArray::from_iter(result.map(|(medium, user)| {
+            let medium = api::Medium::db_instance(medium).owned_to_variant();
+            let user = api::User::db_instance(user).owned_to_variant();
+            VariantArray::from_iter([medium, user].iter()).into_shared()
+        }))
+        .into_shared())
     }
 }

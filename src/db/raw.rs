@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::iter::FromIterator;
+
 /// Additional database functions
 pub trait DatabaseExt {
     fn fetch(&self, statement: &str) -> Result<Vec<Vec<String>>, sqlite::Error>;
@@ -42,6 +45,21 @@ impl<'a> Transaction<'a> {
 impl<'a> Drop for Transaction<'a> {
     fn drop(&mut self) {
         self.db.execute("rollback").ok();
+    }
+}
+
+pub trait StatementExt {
+    fn columns(&self) -> HashMap<String, usize>;
+}
+
+impl<'a> StatementExt for sqlite::Statement<'a> {
+    fn columns(&self) -> HashMap<String, usize> {
+        HashMap::from_iter(
+            self.names()
+                .into_iter()
+                .enumerate()
+                .map(|(i, col)| (col.to_string(), i)),
+        )
     }
 }
 

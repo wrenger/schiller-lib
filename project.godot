@@ -39,6 +39,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/ProjectDialog.gd"
 }, {
+"base": "Node",
+"class": "Test",
+"language": "GDScript",
+"path": "res://ui/test/Test.gd"
+}, {
 "base": "Reference",
 "class": "User",
 "language": "NativeScript",
@@ -56,6 +61,7 @@ _global_script_class_icons={
 "ObjectList": "",
 "Project": "",
 "ProjectDialog": "",
+"Test": "",
 "User": "",
 "Util": ""
 }
@@ -68,8 +74,8 @@ run/main_scene="res://ui/Main.tscn"
 boot_splash/image="res://images/icon.png"
 boot_splash/fullsize=false
 config/icon="res://images/icon.png"
-config/macos_native_icon="res://icons/icon.icns"
-config/windows_native_icon="res://icons/icon.ico"
+config/macos_native_icon="res://images/icon.icns"
+config/windows_native_icon="res://images/icon.ico"
 
 [autoload]
 

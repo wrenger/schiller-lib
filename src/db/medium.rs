@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use crate::api;
 
-use super::raw::DatabaseExt;
+use super::raw::{DatabaseExt, StatementExt};
 use super::{DBIter, ReadStmt};
 
 const GET_MEDIUM: &str = r#"
@@ -102,25 +104,25 @@ impl DBMedium {
 impl ReadStmt for DBMedium {
     type Error = api::Error;
 
-    fn read(stmt: &sqlite::Statement<'_>) -> api::Result<DBMedium> {
+    fn read(stmt: &sqlite::Statement<'_>, columns: &HashMap<String, usize>) -> api::Result<DBMedium> {
         Ok(DBMedium {
-            id: stmt.read(0)?,
-            isbn: stmt.read(1)?,
-            title: stmt.read(2)?,
-            publisher: stmt.read(3)?,
-            year: stmt.read(4)?,
-            costs: stmt.read(5)?,
-            note: stmt.read(6)?,
-            borrowable: stmt.read::<i64>(7)? != 0,
-            category: stmt.read(8)?,
+            id: stmt.read(columns["id"])?,
+            isbn: stmt.read(columns["isbn"])?,
+            title: stmt.read(columns["title"])?,
+            publisher: stmt.read(columns["publisher"])?,
+            year: stmt.read(columns["year"])?,
+            costs: stmt.read(columns["costs"])?,
+            note: stmt.read(columns["note"])?,
+            borrowable: stmt.read::<i64>(columns["borrowable"])? != 0,
+            category: stmt.read(columns["category"])?,
             authors: stmt
-                .read::<String>(9)?
+                .read::<String>(columns["authors"])?
                 .split(',')
                 .map(|a| a.to_string())
                 .collect(),
-            borrower: stmt.read(10)?,
-            deadline: stmt.read(11)?,
-            reservation: stmt.read(12)?,
+            borrower: stmt.read(columns["borrower"])?,
+            deadline: stmt.read(columns["deadline"])?,
+            reservation: stmt.read(columns["reservation"])?,
         })
     }
 }
@@ -133,7 +135,7 @@ pub trait DatabaseMedium {
         let mut stmt = self.db().prepare(GET_MEDIUM)?;
         stmt.bind(1, id)?;
         if stmt.next()? == sqlite::State::Row {
-            DBMedium::read(&stmt)
+            DBMedium::read(&stmt, &stmt.columns())
         } else {
             Err(api::Error::SQLError)
         }

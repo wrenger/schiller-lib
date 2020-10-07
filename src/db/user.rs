@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use crate::api;
 
-use super::raw::DatabaseExt;
+use super::raw::{DatabaseExt, StatementExt};
 use super::{DBIter, ReadStmt};
 
 // Query
@@ -69,13 +71,13 @@ impl DBUser {
 impl ReadStmt for DBUser {
     type Error = api::Error;
 
-    fn read(stmt: &sqlite::Statement<'_>) -> api::Result<DBUser> {
+    fn read(stmt: &sqlite::Statement<'_>, columns: &HashMap<String, usize>) -> api::Result<DBUser> {
         Ok(DBUser {
-            account: stmt.read(0)?,
-            forename: stmt.read(1)?,
-            surname: stmt.read(2)?,
-            role: stmt.read(3)?,
-            may_borrow: stmt.read::<i64>(4)? != 0,
+            account: stmt.read(columns["account"])?,
+            forename: stmt.read(columns["forename"])?,
+            surname: stmt.read(columns["surname"])?,
+            role: stmt.read(columns["role"])?,
+            may_borrow: stmt.read::<i64>(columns["may_borrow"])? != 0,
         })
     }
 }
@@ -88,7 +90,7 @@ pub trait DatabaseUser {
         let mut stmt = self.db().prepare(GET_USER)?;
         stmt.bind(1, id)?;
         if stmt.next()? == sqlite::State::Row {
-            DBUser::read(&stmt)
+            DBUser::read(&stmt, &stmt.columns())
         } else {
             Err(api::Error::SQLError)
         }

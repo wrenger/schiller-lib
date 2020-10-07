@@ -25,6 +25,13 @@ impl From<sqlite::Error> for Error {
     }
 }
 
+impl From<chrono::ParseError> for Error {
+    fn from(e: chrono::ParseError) -> Error {
+        godot_print!("chrono::ParseError: {}", e);
+        Error::LogicError
+    }
+}
+
 impl ToVariant for Error {
     fn to_variant(&self) -> Variant {
         Variant::from_i64(*self as i64)

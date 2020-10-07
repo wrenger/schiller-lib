@@ -27,16 +27,6 @@ var _id_before_edit := ""
 
 func _ready():
     set_editable(editable)
-    for node in get_tree().get_nodes_in_group("CategoryChanger"):
-        assert(node.connect("categories_changed", self, "_on_categories_changed") == OK)
-
-
-func _on_categories_changed(categories: Array):
-    var ctrl := _category as OptionButton
-    ctrl.clear()
-    for category in categories:
-        var text: String = category.id + " - " + category.name + " - " + category.section
-        ctrl.add_item(text,  category.id.hash())
 
 
 func set_medium(m: Reference):

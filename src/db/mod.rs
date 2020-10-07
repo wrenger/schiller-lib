@@ -1,3 +1,4 @@
+use std::collections::hash_map::HashMap;
 use std::fmt;
 use std::path::{Path, PathBuf};
 
@@ -11,6 +12,7 @@ mod user;
 
 pub use category::*;
 pub use medium::*;
+use raw::StatementExt;
 pub use rental::*;
 pub use user::*;
 
@@ -72,12 +74,14 @@ impl DatabaseUser for Database {
 /// Iterator over database results.
 pub struct DBIter<'a, T> {
     stmt: sqlite::Statement<'a>,
+    columns: HashMap<String, usize>,
     ty: std::marker::PhantomData<T>,
 }
 
 impl<'a, T> DBIter<'a, T> {
     pub fn new(stmt: sqlite::Statement<'a>) -> Self {
         DBIter {
+            columns: stmt.columns(),
             stmt,
             ty: std::marker::PhantomData,
         }
@@ -87,7 +91,7 @@ impl<'a, T> DBIter<'a, T> {
 /// Conversion from database entries.
 pub trait ReadStmt: Sized {
     type Error: std::fmt::Debug;
-    fn read(stmt: &sqlite::Statement) -> Result<Self, Self::Error>;
+    fn read(stmt: &sqlite::Statement, columns: &HashMap<String, usize>) -> Result<Self, Self::Error>;
 }
 
 impl<'a, T: ReadStmt> Iterator for DBIter<'a, T> {
@@ -95,7 +99,7 @@ impl<'a, T: ReadStmt> Iterator for DBIter<'a, T> {
     fn next(&mut self) -> Option<T> {
         if let Ok(state) = self.stmt.next() {
             if state != sqlite::State::Done {
-                match T::read(&self.stmt) {
+                match T::read(&self.stmt, &self.columns) {
                     Ok(r) => Some(r),
                     Err(e) => {
                         gdnative::godot_print!("SQLError! {:?}", e);

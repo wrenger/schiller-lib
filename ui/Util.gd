@@ -43,3 +43,29 @@ static func error_msg(error: int) -> String:
         SbvError.RentalMediumNotBorrowed: return TranslationServer.tr(".error.rental.not-borrowed")
         SbvError.RentalMediumAlreadyReserved: return TranslationServer.tr(".error.rental.already-reserved")
         _: return "Internal: Unknown Error"
+
+
+
+static func trf(key: String, values: Array = []) -> String:
+    var text := TranslationServer.tr(key)
+    if values:
+        var re := RegEx.new()
+        assert(re.compile("\\{(\\d{1,2})(:(([\\p{L}\\p{N}]*)\\|([\\p{L}\\p{N}]*)))?}") == OK)
+        var output := PoolStringArray([])
+        var pos := 0
+        for result in re.search_all(text):
+            if len(result.strings) == 6:
+                var idx := int(result.strings[1])
+                if idx < len(values):
+                    output.push_back(text.substr(pos, result.get_start() - pos))
+                    if not result.strings[3]:
+                        output.push_back(String(values[idx]))
+                    else:
+                        if values[idx] is int and values[idx] == 1:
+                            output.push_back(result.strings[4])
+                        else:
+                            output.push_back(result.strings[5])
+                    pos = result.get_end()
+        output.push_back(text.substr(pos, len(text) - pos))
+        return output.join("")
+    return text

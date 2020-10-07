@@ -69,7 +69,8 @@ func persist_load(data: Dictionary):
 
 
 func _enter_tree():
-    TranslationServer.set_locale("de")
+    pass
+    # TranslationServer.set_locale("de")
 
 
 func _on_theme_changed(theme):
