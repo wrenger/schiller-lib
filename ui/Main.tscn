@@ -90,6 +90,7 @@ margin_right = -5.0
 margin_bottom = -5.0
 
 [node name="Settings" parent="Content/Tabs" instance=ExtResource( 5 )]
+visible = false
 margin_left = 5.0
 margin_top = 29.0
 margin_right = -5.0

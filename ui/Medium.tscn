@@ -172,6 +172,7 @@ margin_top = 356.0
 margin_right = 1024.0
 margin_bottom = 378.0
 size_flags_horizontal = 3
+clip_text = true
 script = ExtResource( 5 )
 
 [node name="NotesLabel" type="Label" parent="."]

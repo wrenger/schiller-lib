@@ -1,7 +1,6 @@
 [gd_scene format=2]
 
 [node name="Settings" type="MarginContainer"]
-visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 4.0
@@ -12,3 +11,318 @@ custom_constants/margin_right = 5
 custom_constants/margin_top = 10
 custom_constants/margin_left = 5
 custom_constants/margin_bottom = 5
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Box" type="VBoxContainer" parent="."]
+margin_left = 5.0
+margin_top = 10.0
+margin_right = 1187.0
+margin_bottom = 759.0
+
+[node name="Scroll" type="ScrollContainer" parent="Box"]
+margin_right = 1182.0
+margin_bottom = 723.0
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Box" type="VBoxContainer" parent="Box/Scroll"]
+margin_right = 1182.0
+margin_bottom = 723.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_constants/separation = 20
+
+[node name="Info" type="Label" parent="Box/Scroll/Box"]
+margin_right = 1182.0
+margin_bottom = 22.0
+text = ".pref.project.label"
+
+[node name="Database" type="VBoxContainer" parent="Box/Scroll/Box"]
+margin_top = 42.0
+margin_right = 1182.0
+margin_bottom = 90.0
+
+[node name="Label" type="Label" parent="Box/Scroll/Box/Database"]
+margin_right = 1182.0
+margin_bottom = 22.0
+text = ".pref.database.header"
+
+[node name="Margin" type="MarginContainer" parent="Box/Scroll/Box/Database"]
+margin_top = 26.0
+margin_right = 1182.0
+margin_bottom = 48.0
+custom_constants/margin_left = 40
+
+[node name="Box" type="HBoxContainer" parent="Box/Scroll/Box/Database/Margin"]
+margin_left = 40.0
+margin_right = 1182.0
+margin_bottom = 22.0
+
+[node name="Categories" type="Button" parent="Box/Scroll/Box/Database/Margin/Box"]
+margin_right = 569.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+text = ".category.edit"
+
+[node name="Database" type="Button" parent="Box/Scroll/Box/Database/Margin/Box"]
+margin_left = 573.0
+margin_right = 1142.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+text = ".sql.title"
+
+[node name="Borrowing" type="VBoxContainer" parent="Box/Scroll/Box"]
+margin_top = 110.0
+margin_right = 1182.0
+margin_bottom = 158.0
+
+[node name="Label" type="Label" parent="Box/Scroll/Box/Borrowing"]
+margin_right = 1182.0
+margin_bottom = 22.0
+text = ".pref.borrowing.header"
+
+[node name="Margin" type="MarginContainer" parent="Box/Scroll/Box/Borrowing"]
+margin_top = 26.0
+margin_right = 1182.0
+margin_bottom = 48.0
+custom_constants/margin_left = 40
+
+[node name="Duration" type="HBoxContainer" parent="Box/Scroll/Box/Borrowing/Margin"]
+margin_left = 40.0
+margin_right = 1182.0
+margin_bottom = 22.0
+
+[node name="Label" type="Label" parent="Box/Scroll/Box/Borrowing/Margin/Duration"]
+margin_right = 250.0
+margin_bottom = 22.0
+rect_min_size = Vector2( 250, 0 )
+text = ".pref.borrowing.duration"
+
+[node name="Value" type="SpinBox" parent="Box/Scroll/Box/Borrowing/Margin/Duration"]
+margin_left = 254.0
+margin_right = 1142.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+
+[node name="User" type="VBoxContainer" parent="Box/Scroll/Box"]
+margin_top = 178.0
+margin_right = 1182.0
+margin_bottom = 252.0
+
+[node name="Label" type="Label" parent="Box/Scroll/Box/User"]
+margin_right = 1182.0
+margin_bottom = 22.0
+text = ".pref.user.header"
+
+[node name="Margin" type="MarginContainer" parent="Box/Scroll/Box/User"]
+margin_top = 26.0
+margin_right = 1182.0
+margin_bottom = 74.0
+custom_constants/margin_left = 40
+
+[node name="Box" type="VBoxContainer" parent="Box/Scroll/Box/User/Margin"]
+margin_left = 40.0
+margin_right = 1182.0
+margin_bottom = 48.0
+
+[node name="Delimiter" type="HBoxContainer" parent="Box/Scroll/Box/User/Margin/Box"]
+margin_right = 1142.0
+margin_bottom = 22.0
+
+[node name="Lable" type="Label" parent="Box/Scroll/Box/User/Margin/Box/Delimiter"]
+margin_right = 250.0
+margin_bottom = 22.0
+rect_min_size = Vector2( 250, 0 )
+text = ".pref.user.delimiter"
+
+[node name="Value" type="LineEdit" parent="Box/Scroll/Box/User/Margin/Box/Delimiter"]
+margin_left = 254.0
+margin_right = 1142.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+
+[node name="Box" type="HBoxContainer" parent="Box/Scroll/Box/User/Margin/Box"]
+margin_top = 26.0
+margin_right = 1142.0
+margin_bottom = 48.0
+
+[node name="File" type="Button" parent="Box/Scroll/Box/User/Margin/Box/Box"]
+margin_right = 569.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+text = ".pref.user.update"
+
+[node name="Update" type="Button" parent="Box/Scroll/Box/User/Margin/Box/Box"]
+margin_left = 573.0
+margin_right = 1142.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+text = ".alert.user.title"
+
+[node name="Request" type="VBoxContainer" parent="Box/Scroll/Box"]
+margin_top = 272.0
+margin_right = 1182.0
+margin_bottom = 320.0
+
+[node name="Label" type="Label" parent="Box/Scroll/Box/Request"]
+margin_right = 1182.0
+margin_bottom = 22.0
+text = ".pref.request.header"
+
+[node name="Margin" type="MarginContainer" parent="Box/Scroll/Box/Request"]
+margin_top = 26.0
+margin_right = 1182.0
+margin_bottom = 48.0
+custom_constants/margin_left = 40
+
+[node name="Token" type="HBoxContainer" parent="Box/Scroll/Box/Request/Margin"]
+margin_left = 40.0
+margin_right = 1182.0
+margin_bottom = 22.0
+
+[node name="Label" type="Label" parent="Box/Scroll/Box/Request/Margin/Token"]
+margin_right = 250.0
+margin_bottom = 22.0
+rect_min_size = Vector2( 250, 0 )
+text = ".pref.request.token"
+
+[node name="Value" type="LineEdit" parent="Box/Scroll/Box/Request/Margin/Token"]
+margin_left = 254.0
+margin_right = 1142.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+
+[node name="MailTemplates" type="VBoxContainer" parent="Box/Scroll/Box"]
+margin_top = 340.0
+margin_right = 1182.0
+margin_bottom = 388.0
+
+[node name="Label" type="Label" parent="Box/Scroll/Box/MailTemplates"]
+margin_right = 1182.0
+margin_bottom = 22.0
+text = ".pref.mail.templates.header"
+
+[node name="Margin" type="MarginContainer" parent="Box/Scroll/Box/MailTemplates"]
+margin_top = 26.0
+margin_right = 1182.0
+margin_bottom = 48.0
+custom_constants/margin_left = 40
+
+[node name="Box" type="HBoxContainer" parent="Box/Scroll/Box/MailTemplates/Margin"]
+margin_left = 40.0
+margin_right = 1182.0
+margin_bottom = 22.0
+
+[node name="Info" type="Button" parent="Box/Scroll/Box/MailTemplates/Margin/Box"]
+margin_right = 378.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+text = ".mail.info.title"
+
+[node name="Overdue" type="Button" parent="Box/Scroll/Box/MailTemplates/Margin/Box"]
+margin_left = 382.0
+margin_right = 760.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+text = ".mail.overdue.title"
+
+[node name="Overdue2" type="Button" parent="Box/Scroll/Box/MailTemplates/Margin/Box"]
+margin_left = 764.0
+margin_right = 1142.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+text = ".mail.overdue2.title"
+
+[node name="MailAccount" type="VBoxContainer" parent="Box/Scroll/Box"]
+margin_top = 408.0
+margin_right = 1182.0
+margin_bottom = 508.0
+
+[node name="Label" type="Label" parent="Box/Scroll/Box/MailAccount"]
+margin_right = 1182.0
+margin_bottom = 22.0
+text = ".pref.mail.account.header"
+
+[node name="Margin" type="MarginContainer" parent="Box/Scroll/Box/MailAccount"]
+margin_top = 26.0
+margin_right = 1182.0
+margin_bottom = 100.0
+custom_constants/margin_left = 40
+
+[node name="Box" type="VBoxContainer" parent="Box/Scroll/Box/MailAccount/Margin"]
+margin_left = 40.0
+margin_right = 1182.0
+margin_bottom = 74.0
+
+[node name="Host" type="HBoxContainer" parent="Box/Scroll/Box/MailAccount/Margin/Box"]
+margin_right = 1142.0
+margin_bottom = 22.0
+
+[node name="Label" type="Label" parent="Box/Scroll/Box/MailAccount/Margin/Box/Host"]
+margin_right = 250.0
+margin_bottom = 22.0
+rect_min_size = Vector2( 250, 0 )
+text = ".pref.mail.account.host"
+
+[node name="Value" type="LineEdit" parent="Box/Scroll/Box/MailAccount/Margin/Box/Host"]
+margin_left = 254.0
+margin_right = 1142.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+
+[node name="From" type="HBoxContainer" parent="Box/Scroll/Box/MailAccount/Margin/Box"]
+margin_top = 26.0
+margin_right = 1142.0
+margin_bottom = 48.0
+
+[node name="Label" type="Label" parent="Box/Scroll/Box/MailAccount/Margin/Box/From"]
+margin_right = 250.0
+margin_bottom = 22.0
+rect_min_size = Vector2( 250, 0 )
+text = ".pref.mail.account.from"
+
+[node name="Value" type="LineEdit" parent="Box/Scroll/Box/MailAccount/Margin/Box/From"]
+margin_left = 254.0
+margin_right = 1142.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+
+[node name="Password" type="HBoxContainer" parent="Box/Scroll/Box/MailAccount/Margin/Box"]
+margin_top = 52.0
+margin_right = 1142.0
+margin_bottom = 74.0
+
+[node name="Label" type="Label" parent="Box/Scroll/Box/MailAccount/Margin/Box/Password"]
+margin_right = 250.0
+margin_bottom = 22.0
+rect_min_size = Vector2( 250, 0 )
+text = ".pref.mail.account.password"
+
+[node name="Value" type="LineEdit" parent="Box/Scroll/Box/MailAccount/Margin/Box/Password"]
+margin_left = 254.0
+margin_right = 1142.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+secret = true
+
+[node name="Box" type="HBoxContainer" parent="Box"]
+margin_top = 727.0
+margin_right = 1182.0
+margin_bottom = 749.0
+
+[node name="Cancel" type="Button" parent="Box/Box"]
+margin_right = 130.0
+margin_bottom = 22.0
+rect_min_size = Vector2( 130, 0 )
+text = ".action.cancel"
+
+[node name="Save" type="Button" parent="Box/Box"]
+margin_left = 134.0
+margin_right = 1182.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+text = ".action.apply"

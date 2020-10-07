@@ -133,6 +133,7 @@ margin_right = 686.0
 margin_bottom = 74.0
 size_flags_horizontal = 3
 text = ".category"
+clip_text = true
 script = ExtResource( 10 )
 allow_empty = true
 

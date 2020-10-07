@@ -48,7 +48,7 @@
 .category.not-empty,IDs can only be changed for empty categories. There {1:is|are} {1} book{1:|s} left in '{0}'.,Es können nur IDs leerer Kategorien geändert werden. Es gibt noch {1} {1:Buch|Bücher} in '{0}'.
 .category.not-empty.del,A category has to be empty to be removed. There {1:is|are} {1} book{1:|s} left in '{0}'.,Eine können nur IDs leerer Kategorien gelöscht werden. Es gibt noch {1} {1:Buch|Bücher} in '{0}'.
 .category.section,Section,Bereich
-.category.title,Edit Categories,Kategorien bearbeiten
+.category.edit,Edit Categories,Kategorien bearbeiten
 .error.category.existing,The category id '{0}' already exists.,Die Abkürzung '{0}' existiert bereits.
 .error.config.default,Could not access the default preferences.,Die Voreinstellungen konnten nicht geladen werden.
 .error.config.load,Could not load the preferences.\nLoading default preferences instead.,Die Einstellungen konnten nicht geladen werden.\nEs wird auf die Voreinstellungen zurückgegriffen.
