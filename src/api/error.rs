@@ -32,6 +32,13 @@ impl From<chrono::ParseError> for Error {
     }
 }
 
+impl From<std::convert::Infallible> for Error {
+    fn from(e: std::convert::Infallible) -> Error {
+        godot_print!("convert::Infallible: {}", e);
+        Error::InvalidArguments
+    }
+}
+
 impl ToVariant for Error {
     fn to_variant(&self) -> Variant {
         Variant::from_i64(*self as i64)

@@ -72,6 +72,41 @@ impl Project {
         )
     }
 
+    #[export]
+    fn medium_search_advanced(
+        &self,
+        _owner: &Node,
+        id: GodotString,
+        isbn: GodotString,
+        title: GodotString,
+        publisher: GodotString,
+        authors: GodotString,
+        year: GodotString,
+        category: GodotString,
+        note: GodotString,
+        user: GodotString,
+        state: i64,
+    ) -> api::Result<VariantArray> {
+        let _timer = DebugTimer::new();
+        let db = self.db.as_ref().ok_or(Error::NoProject)?;
+        let result = db.medium_search_advanced(
+            &id.to_string(),
+            &isbn.to_string(),
+            &title.to_string(),
+            &publisher.to_string(),
+            &authors.to_string(),
+            &year.to_string(),
+            &category.to_string(),
+            &note.to_string(),
+            &user.to_string(),
+            state.into(),
+        )?;
+        Ok(
+            VariantArray::from_iter(result.map(|x| api::Medium::db_instance(x).owned_to_variant()))
+                .into_shared(),
+        )
+    }
+
     /// Adds a new medium.
     #[export]
     fn medium_add(&self, _owner: &Node, medium: Ref<Reference>) -> api::Result<()> {

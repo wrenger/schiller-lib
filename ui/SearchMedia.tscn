@@ -33,23 +33,51 @@ margin_left = 5.0
 margin_top = 10.0
 margin_right = 1187.0
 margin_bottom = 759.0
-split_offset = 500
+custom_constants/autohide = 0
+split_offset = 400
 
-[node name="Search" type="VBoxContainer" parent="Split"]
-margin_right = 696.0
+[node name="Left" type="Control" parent="Split"]
+margin_right = 600.0
 margin_bottom = 749.0
+rect_min_size = Vector2( 200, 0 )
+
+[node name="Search" type="VBoxContainer" parent="Split/Left"]
+anchor_right = 1.0
+anchor_bottom = 1.0
 custom_constants/separation = 5
 script = ExtResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
-[node name="TabContainer" type="TabContainer" parent="Split/Search"]
-margin_right = 696.0
-margin_bottom = 186.0
+[node name="Tabs" type="TabContainer" parent="Split/Left/Search"]
+margin_right = 600.0
+margin_bottom = 56.0
 tab_align = 0
 script = ExtResource( 9 )
 icons = [ ExtResource( 2 ), ExtResource( 8 ) ]
 labels = [ ".search.base", ".search.advanced" ]
 
-[node name="Basic" type="LineEdit" parent="Split/Search/TabContainer"]
+[node name="Basic" type="LineEdit" parent="Split/Left/Search/Tabs"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 5.0
+margin_top = 29.0
+margin_right = -5.0
+margin_bottom = -5.0
+placeholder_text = ".search.medium.entry"
+
+[node name="ToolButton" type="ToolButton" parent="Split/Left/Search/Tabs/Basic"]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -28.0
+icon = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Advanced" type="VBoxContainer" parent="Split/Left/Search/Tabs"]
 visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -57,43 +85,33 @@ margin_left = 5.0
 margin_top = 29.0
 margin_right = -5.0
 margin_bottom = -5.0
-right_icon = ExtResource( 2 )
-placeholder_text = ".search.medium.entry"
 
-[node name="Advanced" type="VBoxContainer" parent="Split/Search/TabContainer"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-margin_left = 5.0
-margin_top = 29.0
-margin_right = -5.0
-margin_bottom = -5.0
-
-[node name="Grid" type="GridContainer" parent="Split/Search/TabContainer/Advanced"]
+[node name="Grid" type="GridContainer" parent="Split/Left/Search/Tabs/Advanced"]
 margin_right = 686.0
 margin_bottom = 126.0
 columns = 2
 
-[node name="Title" type="LineEdit" parent="Split/Search/TabContainer/Advanced/Grid"]
+[node name="Title" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
 margin_right = 341.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 placeholder_text = ".medium.title"
 
-[node name="ID" type="LineEdit" parent="Split/Search/TabContainer/Advanced/Grid"]
+[node name="ID" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
 margin_left = 345.0
 margin_right = 686.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 placeholder_text = ".medium.id"
 
-[node name="ISBN" type="LineEdit" parent="Split/Search/TabContainer/Advanced/Grid"]
+[node name="ISBN" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
 margin_top = 26.0
 margin_right = 341.0
 margin_bottom = 48.0
 size_flags_horizontal = 3
 placeholder_text = ".medium.isbn"
 
-[node name="Author" type="LineEdit" parent="Split/Search/TabContainer/Advanced/Grid"]
+[node name="Authors" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
 margin_left = 345.0
 margin_top = 26.0
 margin_right = 686.0
@@ -101,14 +119,14 @@ margin_bottom = 48.0
 size_flags_horizontal = 3
 placeholder_text = ".medium.authors"
 
-[node name="Publisher" type="LineEdit" parent="Split/Search/TabContainer/Advanced/Grid"]
+[node name="Publisher" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
 margin_top = 52.0
 margin_right = 341.0
 margin_bottom = 74.0
 size_flags_horizontal = 3
 placeholder_text = ".medium.publisher"
 
-[node name="Category" type="OptionButton" parent="Split/Search/TabContainer/Advanced/Grid"]
+[node name="Category" type="OptionButton" parent="Split/Left/Search/Tabs/Advanced/Grid"]
 margin_left = 345.0
 margin_top = 52.0
 margin_right = 686.0
@@ -118,14 +136,14 @@ text = ".category"
 script = ExtResource( 10 )
 allow_empty = true
 
-[node name="Year" type="LineEdit" parent="Split/Search/TabContainer/Advanced/Grid"]
+[node name="Year" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
 margin_top = 78.0
 margin_right = 341.0
 margin_bottom = 100.0
 size_flags_horizontal = 3
 placeholder_text = ".medium.year"
 
-[node name="Note" type="LineEdit" parent="Split/Search/TabContainer/Advanced/Grid"]
+[node name="Note" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
 margin_left = 345.0
 margin_top = 78.0
 margin_right = 686.0
@@ -133,33 +151,33 @@ margin_bottom = 100.0
 size_flags_horizontal = 3
 placeholder_text = ".medium.note"
 
-[node name="User" type="LineEdit" parent="Split/Search/TabContainer/Advanced/Grid"]
+[node name="User" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
 margin_top = 104.0
 margin_right = 341.0
 margin_bottom = 126.0
 size_flags_horizontal = 3
 placeholder_text = ".user"
 
-[node name="State" type="OptionButton" parent="Split/Search/TabContainer/Advanced/Grid"]
+[node name="State" type="OptionButton" parent="Split/Left/Search/Tabs/Advanced/Grid"]
 margin_left = 345.0
 margin_top = 104.0
 margin_right = 686.0
 margin_bottom = 126.0
 size_flags_horizontal = 3
 text = ".medium.state"
-items = [ ".medium.state", null, false, 0, null, ".medium.borrowed", null, false, 1, null, ".medium.reserved", null, false, 2, null ]
+items = [ ".medium.state", null, false, 0, null, ".medium.borrowable", null, false, 1, null, ".medium.not-borrowable", null, false, 2, null, ".medium.unavaliable", null, false, 3, null ]
 selected = 0
 
-[node name="Search" type="Button" parent="Split/Search/TabContainer/Advanced"]
+[node name="Search" type="Button" parent="Split/Left/Search/Tabs/Advanced"]
 margin_top = 130.0
 margin_right = 686.0
 margin_bottom = 152.0
 size_flags_horizontal = 3
 text = ".search.action"
 
-[node name="MediaList" type="Tree" parent="Split/Search"]
-margin_top = 191.0
-margin_right = 696.0
+[node name="MediaList" type="Tree" parent="Split/Left/Search"]
+margin_top = 61.0
+margin_right = 600.0
 margin_bottom = 720.0
 size_flags_vertical = 3
 columns = 4
@@ -168,100 +186,103 @@ hide_root = true
 select_mode = 1
 script = ExtResource( 3 )
 column_names = PoolStringArray( ".medium.id", ".medium.title", ".medium.authors", ".medium.state" )
-column_sizes = PoolIntArray( 100, 150, 100, 100 )
+column_sizes = PoolIntArray( 120, 150, 100, 100 )
 column_expand = PoolByteArray( 0, 1, 1, 0 )
 
-[node name="Add" type="Button" parent="Split/Search"]
+[node name="Add" type="Button" parent="Split/Left/Search"]
 margin_top = 725.0
-margin_right = 696.0
+margin_right = 600.0
 margin_bottom = 749.0
 text = ".medium.new"
 icon = ExtResource( 7 )
 
-[node name="Panel" type="PanelContainer" parent="Split"]
-margin_left = 704.0
+[node name="Right" type="Control" parent="Split"]
+margin_left = 608.0
 margin_right = 1182.0
 margin_bottom = 749.0
-size_flags_vertical = 3
+rect_min_size = Vector2( 200, 0 )
 
-[node name="Box" type="VBoxContainer" parent="Split/Panel"]
-margin_left = 6.0
-margin_top = 4.0
-margin_right = 472.0
-margin_bottom = 745.0
+[node name="Box" type="VBoxContainer" parent="Split/Right"]
+anchor_right = 1.0
+anchor_bottom = 1.0
 custom_constants/separation = 5
 script = ExtResource( 6 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
-[node name="Medium" parent="Split/Panel/Box" instance=ExtResource( 1 )]
-margin_right = 466.0
-margin_bottom = 687.0
+[node name="Medium" parent="Split/Right/Box" instance=ExtResource( 1 )]
+margin_right = 574.0
+margin_bottom = 651.0
 
-[node name="State" type="Label" parent="Split/Panel/Box"]
-margin_top = 692.0
-margin_right = 466.0
-margin_bottom = 714.0
+[node name="State" type="Label" parent="Split/Right/Box"]
+margin_top = 656.0
+margin_right = 574.0
+margin_bottom = 722.0
+size_flags_vertical = 7
+size_flags_stretch_ratio = 0.1
 
-[node name="Lend" type="Button" parent="Split/Panel/Box"]
+[node name="Lend" type="Button" parent="Split/Right/Box"]
 visible = false
 margin_top = 584.0
 margin_right = 602.0
 margin_bottom = 606.0
 text = ".medium.lend"
 
-[node name="LendTo" type="Button" parent="Split/Panel/Box"]
+[node name="LendTo" type="Button" parent="Split/Right/Box"]
 visible = false
 margin_top = 611.0
 margin_right = 602.0
 margin_bottom = 633.0
 text = ".medium.lend.to"
 
-[node name="Reserve" type="Button" parent="Split/Panel/Box"]
+[node name="Reserve" type="Button" parent="Split/Right/Box"]
 visible = false
 margin_top = 638.0
 margin_right = 602.0
 margin_bottom = 660.0
 text = ".medium.reserve"
 
-[node name="Release" type="Button" parent="Split/Panel/Box"]
+[node name="Release" type="Button" parent="Split/Right/Box"]
 visible = false
 margin_top = 665.0
 margin_right = 602.0
 margin_bottom = 687.0
 text = ".medium.delete-reservation"
 
-[node name="Revoke" type="Button" parent="Split/Panel/Box"]
+[node name="Revoke" type="Button" parent="Split/Right/Box"]
 visible = false
 margin_top = 692.0
 margin_right = 602.0
 margin_bottom = 714.0
 text = ".medium.revoke"
 
-[node name="Edit" type="Button" parent="Split/Panel/Box"]
-margin_top = 719.0
-margin_right = 466.0
-margin_bottom = 741.0
+[node name="Edit" type="Button" parent="Split/Right/Box"]
+margin_top = 727.0
+margin_right = 574.0
+margin_bottom = 749.0
 text = ".action.edit"
 
-[node name="Editing" type="HBoxContainer" parent="Split/Panel/Box"]
+[node name="Editing" type="HBoxContainer" parent="Split/Right/Box"]
 visible = false
 margin_top = 717.0
 margin_right = 602.0
 margin_bottom = 741.0
 
-[node name="Cancel" type="Button" parent="Split/Panel/Box/Editing"]
+[node name="Cancel" type="Button" parent="Split/Right/Box/Editing"]
 margin_right = 120.0
 margin_bottom = 24.0
 rect_min_size = Vector2( 120, 0 )
 text = ".action.cancel"
 
-[node name="Apply" type="Button" parent="Split/Panel/Box/Editing"]
+[node name="Apply" type="Button" parent="Split/Right/Box/Editing"]
 margin_left = 124.0
 margin_right = 478.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 text = ".action.apply"
 
-[node name="Delete" type="Button" parent="Split/Panel/Box/Editing"]
+[node name="Delete" type="Button" parent="Split/Right/Box/Editing"]
 margin_left = 482.0
 margin_right = 602.0
 margin_bottom = 24.0
@@ -269,40 +290,51 @@ rect_min_size = Vector2( 120, 0 )
 text = ".action.delete"
 icon = ExtResource( 5 )
 
-[node name="Adding" type="HBoxContainer" parent="Split/Panel/Box"]
+[node name="Adding" type="HBoxContainer" parent="Split/Right/Box"]
 visible = false
 margin_top = 719.0
 margin_right = 562.0
 margin_bottom = 741.0
 
-[node name="Cancel" type="Button" parent="Split/Panel/Box/Adding"]
+[node name="Cancel" type="Button" parent="Split/Right/Box/Adding"]
 margin_right = 120.0
 margin_bottom = 22.0
 rect_min_size = Vector2( 120, 0 )
 text = ".action.cancel"
 
-[node name="Add" type="Button" parent="Split/Panel/Box/Adding"]
+[node name="Add" type="Button" parent="Split/Right/Box/Adding"]
 margin_left = 124.0
 margin_right = 562.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 text = ".action.add"
-[connection signal="search_results" from="Split/Search" to="Split/Search/MediaList" method="fill"]
-[connection signal="text_entered" from="Split/Search/TabContainer/Basic" to="Split/Search" method="_on_search"]
-[connection signal="pressed" from="Split/Search/TabContainer/Advanced/Search" to="Split/Search" method="_on_advanced_search"]
-[connection signal="item_selected" from="Split/Search/MediaList" to="Split/Search/MediaList" method="_on_item_selected"]
-[connection signal="object_selected" from="Split/Search/MediaList" to="Split/Panel/Box" method="_on_medium_selected"]
-[connection signal="pressed" from="Split/Search/Add" to="Split/Panel/Box" method="_on_add_medium"]
-[connection signal="add_medium" from="Split/Panel/Box" to="Split/Search/MediaList" method="add_and_select_object"]
-[connection signal="update_medium" from="Split/Panel/Box" to="Split/Search/MediaList" method="update_selected"]
-[connection signal="pressed" from="Split/Panel/Box/Lend" to="Split/Panel/Box" method="_on_lend"]
-[connection signal="pressed" from="Split/Panel/Box/LendTo" to="Split/Panel/Box" method="_on_lend_to"]
-[connection signal="pressed" from="Split/Panel/Box/Reserve" to="Split/Panel/Box" method="_on_reserve"]
-[connection signal="pressed" from="Split/Panel/Box/Release" to="Split/Panel/Box" method="_on_release"]
-[connection signal="pressed" from="Split/Panel/Box/Revoke" to="Split/Panel/Box" method="_on_revoke"]
-[connection signal="pressed" from="Split/Panel/Box/Edit" to="Split/Panel/Box" method="_on_edit"]
-[connection signal="pressed" from="Split/Panel/Box/Editing/Cancel" to="Split/Panel/Box" method="_on_edit_cancel"]
-[connection signal="pressed" from="Split/Panel/Box/Editing/Apply" to="Split/Panel/Box" method="_on_edit_apply"]
-[connection signal="pressed" from="Split/Panel/Box/Editing/Delete" to="Split/Panel/Box" method="_on_edit_delete"]
-[connection signal="pressed" from="Split/Panel/Box/Adding/Cancel" to="Split/Panel/Box" method="_on_edit_cancel"]
-[connection signal="pressed" from="Split/Panel/Box/Adding/Add" to="Split/Panel/Box" method="_on_edit_add"]
+[connection signal="search_results" from="Split/Left/Search" to="Split/Left/Search/MediaList" method="fill"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Basic" to="Split/Left/Search" method="_on_search"]
+[connection signal="pressed" from="Split/Left/Search/Tabs/Basic/ToolButton" to="Split/Left/Search" method="_on_search"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/Title" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/ID" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/ISBN" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/Authors" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/Publisher" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="item_selected" from="Split/Left/Search/Tabs/Advanced/Grid/Category" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/Year" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/Note" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/User" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="item_selected" from="Split/Left/Search/Tabs/Advanced/Grid/State" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="pressed" from="Split/Left/Search/Tabs/Advanced/Search" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="item_selected" from="Split/Left/Search/MediaList" to="Split/Left/Search/MediaList" method="_on_item_selected"]
+[connection signal="object_selected" from="Split/Left/Search/MediaList" to="Split/Right/Box" method="_on_medium_selected"]
+[connection signal="pressed" from="Split/Left/Search/Add" to="Split/Right/Box" method="_on_add_medium"]
+[connection signal="add_medium" from="Split/Right/Box" to="Split/Left/Search/MediaList" method="add_and_select_object"]
+[connection signal="update_medium" from="Split/Right/Box" to="Split/Left/Search/MediaList" method="update_selected"]
+[connection signal="pressed" from="Split/Right/Box/Lend" to="Split/Right/Box" method="_on_lend"]
+[connection signal="pressed" from="Split/Right/Box/LendTo" to="Split/Right/Box" method="_on_lend_to"]
+[connection signal="pressed" from="Split/Right/Box/Reserve" to="Split/Right/Box" method="_on_reserve"]
+[connection signal="pressed" from="Split/Right/Box/Release" to="Split/Right/Box" method="_on_release"]
+[connection signal="pressed" from="Split/Right/Box/Revoke" to="Split/Right/Box" method="_on_revoke"]
+[connection signal="pressed" from="Split/Right/Box/Edit" to="Split/Right/Box" method="_on_edit"]
+[connection signal="pressed" from="Split/Right/Box/Editing/Cancel" to="Split/Right/Box" method="_on_edit_cancel"]
+[connection signal="pressed" from="Split/Right/Box/Editing/Apply" to="Split/Right/Box" method="_on_edit_apply"]
+[connection signal="pressed" from="Split/Right/Box/Editing/Delete" to="Split/Right/Box" method="_on_edit_delete"]
+[connection signal="pressed" from="Split/Right/Box/Adding/Cancel" to="Split/Right/Box" method="_on_edit_cancel"]
+[connection signal="pressed" from="Split/Right/Box/Adding/Add" to="Split/Right/Box" method="_on_edit_add"]

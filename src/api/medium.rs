@@ -108,7 +108,13 @@ impl Medium {
             self.authors
                 .read()
                 .iter()
-                .fold(String::new(), |acc, x| acc + &x.to_string())
+                .fold(String::new(), |mut acc, x| {
+                    if !acc.is_empty() {
+                        acc += ", ";
+                    }
+                    acc += &x.to_string();
+                    acc
+                })
                 .into(),
             if !self.reservation.is_empty() {
                 owner.tr(".medium.reserved")

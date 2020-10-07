@@ -97,7 +97,8 @@
 .medium.authors.def,Forename Surname,Vorname Nachname
 .medium.authors.info-edit,Left mouse button for adding or removing authors.\nDouble click to edit authors.,Linksklick um Autoren hinzuzufügen oder zu löschen.\nDoppelklick um Autoren zu bearbeiten.
 .medium.authors.info-select,Select an author to show related books.,Autor auswählen um weitere Bücher dieses Autors anzuzeigen.
-.medium.available,Not borrowed or reserved,Nicht ausgeliehen oder vorgemerkt
+.medium.available,Not Borrowed or Reserved,Nicht Ausgeliehen oder Vorgemerkt
+.medium.unavaliable,Borrowed or Reserved,Ausgeliehen oder Vorgemerkt
 .medium.borrowable,Borrowable,Ausleihbar
 .medium.borrowed,Borrowed,Ausgeliehen
 .medium.borrowed.by,Borrowed by {0} until {1},Ausgeliehen von {0} bis zum {1}

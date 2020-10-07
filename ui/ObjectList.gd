@@ -23,9 +23,13 @@ func _ready():
 
 func fill(rows: Array):
     clear()
-    var root := create_item()
+    var _root := create_item()
     for object in rows:
         add_object(object)
+    if rows:
+        get_root().get_children().select(0)
+    else:
+        _on_item_selected()
 
 
 func update_selected(object):
@@ -59,6 +63,7 @@ func add_and_select_object(object):
 
 func _on_item_selected():
     var selected := get_selected()
-    var object = selected.get_meta("object")
-    emit_signal("object_selected", object)
-
+    if selected:
+        emit_signal("object_selected", selected.get_meta("object"))
+    else:
+        emit_signal("object_selected", null)
