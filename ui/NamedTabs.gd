@@ -7,4 +7,4 @@ export (Array, String) var labels: Array = []
 func _ready():
     for i in range(len(icons)):
         set_tab_title(i, tr(labels[i]))
-        set_tab_icon(i, icons[i])
+        if icons: set_tab_icon(i, icons[i])

@@ -76,17 +76,17 @@
 .info.help.title,Help,Hilfe
 .info.stats,{0} book{0:|s} total.\n\n{1} authors{1:|s} total\n\n{2} user{2:|s} total.\n\n{3} book{3:|s} borrowed.\n{4} expired periods.\n\n{5} book{5:|s} reserved.\n\nTotal costs of all books: {6}\n(sum of all entered costs),{0} {0:Buch|Bücher} eingetragen.\n\n{1} Autor{1:|en} eingetragen\n\n{2} Benutzer eingetragen.\n\n{3} {3:Buch|Bücher} ausgeliehen.\nDavon {4} {4:Buch|Bücher} überzogen.\n\n{5} {5:Buch|Bücher} vorgemerkt.\n\nGesamtpreis aller Medien: {6}\n(Summe aller eingetragenen Preise)
 .info.title,Info - Version: {0},Info - Version: {0}
-.mail.info,"Keywords: User name = {0}, Book title = {1}\n\nKeywords can be used in both subject and content. They are replace with the respective values before the mail is send.","Schlüsselwörter: Benutzername = {0}, Mediumtitel = {1}\n\nSowohl im Titel und auch im Inhalt können Schlüsselwörter verwendet werden. Diese werden beim Senden der Email durch den entsprechenden Werte ersetzt."
-.mail.info.content,"Hallo [name],\nYou have shown interest in the book '[mediumtitel].'\nNow it is back in the library, reserved for you to borrow.\n\n.","Hallo [name],\nDu hast dich für das Buch '[mediumtitel]' interessiert.\nDas Buch war ausgeliehen und liegt nun wieder in der Schülerbücherei.\nWenn du willst, kannst du es jetzt ausleihen.\n\nViele Grüße vom Schülerbüchereiteam."
-.mail.info.subject,'[mediumtitel]' is back in the library,'[mediumtitel]' ist nun verfügbar!
+.mail.info,"You can use keywords in the subject and content. They are replace with the respective values before the mail is send.\n\n{username}: Username, {booktitle}: Book Title","Sowohl im Titel und auch im Inhalt können Schlüsselwörter verwendet werden. Diese werden beim Senden der Email durch den entsprechenden Werte ersetzt.\n\n{username}: Benutzername, {booktitle}: Buchtitel"
+.mail.info.content,"Hallo {username},\nYou have shown interest in the book '{booktitle}.'\nNow it is back in the library, reserved for you to borrow.\n\nRegards,\nThe Library Team.","Hallo {username},\nDu hast dich für das Buch '{booktitle}' interessiert.\nDas Buch war ausgeliehen und liegt nun wieder in der Schülerbücherei.\nWenn du willst, kannst du es jetzt ausleihen.\n\nViele Grüße vom Schülerbüchereiteam."
+.mail.info.subject,'{booktitle}' is back in the library,'{booktitle}' ist nun verfügbar!
 .mail.info.title,Info,Info
 .mail.label.content,Content,Inhalt
 .mail.label.title,Subject,Titel
-.mail.overdue.content,"Hello [name],\nThe borrowing period for the book '[mediumtitel]' has expired.\nPlease bring it back to the library.\n\nRegards,\nThe Library Team.","Hallo [name],\nDie Ausleihfrist für das Buch '[mediumtitel]' ist abgelaufen.\nBitte gib das Buch schnellstmöglich wieder in der Schülerbücherei ab.\n\nViele Grüße vom Schülerbüchereiteam."
-.mail.overdue.subject,'[mediumtitel]' has expired,'[mediumtitel]' wird nun überzogen!
+.mail.overdue.content,"Hello {username},\nThe borrowing period for the book '{booktitle}' has expired.\nPlease bring it back to the library.\n\nRegards,\nThe Library Team.","Hallo {username},\nDie Ausleihfrist für das Buch '{booktitle}' ist abgelaufen.\nBitte gib das Buch schnellstmöglich wieder in der Schülerbücherei ab.\n\nViele Grüße vom Schülerbüchereiteam."
+.mail.overdue.subject,'{booktitle}' has expired,'{booktitle}' wird nun überzogen!
 .mail.overdue.title,Expiration,Mahnung
-.mail.overdue2.content,"Hello [name],\nThe borrowing period for the book '[mediumtitel]' has expired two weeks ago.\nFrom now on we have to charge you 1€ for every additional week.\n\nRegards,\nThe Library Team.","Hallo [name],\nDu hat das Buch '[mediumtitel]' schon seit über 2 Wochen\ntrotz täglicher Mahnungen überzogen.\nFür jede weitere Woche fallen ab jetzt 1€ Mahngebühren an.\n\nViele Grüße vom Schülerbüchereiteam."
-.mail.overdue2.subject,Overdue fines for '[mediumtitel]'!,Mahngebühren aufgrund der Überziehung von '[mediumtitel]'.
+.mail.overdue2.content,"Hello {username},\nThe borrowing period for the book '{booktitle}' has expired two weeks ago.\nFrom now on we have to charge you 1€ for every additional week.\n\nRegards,\nThe Library Team.","Hallo {username},\nDu hat das Buch '{booktitle}' schon seit über 2 Wochen\ntrotz täglicher Mahnungen überzogen.\nFür jede weitere Woche fallen ab jetzt 1€ Mahngebühren an.\n\nViele Grüße vom Schülerbüchereiteam."
+.mail.overdue2.subject,Overdue fines for '{booktitle}'!,Mahngebühren aufgrund der Überziehung von '{booktitle}'.
 .mail.overdue2.title,Expiration 2,Mahnung 2
 .mail.reset,Reset,Reset
 .main.info,Information,Informationen

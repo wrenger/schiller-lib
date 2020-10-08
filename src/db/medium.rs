@@ -5,7 +5,7 @@ use crate::api;
 use super::raw::{DatabaseExt, StatementExt};
 use super::{DBIter, ReadStmt};
 
-const GET_MEDIUM: &str = r#"
+const FETCH_MEDIUM: &str = r#"
 select
 id,
 isbn,
@@ -184,8 +184,8 @@ pub trait DatabaseMedium {
     fn db(&self) -> &sqlite::Connection;
 
     /// Returns the medium with the given `id`.
-    fn medium_get(&self, id: &str) -> api::Result<DBMedium> {
-        let mut stmt = self.db().prepare(GET_MEDIUM)?;
+    fn medium_fetch(&self, id: &str) -> api::Result<DBMedium> {
+        let mut stmt = self.db().prepare(FETCH_MEDIUM)?;
         stmt.bind(1, id)?;
         if stmt.next()? == sqlite::State::Row {
             DBMedium::read(&stmt, &stmt.columns())

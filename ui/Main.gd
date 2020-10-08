@@ -1,6 +1,7 @@
 extends Panel
 
 signal categories_changed(categories)
+signal project_changed()
 
 onready var _project: Project = $"/root/Project"
 
@@ -34,6 +35,8 @@ func _on_open_project():
 
 func _on_close_project():
     _project.close()
+    emit_signal("project_changed")
+    emit_signal("categories_changed", [])
     OS.set_window_title(ProjectSettings.get("application/config/name"))
 
 
@@ -43,6 +46,7 @@ func _on_project_selected(path: String):
         if result.has("Ok"):
             project_path = path
             OS.set_window_title(ProjectSettings.get("application/config/name") + " - " + path.get_file())
+            emit_signal("project_changed")
             emit_signal("categories_changed", result["Ok"])
         else:
             MessageDialog.error(tr(result["Err"]))

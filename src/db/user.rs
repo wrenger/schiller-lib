@@ -6,7 +6,7 @@ use super::raw::{DatabaseExt, StatementExt};
 use super::{DBIter, ReadStmt};
 
 // Query
-const GET_USER: &str = r#"
+const FETCH_USER: &str = r#"
 select
 account,
 forename,
@@ -86,8 +86,8 @@ pub trait DatabaseUser {
     fn db(&self) -> &sqlite::Connection;
 
     /// Returns the medium with the given `id`.
-    fn user_get(&self, id: &str) -> api::Result<DBUser> {
-        let mut stmt = self.db().prepare(GET_USER)?;
+    fn user_fetch(&self, id: &str) -> api::Result<DBUser> {
+        let mut stmt = self.db().prepare(FETCH_USER)?;
         stmt.bind(1, id)?;
         if stmt.next()? == sqlite::State::Row {
             DBUser::read(&stmt, &stmt.columns())

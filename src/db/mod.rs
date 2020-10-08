@@ -9,12 +9,14 @@ mod medium;
 mod raw;
 mod rental;
 mod user;
+mod settings;
 
 pub use category::*;
 pub use medium::*;
 use raw::StatementExt;
 pub use rental::*;
 pub use user::*;
+pub use settings::*;
 
 pub struct Database {
     path: PathBuf,
@@ -66,6 +68,12 @@ impl DatabaseRental for Database {
 }
 
 impl DatabaseUser for Database {
+    fn db(&self) -> &sqlite::Connection {
+        &self.db
+    }
+}
+
+impl DatabaseSettings for Database {
     fn db(&self) -> &sqlite::Connection {
         &self.db
     }

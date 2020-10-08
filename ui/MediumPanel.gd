@@ -65,7 +65,7 @@ func _on_lend():
 
 func _on_lend_to():
     var medium = _medium_pane.medium
-    var result: Dictionary = _project.user_get(medium.reservation)
+    var result: Dictionary = _project.user_fetch(medium.reservation)
     if result.has("Ok"):
         LendDialog.lend(self, medium, result["Ok"])
     else:

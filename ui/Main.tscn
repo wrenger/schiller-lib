@@ -246,6 +246,7 @@ __meta__ = {
 
 [node name="Persist" type="Node" parent="."]
 script = ExtResource( 15 )
+[connection signal="project_changed" from="." to="Content/Tabs/Settings" method="reload"]
 [connection signal="menu_close" from="Content/Menu/File" to="." method="_on_close_project"]
 [connection signal="menu_open" from="Content/Menu/File" to="." method="_on_open_project"]
 [connection signal="theme_changed" from="Content/Menu/Edit" to="." method="_on_theme_changed"]

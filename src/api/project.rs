@@ -3,13 +3,16 @@ use std::iter::FromIterator;
 use gdnative::prelude::*;
 
 use crate::api::{self, Error};
-use crate::db::{Database, DatabaseCategory, DatabaseMedium, DatabaseRental, DatabaseUser};
+use crate::db::{
+    Database, DatabaseCategory, DatabaseMedium, DatabaseRental, DatabaseSettings, DatabaseUser,
+};
 
 /// The Global Project Singleton
 #[derive(NativeClass, Debug)]
 #[inherit(Node)]
 pub struct Project {
     db: Option<Database>,
+    settings: Option<Instance<api::Settings, Shared>>,
 }
 
 struct DebugTimer {
@@ -33,7 +36,10 @@ impl Drop for DebugTimer {
 #[methods]
 impl Project {
     fn new(_owner: &Node) -> Self {
-        Project { db: None }
+        Project {
+            db: None,
+            settings: None,
+        }
     }
 
     /// Opens the specified project and returns if it was successfull.
@@ -41,6 +47,13 @@ impl Project {
     fn open(&mut self, _owner: &Node, file: GodotString) -> bool {
         godot_print!("sqlite version: {}", sqlite::version());
         self.db = Database::new(&file.to_string()).ok();
+        if let Some(db) = &self.db {
+            if let Ok(settings) = db.settings_fetch() {
+                self.settings = Some(api::Settings::db_instance(settings).into_shared());
+            }
+        } else {
+            self.settings = None;
+        }
         self.db.is_some()
     }
 
@@ -57,7 +70,8 @@ impl Project {
     // Closes the connection to the projects database.
     #[export]
     fn close(&mut self, _owner: &Node) {
-        self.db = None
+        self.db = None;
+        self.settings = None;
     }
 
     /// Performes a simple media search with the given `text`.
@@ -157,13 +171,13 @@ impl Project {
 
     /// Returns the user with the given `account`.
     #[export]
-    fn user_get(
+    fn user_fetch(
         &self,
         _owner: &Node,
         account: GodotString,
     ) -> api::Result<Instance<api::User, Shared>> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.user_get(&account.to_string())
+        db.user_fetch(&account.to_string())
             .map(|u| api::User::db_instance(u).into_shared())
     }
 
@@ -359,7 +373,7 @@ impl Project {
         Ok(api::Medium::db_instance(medium).into_shared())
     }
 
-    /// Return the list of exceeded borrowing periods.
+    /// Returns the list of exceeded borrowing periods.
     #[export]
     fn rental_overdues(&self, _owner: &Node) -> api::Result<VariantArray> {
         let _timer = DebugTimer::new();
@@ -371,5 +385,29 @@ impl Project {
             VariantArray::from_iter([medium, user].iter()).into_shared()
         }))
         .into_shared())
+    }
+
+    /// Returns the project settings.
+    /// They are fetched when opening a project, so that this function only
+    /// returns copies of the cached version.
+    #[export]
+    fn settings_get(&self, _owner: &Node) -> api::Result<Instance<api::Settings, Shared>> {
+        self.settings.clone().ok_or(Error::NoProject)
+    }
+
+    /// Updates project settings.
+    #[export]
+    fn settings_update(&mut self, _owner: &Node, settings: Ref<Reference>) -> api::Result<()> {
+        let _timer = DebugTimer::new();
+        let db = self.db.as_ref().ok_or(Error::NoProject)?;
+        let settings =
+            Instance::<api::Settings, Unique>::from_base(unsafe { settings.assume_unique() })
+                .ok_or(Error::InvalidArguments)?
+                .map(|m, _| m.db())
+                .unwrap();
+        db.settings_update(&settings)?;
+        // Reload cached settings
+        self.settings = Some(api::Settings::db_instance(db.settings_fetch()?).into_shared());
+        Ok(())
     }
 }
