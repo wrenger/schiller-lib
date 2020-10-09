@@ -1,12 +1,10 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=7 format=2]
 
-[ext_resource path="res://images/Search.svg" type="Texture" id=1]
+[ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=1]
 [ext_resource path="res://ui/SearchUsers.gd" type="Script" id=2]
 [ext_resource path="res://ui/ObjectList.gd" type="Script" id=3]
-[ext_resource path="res://images/Remove.svg" type="Texture" id=4]
 [ext_resource path="res://ui/User.tscn" type="PackedScene" id=5]
 [ext_resource path="res://ui/UserPanel.gd" type="Script" id=6]
-[ext_resource path="res://images/Add.svg" type="Texture" id=7]
 [ext_resource path="res://ui/UsersTab.gd" type="Script" id=8]
 
 [node name="Users" type="MarginContainer"]
@@ -59,15 +57,19 @@ anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = -28.0
-icon = ExtResource( 1 )
+script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+theme_class = "EditorIcons"
+theme_name = "Search"
+theme_type = 2
+target_property = "icon"
 
 [node name="UserList" type="Tree" parent="Split/Left/Box"]
 margin_top = 27.0
 margin_right = 600.0
-margin_bottom = 720.0
+margin_bottom = 722.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 columns = 4
@@ -81,11 +83,15 @@ column_expand = PoolByteArray( 1, 1, 1, 1 )
 formatter = 1
 
 [node name="Add" type="Button" parent="Split/Left/Box"]
-margin_top = 725.0
+margin_top = 727.0
 margin_right = 600.0
 margin_bottom = 749.0
 text = ".user.new"
-icon = ExtResource( 7 )
+script = ExtResource( 1 )
+theme_class = "EditorIcons"
+theme_name = "Add"
+theme_type = 2
+target_property = "icon"
 
 [node name="Rigth" type="Control" parent="Split"]
 margin_left = 608.0
@@ -146,7 +152,11 @@ margin_right = 602.0
 margin_bottom = 24.0
 rect_min_size = Vector2( 120, 0 )
 text = ".action.delete"
-icon = ExtResource( 4 )
+script = ExtResource( 1 )
+theme_class = "EditorIcons"
+theme_name = "Remove"
+theme_type = 2
+target_property = "icon"
 
 [node name="Adding" type="HBoxContainer" parent="Split/Rigth/Box"]
 visible = false

@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=2]
+[gd_scene load_steps=17 format=2]
 
 [ext_resource path="res://ui/SearchMedia.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/MenuEdit.gd" type="Script" id=2]
@@ -6,10 +6,7 @@
 [ext_resource path="res://ui/Overdues.tscn" type="PackedScene" id=4]
 [ext_resource path="res://ui/Settings.tscn" type="PackedScene" id=5]
 [ext_resource path="res://ui/NamedTabs.gd" type="Script" id=6]
-[ext_resource path="res://images/Search.svg" type="Texture" id=7]
-[ext_resource path="res://images/Time.svg" type="Texture" id=8]
 [ext_resource path="res://ui/light.tres" type="Theme" id=9]
-[ext_resource path="res://images/Tools.svg" type="Texture" id=10]
 [ext_resource path="res://ui/Main.gd" type="Script" id=11]
 [ext_resource path="res://ui/dark.tres" type="Theme" id=12]
 [ext_resource path="res://ui/MessageDialog.gd" type="Script" id=13]
@@ -18,6 +15,7 @@
 [ext_resource path="res://ui/LendDialog.gd" type="Script" id=16]
 [ext_resource path="res://ui/MenuFile.gd" type="Script" id=17]
 [ext_resource path="res://ui/MediaTab.gd" type="Script" id=18]
+[ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=19]
 
 [node name="MainWindow" type="Panel" groups=[
 "CategoryChanger",
@@ -48,7 +46,10 @@ margin_bottom = 22.0
 text = ".menu.file"
 script = ExtResource( 17 )
 
-[node name="Edit" type="MenuButton" parent="Content/Menu"]
+[node name="Edit" type="MenuButton" parent="Content/Menu" groups=[
+"Persist",
+"ThemeChanger",
+]]
 margin_left = 81.0
 margin_right = 165.0
 margin_bottom = 22.0
@@ -65,7 +66,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 tab_align = 0
 script = ExtResource( 6 )
-icons = [ ExtResource( 7 ), ExtResource( 7 ), ExtResource( 8 ), ExtResource( 10 ) ]
+editor_icons = [ "Search", "Search", "Time", "Tools" ]
 labels = [ ".search.medium", ".search.user", ".alert.overdue", ".pref.title" ]
 
 [node name="Media" parent="Content/Tabs" instance=ExtResource( 1 )]
@@ -160,10 +161,14 @@ anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = -28.0
-icon = ExtResource( 7 )
+script = ExtResource( 19 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+theme_class = "EditorIcons"
+theme_name = "Search"
+theme_type = 2
+target_property = "icon"
 
 [node name="State" type="Label" parent="LendDialog/Box/User"]
 margin_top = 52.0
@@ -197,9 +202,13 @@ suffix = ".medium.period.days"
 margin_top = 142.0
 margin_right = 458.0
 margin_bottom = 164.0
+script = ExtResource( 19 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+theme_class = "Editor"
+theme_name = "error_color"
+target_property = "custom_colors/font_color"
 
 [node name="ProjectDialog" type="FileDialog" parent="." groups=[
 "ProjectDialog",

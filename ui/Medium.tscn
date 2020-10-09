@@ -1,9 +1,7 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://ui/Medium.gd" type="Script" id=1]
-[ext_resource path="res://images/icon_reload.svg" type="Texture" id=2]
-[ext_resource path="res://images/Remove.svg" type="Texture" id=3]
-[ext_resource path="res://images/Add.svg" type="Texture" id=4]
+[ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=2]
 [ext_resource path="res://ui/CategorySelect.gd" type="Script" id=5]
 
 [node name="Medium" type="GridContainer"]
@@ -19,89 +17,92 @@ __meta__ = {
 }
 
 [node name="IDLabel" type="Label" parent="."]
-margin_top = 1.0
 margin_right = 141.0
-margin_bottom = 23.0
+margin_bottom = 22.0
 text = ".medium.id"
 align = 2
 
 [node name="ID" type="HBoxContainer" parent="."]
 margin_left = 146.0
 margin_right = 1024.0
-margin_bottom = 24.0
+margin_bottom = 22.0
 size_flags_horizontal = 3
 
 [node name="Input" type="LineEdit" parent="ID"]
-margin_right = 846.0
-margin_bottom = 24.0
+margin_right = 862.0
+margin_bottom = 22.0
 size_flags_horizontal = 3
 
 [node name="Generate" type="ToolButton" parent="ID"]
-margin_left = 850.0
+margin_left = 866.0
 margin_right = 878.0
-margin_bottom = 24.0
+margin_bottom = 22.0
 hint_tooltip = ".medium.id.action"
-icon = ExtResource( 2 )
+script = ExtResource( 2 )
+theme_class = "EditorIcons"
+theme_name = "Reload"
+theme_type = 2
+target_property = "icon"
 
 [node name="ISBNLabel" type="Label" parent="."]
-margin_top = 29.0
+margin_top = 27.0
 margin_right = 141.0
-margin_bottom = 51.0
+margin_bottom = 49.0
 text = ".medium.isbn"
 align = 2
 
 [node name="ISBN" type="LineEdit" parent="."]
 margin_left = 146.0
-margin_top = 29.0
+margin_top = 27.0
 margin_right = 1024.0
-margin_bottom = 51.0
+margin_bottom = 49.0
 size_flags_horizontal = 3
 
 [node name="TitleLabel" type="Label" parent="."]
-margin_top = 56.0
+margin_top = 54.0
 margin_right = 141.0
-margin_bottom = 78.0
+margin_bottom = 76.0
 text = ".medium.title"
 align = 2
 
 [node name="Title" type="LineEdit" parent="."]
 margin_left = 146.0
-margin_top = 56.0
+margin_top = 54.0
 margin_right = 1024.0
-margin_bottom = 78.0
+margin_bottom = 76.0
 size_flags_horizontal = 3
 
 [node name="PublisherLabel" type="Label" parent="."]
-margin_top = 83.0
+margin_top = 81.0
 margin_right = 141.0
-margin_bottom = 105.0
+margin_bottom = 103.0
 text = ".medium.publisher"
 align = 2
 
 [node name="Publisher" type="LineEdit" parent="."]
 margin_left = 146.0
-margin_top = 83.0
+margin_top = 81.0
 margin_right = 1024.0
-margin_bottom = 105.0
+margin_bottom = 103.0
 size_flags_horizontal = 3
 
 [node name="AuthorsLabel" type="Label" parent="."]
-margin_top = 192.0
+margin_top = 191.0
 margin_right = 141.0
-margin_bottom = 214.0
+margin_bottom = 213.0
 text = ".medium.authors"
 align = 2
 
 [node name="Authors" type="HBoxContainer" parent="."]
 margin_left = 146.0
-margin_top = 110.0
+margin_top = 108.0
 margin_right = 1024.0
-margin_bottom = 297.0
+margin_bottom = 296.0
 size_flags_vertical = 3
 
 [node name="List" type="Tree" parent="Authors"]
-margin_right = 846.0
-margin_bottom = 187.0
+margin_right = 862.0
+margin_bottom = 188.0
 rect_min_size = Vector2( 0, 100 )
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -110,48 +111,56 @@ hide_root = true
 select_mode = 1
 
 [node name="Box" type="VBoxContainer" parent="Authors"]
-margin_left = 850.0
+margin_left = 866.0
 margin_right = 878.0
-margin_bottom = 187.0
+margin_bottom = 188.0
 
 [node name="Add" type="Button" parent="Authors/Box"]
-margin_right = 28.0
-margin_bottom = 24.0
-icon = ExtResource( 4 )
+margin_right = 12.0
+margin_bottom = 22.0
+script = ExtResource( 2 )
+theme_class = "EditorIcons"
+theme_name = "Add"
+theme_type = 2
+target_property = "icon"
 
 [node name="Remove" type="Button" parent="Authors/Box"]
-margin_top = 28.0
-margin_right = 28.0
-margin_bottom = 52.0
-icon = ExtResource( 3 )
+margin_top = 26.0
+margin_right = 12.0
+margin_bottom = 48.0
+script = ExtResource( 2 )
+theme_class = "EditorIcons"
+theme_name = "Remove"
+theme_type = 2
+target_property = "icon"
 
 [node name="PriceLabel" type="Label" parent="."]
-margin_top = 302.0
+margin_top = 301.0
 margin_right = 141.0
-margin_bottom = 324.0
+margin_bottom = 323.0
 text = ".medium.costs"
 align = 2
 
 [node name="Price" type="SpinBox" parent="."]
 margin_left = 146.0
-margin_top = 302.0
+margin_top = 301.0
 margin_right = 1024.0
-margin_bottom = 324.0
+margin_bottom = 323.0
 size_flags_horizontal = 3
 step = 0.1
 
 [node name="YearLabel" type="Label" parent="."]
-margin_top = 329.0
+margin_top = 328.0
 margin_right = 141.0
-margin_bottom = 351.0
+margin_bottom = 350.0
 text = ".medium.year"
 align = 2
 
 [node name="Year" type="SpinBox" parent="."]
 margin_left = 146.0
-margin_top = 329.0
+margin_top = 328.0
 margin_right = 1024.0
-margin_bottom = 351.0
+margin_bottom = 350.0
 size_flags_horizontal = 3
 min_value = 1900.0
 max_value = 3000.0
@@ -160,17 +169,17 @@ rounded = true
 allow_greater = true
 
 [node name="CategoryLabel" type="Label" parent="."]
-margin_top = 356.0
+margin_top = 355.0
 margin_right = 141.0
-margin_bottom = 378.0
+margin_bottom = 377.0
 text = ".category"
 align = 2
 
 [node name="Category" type="OptionButton" parent="."]
 margin_left = 146.0
-margin_top = 356.0
+margin_top = 355.0
 margin_right = 1024.0
-margin_bottom = 378.0
+margin_bottom = 377.0
 size_flags_horizontal = 3
 clip_text = true
 script = ExtResource( 5 )
@@ -184,7 +193,7 @@ align = 2
 
 [node name="Notes" type="TextEdit" parent="."]
 margin_left = 146.0
-margin_top = 383.0
+margin_top = 382.0
 margin_right = 1024.0
 margin_bottom = 570.0
 rect_min_size = Vector2( 0, 60 )

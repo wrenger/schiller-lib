@@ -1,15 +1,12 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://ui/Medium.tscn" type="PackedScene" id=1]
-[ext_resource path="res://images/Search.svg" type="Texture" id=2]
 [ext_resource path="res://ui/ObjectList.gd" type="Script" id=3]
 [ext_resource path="res://ui/SearchMedia.gd" type="Script" id=4]
-[ext_resource path="res://images/Remove.svg" type="Texture" id=5]
 [ext_resource path="res://ui/MediumPanel.gd" type="Script" id=6]
-[ext_resource path="res://images/Add.svg" type="Texture" id=7]
-[ext_resource path="res://images/icon_zoom.svg" type="Texture" id=8]
 [ext_resource path="res://ui/NamedTabs.gd" type="Script" id=9]
 [ext_resource path="res://ui/CategorySelect.gd" type="Script" id=10]
+[ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=11]
 
 [node name="Media" type="MarginContainer"]
 anchor_right = 1.0
@@ -55,7 +52,7 @@ margin_right = 600.0
 margin_bottom = 56.0
 tab_align = 0
 script = ExtResource( 9 )
-icons = [ ExtResource( 2 ), ExtResource( 8 ) ]
+editor_icons = [ "Search", "Zoom" ]
 labels = [ ".search.base", ".search.advanced" ]
 
 [node name="Basic" type="LineEdit" parent="Split/Left/Search/Tabs"]
@@ -72,10 +69,14 @@ anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = -28.0
-icon = ExtResource( 2 )
+script = ExtResource( 11 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+theme_class = "EditorIcons"
+theme_name = "Search"
+theme_type = 2
+target_property = "icon"
 
 [node name="Advanced" type="VBoxContainer" parent="Split/Left/Search/Tabs"]
 visible = false
@@ -179,7 +180,7 @@ text = ".search.action"
 [node name="MediaList" type="Tree" parent="Split/Left/Search"]
 margin_top = 61.0
 margin_right = 600.0
-margin_bottom = 720.0
+margin_bottom = 722.0
 size_flags_vertical = 3
 columns = 4
 hide_folding = true
@@ -191,11 +192,15 @@ column_sizes = PoolIntArray( 120, 150, 100, 100 )
 column_expand = PoolByteArray( 0, 1, 1, 0 )
 
 [node name="Add" type="Button" parent="Split/Left/Search"]
-margin_top = 725.0
+margin_top = 727.0
 margin_right = 600.0
 margin_bottom = 749.0
 text = ".medium.new"
-icon = ExtResource( 7 )
+script = ExtResource( 11 )
+theme_class = "EditorIcons"
+theme_name = "Add"
+theme_type = 2
+target_property = "icon"
 
 [node name="Right" type="Control" parent="Split"]
 margin_left = 608.0
@@ -289,7 +294,11 @@ margin_right = 602.0
 margin_bottom = 24.0
 rect_min_size = Vector2( 120, 0 )
 text = ".action.delete"
-icon = ExtResource( 5 )
+script = ExtResource( 11 )
+theme_class = "EditorIcons"
+theme_name = "Remove"
+theme_type = 2
+target_property = "icon"
 
 [node name="Adding" type="HBoxContainer" parent="Split/Right/Box"]
 visible = false

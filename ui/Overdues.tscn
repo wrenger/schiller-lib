@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://ui/OverduesTree.gd" type="Script" id=1]
+[ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=2]
 
 [node name="Overdues" type="MarginContainer"]
 anchor_right = 1.0
@@ -39,5 +40,10 @@ margin_right = 120.0
 margin_bottom = 749.0
 size_flags_horizontal = 0
 text = ".action.copy.long"
+script = ExtResource( 2 )
+theme_class = "EditorIcons"
+theme_name = "ActionCopy"
+theme_type = 2
+target_property = "icon"
 [connection signal="visibility_changed" from="Box/Tree" to="Box/Tree" method="_on_visibility_changed"]
 [connection signal="pressed" from="Box/Copy" to="Box/Tree" method="_on_copy"]

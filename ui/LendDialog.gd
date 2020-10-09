@@ -37,7 +37,13 @@ func _lend(medium_panel: Control, medium: Dictionary, user: Dictionary):
         _medium_panel = medium_panel
         _medium = medium
         _set_user(user)
+        var result: Dictionary = _project.settings_get()
+        if result.has("Err"):
+            MessageDialog.error_code(result["Err"])
+            return
+        _period.value = result["Ok"].borrowing_duration
         _period_panel.visible = true
+        _state.text = ""
         window_title = tr(".medium.lend") + " - " + medium.id + ": " + medium.title
         get_ok().text = tr(".medium.lend")
         popup_centered()
@@ -49,6 +55,7 @@ func _reserve(medium_panel: Control, medium: Dictionary):
         _medium = medium
         _set_user({})
         _period_panel.visible = false
+        _state.text = ""
         window_title = tr(".medium.reserve") + " - " + medium.id + ": " + medium.title
         get_ok().text = tr(".medium.reserve")
         popup_centered()
