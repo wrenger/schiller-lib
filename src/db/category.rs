@@ -29,21 +29,21 @@ const REFERENCED: &str = r#"
 select count(id) from medium where category=?
 "#;
 
-#[derive(Debug)]
-pub struct DBCategory {
+#[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
+pub struct Category {
     pub id: String,
     pub name: String,
     pub section: String,
 }
 
-impl ReadStmt for DBCategory {
+impl ReadStmt for Category {
     type Error = api::Error;
 
     fn read(
         stmt: &sqlite::Statement<'_>,
         columns: &HashMap<String, usize>,
-    ) -> api::Result<DBCategory> {
-        Ok(DBCategory {
+    ) -> api::Result<Category> {
+        Ok(Category {
             id: stmt.read(columns["id"])?,
             name: stmt.read(columns["name"])?,
             section: stmt.read(columns["section"])?,
@@ -55,13 +55,13 @@ pub trait DatabaseCategory {
     fn db(&self) -> &sqlite::Connection;
 
     /// Returns all categories.
-    fn category_list(&self) -> api::Result<DBIter<DBCategory>> {
+    fn category_list(&self) -> api::Result<DBIter<Category>> {
         let stmt = self.db().prepare(LIST)?;
         Ok(DBIter::new(stmt))
     }
 
     /// Adds a new category.
-    fn category_add(&self, category: &DBCategory) -> api::Result<()> {
+    fn category_add(&self, category: &Category) -> api::Result<()> {
         let mut stmt = self.db().prepare(ADD)?;
         stmt.bind(1, category.id.as_str())?;
         stmt.bind(2, category.name.as_str())?;
@@ -73,7 +73,7 @@ pub trait DatabaseCategory {
     }
 
     /// Updates the category and all references.
-    fn category_update(&self, id: &str, category: &DBCategory) -> api::Result<()> {
+    fn category_update(&self, id: &str, category: &Category) -> api::Result<()> {
         let transaction = self.db().transaction()?;
         // Update category
         let mut stmt = self.db().prepare(UPDATE)?;

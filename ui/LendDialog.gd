@@ -12,18 +12,18 @@ onready var _period: SpinBox = $Box/Period/Days
 onready var _period_panel: Control = $Box/Period
 
 var _medium_panel: Control = null
-var _medium: Reference = null
-var _user: Reference = null
+var _medium: Dictionary = {}
+var _user: Dictionary = {}
 
 var _user_result := []
 
 
-static func lend(medium_panel: Control, medium: Reference, user: Reference = null):
+static func lend(medium_panel: Control, medium: Dictionary, user: Dictionary = {}):
     var nodes = medium_panel.get_tree().get_nodes_in_group("LendDialog")
     if nodes: nodes.front()._lend(medium_panel, medium, user)
 
 
-static func reserve(medium_panel: Control, medium: Reference):
+static func reserve(medium_panel: Control, medium: Dictionary):
     var nodes = medium_panel.get_tree().get_nodes_in_group("LendDialog")
     if nodes: nodes.front()._reserve(medium_panel, medium)
 
@@ -32,7 +32,7 @@ func _ready():
     _period.suffix = tr(".medium.period.days")
 
 
-func _lend(medium_panel: Control, medium: Reference, user: Reference):
+func _lend(medium_panel: Control, medium: Dictionary, user: Dictionary):
     if not visible:
         _medium_panel = medium_panel
         _medium = medium
@@ -43,11 +43,11 @@ func _lend(medium_panel: Control, medium: Reference, user: Reference):
         popup_centered()
 
 
-func _reserve(medium_panel: Control, medium: Reference):
+func _reserve(medium_panel: Control, medium: Dictionary):
     if not visible:
         _medium_panel = medium_panel
         _medium = medium
-        _set_user(null)
+        _set_user({})
         _period_panel.visible = false
         window_title = tr(".medium.reserve") + " - " + medium.id + ": " + medium.title
         get_ok().text = tr(".medium.reserve")
@@ -66,7 +66,7 @@ func _on_user_input_entered(new_text: String):
     if not new_text: new_text = _user_input.text
     var result: Dictionary = _project.user_search(new_text)
     if result.has("Ok"):
-        _set_user(null)
+        _set_user({})
         _user_popup.clear()
         _user_result = result["Ok"]
         for user in _user_result:
@@ -80,10 +80,10 @@ func _on_user_input_entered(new_text: String):
 
 func _on_user_selected(index: int):
     if index >= 0: _set_user(_user_result[index])
-    else: _set_user(null)
+    else: _set_user({})
 
 
-func _set_user(user: Reference):
+func _set_user(user: Dictionary):
     _user = user
     if user:
         _user_input.text = user.account
@@ -94,7 +94,7 @@ func _set_user(user: Reference):
 
 
 func _on_confirmed():
-    if _user == null or _medium == null:
+    if not _user or not _medium:
         _state.text = tr(".error.input")
         popup_centered()
         return

@@ -4,7 +4,8 @@ use gdnative::prelude::*;
 
 use crate::api::{self, Error};
 use crate::db::{
-    Database, DatabaseCategory, DatabaseMedium, DatabaseRental, DatabaseSettings, DatabaseUser,
+    self, Database, DatabaseCategory, DatabaseMedium, DatabaseRental, DatabaseSettings,
+    DatabaseUser,
 };
 
 /// The Global Project Singleton
@@ -12,7 +13,7 @@ use crate::db::{
 #[inherit(Node)]
 pub struct Project {
     db: Option<Database>,
-    settings: Option<Instance<api::Settings, Shared>>,
+    settings: Option<db::Settings>,
 }
 
 struct DebugTimer {
@@ -48,9 +49,7 @@ impl Project {
         godot_print!("sqlite version: {}", sqlite::version());
         self.db = Database::new(&file.to_string()).ok();
         if let Some(db) = &self.db {
-            if let Ok(settings) = db.settings_fetch() {
-                self.settings = Some(api::Settings::db_instance(settings).into_shared());
-            }
+            self.settings = db.settings_fetch().ok();
         } else {
             self.settings = None;
         }
@@ -80,54 +79,26 @@ impl Project {
         let _timer = DebugTimer::new();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.medium_search(&text.to_string())?;
-        Ok(
-            VariantArray::from_iter(result.map(|x| api::Medium::db_instance(x).owned_to_variant()))
-                .into_shared(),
-        )
+        Ok(VariantArray::from_iter(result).into_shared())
     }
 
     #[export]
     fn medium_search_advanced(
         &self,
         _owner: &Node,
-        id: GodotString,
-        isbn: GodotString,
-        title: GodotString,
-        publisher: GodotString,
-        authors: GodotString,
-        year: GodotString,
-        category: GodotString,
-        note: GodotString,
-        user: GodotString,
-        state: i64,
+        params: db::MediumSearch,
     ) -> api::Result<VariantArray> {
         let _timer = DebugTimer::new();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        let result = db.medium_search_advanced(
-            &id.to_string(),
-            &isbn.to_string(),
-            &title.to_string(),
-            &publisher.to_string(),
-            &authors.to_string(),
-            &year.to_string(),
-            &category.to_string(),
-            &note.to_string(),
-            &user.to_string(),
-            state.into(),
-        )?;
-        Ok(
-            VariantArray::from_iter(result.map(|x| api::Medium::db_instance(x).owned_to_variant()))
-                .into_shared(),
-        )
+        let result = db.medium_search_advanced(&params)?;
+        Ok(VariantArray::from_iter(result).into_shared())
     }
 
     /// Adds a new medium.
     #[export]
-    fn medium_add(&self, _owner: &Node, medium: Ref<Reference>) -> api::Result<()> {
-        let medium = Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
-            .ok_or(Error::InvalidArguments)?;
+    fn medium_add(&self, _owner: &Node, medium: db::Medium) -> api::Result<()> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        medium.map(|m, _| db.medium_add(&m.db())).unwrap()
+        db.medium_add(&medium)
     }
 
     /// Updates the medium and all references if its id changes.
@@ -135,50 +106,33 @@ impl Project {
     fn medium_update(
         &self,
         _owner: &Node,
-        previous_id: GodotString,
-        medium: Ref<Reference>,
+        previous_id: String,
+        medium: db::Medium,
     ) -> api::Result<()> {
-        let medium = Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
-            .ok_or(Error::InvalidArguments)?;
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        medium
-            .map(|m, _| db.medium_update(&previous_id.to_string(), &m.db()))
-            .unwrap()
+        db.medium_update(&previous_id, &medium)
     }
 
     /// Deletes the medium including the its authors.
     /// Also borrowers & reservations for this medium are removed.
     #[export]
-    fn medium_delete(&self, _owner: &Node, id: GodotString) -> api::Result<()> {
+    fn medium_delete(&self, _owner: &Node, id: String) -> api::Result<()> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.medium_delete(&id.to_string())
+        db.medium_delete(&id)
     }
 
     /// Generates a new medium id.
     #[export]
-    fn medium_generate_id(
-        &self,
-        _owner: &Node,
-        medium: Ref<Reference>,
-    ) -> api::Result<GodotString> {
-        let medium = Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
-            .ok_or(Error::InvalidArguments)?;
+    fn medium_generate_id(&self, _owner: &Node, medium: db::Medium) -> api::Result<String> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        medium
-            .map(|m, _| db.medium_generate_id(&m.db()).map(|x| x.into()))
-            .unwrap()
+        db.medium_generate_id(&medium)
     }
 
     /// Returns the user with the given `account`.
     #[export]
-    fn user_fetch(
-        &self,
-        _owner: &Node,
-        account: GodotString,
-    ) -> api::Result<Instance<api::User, Shared>> {
+    fn user_fetch(&self, _owner: &Node, account: GodotString) -> api::Result<db::User> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         db.user_fetch(&account.to_string())
-            .map(|u| api::User::db_instance(u).into_shared())
     }
 
     /// Performes a simple user search with the given `text`.
@@ -187,42 +141,29 @@ impl Project {
         let _timer = DebugTimer::new();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.user_search(&text.to_string())?;
-        Ok(
-            VariantArray::from_iter(result.map(|x| api::User::db_instance(x).owned_to_variant()))
-                .into_shared(),
-        )
+        Ok(VariantArray::from_iter(result).into_shared())
     }
 
     /// Adds a new user.
     #[export]
-    fn user_add(&self, _owner: &Node, user: Ref<Reference>) -> api::Result<()> {
-        let user = Instance::<api::User, Unique>::from_base(unsafe { user.assume_unique() })
-            .ok_or(Error::InvalidArguments)?;
+    fn user_add(&self, _owner: &Node, user: db::User) -> api::Result<()> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        user.map(|u, _| db.user_add(&u.db())).unwrap()
+        db.user_add(&user)
     }
 
     /// Updates the user and all references if its account changes.
     #[export]
-    fn user_update(
-        &self,
-        _owner: &Node,
-        account: GodotString,
-        user: Ref<Reference>,
-    ) -> api::Result<()> {
-        let user = Instance::<api::User, Unique>::from_base(unsafe { user.assume_unique() })
-            .ok_or(Error::InvalidArguments)?;
+    fn user_update(&self, _owner: &Node, account: String, user: db::User) -> api::Result<()> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        user.map(|u, _| db.user_update(&account.to_string(), &u.db()))
-            .unwrap()
+        db.user_update(&account, &user)
     }
 
     /// Deletes the user.
     /// This includes all its borrows & reservations.
     #[export]
-    fn user_delete(&self, _owner: &Node, account: GodotString) -> api::Result<()> {
+    fn user_delete(&self, _owner: &Node, account: String) -> api::Result<()> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.user_delete(&account.to_string())
+        db.user_delete(&account)
     }
 
     /// Performes a simple user search with the given `text`.
@@ -231,24 +172,14 @@ impl Project {
         let _timer = DebugTimer::new();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.category_list()?;
-        Ok(VariantArray::from_iter(result.map(|x| {
-            let instance = api::Category::new_instance();
-            instance.map_mut(|c, _| c.fill(x)).unwrap();
-            instance.owned_to_variant()
-        }))
-        .into_shared())
+        Ok(VariantArray::from_iter(result).into_shared())
     }
 
     /// Adds a new category.
     #[export]
-    fn category_add(&self, _owner: &Node, category: Ref<Reference>) -> api::Result<()> {
-        let category =
-            Instance::<api::Category, Unique>::from_base(unsafe { category.assume_unique() })
-                .ok_or(Error::InvalidArguments)?;
+    fn category_add(&self, _owner: &Node, category: db::Category) -> api::Result<()> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        category
-            .map(|category, _| db.category_add(&category.db()))
-            .unwrap()
+        db.category_add(&category)
     }
 
     /// Updates the category and all references.
@@ -256,30 +187,25 @@ impl Project {
     fn category_update(
         &self,
         _owner: &Node,
-        id: GodotString,
-        category: Ref<Reference>,
+        id: String,
+        category: db::Category,
     ) -> api::Result<()> {
-        let category =
-            Instance::<api::Category, Unique>::from_base(unsafe { category.assume_unique() })
-                .ok_or(Error::InvalidArguments)?;
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        category
-            .map(|category, _| db.category_update(&id.to_string(), &category.db()))
-            .unwrap()
+        db.category_update(&id, &category)
     }
 
     /// Removes the category, assuming it is not referenced anywhere.
     #[export]
-    fn category_remove(&self, _owner: &Node, id: GodotString) -> api::Result<()> {
+    fn category_remove(&self, _owner: &Node, id: String) -> api::Result<()> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.category_delete(&id.to_string())
+        db.category_delete(&id)
     }
 
     /// Returns the number of books in this category.
     #[export]
-    fn category_references(&self, _owner: &Node, id: GodotString) -> api::Result<i64> {
+    fn category_references(&self, _owner: &Node, id: String) -> api::Result<i64> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.category_references(&id.to_string())
+        db.category_references(&id)
     }
 
     // Lending
@@ -288,45 +214,21 @@ impl Project {
     fn rental_lend(
         &self,
         _owner: &Node,
-        medium: Ref<Reference>,
-        user: Ref<Reference>,
+        mut medium: db::Medium,
+        user: db::User,
         days: i64,
-    ) -> api::Result<Instance<api::Medium, Shared>> {
-        let mut medium =
-            Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
-                .ok_or(Error::InvalidArguments)?
-                .map(|m, _| m.db())
-                .unwrap();
-        let user = Instance::<api::User, Unique>::from_base(unsafe { user.assume_unique() })
-            .ok_or(Error::InvalidArguments)?
-            .map(|u, _| u.db())
-            .unwrap();
-
+    ) -> api::Result<db::Medium> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-
         db.rental_lend(&mut medium, &user, days)?;
-        Ok(api::Medium::db_instance(medium).into_shared())
+        Ok(medium)
     }
 
     /// Revokes the borrowing when a borrowed medium is returned.
     #[export]
-    fn rental_revoke(
-        &self,
-        _owner: &Node,
-        medium: Ref<Reference>,
-    ) -> api::Result<Instance<api::Medium, Shared>> {
-        let mut medium =
-            Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
-                .ok_or(Error::InvalidArguments)?
-                .map(|m, _| m.db())
-                .unwrap();
+    fn rental_revoke(&self, _owner: &Node, mut medium: db::Medium) -> api::Result<db::Medium> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        if medium.borrower.is_empty() {
-            return Err(api::Error::LogicError);
-        }
-
         db.rental_revoke(&mut medium)?;
-        Ok(api::Medium::db_instance(medium).into_shared())
+        Ok(medium)
     }
 
     /// Creates a reservation for the borrowed medium.
@@ -334,43 +236,20 @@ impl Project {
     fn rental_reserve(
         &self,
         _owner: &Node,
-        medium: Ref<Reference>,
-        user: Ref<Reference>,
-    ) -> api::Result<Instance<api::Medium, Shared>> {
-        let mut medium =
-            Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
-                .ok_or(Error::InvalidArguments)?
-                .map(|m, _| m.db())
-                .unwrap();
-        let user = Instance::<api::User, Unique>::from_base(unsafe { user.assume_unique() })
-            .ok_or(Error::InvalidArguments)?
-            .map(|m, _| m.db())
-            .unwrap();
+        mut medium: db::Medium,
+        user: db::User,
+    ) -> api::Result<db::Medium> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-
         db.rental_reserve(&mut medium, &user)?;
-        Ok(api::Medium::db_instance(medium).into_shared())
+        Ok(medium)
     }
 
     /// Removes the reservation from the specified medium.
     #[export]
-    fn rental_release(
-        &self,
-        _owner: &Node,
-        medium: Ref<Reference>,
-    ) -> api::Result<Instance<api::Medium, Shared>> {
-        let mut medium =
-            Instance::<api::Medium, Unique>::from_base(unsafe { medium.assume_unique() })
-                .ok_or(Error::InvalidArguments)?
-                .map(|m, _| m.db())
-                .unwrap();
+    fn rental_release(&self, _owner: &Node, mut medium: db::Medium) -> api::Result<db::Medium> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        if medium.reservation.is_empty() {
-            return Err(api::Error::LogicError);
-        }
-
         db.rental_release(&mut medium)?;
-        Ok(api::Medium::db_instance(medium).into_shared())
+        Ok(medium)
     }
 
     /// Returns the list of exceeded borrowing periods.
@@ -380,9 +259,8 @@ impl Project {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         let result = db.rental_overdues()?;
         Ok(VariantArray::from_iter(result.map(|(medium, user)| {
-            let medium = api::Medium::db_instance(medium).owned_to_variant();
-            let user = api::User::db_instance(user).owned_to_variant();
-            VariantArray::from_iter([medium, user].iter()).into_shared()
+            VariantArray::from_iter([medium.owned_to_variant(), user.owned_to_variant()].iter())
+                .into_shared()
         }))
         .into_shared())
     }
@@ -391,23 +269,18 @@ impl Project {
     /// They are fetched when opening a project, so that this function only
     /// returns copies of the cached version.
     #[export]
-    fn settings_get(&self, _owner: &Node) -> api::Result<Instance<api::Settings, Shared>> {
+    fn settings_get(&self, _owner: &Node) -> api::Result<db::Settings> {
         self.settings.clone().ok_or(Error::NoProject)
     }
 
     /// Updates project settings.
     #[export]
-    fn settings_update(&mut self, _owner: &Node, settings: Ref<Reference>) -> api::Result<()> {
+    fn settings_update(&mut self, _owner: &Node, settings: db::Settings) -> api::Result<()> {
         let _timer = DebugTimer::new();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        let settings =
-            Instance::<api::Settings, Unique>::from_base(unsafe { settings.assume_unique() })
-                .ok_or(Error::InvalidArguments)?
-                .map(|m, _| m.db())
-                .unwrap();
         db.settings_update(&settings)?;
         // Reload cached settings
-        self.settings = Some(api::Settings::db_instance(db.settings_fetch()?).into_shared());
+        self.settings = Some(db.settings_fetch()?);
         Ok(())
     }
 }

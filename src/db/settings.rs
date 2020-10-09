@@ -26,8 +26,8 @@ replace into sbv_meta values
 (mail.overdue2.content, ?)
 "#;
 
-#[derive(Debug, Clone)]
-pub struct DBSettings {
+#[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
+pub struct Settings {
     pub version: String,
     // Borrowing
     pub borrowing_duration: i64,
@@ -50,9 +50,9 @@ pub struct DBSettings {
     pub mail_overdue2_content: String,
 }
 
-impl Default for DBSettings {
-    fn default() -> DBSettings {
-        DBSettings {
+impl Default for Settings {
+    fn default() -> Settings {
+        Settings {
             version: String::new(),
             borrowing_duration: 28,
             user_path: String::new(),
@@ -72,9 +72,9 @@ impl Default for DBSettings {
     }
 }
 
-impl DBSettings {
+impl Settings {
     fn from_iter<I: IntoIterator<Item = (String, String)>>(iter: I) -> api::Result<Self> {
-        let mut settings = DBSettings::default();
+        let mut settings = Settings::default();
         for (key, value) in iter {
             match key.as_str() {
                 "version" => settings.version = value,
@@ -115,7 +115,7 @@ impl ReadStmt for (String, String) {
 pub trait DatabaseSettings {
     fn db(&self) -> &sqlite::Connection;
 
-    fn settings_update(&self, settings: &DBSettings) -> api::Result<()> {
+    fn settings_update(&self, settings: &Settings) -> api::Result<()> {
         let mut stmt = self.db().prepare(SETTINGS_UPDATE)?;
         stmt.bind(1, settings.version.as_str())?;
         stmt.bind(2, settings.borrowing_duration)?;
@@ -139,8 +139,8 @@ pub trait DatabaseSettings {
         Ok(())
     }
 
-    fn settings_fetch(&self) -> api::Result<DBSettings> {
+    fn settings_fetch(&self) -> api::Result<Settings> {
         let stmt = self.db().prepare(SETTINGS_FETCH)?;
-        DBSettings::from_iter(DBIter::new(stmt))
+        Settings::from_iter(DBIter::new(stmt))
     }
 }

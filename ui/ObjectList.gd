@@ -7,6 +7,9 @@ export var column_names: PoolStringArray
 export var column_sizes: PoolIntArray
 export var column_expand: PoolByteArray
 
+enum Formatter { MEDIUM, USER }
+export(Formatter) var formatter: int
+
 
 func _ready():
     assert(columns == len(column_names))
@@ -32,11 +35,11 @@ func fill(rows: Array):
         _on_item_selected()
 
 
-func update_selected(object):
+func update_selected(object: Dictionary):
     var item := get_selected()
     if object:
         item.set_meta("object", object)
-        var fields = object.list_item()
+        var fields = format(object)
         assert(len(fields) == columns)
         for i in range(columns):
             item.set_text(i, fields[i])
@@ -45,8 +48,8 @@ func update_selected(object):
         update()
 
 
-func add_object(object) -> TreeItem:
-    var fields = object.list_item()
+func add_object(object: Dictionary) -> TreeItem:
+    var fields = format(object)
     assert(len(fields) == columns)
 
     var item := create_item(get_root())
@@ -56,7 +59,7 @@ func add_object(object) -> TreeItem:
     return item
 
 
-func add_and_select_object(object):
+func add_and_select_object(object: Dictionary):
     var item := add_object(object)
     item.select(0)
 
@@ -66,4 +69,34 @@ func _on_item_selected():
     if selected:
         emit_signal("object_selected", selected.get_meta("object"))
     else:
-        emit_signal("object_selected", null)
+        emit_signal("object_selected", {})
+
+
+func format(object: Dictionary) -> PoolStringArray:
+    match formatter:
+        Formatter.MEDIUM: return format_medium(object)
+        Formatter.USER: return format_user(object)
+    return PoolStringArray([])
+
+
+func format_medium(object: Dictionary) -> PoolStringArray:
+    var state := ""
+    if object.reservation:
+        state = tr(".medium.reserved")
+    elif object.borrower:
+        state = tr(".medium.borrowed")
+    return PoolStringArray([
+        object.id,
+        object.title,
+        PoolStringArray(object.authors).join(", "),
+        state,
+    ])
+
+
+func format_user(object: Dictionary) -> PoolStringArray:
+    return PoolStringArray([
+        object.account,
+        object.forename,
+        object.surname,
+        object.role,
+    ])

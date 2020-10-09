@@ -2,14 +2,14 @@ extends GridContainer
 
 export var editable := false setget set_editable
 
-var user: Reference = null setget set_user, get_user
+var user: Dictionary = {} setget set_user, get_user
 
 func _ready():
     set_editable(editable)
 
 
-func set_user(m: Reference):
-    if m != null:
+func set_user(m: Dictionary):
+    if not m.empty():
         $Account.text = m.account
         $Forename.text = m.forename
         $Surname.text = m.surname
@@ -23,14 +23,14 @@ func set_user(m: Reference):
         $MayBorrow.pressed = true
 
 
-func get_user() -> Reference:
-    var user := User.new()
-    user.account = $Account.text
-    user.forename = $Forename.text
-    user.surname = $Surname.text
-    user.role = $Role.text
-    user.may_borrow = $MayBorrow.pressed
-    return user
+func get_user() -> Dictionary:
+    return {
+        account = $Account.text,
+        forename = $Forename.text,
+        surname = $Surname.text,
+        role = $Role.text,
+        may_borrow = $MayBorrow.pressed,
+    }
 
 
 func set_editable(e: bool):

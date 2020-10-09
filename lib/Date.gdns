@@ -3,7 +3,7 @@
 [ext_resource path="res://lib/sbv.gdnlib" type="GDNativeLibrary" id=1]
 
 [resource]
-resource_name = "User"
-class_name = "User"
+resource_name = "Date"
+class_name = "Date"
 library = ExtResource( 1 )
-script_class_name = "User"
+script_class_name = "Date"

@@ -2,7 +2,7 @@ extends GridContainer
 
 export var editable := false setget set_editable
 
-var medium: Reference = null setget set_medium, get_medium
+var medium: Dictionary = {} setget set_medium, get_medium
 
 onready var _project: Project = $"/root/Project"
 
@@ -29,8 +29,8 @@ func _ready():
     set_editable(editable)
 
 
-func set_medium(m: Reference):
-    if m != null:
+func set_medium(m: Dictionary):
+    if not m.empty():
         _id.text = m.id
         _isbn.text = m.isbn
         _title.text = m.title
@@ -64,30 +64,32 @@ func set_medium(m: Reference):
         _reservation = ""
 
 
-func get_medium() -> Reference:
-    var medium := Medium.new()
-    medium.id = _id.text
-    medium.isbn = _isbn.text
-    medium.title = _title.text
-    medium.publisher = _publisher.text
-    medium.costs = _price.value
-    medium.year = _year.value as int
+func get_medium() -> Dictionary:
     var authors := []
     if _authors.get_root():
         var child := _authors.get_root().get_children() as TreeItem
         while child:
             authors.push_back(child.get_text(0))
             child = child.get_next()
-    medium.authors = PoolStringArray(authors)
+    var category = ""
     if _category.selected >= 0:
         var text: String = _category.get_item_text(_category.selected)
-        medium.category = text.split(" - ", true, 1)[0]
-    medium.note = _notes.text
-    medium.borrowable = _borrowable.pressed
-    medium.borrower = _borrower
-    medium.deadline = _deadline
-    medium.reservation = _reservation
-    return medium
+        category = text.split(" - ", true, 1)[0]
+    return {
+        id = _id.text,
+        isbn = _isbn.text,
+        title = _title.text,
+        publisher = _publisher.text,
+        costs = _price.value,
+        year = _year.value as int,
+        authors = authors,
+        category = category,
+        note = _notes.text,
+        borrowable = _borrowable.pressed,
+        borrower = _borrower,
+        deadline = _deadline,
+        reservation = _reservation,
+    }
 
 
 func set_editable(e: bool):

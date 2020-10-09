@@ -21,9 +21,8 @@ onready var _mail_overdue2_content: TextEdit = $Box/Scroll/Box/MailTemplates/Mar
 
 func reload():
     var result: Dictionary = _project.settings_get()
-    var settings: Reference
     if result.has("Ok"):
-        settings = result["Ok"]
+        var settings: Dictionary = result["Ok"]
         _settings_panel.visible = true
         _borrowing_duration.value = settings.borrowing_duration
         _user_delimiter.text = settings.user_delimiter

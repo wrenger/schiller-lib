@@ -107,29 +107,9 @@ const UNUSED_ID: &str = r#"
 select max(substr(id, ? + 2)) from medium where id like ?||'%' order by id
 "#;
 
-#[repr(i64)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DBMediumState {
-    None = 0,
-    Borrowable,
-    NotBorrowable,
-    BorrowedOrReserved,
-}
-
-impl From<i64> for DBMediumState {
-    fn from(value: i64) -> Self {
-        match value {
-            1 => DBMediumState::Borrowable,
-            2 => DBMediumState::NotBorrowable,
-            3 => DBMediumState::BorrowedOrReserved,
-            _ => DBMediumState::None,
-        }
-    }
-}
-
 /// Data object for medium.
-#[derive(Debug, Clone)]
-pub struct DBMedium {
+#[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
+pub struct Medium {
     pub id: String,
     pub isbn: String,
     pub title: String,
@@ -145,20 +125,17 @@ pub struct DBMedium {
     pub reservation: String,
 }
 
-impl DBMedium {
+impl Medium {
     fn is_valid(&self) -> bool {
         !self.id.is_empty() && !self.title.is_empty() && !self.category.is_empty()
     }
 }
 
-impl ReadStmt for DBMedium {
+impl ReadStmt for Medium {
     type Error = api::Error;
 
-    fn read(
-        stmt: &sqlite::Statement<'_>,
-        columns: &HashMap<String, usize>,
-    ) -> api::Result<DBMedium> {
-        Ok(DBMedium {
+    fn read(stmt: &sqlite::Statement<'_>, columns: &HashMap<String, usize>) -> api::Result<Medium> {
+        Ok(Medium {
             id: stmt.read(columns["id"])?,
             isbn: stmt.read(columns["isbn"])?,
             title: stmt.read(columns["title"])?,
@@ -180,22 +157,76 @@ impl ReadStmt for DBMedium {
     }
 }
 
+#[derive(Debug, Clone, Default, gdnative::ToVariant, gdnative::FromVariant)]
+pub struct MediumSearch {
+    id: String,
+    isbn: String,
+    title: String,
+    publisher: String,
+    authors: String,
+    year: String,
+    category: String,
+    note: String,
+    user: String,
+    state: MediumState,
+}
+
+#[repr(i64)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MediumState {
+    None = 0,
+    Borrowable,
+    NotBorrowable,
+    BorrowedOrReserved,
+}
+
+impl Default for MediumState {
+    fn default() -> MediumState {
+        MediumState::None
+    }
+}
+
+impl From<i64> for MediumState {
+    fn from(value: i64) -> Self {
+        match value {
+            1 => MediumState::Borrowable,
+            2 => MediumState::NotBorrowable,
+            3 => MediumState::BorrowedOrReserved,
+            _ => MediumState::None,
+        }
+    }
+}
+
+impl gdnative::core_types::ToVariant for MediumState {
+    fn to_variant(&self) -> gdnative::core_types::Variant {
+        (*self as i64).to_variant()
+    }
+}
+
+impl gdnative::core_types::FromVariant for MediumState {
+    fn from_variant(
+        variant: &gdnative::core_types::Variant,
+    ) -> Result<Self, gdnative::core_types::FromVariantError> {
+        i64::from_variant(variant).map(|x| x.into())
+    }
+}
+
 pub trait DatabaseMedium {
     fn db(&self) -> &sqlite::Connection;
 
     /// Returns the medium with the given `id`.
-    fn medium_fetch(&self, id: &str) -> api::Result<DBMedium> {
+    fn medium_fetch(&self, id: &str) -> api::Result<Medium> {
         let mut stmt = self.db().prepare(FETCH_MEDIUM)?;
         stmt.bind(1, id)?;
         if stmt.next()? == sqlite::State::Row {
-            DBMedium::read(&stmt, &stmt.columns())
+            Medium::read(&stmt, &stmt.columns())
         } else {
             Err(api::Error::SQLError)
         }
     }
 
     /// Performes a simple media search with the given `text`.
-    fn medium_search(&self, text: &str) -> api::Result<DBIter<DBMedium>> {
+    fn medium_search(&self, text: &str) -> api::Result<DBIter<Medium>> {
         let mut stmt = self.db().prepare(QUERY_MEDIA)?;
         stmt.bind(1, text)?;
         stmt.bind(2, text)?;
@@ -207,62 +238,50 @@ pub trait DatabaseMedium {
     }
 
     /// Performes a simple media search with the given `text`.
-    fn medium_search_advanced(
-        &self,
-        id: &str,
-        isbn: &str,
-        title: &str,
-        publisher: &str,
-        authors: &str,
-        year: &str,
-        category: &str,
-        note: &str,
-        user: &str,
-        state: DBMediumState,
-    ) -> api::Result<DBIter<DBMedium>> {
-        gdnative::godot_print!("State: {:?}", state);
+    fn medium_search_advanced(&self, params: &MediumSearch) -> api::Result<DBIter<Medium>> {
+        gdnative::godot_print!("State: {:?}", params.state);
         let mut stmt = self.db().prepare(QUERY_MEDIA_ADVANCED)?;
-        stmt.bind(1, id)?;
-        stmt.bind(2, isbn)?;
-        stmt.bind(3, title)?;
-        stmt.bind(4, publisher)?;
-        stmt.bind(5, authors)?;
-        if let Some(i) = year.find('-') {
-            stmt.bind(6, &year[..i])?;
-            stmt.bind(7, &year[i + 1..])?;
-        } else if year.is_empty() {
+        stmt.bind(1, params.id.as_str())?;
+        stmt.bind(2, params.isbn.as_str())?;
+        stmt.bind(3, params.title.as_str())?;
+        stmt.bind(4, params.publisher.as_str())?;
+        stmt.bind(5, params.authors.as_str())?;
+        if let Some(i) = params.year.find('-') {
+            stmt.bind(6, &params.year[..i])?;
+            stmt.bind(7, &params.year[i + 1..])?;
+        } else if params.year.is_empty() {
             stmt.bind(6, std::i64::MIN)?;
             stmt.bind(7, std::i64::MAX)?;
         } else {
-            stmt.bind(6, year)?;
-            stmt.bind(7, year)?;
+            stmt.bind(6, params.year.as_str())?;
+            stmt.bind(7, params.year.as_str())?;
         }
-        if !category.is_empty() {
-            stmt.bind(8, category)?;
+        if !params.category.is_empty() {
+            stmt.bind(8, params.category.as_str())?;
         } else {
             stmt.bind(8, "%")?;
         }
-        stmt.bind(9, note)?;
-        if !user.is_empty() {
-            stmt.bind(10, user)?;
-            stmt.bind(11, user)?;
-        } else if state == DBMediumState::BorrowedOrReserved {
+        stmt.bind(9, params.note.as_str())?;
+        if !params.user.is_empty() {
+            stmt.bind(10, params.user.as_str())?;
+            stmt.bind(11, params.user.as_str())?;
+        } else if params.state == MediumState::BorrowedOrReserved {
             stmt.bind(10, "_%")?;
             stmt.bind(11, "_%")?;
         } else {
             stmt.bind(10, "%")?;
             stmt.bind(11, "%")?;
         }
-        match state {
-            DBMediumState::Borrowable => stmt.bind(12, 1)?,
-            DBMediumState::NotBorrowable => stmt.bind(12, 0)?,
+        match params.state {
+            MediumState::Borrowable => stmt.bind(12, 1)?,
+            MediumState::NotBorrowable => stmt.bind(12, 0)?,
             _ => stmt.bind(12, "%")?,
         }
         Ok(DBIter::new(stmt))
     }
 
     /// Adds a new medium.
-    fn medium_add(&self, medium: &DBMedium) -> api::Result<()> {
+    fn medium_add(&self, medium: &Medium) -> api::Result<()> {
         if !medium.is_valid() {
             return Err(api::Error::LogicError);
         }
@@ -295,7 +314,7 @@ pub trait DatabaseMedium {
     }
 
     /// Updates the medium and all references if its id changes.
-    fn medium_update(&self, previous_id: &str, medium: &DBMedium) -> api::Result<()> {
+    fn medium_update(&self, previous_id: &str, medium: &Medium) -> api::Result<()> {
         if !medium.is_valid() {
             return Err(api::Error::LogicError);
         }
@@ -347,7 +366,7 @@ pub trait DatabaseMedium {
     }
 
     /// Generates a new unique id based on the authors surname and the category.
-    fn medium_generate_id(&self, medium: &DBMedium) -> api::Result<String> {
+    fn medium_generate_id(&self, medium: &Medium) -> api::Result<String> {
         let prefix = id_prefix(
             medium
                 .authors

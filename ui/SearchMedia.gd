@@ -30,23 +30,23 @@ func _on_search(_t = null):
 
 func _on_advanced_search(_t = null):
     print("Advanced search")
-    var id := _id.text
-    var isbn := _isbn.text
-    var title := _title.text
-    var publisher: String = _publisher.text
-    var authors: String = _authors.text
-    var year: String = _year.text
     var category: String = ""
     if _category.selected >= 1:
         var text: String = _category.get_item_text(_category.selected)
         category = text.split(" - ", true, 1)[0]
-    var note: String = _note.text
-    var user: String = _user.text
-    var state: int = _state.get_selected_id()
 
-    var result: Dictionary = _project.medium_search_advanced(
-            id, isbn, title, publisher, authors,
-            year, category, note, user, state)
+    var result: Dictionary = _project.medium_search_advanced({
+        id = _id.text,
+        isbn = _isbn.text,
+        title = _title.text,
+        publisher = _publisher.text,
+        authors = _authors.text,
+        year = _year.text,
+        category = category,
+        note = _note.text,
+        user = _user.text,
+        state = _state.get_selected_id(),
+    })
 
     if result.has("Ok"):
         print("search results: ", len(result["Ok"]))

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::{DBIter, DBMedium, DBUser, ReadStmt};
+use super::{DBIter, Medium, User, ReadStmt};
 use crate::api;
 
 const UPDATE_LEND: &str = r#"
@@ -52,7 +52,7 @@ pub trait DatabaseRental {
     fn db(&self) -> &sqlite::Connection;
 
     /// Lends the medium to the specified user.
-    fn rental_lend(&self, medium: &mut DBMedium, user: &DBUser, days: i64) -> api::Result<()> {
+    fn rental_lend(&self, medium: &mut Medium, user: &User, days: i64) -> api::Result<()> {
         if !user.may_borrow {
             return Err(api::Error::RentalUserMayNotBorrow);
         }
@@ -93,7 +93,11 @@ pub trait DatabaseRental {
     }
 
     /// Revokes the borrowing when a borrowed medium is returned.
-    fn rental_revoke(&self, medium: &mut DBMedium) -> api::Result<()> {
+    fn rental_revoke(&self, medium: &mut Medium) -> api::Result<()> {
+        if medium.borrower.is_empty() {
+            return Err(api::Error::LogicError);
+        }
+
         let mut stmt = self.db().prepare(UPDATE_REVOKE)?;
         stmt.bind(1, medium.id.as_str())?;
         if stmt.next()? != sqlite::State::Done {
@@ -105,7 +109,7 @@ pub trait DatabaseRental {
     }
 
     /// Creates a reservation for the borrowed medium.
-    fn rental_reserve(&self, medium: &mut DBMedium, user: &DBUser) -> api::Result<()> {
+    fn rental_reserve(&self, medium: &mut Medium, user: &User) -> api::Result<()> {
         if !user.may_borrow {
             return Err(api::Error::RentalUserMayNotBorrow);
         }
@@ -133,7 +137,11 @@ pub trait DatabaseRental {
     }
 
     /// Removes the reservation from the specified medium.
-    fn rental_release(&self, medium: &mut DBMedium) -> api::Result<()> {
+    fn rental_release(&self, medium: &mut Medium) -> api::Result<()> {
+        if medium.reservation.is_empty() {
+            return Err(api::Error::LogicError);
+        }
+
         let mut stmt = self.db().prepare(UPDATE_RELEASE)?;
         stmt.bind(1, medium.id.as_str())?;
         if stmt.next()? != sqlite::State::Done {
@@ -144,19 +152,19 @@ pub trait DatabaseRental {
     }
 
     /// Return the list of exceeded borrowing periods.
-    fn rental_overdues(&self) -> api::Result<DBIter<(DBMedium, DBUser)>> {
+    fn rental_overdues(&self) -> api::Result<DBIter<(Medium, User)>> {
         let stmt = self.db().prepare(QUERY_OVERDUES)?;
         Ok(DBIter::new(stmt))
     }
 }
 
-impl ReadStmt for (DBMedium, DBUser) {
+impl ReadStmt for (Medium, User) {
     type Error = api::Error;
 
     fn read(
         stmt: &sqlite::Statement<'_>,
         columns: &HashMap<String, usize>,
-    ) -> api::Result<(DBMedium, DBUser)> {
-        Ok((DBMedium::read(stmt, columns)?, DBUser::read(stmt, columns)?))
+    ) -> api::Result<(Medium, User)> {
+        Ok((Medium::read(stmt, columns)?, User::read(stmt, columns)?))
     }
 }

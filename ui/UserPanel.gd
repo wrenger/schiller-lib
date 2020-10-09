@@ -12,14 +12,14 @@ onready var _user_edit := $Edit as Control
 onready var _user_editing := $Editing as Control
 onready var _user_adding := $Adding as Control
 
-var before_edit: Reference = null
+var before_edit: Dictionary = {}
 
 func _ready():
-    set_user(null)
+    set_user({})
 
 
-func set_user(user: Reference):
-    visible = user != null
+func set_user(user: Dictionary):
+    visible = not user.empty()
 
     if user:
         _user_pane.user = user
@@ -31,7 +31,7 @@ func set_user(user: Reference):
     _user_pane.editable = false
 
 
-func _on_user_selected(user: Reference):
+func _on_user_selected(user: Dictionary):
     set_user(user)
 
 
@@ -46,8 +46,8 @@ func _on_edit():
 
 
 func _on_add():
-    before_edit = null
-    _user_pane.user = null
+    before_edit = {}
+    _user_pane.user = {}
     _user_show_media.visible = false
     _user_edit.visible = false
     _user_editing.visible = false
@@ -64,7 +64,7 @@ func _on_show_media():
 
 func _on_edit_cancel():
     set_user(before_edit)
-    before_edit = null
+    before_edit = {}
 
 
 func _on_edit_add():
@@ -72,7 +72,7 @@ func _on_edit_add():
     if result.has("Ok"):
         set_user(_user_pane.user)
         emit_signal("add_user", _user_pane.user)
-        before_edit = null
+        before_edit = {}
     else:
         if result["Err"] == Util.SbvError.LogicError:
             MessageDialog.error(tr(".user.invalid"))
@@ -85,7 +85,7 @@ func _on_edit_apply():
     if result.has("Ok"):
         set_user(_user_pane.user)
         emit_signal("update_user", _user_pane.user)
-        before_edit = null
+        before_edit = {}
     else:
         if result["Err"] == Util.SbvError.LogicError:
             MessageDialog.error(tr(".user.invalid"))
@@ -96,8 +96,8 @@ func _on_edit_apply():
 func _on_edit_delete():
     var result: Dictionary = _project.user_delete(before_edit.account)
     if result.has("Ok"):
-        set_user(null)
-        emit_signal("update_user", null)
-        before_edit = null
+        set_user({})
+        emit_signal("update_user", {})
+        before_edit = {}
     else:
         MessageDialog.error_code(result["Err"])

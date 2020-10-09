@@ -78,6 +78,7 @@ script = ExtResource( 3 )
 column_names = PoolStringArray( ".user.account", ".user.forename", ".user.surname", ".user.role" )
 column_sizes = PoolIntArray( 150, 100, 100, 100 )
 column_expand = PoolByteArray( 1, 1, 1, 1 )
+formatter = 1
 
 [node name="Add" type="Button" parent="Split/Left/Box"]
 margin_top = 725.0

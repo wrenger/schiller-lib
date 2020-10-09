@@ -10,15 +10,18 @@ func _ready():
 
 
 func reload():
-    print("reload")
     clear()
     var result: Dictionary = _project.rental_overdues()
     var root := create_item()
     if result.has("Ok"):
         var role: TreeItem = null
         for period in result["Ok"]:
-            var medium = period[0]
-            var user = period[1]
+            var medium: Dictionary = period[0]
+            var user: Dictionary = period[1]
+            var date := Date.new()
+            var fmt_result: Dictionary = date.set_iso(medium.deadline)
+            if fmt_result.has("Err"):
+                print(fmt_result["Err"])
 
             if not role or role.get_text(0) != user.role:
                 role = create_item(root)
@@ -27,7 +30,7 @@ func reload():
             var item := create_item(role)
             item.set_text(0, user.forename + " " + user.surname)
             item.set_text(1, medium.title + " (" + medium.id + ")")
-            item.set_text(2, Util.trf(".medium.period", [medium.deadline_local(), medium.deadline_days()]))
+            item.set_text(2, Util.trf(".medium.period", [date.get_local(), date.days_since_today()]))
 
     else:
         MessageDialog.error_code(result["Err"])

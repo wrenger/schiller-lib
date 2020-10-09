@@ -53,8 +53,8 @@ update medium set borrower='' where reservation not in (select account from user
 "#;
 
 /// Data object for a user.
-#[derive(Debug)]
-pub struct DBUser {
+#[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
+pub struct User {
     pub account: String,
     pub forename: String,
     pub surname: String,
@@ -62,17 +62,17 @@ pub struct DBUser {
     pub may_borrow: bool,
 }
 
-impl DBUser {
+impl User {
     fn is_valid(&self) -> bool {
         !self.account.is_empty() && !self.forename.is_empty() && !self.surname.is_empty()
     }
 }
 
-impl ReadStmt for DBUser {
+impl ReadStmt for User {
     type Error = api::Error;
 
-    fn read(stmt: &sqlite::Statement<'_>, columns: &HashMap<String, usize>) -> api::Result<DBUser> {
-        Ok(DBUser {
+    fn read(stmt: &sqlite::Statement<'_>, columns: &HashMap<String, usize>) -> api::Result<User> {
+        Ok(User {
             account: stmt.read(columns["account"])?,
             forename: stmt.read(columns["forename"])?,
             surname: stmt.read(columns["surname"])?,
@@ -86,18 +86,18 @@ pub trait DatabaseUser {
     fn db(&self) -> &sqlite::Connection;
 
     /// Returns the medium with the given `id`.
-    fn user_fetch(&self, id: &str) -> api::Result<DBUser> {
+    fn user_fetch(&self, id: &str) -> api::Result<User> {
         let mut stmt = self.db().prepare(FETCH_USER)?;
         stmt.bind(1, id)?;
         if stmt.next()? == sqlite::State::Row {
-            DBUser::read(&stmt, &stmt.columns())
+            User::read(&stmt, &stmt.columns())
         } else {
             Err(api::Error::SQLError)
         }
     }
 
     /// Performes a simple user search with the given `text`.
-    fn user_search(&self, text: &str) -> api::Result<DBIter<DBUser>> {
+    fn user_search(&self, text: &str) -> api::Result<DBIter<User>> {
         let mut stmt = self.db().prepare(QUERY_USERS)?;
         stmt.bind(1, text)?;
         stmt.bind(2, text)?;
@@ -107,7 +107,7 @@ pub trait DatabaseUser {
     }
 
     /// Adds a new user.
-    fn user_add(&self, user: &DBUser) -> api::Result<()> {
+    fn user_add(&self, user: &User) -> api::Result<()> {
         if !user.is_valid() {
             return Err(api::Error::LogicError);
         }
@@ -124,7 +124,7 @@ pub trait DatabaseUser {
     }
 
     /// Updates the user and all references if its account changes.
-    fn user_update(&self, previous_account: &str, user: &DBUser) -> api::Result<()> {
+    fn user_update(&self, previous_account: &str, user: &User) -> api::Result<()> {
         if !user.is_valid() {
             return Err(api::Error::LogicError);
         }

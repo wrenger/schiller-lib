@@ -143,7 +143,7 @@ mod tests {
     #[test]
     fn transaction() {
         let db = sqlite::Connection::open(":memory:").unwrap();
-        db.execute("create table abc (a, b, c)").unwrap();
+        db.execute("create table abc (a not null, b, c)").unwrap();
 
         {
             let _transaction = db.transaction().unwrap();
@@ -154,6 +154,17 @@ mod tests {
             stmt.bind(3, "6").unwrap();
             assert_eq!(stmt.next().unwrap(), sqlite::State::Done);
 
+            // no commit -> rollback
+        };
+        assert!(db.fetch("select * from abc").unwrap().is_empty());
+
+        {
+            let _transaction = db.transaction().unwrap();
+
+            let mut stmt = db.prepare("insert into abc values (?, ?, ?)").unwrap();
+            stmt.bind(2, "5").unwrap();
+            stmt.bind(3, "6").unwrap();
+            stmt.next().expect_err("Null violation!");
             // no commit -> rollback
         };
         assert!(db.fetch("select * from abc").unwrap().is_empty());

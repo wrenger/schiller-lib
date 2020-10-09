@@ -9,20 +9,15 @@
 config_version=4
 
 _global_script_classes=[ {
-"base": "Reference",
-"class": "Category",
+"base": "",
+"class": "Date",
 "language": "NativeScript",
-"path": "res://lib/Category.gdns"
+"path": "res://lib/Date.gdns"
 }, {
 "base": "ConfirmationDialog",
 "class": "LendDialog",
 "language": "GDScript",
 "path": "res://ui/LendDialog.gd"
-}, {
-"base": "Reference",
-"class": "Medium",
-"language": "NativeScript",
-"path": "res://lib/Medium.gdns"
 }, {
 "base": "AcceptDialog",
 "class": "MessageDialog",
@@ -44,20 +39,10 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/ProjectDialog.gd"
 }, {
-"base": "Reference",
-"class": "Settings",
-"language": "NativeScript",
-"path": "res://lib/Settings.gdns"
-}, {
 "base": "Node",
 "class": "Test",
 "language": "GDScript",
 "path": "res://ui/test/Test.gd"
-}, {
-"base": "Reference",
-"class": "User",
-"language": "NativeScript",
-"path": "res://lib/User.gdns"
 }, {
 "base": "Reference",
 "class": "Util",
@@ -65,16 +50,13 @@ _global_script_classes=[ {
 "path": "res://ui/Util.gd"
 } ]
 _global_script_class_icons={
-"Category": "",
+"Date": "",
 "LendDialog": "",
-"Medium": "",
 "MessageDialog": "",
 "ObjectList": "",
 "Project": "",
 "ProjectDialog": "",
-"Settings": "",
 "Test": "",
-"User": "",
 "Util": ""
 }
 

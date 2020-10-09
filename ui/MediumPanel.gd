@@ -16,17 +16,17 @@ onready var _medium_edit := $Edit as Control
 onready var _medium_editing := $Editing as Control
 onready var _medium_adding := $Adding as Control
 
-var _before_edit: Reference = null
+var _before_edit: Dictionary = {}
 
 
 func _ready():
-    set_medium(null)
+    set_medium({})
 
 
-func set_medium(medium: Reference):
-    visible = medium != null
+func set_medium(medium: Dictionary):
+    visible = not medium.empty()
 
-    if medium != null:
+    if not medium.empty():
         _medium_pane.medium = medium
 
         var borrowed := bool(medium.borrower)
@@ -34,7 +34,9 @@ func set_medium(medium: Reference):
 
         _medium_state.text = ""
         if borrowed:
-            _medium_state.text = tr(".medium.borrowed.by").replace("{0}", medium.borrower).replace("{1}", medium.deadline_local())
+            var date := Date.new()
+            date.set_iso(medium.deadline)
+            _medium_state.text = tr(".medium.borrowed.by").replace("{0}", medium.borrower).replace("{1}", date.get_local())
         if reserved:
             if medium.borrower:
                 _medium_state.text += "\n"
@@ -55,7 +57,7 @@ func set_medium(medium: Reference):
     _medium_pane.editable = false
 
 
-func _on_medium_selected(medium: Reference):
+func _on_medium_selected(medium: Dictionary):
     set_medium(medium)
 
 
@@ -64,7 +66,7 @@ func _on_lend():
 
 
 func _on_lend_to():
-    var medium = _medium_pane.medium
+    var medium: Dictionary = _medium_pane.medium
     var result: Dictionary = _project.user_fetch(medium.reservation)
     if result.has("Ok"):
         LendDialog.lend(self, medium, result["Ok"])
@@ -77,7 +79,7 @@ func _on_reserve():
 
 
 func _on_release():
-    var medium = _medium_pane.medium
+    var medium: Dictionary = _medium_pane.medium
     var result: Dictionary = _project.rental_release(medium)
     if result.has("Ok"):
         set_medium(result["Ok"])
@@ -87,9 +89,8 @@ func _on_release():
 
 
 func _on_revoke():
-    var medium = _medium_pane.medium
+    var medium: Dictionary = _medium_pane.medium
     var result: Dictionary = _project.rental_revoke(medium)
-    print(result)
     if result.has("Ok"):
         set_medium(result["Ok"])
         emit_signal("update_medium", result["Ok"])
@@ -97,7 +98,7 @@ func _on_revoke():
         MessageDialog.error_code(result["Err"])
 
 
-func _on_lend_update(medium: Reference):
+func _on_lend_update(medium: Dictionary):
     set_medium(medium)
     emit_signal("update_medium", medium)
 
@@ -117,8 +118,8 @@ func _on_edit():
 
 
 func _on_add_medium():
-    _before_edit = null
-    _medium_pane.medium = null
+    _before_edit = {}
+    _medium_pane.medium = {}
     _medium_lend.visible = false
     _medium_lend_to.visible = false
     _medium_revoke.visible = false
@@ -134,16 +135,16 @@ func _on_add_medium():
 
 func _on_edit_cancel():
     set_medium(_before_edit)
-    _before_edit = null
+    _before_edit = {}
 
 
 func _on_edit_add():
-    var medium = _medium_pane.medium
+    var medium: Dictionary = _medium_pane.medium
     var result: Dictionary = _project.medium_add(medium)
     if result.has("Ok"):
         set_medium(medium)
         emit_signal("add_medium", medium)
-        _before_edit = null
+        _before_edit = {}
     else:
         if result["Err"] == Util.SbvError.LogicError:
             MessageDialog.error(tr(".medium.invalid"))
@@ -152,12 +153,12 @@ func _on_edit_add():
 
 
 func _on_edit_apply():
-    var medium = _medium_pane.medium
+    var medium: Dictionary = _medium_pane.medium
     var result: Dictionary = _project.medium_update(_before_edit.id, medium)
     if result.has("Ok"):
         set_medium(medium)
         emit_signal("update_medium", medium)
-        _before_edit = null
+        _before_edit = {}
     else:
         if result["Err"] == Util.SbvError.LogicError:
             MessageDialog.error(tr(".medium.invalid"))
@@ -168,8 +169,8 @@ func _on_edit_apply():
 func _on_edit_delete():
     var result: Dictionary = _project.medium_delete(_before_edit.id)
     if result.has("Ok"):
-        set_medium(null)
-        emit_signal("update_medium", null)
-        _before_edit = null
+        set_medium({})
+        emit_signal("update_medium", {})
+        _before_edit = {}
     else:
         MessageDialog.error_code(result["Err"])
