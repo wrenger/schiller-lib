@@ -28,10 +28,6 @@ static func reserve(medium_panel: Control, medium: Dictionary):
     if nodes: nodes.front()._reserve(medium_panel, medium)
 
 
-func _ready():
-    _period.suffix = tr(".medium.period.days")
-
-
 func _lend(medium_panel: Control, medium: Dictionary, user: Dictionary):
     if not visible:
         _medium_panel = medium_panel

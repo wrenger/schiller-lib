@@ -8,6 +8,8 @@ use crate::db::{
     DatabaseUser,
 };
 
+const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 /// The Global Project Singleton
 #[derive(NativeClass, Debug)]
 #[inherit(Node)]
@@ -41,6 +43,11 @@ impl Project {
             db: None,
             settings: None,
         }
+    }
+
+    #[export]
+    fn version(&self, _owner: &Node) -> String {
+        PKG_VERSION.into()
     }
 
     /// Opens the specified project and returns if it was successfull.
@@ -279,8 +286,10 @@ impl Project {
         let _timer = DebugTimer::new();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
         db.settings_update(&settings)?;
+        godot_print!("Settings updated");
         // Reload cached settings
         self.settings = Some(db.settings_fetch()?);
+        godot_print!("Settings synced");
         Ok(())
     }
 }

@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=2]
+[gd_scene load_steps=18 format=2]
 
 [ext_resource path="res://ui/SearchMedia.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/MenuEdit.gd" type="Script" id=2]
@@ -16,6 +16,7 @@
 [ext_resource path="res://ui/MenuFile.gd" type="Script" id=17]
 [ext_resource path="res://ui/MediaTab.gd" type="Script" id=18]
 [ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=19]
+[ext_resource path="res://ui/SpinBoxTr.gd" type="Script" id=20]
 
 [node name="MainWindow" type="Panel" groups=[
 "CategoryChanger",
@@ -197,6 +198,7 @@ rounded = true
 allow_greater = true
 allow_lesser = true
 suffix = ".medium.period.days"
+script = ExtResource( 20 )
 
 [node name="State" type="Label" parent="LendDialog/Box"]
 margin_top = 142.0

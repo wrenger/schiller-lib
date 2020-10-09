@@ -1,319 +1,331 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://ui/Settings.gd" type="Script" id=1]
 [ext_resource path="res://ui/NamedTabs.gd" type="Script" id=2]
+[ext_resource path="res://ui/SpinBoxTr.gd" type="Script" id=3]
 
-[node name="Settings" type="MarginContainer"]
+[node name="Settings" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 4.0
-margin_top = 32.0
-margin_right = -4.0
-margin_bottom = -4.0
-custom_constants/margin_right = 5
-custom_constants/margin_top = 10
-custom_constants/margin_left = 5
-custom_constants/margin_bottom = 5
 script = ExtResource( 1 )
+
+[node name="Inner" type="Control" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -350.0
+margin_right = 350.0
+margin_bottom = 6.10352e-05
+__meta__ = {
+"_edit_group_": true,
+"_edit_use_anchors_": false
+}
+
+[node name="Box" type="VBoxContainer" parent="Inner"]
+anchor_right = 1.0
+anchor_bottom = 1.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Box" type="VBoxContainer" parent="."]
-margin_left = 5.0
-margin_top = 10.0
-margin_right = 1187.0
-margin_bottom = 759.0
-
-[node name="Scroll" type="ScrollContainer" parent="Box"]
-margin_right = 1182.0
-margin_bottom = 723.0
+[node name="Scroll" type="ScrollContainer" parent="Inner/Box"]
+margin_right = 700.0
+margin_bottom = 774.0
 size_flags_vertical = 3
 scroll_horizontal_enabled = false
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Box" type="VBoxContainer" parent="Box/Scroll"]
-margin_right = 1170.0
-margin_bottom = 772.0
+[node name="Box" type="VBoxContainer" parent="Inner/Box/Scroll"]
+margin_right = 700.0
+margin_bottom = 774.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 20
 
-[node name="Info" type="Label" parent="Box/Scroll/Box"]
-margin_right = 1170.0
+[node name="Info" type="Label" parent="Inner/Box/Scroll/Box"]
+margin_right = 700.0
 margin_bottom = 22.0
 text = ".pref.project.label"
 
-[node name="Database" type="VBoxContainer" parent="Box/Scroll/Box"]
+[node name="Database" type="VBoxContainer" parent="Inner/Box/Scroll/Box"]
 margin_top = 42.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 90.0
 
-[node name="Label" type="Label" parent="Box/Scroll/Box/Database"]
-margin_right = 1170.0
+[node name="Label" type="Label" parent="Inner/Box/Scroll/Box/Database"]
+margin_right = 700.0
 margin_bottom = 22.0
-rect_scale = Vector2( 1.2, 1.2 )
 text = ".pref.database.header"
 
-[node name="Margin" type="MarginContainer" parent="Box/Scroll/Box/Database"]
+[node name="Margin" type="MarginContainer" parent="Inner/Box/Scroll/Box/Database"]
 margin_top = 26.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 48.0
 custom_constants/margin_left = 40
 
-[node name="Box" type="HBoxContainer" parent="Box/Scroll/Box/Database/Margin"]
+[node name="Box" type="HBoxContainer" parent="Inner/Box/Scroll/Box/Database/Margin"]
 margin_left = 40.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 22.0
 
-[node name="Categories" type="Button" parent="Box/Scroll/Box/Database/Margin/Box"]
-margin_right = 563.0
+[node name="Categories" type="Button" parent="Inner/Box/Scroll/Box/Database/Margin/Box"]
+margin_right = 328.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 text = ".category.edit"
 
-[node name="Database" type="Button" parent="Box/Scroll/Box/Database/Margin/Box"]
-margin_left = 567.0
-margin_right = 1130.0
+[node name="Database" type="Button" parent="Inner/Box/Scroll/Box/Database/Margin/Box"]
+margin_left = 332.0
+margin_right = 660.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 text = ".sql.title"
 
-[node name="Borrowing" type="VBoxContainer" parent="Box/Scroll/Box"]
+[node name="Borrowing" type="VBoxContainer" parent="Inner/Box/Scroll/Box"]
 margin_top = 110.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 158.0
 
-[node name="Label" type="Label" parent="Box/Scroll/Box/Borrowing"]
-margin_right = 1170.0
+[node name="Label" type="Label" parent="Inner/Box/Scroll/Box/Borrowing"]
+margin_right = 700.0
 margin_bottom = 22.0
-rect_scale = Vector2( 1.2, 1.2 )
 text = ".pref.borrowing.header"
 
-[node name="Margin" type="MarginContainer" parent="Box/Scroll/Box/Borrowing"]
+[node name="Margin" type="MarginContainer" parent="Inner/Box/Scroll/Box/Borrowing"]
 margin_top = 26.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 48.0
 custom_constants/margin_left = 40
 
-[node name="Duration" type="HBoxContainer" parent="Box/Scroll/Box/Borrowing/Margin"]
+[node name="Duration" type="HBoxContainer" parent="Inner/Box/Scroll/Box/Borrowing/Margin"]
 margin_left = 40.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 22.0
 
-[node name="Label" type="Label" parent="Box/Scroll/Box/Borrowing/Margin/Duration"]
+[node name="Label" type="Label" parent="Inner/Box/Scroll/Box/Borrowing/Margin/Duration"]
 margin_right = 250.0
 margin_bottom = 22.0
 rect_min_size = Vector2( 250, 0 )
 text = ".pref.borrowing.duration"
 
-[node name="Value" type="SpinBox" parent="Box/Scroll/Box/Borrowing/Margin/Duration"]
+[node name="Value" type="SpinBox" parent="Inner/Box/Scroll/Box/Borrowing/Margin/Duration"]
 margin_left = 254.0
-margin_right = 1130.0
+margin_right = 660.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
+value = 28.0
+rounded = true
+suffix = ".medium.period.days"
+script = ExtResource( 3 )
 
-[node name="User" type="VBoxContainer" parent="Box/Scroll/Box"]
+[node name="User" type="VBoxContainer" parent="Inner/Box/Scroll/Box"]
 margin_top = 178.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 252.0
 
-[node name="Label" type="Label" parent="Box/Scroll/Box/User"]
-margin_right = 1170.0
+[node name="Label" type="Label" parent="Inner/Box/Scroll/Box/User"]
+margin_right = 700.0
 margin_bottom = 22.0
-rect_scale = Vector2( 1.2, 1.2 )
 text = ".pref.user.header"
 
-[node name="Margin" type="MarginContainer" parent="Box/Scroll/Box/User"]
+[node name="Margin" type="MarginContainer" parent="Inner/Box/Scroll/Box/User"]
 margin_top = 26.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 74.0
 custom_constants/margin_left = 40
 
-[node name="Box" type="VBoxContainer" parent="Box/Scroll/Box/User/Margin"]
+[node name="Box" type="VBoxContainer" parent="Inner/Box/Scroll/Box/User/Margin"]
 margin_left = 40.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 48.0
 
-[node name="Delimiter" type="HBoxContainer" parent="Box/Scroll/Box/User/Margin/Box"]
-margin_right = 1130.0
+[node name="Delimiter" type="HBoxContainer" parent="Inner/Box/Scroll/Box/User/Margin/Box"]
+margin_right = 660.0
 margin_bottom = 22.0
 
-[node name="Lable" type="Label" parent="Box/Scroll/Box/User/Margin/Box/Delimiter"]
+[node name="Lable" type="Label" parent="Inner/Box/Scroll/Box/User/Margin/Box/Delimiter"]
 margin_right = 250.0
 margin_bottom = 22.0
 rect_min_size = Vector2( 250, 0 )
 text = ".pref.user.delimiter"
 
-[node name="Value" type="LineEdit" parent="Box/Scroll/Box/User/Margin/Box/Delimiter"]
+[node name="Value" type="LineEdit" parent="Inner/Box/Scroll/Box/User/Margin/Box/Delimiter"]
 margin_left = 254.0
-margin_right = 1130.0
+margin_right = 660.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
+caret_blink = true
+caret_blink_speed = 0.5
 
-[node name="Box" type="HBoxContainer" parent="Box/Scroll/Box/User/Margin/Box"]
+[node name="Box" type="HBoxContainer" parent="Inner/Box/Scroll/Box/User/Margin/Box"]
 margin_top = 26.0
-margin_right = 1130.0
+margin_right = 660.0
 margin_bottom = 48.0
 
-[node name="File" type="Button" parent="Box/Scroll/Box/User/Margin/Box/Box"]
-margin_right = 563.0
+[node name="File" type="Button" parent="Inner/Box/Scroll/Box/User/Margin/Box/Box"]
+margin_right = 328.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 text = ".alert.user.title"
 
-[node name="Update" type="Button" parent="Box/Scroll/Box/User/Margin/Box/Box"]
-margin_left = 567.0
-margin_right = 1130.0
+[node name="Update" type="Button" parent="Inner/Box/Scroll/Box/User/Margin/Box/Box"]
+margin_left = 332.0
+margin_right = 660.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 text = ".pref.user.update"
 
-[node name="Request" type="VBoxContainer" parent="Box/Scroll/Box"]
+[node name="Request" type="VBoxContainer" parent="Inner/Box/Scroll/Box"]
 margin_top = 272.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 320.0
 
-[node name="Label" type="Label" parent="Box/Scroll/Box/Request"]
-margin_right = 1170.0
+[node name="Label" type="Label" parent="Inner/Box/Scroll/Box/Request"]
+margin_right = 700.0
 margin_bottom = 22.0
-rect_scale = Vector2( 1.2, 1.2 )
 text = ".pref.request.header"
 
-[node name="Margin" type="MarginContainer" parent="Box/Scroll/Box/Request"]
+[node name="Margin" type="MarginContainer" parent="Inner/Box/Scroll/Box/Request"]
 margin_top = 26.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 48.0
 custom_constants/margin_left = 40
 
-[node name="Token" type="HBoxContainer" parent="Box/Scroll/Box/Request/Margin"]
+[node name="Token" type="HBoxContainer" parent="Inner/Box/Scroll/Box/Request/Margin"]
 margin_left = 40.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 22.0
 
-[node name="Label" type="Label" parent="Box/Scroll/Box/Request/Margin/Token"]
+[node name="Label" type="Label" parent="Inner/Box/Scroll/Box/Request/Margin/Token"]
 margin_right = 250.0
 margin_bottom = 22.0
 rect_min_size = Vector2( 250, 0 )
 text = ".pref.request.token"
 
-[node name="Value" type="LineEdit" parent="Box/Scroll/Box/Request/Margin/Token"]
+[node name="Value" type="LineEdit" parent="Inner/Box/Scroll/Box/Request/Margin/Token"]
 margin_left = 254.0
-margin_right = 1130.0
+margin_right = 660.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
+caret_blink = true
+caret_blink_speed = 0.5
 
-[node name="MailAccount" type="VBoxContainer" parent="Box/Scroll/Box"]
+[node name="MailAccount" type="VBoxContainer" parent="Inner/Box/Scroll/Box"]
 margin_top = 340.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 440.0
 
-[node name="Label" type="Label" parent="Box/Scroll/Box/MailAccount"]
-margin_right = 1170.0
+[node name="Label" type="Label" parent="Inner/Box/Scroll/Box/MailAccount"]
+margin_right = 700.0
 margin_bottom = 22.0
-rect_scale = Vector2( 1.2, 1.2 )
 text = ".pref.mail.account.header"
 
-[node name="Margin" type="MarginContainer" parent="Box/Scroll/Box/MailAccount"]
+[node name="Margin" type="MarginContainer" parent="Inner/Box/Scroll/Box/MailAccount"]
 margin_top = 26.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 100.0
 custom_constants/margin_left = 40
 
-[node name="Box" type="VBoxContainer" parent="Box/Scroll/Box/MailAccount/Margin"]
+[node name="Box" type="VBoxContainer" parent="Inner/Box/Scroll/Box/MailAccount/Margin"]
 margin_left = 40.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 74.0
 
-[node name="Host" type="HBoxContainer" parent="Box/Scroll/Box/MailAccount/Margin/Box"]
-margin_right = 1130.0
+[node name="Host" type="HBoxContainer" parent="Inner/Box/Scroll/Box/MailAccount/Margin/Box"]
+margin_right = 660.0
 margin_bottom = 22.0
 
-[node name="Label" type="Label" parent="Box/Scroll/Box/MailAccount/Margin/Box/Host"]
+[node name="Label" type="Label" parent="Inner/Box/Scroll/Box/MailAccount/Margin/Box/Host"]
 margin_right = 250.0
 margin_bottom = 22.0
 rect_min_size = Vector2( 250, 0 )
 text = ".pref.mail.account.host"
 
-[node name="Value" type="LineEdit" parent="Box/Scroll/Box/MailAccount/Margin/Box/Host"]
+[node name="Value" type="LineEdit" parent="Inner/Box/Scroll/Box/MailAccount/Margin/Box/Host"]
 margin_left = 254.0
-margin_right = 1130.0
+margin_right = 660.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
+caret_blink = true
+caret_blink_speed = 0.5
 
-[node name="From" type="HBoxContainer" parent="Box/Scroll/Box/MailAccount/Margin/Box"]
+[node name="From" type="HBoxContainer" parent="Inner/Box/Scroll/Box/MailAccount/Margin/Box"]
 margin_top = 26.0
-margin_right = 1130.0
+margin_right = 660.0
 margin_bottom = 48.0
 
-[node name="Label" type="Label" parent="Box/Scroll/Box/MailAccount/Margin/Box/From"]
+[node name="Label" type="Label" parent="Inner/Box/Scroll/Box/MailAccount/Margin/Box/From"]
 margin_right = 250.0
 margin_bottom = 22.0
 rect_min_size = Vector2( 250, 0 )
 text = ".pref.mail.account.from"
 
-[node name="Value" type="LineEdit" parent="Box/Scroll/Box/MailAccount/Margin/Box/From"]
+[node name="Value" type="LineEdit" parent="Inner/Box/Scroll/Box/MailAccount/Margin/Box/From"]
 margin_left = 254.0
-margin_right = 1130.0
+margin_right = 660.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
+caret_blink = true
+caret_blink_speed = 0.5
 
-[node name="Password" type="HBoxContainer" parent="Box/Scroll/Box/MailAccount/Margin/Box"]
+[node name="Password" type="HBoxContainer" parent="Inner/Box/Scroll/Box/MailAccount/Margin/Box"]
 margin_top = 52.0
-margin_right = 1130.0
+margin_right = 660.0
 margin_bottom = 74.0
 
-[node name="Label" type="Label" parent="Box/Scroll/Box/MailAccount/Margin/Box/Password"]
+[node name="Label" type="Label" parent="Inner/Box/Scroll/Box/MailAccount/Margin/Box/Password"]
 margin_right = 250.0
 margin_bottom = 22.0
 rect_min_size = Vector2( 250, 0 )
 text = ".pref.mail.account.password"
 
-[node name="Value" type="LineEdit" parent="Box/Scroll/Box/MailAccount/Margin/Box/Password"]
+[node name="Value" type="LineEdit" parent="Inner/Box/Scroll/Box/MailAccount/Margin/Box/Password"]
 margin_left = 254.0
-margin_right = 1130.0
+margin_right = 660.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 secret = true
+caret_blink = true
+caret_blink_speed = 0.5
 
-[node name="MailTemplates" type="VBoxContainer" parent="Box/Scroll/Box"]
+[node name="MailTemplates" type="VBoxContainer" parent="Inner/Box/Scroll/Box"]
 margin_top = 460.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 772.0
 
-[node name="Label" type="Label" parent="Box/Scroll/Box/MailTemplates"]
-margin_right = 1170.0
+[node name="Label" type="Label" parent="Inner/Box/Scroll/Box/MailTemplates"]
+margin_right = 700.0
 margin_bottom = 22.0
-rect_scale = Vector2( 1.2, 1.2 )
 text = ".pref.mail.templates.header"
 
-[node name="Margin" type="MarginContainer" parent="Box/Scroll/Box/MailTemplates"]
+[node name="Margin" type="MarginContainer" parent="Inner/Box/Scroll/Box/MailTemplates"]
 margin_top = 26.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 312.0
 custom_constants/margin_left = 40
 
-[node name="Box" type="VBoxContainer" parent="Box/Scroll/Box/MailTemplates/Margin"]
+[node name="Box" type="VBoxContainer" parent="Inner/Box/Scroll/Box/MailTemplates/Margin"]
 margin_left = 40.0
-margin_right = 1170.0
+margin_right = 700.0
 margin_bottom = 286.0
 
-[node name="Description" type="Label" parent="Box/Scroll/Box/MailTemplates/Margin/Box"]
-margin_right = 1130.0
+[node name="Description" type="Label" parent="Inner/Box/Scroll/Box/MailTemplates/Margin/Box"]
+margin_right = 660.0
 margin_bottom = 22.0
 text = ".mail.info"
+autowrap = true
 
-[node name="TabContainer" type="TabContainer" parent="Box/Scroll/Box/MailTemplates/Margin/Box"]
+[node name="TabContainer" type="TabContainer" parent="Inner/Box/Scroll/Box/MailTemplates/Margin/Box"]
 margin_top = 26.0
-margin_right = 1130.0
+margin_right = 660.0
 margin_bottom = 286.0
 tab_align = 0
 script = ExtResource( 2 )
 labels = [ ".mail.info.title", ".mail.overdue.title", ".mail.overdue2.title" ]
 
-[node name="Info" type="VBoxContainer" parent="Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer"]
+[node name="Info" type="VBoxContainer" parent="Inner/Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 5.0
@@ -321,18 +333,20 @@ margin_top = 29.0
 margin_right = -5.0
 margin_bottom = -5.0
 
-[node name="Subject" type="LineEdit" parent="Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer/Info"]
-margin_right = 1120.0
+[node name="Subject" type="LineEdit" parent="Inner/Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer/Info"]
+margin_right = 650.0
 margin_bottom = 22.0
 placeholder_text = ".mail.label.title"
+caret_blink = true
+caret_blink_speed = 0.5
 
-[node name="Content" type="TextEdit" parent="Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer/Info"]
+[node name="Content" type="TextEdit" parent="Inner/Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer/Info"]
 margin_top = 26.0
-margin_right = 1120.0
+margin_right = 650.0
 margin_bottom = 226.0
 rect_min_size = Vector2( 0, 200 )
 
-[node name="Overdue" type="VBoxContainer" parent="Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer"]
+[node name="Overdue" type="VBoxContainer" parent="Inner/Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer"]
 visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -341,18 +355,20 @@ margin_top = 29.0
 margin_right = -5.0
 margin_bottom = -5.0
 
-[node name="Subject" type="LineEdit" parent="Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue"]
+[node name="Subject" type="LineEdit" parent="Inner/Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue"]
 margin_right = 1120.0
 margin_bottom = 22.0
 placeholder_text = ".mail.label.title"
+caret_blink = true
+caret_blink_speed = 0.5
 
-[node name="Content" type="TextEdit" parent="Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue"]
+[node name="Content" type="TextEdit" parent="Inner/Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue"]
 margin_top = 26.0
 margin_right = 1120.0
 margin_bottom = 226.0
 rect_min_size = Vector2( 0, 200 )
 
-[node name="Overdue2" type="VBoxContainer" parent="Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer"]
+[node name="Overdue2" type="VBoxContainer" parent="Inner/Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer"]
 visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -361,33 +377,35 @@ margin_top = 29.0
 margin_right = -5.0
 margin_bottom = -5.0
 
-[node name="Subject" type="LineEdit" parent="Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue2"]
+[node name="Subject" type="LineEdit" parent="Inner/Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue2"]
 margin_right = 1120.0
 margin_bottom = 22.0
 placeholder_text = ".mail.label.title"
+caret_blink = true
+caret_blink_speed = 0.5
 
-[node name="Content" type="TextEdit" parent="Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue2"]
+[node name="Content" type="TextEdit" parent="Inner/Box/Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue2"]
 margin_top = 26.0
 margin_right = 1120.0
 margin_bottom = 226.0
 rect_min_size = Vector2( 0, 200 )
 
-[node name="Box" type="HBoxContainer" parent="Box"]
-margin_top = 727.0
-margin_right = 1182.0
-margin_bottom = 749.0
+[node name="Box" type="HBoxContainer" parent="Inner/Box"]
+margin_top = 778.0
+margin_right = 700.0
+margin_bottom = 800.0
 
-[node name="Cancel" type="Button" parent="Box/Box"]
+[node name="Cancel" type="Button" parent="Inner/Box/Box"]
 margin_right = 130.0
 margin_bottom = 22.0
 rect_min_size = Vector2( 130, 0 )
 text = ".action.cancel"
 
-[node name="Save" type="Button" parent="Box/Box"]
+[node name="Save" type="Button" parent="Inner/Box/Box"]
 margin_left = 134.0
-margin_right = 1182.0
+margin_right = 700.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 text = ".action.apply"
-[connection signal="pressed" from="Box/Box/Cancel" to="." method="reload"]
-[connection signal="pressed" from="Box/Box/Save" to="." method="_on_save"]
+[connection signal="pressed" from="Inner/Box/Box/Cancel" to="." method="reload"]
+[connection signal="pressed" from="Inner/Box/Box/Save" to="." method="_on_save"]

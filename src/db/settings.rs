@@ -9,26 +9,24 @@ select key, value from sbv_meta
 
 const SETTINGS_UPDATE: &str = r#"
 replace into sbv_meta values
-(version, ?),
-(borrowing.duration, ?),
-(user.path, ?),
-(user.delimiter, ?),
-(dnb.token, ?),
-(mail.lastReminder, ?),
-(mail.from, ?),
-(mail.host, ?),
-(mail.password, ?),
-(mail.info.subject, ?),
-(mail.info.content, ?),
-(mail.overdue.subject, ?),
-(mail.overdue.content, ?),
-(mail.overdue2.subject, ?),
-(mail.overdue2.content, ?)
+('borrowing.duration', ?),
+('user.path', ?),
+('user.delimiter', ?),
+('dnb.token', ?),
+('mail.lastReminder', ?),
+('mail.from', ?),
+('mail.host', ?),
+('mail.password', ?),
+('mail.info.subject', ?),
+('mail.info.content', ?),
+('mail.overdue.subject', ?),
+('mail.overdue.content', ?),
+('mail.overdue2.subject', ?),
+('mail.overdue2.content', ?)
 "#;
 
 #[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
 pub struct Settings {
-    pub version: String,
     // Borrowing
     pub borrowing_duration: i64,
     // User
@@ -53,7 +51,6 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Settings {
         Settings {
-            version: String::new(),
             borrowing_duration: 28,
             user_path: String::new(),
             user_delimiter: ",".into(),
@@ -77,7 +74,7 @@ impl Settings {
         let mut settings = Settings::default();
         for (key, value) in iter {
             match key.as_str() {
-                "version" => settings.version = value,
+                "version" => {},
                 "borrowing.duration" => {
                     settings.borrowing_duration =
                         value.parse().unwrap_or(settings.borrowing_duration)
@@ -117,21 +114,20 @@ pub trait DatabaseSettings {
 
     fn settings_update(&self, settings: &Settings) -> api::Result<()> {
         let mut stmt = self.db().prepare(SETTINGS_UPDATE)?;
-        stmt.bind(1, settings.version.as_str())?;
-        stmt.bind(2, settings.borrowing_duration)?;
-        stmt.bind(3, settings.user_path.as_str())?;
-        stmt.bind(4, settings.user_delimiter.as_str())?;
-        stmt.bind(5, settings.dnb_token.as_str())?;
-        stmt.bind(6, settings.mail_last_reminder.as_str())?;
-        stmt.bind(7, settings.mail_from.as_str())?;
-        stmt.bind(8, settings.mail_host.as_str())?;
-        stmt.bind(9, settings.mail_password.as_str())?;
-        stmt.bind(10, settings.mail_info_subject.as_str())?;
-        stmt.bind(11, settings.mail_info_content.as_str())?;
-        stmt.bind(12, settings.mail_overdue_subject.as_str())?;
-        stmt.bind(13, settings.mail_overdue_content.as_str())?;
-        stmt.bind(14, settings.mail_overdue2_subject.as_str())?;
-        stmt.bind(15, settings.mail_overdue2_content.as_str())?;
+        stmt.bind(1, settings.borrowing_duration)?;
+        stmt.bind(2, settings.user_path.as_str())?;
+        stmt.bind(3, settings.user_delimiter.as_str())?;
+        stmt.bind(4, settings.dnb_token.as_str())?;
+        stmt.bind(5, settings.mail_last_reminder.as_str())?;
+        stmt.bind(6, settings.mail_from.as_str())?;
+        stmt.bind(7, settings.mail_host.as_str())?;
+        stmt.bind(8, settings.mail_password.as_str())?;
+        stmt.bind(9, settings.mail_info_subject.as_str())?;
+        stmt.bind(10, settings.mail_info_content.as_str())?;
+        stmt.bind(11, settings.mail_overdue_subject.as_str())?;
+        stmt.bind(12, settings.mail_overdue_content.as_str())?;
+        stmt.bind(13, settings.mail_overdue2_subject.as_str())?;
+        stmt.bind(14, settings.mail_overdue2_content.as_str())?;
 
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
