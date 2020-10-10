@@ -39,7 +39,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/ProjectDialog.gd"
 }, {
-"base": "Node",
+"base": "MainLoop",
 "class": "Test",
 "language": "GDScript",
 "path": "res://ui/test/Test.gd"

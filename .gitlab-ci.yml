@@ -1,0 +1,12 @@
+image: "registry.gitlab.com/l4r0x/sbv-gd"
+
+# Use cargo to test the project
+test:cargo:
+  script:
+    - rustc --version && cargo --version
+    - cargo test --workspace --verbose
+
+# Use godot headless to run the ui tests
+test:godot:
+  script:
+    - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 -s ui/test/TestUtil.gd

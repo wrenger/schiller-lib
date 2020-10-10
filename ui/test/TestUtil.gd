@@ -1,8 +1,6 @@
 extends Test
 
 func test_trf():
-    var start := OS.get_ticks_usec()
-
     assert_eq("", Util.trf(""))
     assert_eq("", Util.trf("", [1, 2]))
     assert_eq("{0}", Util.trf("{0}"))
@@ -27,5 +25,3 @@ func test_trf():
     assert_eq("10 Tage 1 Buch", Util.trf("{0} Tag{0:|e} {1} {1:Buch|Bücher}", [10, 1]))
     assert_eq("10 Tage 2 Bücher", Util.trf("{0} Tag{0:|e} {1} {1:Buch|Bücher}", [10, 2]))
     assert_eq("0 Bücher null Tage", Util.trf("{1} {1:Buch|Bücher} {0} Tag{0:|e}", ["null", 0]))
-
-    print("Test script time: ", OS.get_ticks_usec() - start)
