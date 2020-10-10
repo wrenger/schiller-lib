@@ -29,6 +29,7 @@ where account like '%'||?||'%'
 or forename like '%'||?||'%'
 or surname like '%'||?||'%'
 or role like '%'||?||'%'
+order by account
 "#;
 
 const ADD_USER: &str = r#"

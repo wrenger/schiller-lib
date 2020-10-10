@@ -6,7 +6,7 @@ export var allow_empty: bool
 
 func _ready():
     for node in get_tree().get_nodes_in_group("CategoryChanger"):
-        var error := node.connect("categories_changed", self, "_on_categories_changed")
+        var error: int = node.connect("categories_changed", self, "_on_categories_changed")
         assert(error == OK)
 
 

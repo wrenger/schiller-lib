@@ -14,7 +14,7 @@ func _ready() -> void:
         node.connect("theme_changed", self, "_on_theme_changed_")
 
 
-func _on_theme_changed_(x):
+func _on_theme_changed_(_x):
     if editor_icons:
         for i in range(len(labels)):
             set_tab_icon(i, get_icon(editor_icons[i], "EditorIcons"))

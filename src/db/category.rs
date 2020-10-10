@@ -62,6 +62,10 @@ pub trait DatabaseCategory {
 
     /// Adds a new category.
     fn category_add(&self, category: &Category) -> api::Result<()> {
+        if category.id.is_empty() || category.name.is_empty() || category.section.is_empty() {
+            return Err(api::Error::InvalidArguments);
+        }
+
         let mut stmt = self.db().prepare(ADD)?;
         stmt.bind(1, category.id.as_str())?;
         stmt.bind(2, category.name.as_str())?;
@@ -74,6 +78,10 @@ pub trait DatabaseCategory {
 
     /// Updates the category and all references.
     fn category_update(&self, id: &str, category: &Category) -> api::Result<()> {
+        if category.id.is_empty() || category.name.is_empty() || category.section.is_empty() {
+            return Err(api::Error::InvalidArguments);
+        }
+
         let transaction = self.db().transaction()?;
         // Update category
         let mut stmt = self.db().prepare(UPDATE)?;
@@ -101,11 +109,19 @@ pub trait DatabaseCategory {
 
     /// Removes the category, assuming it is not referenced anywhere.
     fn category_delete(&self, id: &str) -> api::Result<()> {
+        let transaction = self.db().transaction()?;
+        // Do not allow the removal of used categories
+        if self.category_references(id)? > 0 {
+            return Err(api::Error::LogicError);
+        }
+
         let mut stmt = self.db().prepare(DELETE)?;
         stmt.bind(1, id)?;
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
         }
+
+        transaction.commit()?;
         Ok(())
     }
 

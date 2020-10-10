@@ -1,5 +1,33 @@
-extends ConfirmationDialog
+extends AcceptDialog
 class_name CategoryDialog
+
+signal categories_changed(categories)
+
+onready var _project: Project = $"/root/Project"
+
+onready var _window_content: Control = $"../Content"
+onready var _list: Tree = $Box/Box/Tree
+onready var _status: Label = $Box/Status
+onready var _delete_btn: Button = $Box/Box/Buttons/Delete
+onready var _add_id: LineEdit = $Box/New/ID
+onready var _add_name: LineEdit = $Box/New/Name
+onready var _add_section: LineEdit = $Box/New/Section
+
+
+func _ready() -> void:
+    var result := 0
+    result = connect("about_to_show", self, "_about_to_show")
+    assert(result == OK)
+    result = connect("popup_hide", self, "_popup_hide")
+    assert(result == OK)
+    _list.set_column_min_width(0, 100)
+    _list.set_column_title(0, tr(".category.id"))
+    _list.set_column_min_width(1, 200)
+    _list.set_column_title(1, tr(".category.name"))
+    _list.set_column_min_width(2, 150)
+    _list.set_column_title(2, tr(".category.section"))
+    _list.set_column_titles_visible(true)
+
 
 static func open():
     var scene: SceneTree = Engine.get_main_loop()
@@ -8,4 +36,101 @@ static func open():
 
 
 func _open():
-    pass
+    _delete_btn.disabled = true
+    _add_id.clear()
+    _add_name.clear()
+    _add_section.clear()
+    _status.text = ""
+
+    var result: Dictionary = _project.category_list()
+    if result.has("Ok"):
+        _list.clear()
+        var root := _list.create_item()
+        for category in result["Ok"]:
+            set_category(_list.create_item(root), category)
+        popup_centered()
+    else:
+        MessageDialog.error_code(result["Err"])
+
+
+func set_category(item: TreeItem, category: Dictionary):
+    item.set_text(0, category.id)
+    item.set_editable(0, true)
+    item.set_text(1, category.name)
+    item.set_editable(1, true)
+    item.set_text(2, category.section)
+    item.set_editable(2, true)
+    item.set_meta("category_backup", category)
+
+
+func _on_add() -> void:
+    var category := {
+        id = _add_id.text,
+        name = _add_name.text,
+        section = _add_section.text,
+    }
+    var result: Dictionary = _project.category_add(category)
+    if result.has("Ok"):
+        var item := _list.create_item(_list.get_root())
+        set_category(item, category)
+        item.select(0)
+        _add_id.clear()
+        _add_name.clear()
+        _add_section.clear()
+    elif result["Err"] == Util.SbvError.InvalidArguments:
+        _status.text = tr(".category.empty-input")
+    else:
+        _status.text = Util.error_msg(result["Err"])
+
+
+func _on_delete() -> void:
+    var item := _list.get_selected()
+    if item:
+        var result: Dictionary = _project.category_remove(item.get_text(0))
+        if result.has("Ok"):
+            item.deselect(0)
+            _list.get_root().remove_child(item)
+        elif result["Err"] == Util.SbvError.LogicError:
+            _status.text = tr(".category.not-empty.del")
+        else:
+            _status.text = Util.error_msg(result["Err"])
+
+
+func _on_edited() -> void:
+    var item := _list.get_edited()
+    var category := {
+        id = item.get_text(0),
+        name = item.get_text(1),
+        section = item.get_text(2),
+    }
+
+    var category_backup = item.get_meta("category_backup")
+    if category == category_backup: return
+
+    var result: Dictionary = _project.category_update(category_backup.id, category)
+    if result.has("Ok"):
+        item.set_meta("category_backup", category)
+    elif result["Err"] == Util.SbvError.InvalidArguments:
+        set_category(item, category_backup)
+        _status.text = tr(".category.empty-input")
+    else:
+        set_category(item, category_backup)
+        _status.text = Util.error_msg(result["Err"])
+
+
+func _popup_hide():
+    _window_content.modulate.a = 1
+    var result: Dictionary = _project.category_list()
+    if result.has("Ok"):
+        emit_signal("categories_changed", result["Ok"])
+    else:
+        MessageDialog.error_code(result["Err"])
+
+
+func _about_to_show():
+    _window_content.modulate.a = 0.5
+
+
+func _on_selected() -> void:
+    var item := _list.get_selected()
+    _delete_btn.disabled = not item

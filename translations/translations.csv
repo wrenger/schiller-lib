@@ -45,8 +45,7 @@
 .category.empty-input,Empty inputs are not allowed.,Leere Eingaben sind nicht erlaubt.
 .category.id,ID,Abk
 .category.name,Name,Name
-.category.not-empty,IDs can only be changed for empty categories. There {1:is|are} {1} book{1:|s} left in '{0}'.,Es können nur IDs leerer Kategorien geändert werden. Es gibt noch {1} {1:Buch|Bücher} in '{0}'.
-.category.not-empty.del,A category has to be empty to be removed. There {1:is|are} {1} book{1:|s} left in '{0}'.,Eine können nur IDs leerer Kategorien gelöscht werden. Es gibt noch {1} {1:Buch|Bücher} in '{0}'.
+.category.not-empty.del,"A category has to be empty to be removed. This category, however, is not emtpy.",Eine können nur leere Kategorien gelöscht werden. Diese Kategorie ist allerdings nicht leer.
 .category.section,Section,Bereich
 .category.edit,Edit Categories,Kategorien bearbeiten
 .error.category.existing,The category id '{0}' already exists.,Die Abkürzung '{0}' existiert bereits.

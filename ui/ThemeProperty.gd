@@ -14,7 +14,7 @@ func _ready() -> void:
         node.connect("theme_changed", self, "_on_theme_changed")
 
 
-func _on_theme_changed(x) -> void:
+func _on_theme_changed(_x) -> void:
     match theme_type:
         ThemeType.COLOR: set(target_property, get_color(theme_name, theme_class))
         ThemeType.FONT: set(target_property, get_font(theme_name, theme_class))
