@@ -14,3 +14,14 @@ test:cargo:
 test:godot:
   script:
     - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 -s ui/test/TestUtil.gd
+
+deploy:linux:
+  script:
+    - cargo build --release
+    - mkdir export/x11
+    - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 --export "Linux/X11 - Tiny" export/x11/sbv-gd.x86_64
+  when: manual
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+    paths: export/x11/*
+    expire_in: 1 week
