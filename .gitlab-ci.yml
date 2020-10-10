@@ -1,8 +1,4 @@
-image: "rust"
-
-before_script:
-  - apt-get update
-  - apt-get install --assume-yes llvm-dev libclang-dev clang # rust-bindgen
+image: "registry.gitlab.com/l4r0x/sbv-gd"
 
 # Use cargo to test the project
 test:cargo:
@@ -21,6 +17,8 @@ test:godot:
   script:
     - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 -s ui/test/TestUtil.gd
 
+
+
 deploy:linux:
   script:
     - cargo build --release
@@ -30,4 +28,15 @@ deploy:linux:
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
     paths: [export/x11/*]
+    expire_in: 1 week
+
+deploy:windows:
+  script:
+    - cross build --target=x86_64-pc-windows-gnu --release
+    - mkdir export/windows
+    - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 --export "Windows - Tiny" export/windows/sbv-gd.x86_64
+  when: manual
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+    paths: [export/windows/*]
     expire_in: 1 week
