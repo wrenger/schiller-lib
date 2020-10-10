@@ -53,6 +53,8 @@ Then the build process can be started by executing:
 cross build --target=x86_64-pc-windows-gnu
 ```
 
+> To run the docker container directly: `docker run --rm -it --volume=$(pwd):/home/docker/project registry.gitlab.com/l4r0x/sbv-gd bash`
+
 ## Distribute
 
 After the GDNative library has been build the project can be exported within the godot editor.

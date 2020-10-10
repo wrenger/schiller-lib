@@ -48,9 +48,10 @@ static func error_msg(error: int) -> String:
 
 static func trf(key: String, values: Array = []) -> String:
     var text := TranslationServer.tr(key)
-    if values:
+    if false:
         var re := RegEx.new()
-        assert(re.compile("\\{(\\d{1,2})(:(([\\p{L}\\p{N}]*)\\|([\\p{L}\\p{N}]*)))?}") == OK)
+        var error := re.compile("\\{(\\d{1,2})(:(([\\p{L}\\p{N}]*)\\|([\\p{L}\\p{N}]*)))?}")
+        assert(error == OK)
         var output := PoolStringArray([])
         var pos := 0
         for result in re.search_all(text):

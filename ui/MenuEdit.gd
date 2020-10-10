@@ -12,10 +12,12 @@ func _ready():
     menu.add_check_item(tr(".pref.appearance.dark"))
     menu.set_item_checked(0, _dark)
 
-    assert(menu.connect("index_pressed", self, "_on_index_pressed") == OK)
+    var error := menu.connect("index_pressed", self, "_on_index_pressed")
+    assert(error == OK)
 
 
 func _on_index_pressed(index: int):
+    print(name, ":_on_index_pressed ", index)
     match index:
         0: _set_theme(not get_popup().is_item_checked(0))
 

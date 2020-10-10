@@ -6,17 +6,17 @@
 [ext_resource path="res://ui/Overdues.tscn" type="PackedScene" id=4]
 [ext_resource path="res://ui/Settings.tscn" type="PackedScene" id=5]
 [ext_resource path="res://ui/NamedTabs.gd" type="Script" id=6]
+[ext_resource path="res://ui/LendDialog.tscn" type="PackedScene" id=7]
+[ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=8]
 [ext_resource path="res://ui/light.tres" type="Theme" id=9]
+[ext_resource path="res://ui/CategoryDialog.gd" type="Script" id=10]
 [ext_resource path="res://ui/Main.gd" type="Script" id=11]
 [ext_resource path="res://ui/dark.tres" type="Theme" id=12]
 [ext_resource path="res://ui/MessageDialog.gd" type="Script" id=13]
 [ext_resource path="res://ui/ProjectDialog.gd" type="Script" id=14]
 [ext_resource path="res://ui/Persistant.gd" type="Script" id=15]
-[ext_resource path="res://ui/LendDialog.gd" type="Script" id=16]
 [ext_resource path="res://ui/MenuFile.gd" type="Script" id=17]
 [ext_resource path="res://ui/MediaTab.gd" type="Script" id=18]
-[ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=19]
-[ext_resource path="res://ui/SpinBoxTr.gd" type="Script" id=20]
 
 [node name="MainWindow" type="Panel" groups=[
 "CategoryChanger",
@@ -98,119 +98,7 @@ margin_top = 29.0
 margin_right = -5.0
 margin_bottom = -5.0
 
-[node name="LendDialog" type="ConfirmationDialog" parent="." groups=[
-"LendDialog",
-]]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-margin_left = -237.0
-margin_top = -104.0
-margin_right = 237.0
-margin_bottom = 104.0
-popup_exclusive = true
-window_title = ""
-resizable = true
-script = ExtResource( 16 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Box" type="VBoxContainer" parent="LendDialog"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-margin_left = 8.0
-margin_top = 8.0
-margin_right = -8.0
-margin_bottom = -38.0
-custom_constants/separation = 10
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="User" type="VBoxContainer" parent="LendDialog/Box"]
-margin_right = 458.0
-margin_bottom = 74.0
-
-[node name="Label" type="Label" parent="LendDialog/Box/User"]
-margin_right = 458.0
-margin_bottom = 22.0
-text = ".user"
-
-[node name="Search" type="LineEdit" parent="LendDialog/Box/User"]
-margin_top = 26.0
-margin_right = 458.0
-margin_bottom = 48.0
-placeholder_text = ".user.account"
-
-[node name="Popup" type="PopupMenu" parent="LendDialog/Box/User/Search"]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-margin_left = -229.0
-margin_top = -34.0
-margin_right = 229.0
-margin_bottom = 34.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="ToolButton" type="ToolButton" parent="LendDialog/Box/User/Search"]
-anchor_left = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-margin_left = -28.0
-script = ExtResource( 19 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-theme_class = "EditorIcons"
-theme_name = "Search"
-theme_type = 2
-target_property = "icon"
-
-[node name="State" type="Label" parent="LendDialog/Box/User"]
-margin_top = 52.0
-margin_right = 458.0
-margin_bottom = 74.0
-text = "-"
-
-[node name="Period" type="VBoxContainer" parent="LendDialog/Box"]
-margin_top = 84.0
-margin_right = 458.0
-margin_bottom = 132.0
-
-[node name="Label" type="Label" parent="LendDialog/Box/Period"]
-margin_right = 458.0
-margin_bottom = 22.0
-text = ".medium.lend.period"
-
-[node name="Days" type="SpinBox" parent="LendDialog/Box/Period"]
-margin_top = 26.0
-margin_right = 458.0
-margin_bottom = 48.0
-min_value = 1.0
-max_value = 30.0
-value = 14.0
-rounded = true
-allow_greater = true
-allow_lesser = true
-suffix = ".medium.period.days"
-script = ExtResource( 20 )
-
-[node name="State" type="Label" parent="LendDialog/Box"]
-margin_top = 142.0
-margin_right = 458.0
-margin_bottom = 164.0
-script = ExtResource( 19 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-theme_class = "Editor"
-theme_name = "error_color"
-target_property = "custom_colors/font_color"
+[node name="LendDialog" parent="." instance=ExtResource( 7 )]
 
 [node name="ProjectDialog" type="FileDialog" parent="." groups=[
 "ProjectDialog",
@@ -255,6 +143,61 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="CategoryDialog" type="ConfirmationDialog" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -285.5
+margin_top = -182.5
+margin_right = 285.5
+margin_bottom = 182.5
+window_title = ".category.edit"
+script = ExtResource( 10 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Box" type="HBoxContainer" parent="CategoryDialog"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 8.0
+margin_right = -8.0
+margin_bottom = -38.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Tree" type="Tree" parent="CategoryDialog/Box"]
+margin_right = 539.0
+margin_bottom = 319.0
+size_flags_horizontal = 3
+
+[node name="Buttons" type="VBoxContainer" parent="CategoryDialog/Box"]
+margin_left = 543.0
+margin_right = 555.0
+margin_bottom = 319.0
+
+[node name="Add" type="Button" parent="CategoryDialog/Box/Buttons"]
+margin_right = 12.0
+margin_bottom = 22.0
+script = ExtResource( 8 )
+theme_class = "EditorIcons"
+theme_name = "Add"
+theme_type = 2
+target_property = "icon"
+
+[node name="Delete" type="Button" parent="CategoryDialog/Box/Buttons"]
+margin_top = 26.0
+margin_right = 12.0
+margin_bottom = 48.0
+script = ExtResource( 8 )
+theme_class = "EditorIcons"
+theme_name = "Remove"
+theme_type = 2
+target_property = "icon"
+
 [node name="Persist" type="Node" parent="."]
 script = ExtResource( 15 )
 [connection signal="project_changed" from="." to="Content/Tabs/Settings" method="reload"]
@@ -262,12 +205,6 @@ script = ExtResource( 15 )
 [connection signal="menu_open" from="Content/Menu/File" to="." method="_on_open_project"]
 [connection signal="theme_changed" from="Content/Menu/Edit" to="." method="_on_theme_changed"]
 [connection signal="show_user_media" from="Content/Tabs/Users" to="Content/Tabs/Media" method="show_user_media"]
-[connection signal="about_to_show" from="LendDialog" to="LendDialog" method="_about_to_show"]
-[connection signal="confirmed" from="LendDialog" to="LendDialog" method="_on_confirmed"]
-[connection signal="popup_hide" from="LendDialog" to="LendDialog" method="_popup_hide"]
-[connection signal="text_entered" from="LendDialog/Box/User/Search" to="LendDialog" method="_on_user_input_entered"]
-[connection signal="index_pressed" from="LendDialog/Box/User/Search/Popup" to="LendDialog" method="_on_user_selected"]
-[connection signal="pressed" from="LendDialog/Box/User/Search/ToolButton" to="LendDialog" method="_on_user_input_entered" binds= [ "" ]]
 [connection signal="about_to_show" from="ProjectDialog" to="ProjectDialog" method="_about_to_show"]
 [connection signal="file_selected" from="ProjectDialog" to="." method="_on_project_selected"]
 [connection signal="popup_hide" from="ProjectDialog" to="ProjectDialog" method="_popup_hide"]

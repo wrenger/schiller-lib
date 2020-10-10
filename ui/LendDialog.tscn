@@ -1,0 +1,125 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://ui/LendDialog.gd" type="Script" id=1]
+[ext_resource path="res://ui/SpinBoxTr.gd" type="Script" id=2]
+[ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=3]
+
+[node name="LendDialog" type="ConfirmationDialog" groups=[
+"LendDialog",
+]]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -237.0
+margin_top = -104.0
+margin_right = 237.0
+margin_bottom = 104.0
+popup_exclusive = true
+window_title = ""
+resizable = true
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Box" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 8.0
+margin_right = -8.0
+margin_bottom = -38.0
+custom_constants/separation = 10
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="User" type="VBoxContainer" parent="Box"]
+margin_right = 458.0
+margin_bottom = 74.0
+
+[node name="Label" type="Label" parent="Box/User"]
+margin_right = 458.0
+margin_bottom = 22.0
+text = ".user"
+
+[node name="Search" type="LineEdit" parent="Box/User"]
+margin_top = 26.0
+margin_right = 458.0
+margin_bottom = 48.0
+placeholder_text = ".user.account"
+
+[node name="Popup" type="PopupMenu" parent="Box/User/Search"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -229.0
+margin_top = -34.0
+margin_right = 229.0
+margin_bottom = 34.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ToolButton" type="ToolButton" parent="Box/User/Search"]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -28.0
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+theme_class = "EditorIcons"
+theme_name = "Search"
+theme_type = 2
+target_property = "icon"
+
+[node name="State" type="Label" parent="Box/User"]
+margin_top = 52.0
+margin_right = 458.0
+margin_bottom = 74.0
+text = "-"
+
+[node name="Period" type="VBoxContainer" parent="Box"]
+margin_top = 84.0
+margin_right = 458.0
+margin_bottom = 132.0
+
+[node name="Label" type="Label" parent="Box/Period"]
+margin_right = 458.0
+margin_bottom = 22.0
+text = ".medium.lend.period"
+
+[node name="Days" type="SpinBox" parent="Box/Period"]
+margin_top = 26.0
+margin_right = 458.0
+margin_bottom = 48.0
+min_value = 1.0
+max_value = 30.0
+value = 14.0
+rounded = true
+allow_greater = true
+allow_lesser = true
+suffix = ".medium.period.days"
+script = ExtResource( 2 )
+
+[node name="State" type="Label" parent="Box"]
+margin_top = 142.0
+margin_right = 458.0
+margin_bottom = 164.0
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+theme_class = "Editor"
+theme_name = "error_color"
+target_property = "custom_colors/font_color"
+[connection signal="about_to_show" from="." to="." method="_about_to_show"]
+[connection signal="confirmed" from="." to="." method="_on_confirmed"]
+[connection signal="popup_hide" from="." to="." method="_popup_hide"]
+[connection signal="text_entered" from="Box/User/Search" to="." method="_on_user_input_entered"]
+[connection signal="index_pressed" from="Box/User/Search/Popup" to="." method="_on_user_selected"]
+[connection signal="pressed" from="Box/User/Search/ToolButton" to="." method="_on_user_input_entered" binds= [ "" ]]

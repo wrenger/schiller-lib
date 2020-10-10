@@ -15,12 +15,7 @@ func _ready() -> void:
 
 
 func _on_theme_changed(x) -> void:
-    print("theme changed for ", get_path())
     match theme_type:
-        ThemeType.COLOR:
-            set(target_property, get_color(theme_name, theme_class))
-            print(theme_class, "/", theme_name, ": ", get_color(theme_name, theme_class))
-        ThemeType.FONT:
-            set(target_property, get_font(theme_name, theme_class))
-            print(theme_class, "/", theme_name, ": ", get_font(theme_name, theme_class))
+        ThemeType.COLOR: set(target_property, get_color(theme_name, theme_class))
+        ThemeType.FONT: set(target_property, get_font(theme_name, theme_class))
         ThemeType.ICON: set(target_property, get_icon(theme_name, theme_class))

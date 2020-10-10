@@ -5,7 +5,8 @@ onready var width = rect_size.x
 var shrinking := false
 
 func _ready() -> void:
-    assert(get_parent().connect("resized", self, "_resized") == OK)
+    var error := get_parent().connect("resized", self, "_resized")
+    assert(error == OK)
     _resized()
 
 func _resized() -> void:

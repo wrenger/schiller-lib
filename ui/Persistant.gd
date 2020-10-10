@@ -28,6 +28,7 @@ func _exit_tree():
         settings[String(node.get_path())] = node.persist_save()
 
     var file := File.new()
-    assert(file.open(savepath, File.WRITE) == OK)
+    var error := file.open(savepath, File.WRITE)
+    assert(error == OK)
     file.store_string(JSON.print(settings, "  "))
     file.close()
