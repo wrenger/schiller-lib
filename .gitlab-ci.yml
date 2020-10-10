@@ -8,7 +8,7 @@ before_script:
 test:cargo:
   script:
     - rustc --version && cargo --version
-    - cargo test --workspace --verbose
+    - cargo test -- --nocapture
 
 # Use godot headless to run the ui tests
 test:godot:
