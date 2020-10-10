@@ -8,6 +8,7 @@ test:cargo:
   cache:
     key: "$CI_COMMIT_REF_NAME"
     paths:
+      - $CARGO_HOME
       - target/
       - Cargo.toml
 
@@ -32,7 +33,7 @@ deploy:linux:
 
 deploy:windows:
   script:
-    - cross build --target=x86_64-pc-windows-gnu --release
+    - cargo build --target=x86_64-pc-windows-gnu --release
     - mkdir export/windows
     - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 --export "Windows - Tiny" export/windows/sbv-gd.x86_64
   when: manual
