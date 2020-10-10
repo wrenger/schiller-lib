@@ -1,4 +1,8 @@
-image: "registry.gitlab.com/l4r0x/sbv-gd"
+image: "rust"
+
+before_script:
+  - apt-get update
+  - apt-get install --assume-yes libclang-9-dev
 
 # Use cargo to test the project
 test:cargo:

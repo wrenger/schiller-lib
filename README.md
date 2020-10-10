@@ -45,7 +45,7 @@ For cross-compilation the [cross](https://github.com/rust-embedded/cross) tool i
 Because this project uses `bindgen`, which depends on `libclang` there is a special docker image ([Dockerfile](docker/cross-win/Dockerfile)) that specifies those dependencies.
 This docker image has to be build only on the first time.
 ```bash
-docker build -t custom/sbv-win docker/cross-win
+docker build -t registry.gitlab.com/l4r0x/sbv-gd/cross-win docker/cross-win
 ```
 
 Then the build process can be started by executing:
