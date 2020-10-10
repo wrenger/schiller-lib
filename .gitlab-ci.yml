@@ -9,6 +9,12 @@ test:cargo:
   script:
     - rustc --version && cargo --version
     - cargo test -- --nocapture
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    paths:
+      - target/
+      - Cargo.toml
+
 
 # Use godot headless to run the ui tests
 test:godot:
