@@ -1,4 +1,5 @@
 # Rust
+/.cargo_home
 /target/**
 !/target/.gdignore
 Cargo.lock
