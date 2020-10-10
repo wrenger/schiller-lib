@@ -48,7 +48,7 @@ static func error_msg(error: int) -> String:
 
 static func trf(key: String, values: Array = []) -> String:
     var text := TranslationServer.tr(key)
-    if false:
+    if values:
         var re := RegEx.new()
         var error := re.compile("\\{(\\d{1,2})(:(([\\p{L}\\p{N}]*)\\|([\\p{L}\\p{N}]*)))?}")
         assert(error == OK)
