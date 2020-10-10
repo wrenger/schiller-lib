@@ -23,5 +23,5 @@ deploy:linux:
   when: manual
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
-    paths: export/x11/*
+    paths: [export/x11/*]
     expire_in: 1 week
