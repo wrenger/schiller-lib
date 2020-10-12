@@ -1,12 +1,14 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://ui/LendDialog.gd" type="Script" id=1]
 [ext_resource path="res://ui/SpinBoxTr.gd" type="Script" id=2]
 [ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=3]
+[ext_resource path="res://ui/LendingDialogAddUser.gd" type="Script" id=4]
 
 [node name="LendDialog" type="ConfirmationDialog" groups=[
 "LendDialog",
 ]]
+visible = true
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -83,10 +85,45 @@ margin_right = 458.0
 margin_bottom = 74.0
 text = "-"
 
-[node name="Period" type="VBoxContainer" parent="Box"]
+[node name="AddUser" type="VBoxContainer" parent="Box"]
 margin_top = 84.0
 margin_right = 458.0
-margin_bottom = 132.0
+margin_bottom = 158.0
+script = ExtResource( 4 )
+
+[node name="Account" type="LineEdit" parent="Box/AddUser"]
+margin_right = 458.0
+margin_bottom = 22.0
+placeholder_text = ".user.account"
+
+[node name="Name" type="HBoxContainer" parent="Box/AddUser"]
+margin_top = 26.0
+margin_right = 458.0
+margin_bottom = 48.0
+
+[node name="Forename" type="LineEdit" parent="Box/AddUser/Name"]
+margin_right = 227.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+placeholder_text = ".user.forename"
+
+[node name="Surname" type="LineEdit" parent="Box/AddUser/Name"]
+margin_left = 231.0
+margin_right = 458.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+placeholder_text = ".user.surname"
+
+[node name="Role" type="LineEdit" parent="Box/AddUser"]
+margin_top = 52.0
+margin_right = 458.0
+margin_bottom = 74.0
+placeholder_text = ".user.role"
+
+[node name="Period" type="VBoxContainer" parent="Box"]
+margin_top = 168.0
+margin_right = 458.0
+margin_bottom = 216.0
 
 [node name="Label" type="Label" parent="Box/Period"]
 margin_right = 458.0
@@ -107,9 +144,9 @@ suffix = ".book.period.days"
 script = ExtResource( 2 )
 
 [node name="State" type="Label" parent="Box"]
-margin_top = 142.0
+margin_top = 226.0
 margin_right = 458.0
-margin_bottom = 164.0
+margin_bottom = 248.0
 script = ExtResource( 3 )
 __meta__ = {
 "_edit_use_anchors_": false

@@ -18,6 +18,9 @@ enum SbvError {
     FileNotFound,
     FileOpenError,
     SQLError,
+    # Specific errors
+    BookInvalid,
+    UserInvalid,
     # Lending errors
     LendingUserMayNotBorrow,
     LendingBookNotBorrowable,
@@ -36,6 +39,8 @@ static func error_msg(error: int) -> String:
         SbvError.FileNotFound: return TranslationServer.tr(".error.file-open")
         SbvError.FileOpenError: return TranslationServer.tr(".error.file-open")
         SbvError.SQLError: return TranslationServer.tr(".error.sql")
+        SbvError.BookInvalid: return TranslationServer.tr(".book.invalid")
+        SbvError.UserInvalid: return TranslationServer.tr(".user.invalid")
         SbvError.LendingUserMayNotBorrow: return TranslationServer.tr(".error.lending.user")
         SbvError.LendingBookNotBorrowable: return TranslationServer.tr(".error.lending.book")
         SbvError.LendingBookAlreadyBorrowed: return TranslationServer.tr(".error.lending.already-borrowed")

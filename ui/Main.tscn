@@ -97,6 +97,7 @@ margin_right = -5.0
 margin_bottom = -5.0
 
 [node name="LendDialog" parent="." instance=ExtResource( 7 )]
+visible = false
 
 [node name="ProjectDialog" type="FileDialog" parent="." groups=[
 "ProjectDialog",

@@ -50,7 +50,7 @@ delete from user where account=?
 "#;
 const DELETE_UNUSED_USERS: &str = r#"
 update medium set reservation='' where reservation not in (select account from user);
-update medium set borrower='' where reservation not in (select account from user);
+update medium set borrower='' where borrower not in (select account from user);
 "#;
 
 /// Data object for a user.
@@ -110,7 +110,7 @@ pub trait DatabaseUser {
     /// Adds a new user.
     fn user_add(&self, user: &User) -> api::Result<()> {
         if !user.is_valid() {
-            return Err(api::Error::LogicError);
+            return Err(api::Error::UserInvalid);
         }
         let mut stmt = self.db().prepare(ADD_USER)?;
         stmt.bind(1, user.account.as_str())?;
@@ -127,7 +127,7 @@ pub trait DatabaseUser {
     /// Updates the user and all references if its account changes.
     fn user_update(&self, previous_account: &str, user: &User) -> api::Result<()> {
         if !user.is_valid() {
-            return Err(api::Error::LogicError);
+            return Err(api::Error::UserInvalid);
         }
         let transaction = self.db().transaction()?;
         // update user

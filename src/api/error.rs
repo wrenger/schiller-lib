@@ -9,6 +9,9 @@ pub enum Error {
     FileNotFound,
     FileOpenError,
     SQLError,
+    // Specific errors
+    UserInvalid,
+    BookInvalid,
     // Lending errors
     LendingUserMayNotBorrow,
     LendingBookNotBorrowable,

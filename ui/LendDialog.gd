@@ -5,9 +5,14 @@ onready var _project: Project = $"/root/Project"
 
 onready var _window_content: Control = $"../Content"
 onready var _state: Label = $Box/State
-onready var _user_input: LineEdit = $Box/User/Search
-onready var _user_popup: PopupMenu = $Box/User/Search/Popup
-onready var _user_state: Label = $Box/User/State
+
+onready var _user_search: Control = $Box/User
+onready var _user_search_input: LineEdit = $Box/User/Search
+onready var _user_search_popup: PopupMenu = $Box/User/Search/Popup
+onready var _user_search_state: Label = $Box/User/State
+
+onready var _user_add: Control = $Box/AddUser
+
 onready var _period: SpinBox = $Box/Period/Days
 onready var _period_panel: Control = $Box/Period
 
@@ -50,9 +55,11 @@ func _lend(book_panel: Control, book: Dictionary, user: Dictionary):
         _period.value = result["Ok"].borrowing_duration
         _period_panel.visible = true
         _state.text = ""
+        _user_search.visible = true
+        _user_add.visible = false
         window_title = tr(".book.lend") + " - " + book.id + ": " + book.title
         get_ok().text = tr(".book.lend")
-        popup_centered()
+        popup_centered(Vector2(rect_size.x, 0))
 
 
 func _reserve(book_panel: Control, book: Dictionary):
@@ -62,9 +69,11 @@ func _reserve(book_panel: Control, book: Dictionary):
         _set_user({})
         _period_panel.visible = false
         _state.text = ""
+        _user_search.visible = true
+        _user_add.visible = false
         window_title = tr(".book.reserve") + " - " + book.id + ": " + book.title
         get_ok().text = tr(".book.reserve")
-        popup_centered()
+        popup_centered(Vector2(rect_size.x, 0))
 
 
 func _popup_hide():
@@ -76,37 +85,60 @@ func _about_to_show():
 
 
 func _on_user_input_entered(new_text: String):
-    if not new_text: new_text = _user_input.text
+    if not new_text: new_text = _user_search_input.text
     var result: Dictionary = _project.user_search(new_text)
     if result.has("Ok"):
-        _set_user({})
-        _user_popup.clear()
+        _user = {}
+        _user_search_state.text = ""
+        _user_search_popup.clear()
         _user_result = result["Ok"]
         for user in _user_result:
-            _user_popup.add_radio_check_item(user.account + " - " + user.forename + " " + user.surname + " (" + user.role + ")")
-        var gp := _user_input.rect_global_position
-        var s := _user_input.rect_size
-        _user_popup.popup(Rect2(gp + Vector2(0, s.y), s))
+            _user_search_popup.add_radio_check_item(user.account + " - " + user.forename + " " + user.surname + " (" + user.role + ")")
+        _user_search_popup.add_radio_check_item(tr(".user.new"))
+        var gp := _user_search_input.rect_global_position
+        var s := _user_search_input.rect_size
+        _user_search_popup.popup(Rect2(gp + Vector2(0, s.y), s))
     else:
         _state.text = tr(result["Err"])
 
 
 func _on_user_selected(index: int):
-    if index >= 0: _set_user(_user_result[index])
+    if index >= 0:
+        if index < len(_user_result):
+            _set_user(_user_result[index])
+        else:
+            _show_add_user()
     else: _set_user({})
+
+
+func _show_add_user():
+    _user_search.visible = false
+    _user_add.visible = true
+    _user_add.clear()
+    _user_add.set_account(_user_search_input.text)
 
 
 func _set_user(user: Dictionary):
     _user = user
     if user:
-        _user_input.text = user.account
-        _user_state.text = user.forename + " " + user.surname + " (" + user.role + ")"
+        _user_search_input.text = user.account
+        _user_search_state.text = user.forename + " " + user.surname + " (" + user.role + ")"
     else:
-        _user_input.text = ""
-        _user_state.text = ""
+        _user_search_input.text = ""
+        _user_search_state.text = ""
 
 
 func _on_confirmed():
+    # Add user if user add panel is shown
+    if _user_add.visible:
+        var user: Dictionary = _user_add.get_user()
+        var result: Dictionary = _project.user_add(user)
+        if result.has("Err"):
+            _state.text = Util.error_msg(result["Err"])
+            popup_centered()
+            return
+        _user = user
+
     if not _user or not _book:
         _state.text = tr(".error.input")
         popup_centered()

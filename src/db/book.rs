@@ -284,7 +284,7 @@ pub trait DatabaseBook{
     /// Adds a new book.
     fn book_add(&self, book: &Book) -> api::Result<()> {
         if !book.is_valid() {
-            return Err(api::Error::LogicError);
+            return Err(api::Error::BookInvalid);
         }
         let transaction = self.db().transaction()?;
         let mut stmt = self.db().prepare(ADD)?;
@@ -316,7 +316,7 @@ pub trait DatabaseBook{
     /// Updates the book and all references if its id changes.
     fn book_update(&self, previous_id: &str, book: &Book) -> api::Result<()> {
         if !book.is_valid() {
-            return Err(api::Error::LogicError);
+            return Err(api::Error::BookInvalid);
         }
         let transaction = self.db().transaction()?;
         // update book
