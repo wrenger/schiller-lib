@@ -86,7 +86,7 @@ impl ReadStmt for User {
 pub trait DatabaseUser {
     fn db(&self) -> &sqlite::Connection;
 
-    /// Returns the medium with the given `id`.
+    /// Returns the user with the given `id`.
     fn user_fetch(&self, id: &str) -> api::Result<User> {
         let mut stmt = self.db().prepare(FETCH_USER)?;
         stmt.bind(1, id)?;

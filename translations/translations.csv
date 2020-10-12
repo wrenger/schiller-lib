@@ -13,6 +13,7 @@
 .action.next,Next,Weiter
 .action.no,No,Nein
 .action.ok,OK,OK
+.action.open,Open,Öffnen
 .action.paste,Paste,Einfügen
 .action.previous,Previous,Zurück
 .action.redo,Redo,Wiederholen
@@ -41,13 +42,57 @@
 .alert.update.succeed,Finished changes.,Die Änderungen wurden übernommen.
 .alert.user.title,Select User File,Benutzerdatai auswählen
 .alert.warning,Warning,Warnung
+.book,Book,Buch
+.book.authors,Authors,Autoren
+.book.authors.def,Forename Surname,Vorname Nachname
+.book.authors.info-edit,Left mouse button for adding or removing authors.\nDouble click to edit authors.,Linksklick um Autoren hinzuzufügen oder zu löschen.\nDoppelklick um Autoren zu bearbeiten.
+.book.authors.info-select,Select an author to show related books.,Autor auswählen um weitere Bücher dieses Autors anzuzeigen.
+.book.available,Not Borrowed or Reserved,Nicht Ausgeliehen oder Vorgemerkt
+.book.borrowable,Borrowable,Ausleihbar
+.book.borrowed,Borrowed,Ausgeliehen
+.book.borrowed.by,Borrowed by {0} until {1},Ausgeliehen von {0} bis zum {1}
+.book.costs,Costs,Preis
+.book.delete-reservation,Delete Reservation,Vormerkung Löschen
+.book.delete,Do you want to delete the book '{0}'?,Möchtest du das Buch '{0}' wirklich löschen?
+.book.from-user,By {0} ({1}),Von {0} ({1})
+.book.id-isbn,ID or ISBN,Signatur oder ISBN
+.book.id,ID,Signatur
+.book.id.action,Suggest,Vorschlagen
+.book.id.format,"The Book ID has to consist of the category, author and a numeric id.","Die Signatur muss aus der Kategorie, dem Autor und einer ID bestehen."
+.book.invalid,"ID, Title and Category are mandatory.","ID, Titel und Kategory dürfen nicht leer bleiben."
+.book.isbn,ISBN,ISBN
+.book.lend,Lend,Ausleihen
+.book.lend.period,Period,Dauer
+.book.lend.to,Lend to {0},Ausleihen an {0}
+.book.lend.until,Borrowed until {0},Ausgeliehen bis zum {0}
+.book.new,Add book,Neues Buch
+.book.new.success,The book has been added successfully.,Das Buch wurde erfolgreich eingetragen.
+.book.not-borrowable,Not Borrowable,Nicht ausleihbar
+.book.note,Notes,Notizen
+.book.period,Since {0} ({1} day{1:|s}),Seit dem {0} ({1} Tag{1:|e})
+.book.period.days,days,Tage
+.book.publisher,Publisher,Verlag
+.book.renew,Renew,Verlängern
+.book.request,Fetch Infos,Infos laden
+.book.reserve,Reserve,Vormerken
+.book.reserved,Reserved,Vorgemerkt
+.book.reserved.by,Reserved by {0},Vorgemerkt von {0}
+.book.revoke,Return,Zurückgeben
+.book.revoke.reminder,The book is reserved by '{0}'.\nDo you want to inform him that the book is now available?,Das Buch wurde von '{0}' vorgemerkt.\n\nMöchtest du den Vormerker per Email über die Rückgabe informieren?
+.book.revoke.success,The book '{0}' was returned successfully.\nNotes: {1},Das Buch '{0}' wurde erfolgreich zurückgegeben.\nNotizen: {1}
+.book.state,State,Status
+.book.title,Title,Titel
+.book.unavaliable,Borrowed or Reserved,Ausgeliehen oder Vorgemerkt
+.book.year,Year,Anschaffungsjahr
 .category,Category,Kategorie
+.category.edit,Edit Categories,Kategorien bearbeiten
 .category.empty-input,Empty inputs are not allowed.,Leere Eingaben sind nicht erlaubt.
 .category.id,ID,Abk
 .category.name,Name,Name
 .category.not-empty.del,"A category has to be empty to be removed. This category, however, is not emtpy.",Eine können nur leere Kategorien gelöscht werden. Diese Kategorie ist allerdings nicht leer.
 .category.section,Section,Bereich
-.category.edit,Edit Categories,Kategorien bearbeiten
+.error.book.existing,The book id '{0}' already exists.,Es gibt bereits ein anderes Buch mit der Signatur {0}.
+.error.book.none,No book found.,Kein Buch gefunden.
 .error.category.existing,The category id '{0}' already exists.,Die Abkürzung '{0}' existiert bereits.
 .error.config.default,Could not access the default preferences.,Die Voreinstellungen konnten nicht geladen werden.
 .error.config.load,Could not load the preferences.\nLoading default preferences instead.,Die Einstellungen konnten nicht geladen werden.\nEs wird auf die Voreinstellungen zurückgegriffen.
@@ -56,15 +101,13 @@
 .error.file-open,The file could not be opened,Die Datei konnte nicht geöffnet werden.
 .error.fx,Error during window initialization.,Fehler beim Laden des Fensters.
 .error.input,Malformed User or Book Data.,Fehlerhafte Account- oder Buchdaten.
-.error.medium.existing,The medium id '{0}' already exists.,Es gibt bereits ein anderes Buch mit der Signatur {0}.
-.error.medium.none,No book found.,Kein Buch gefunden.
+.error.lending.already-borrowed-by,The user borrows the book already.,Der Benutzer leiht das Buch bereits aus.
+.error.lending.already-borrowed,The book is already borrowed.,Das Buch ist bereits ausgeliehen.
+.error.lending.already-reserved,The book is already reserved.,Das Buch wurde bereits reserviert.
+.error.lending.book,The book may not be borrowed.,Das Buch darf nicht ausgeliehen werden.
+.error.lending.not-borrowed,The book may not be reserved because it is not borrowed yet.,"Das Buch kann nicht reserviert werden, da es noch nicht ausgeliehen wurde."
+.error.lending.user,The user may not borrow books.,Der Benutzer darf keine Bücher ausleihen.
 .error.no-project,No project has been opened.,Es wurde noch kein Projekt geöffnet.
-.error.rental.already-borrowed-by,The user borrows the book already.,Der Benutzer leiht das Buch bereits aus.
-.error.rental.already-borrowed,The book is already borrowed.,Das Buch ist bereits ausgeliehen.
-.error.rental.already-reserved,The book is already reserved.,Das Buch wurde bereits reserviert.
-.error.rental.medium,The book may not be borrowed.,Das Buch darf nicht ausgeliehen werden.
-.error.rental.not-borrowed,The book may not be reserved because it is not borrowed yet.,"Das Buch kann nicht reserviert werden, da es noch nicht ausgeliehen wurde."
-.error.rental.user,The user may not borrow books.,Der Benutzer darf keine Bücher ausleihen.
 .error.sql,Database access failed.,Datenbankzugriff fehlgeschlagen.
 .error.update,Critical error during the update of the database!\nPlease contanct a developer.,Kritischer Fehler beim Aktualisieren der Datenbank!\nBitte kontaktiere einen Entwickler.
 .error.user.existing,The user account '{0}' already exists.,Ein Benutzer mit dem Account '{0}' existiert bereits.
@@ -91,48 +134,6 @@
 .main.info,Information,Informationen
 .main.lending.none,No matching ID or ISBN found.,Keine passende Signatur oder ISBN gefunden.
 .main.title,School Library System,Schülerbüchereiverwaltung
-.medium,Book,Buch
-.medium.authors,Authors,Autoren
-.medium.authors.def,Forename Surname,Vorname Nachname
-.medium.authors.info-edit,Left mouse button for adding or removing authors.\nDouble click to edit authors.,Linksklick um Autoren hinzuzufügen oder zu löschen.\nDoppelklick um Autoren zu bearbeiten.
-.medium.authors.info-select,Select an author to show related books.,Autor auswählen um weitere Bücher dieses Autors anzuzeigen.
-.medium.available,Not Borrowed or Reserved,Nicht Ausgeliehen oder Vorgemerkt
-.medium.unavaliable,Borrowed or Reserved,Ausgeliehen oder Vorgemerkt
-.medium.borrowable,Borrowable,Ausleihbar
-.medium.borrowed,Borrowed,Ausgeliehen
-.medium.borrowed.by,Borrowed by {0} until {1},Ausgeliehen von {0} bis zum {1}
-.medium.costs,Costs,Preis
-.medium.delete-reservation,Delete Reservation,Vormerkung Löschen
-.medium.delete,Do you want to delete the book '{0}'?,Möchtest du das Buch '{0}' wirklich löschen?
-.medium.from-user,By {0} ({1}),Von {0} ({1})
-.medium.id-isbn,ID or ISBN,Signatur oder ISBN
-.medium.id,ID,Signatur
-.medium.id.action,Suggest,Vorschlagen
-.medium.id.format,"The Book ID has to consist of the category, author and a numeric id.","Die Signatur muss aus der Kategorie, dem Autor und einer ID bestehen."
-.medium.invalid,"ID, Title and Category are mandatory.","ID, Titel und Kategory dürfen nicht leer bleiben."
-.medium.isbn,ISBN,ISBN
-.medium.lend,Lend,Ausleihen
-.medium.lend.period,Period,Dauer
-.medium.lend.to,Lend to {0},Ausleihen an {0}
-.medium.lend.until,Borrowed until {0},Ausgeliehen bis zum {0}
-.medium.new,Add book,Neues Buch
-.medium.new.success,The book has been added successfully.,Das Buch wurde erfolgreich eingetragen.
-.medium.not-borrowable,Not Borrowable,Nicht ausleihbar
-.medium.note,Notes,Notizen
-.medium.period,Since {0} ({1} day{1:|s}),Seit dem {0} ({1} Tag{1:|e})
-.medium.period.days,days,Tage
-.medium.publisher,Publisher,Verlag
-.medium.renew,Renew,Verlängern
-.medium.request,Fetch Infos,Infos laden
-.medium.reserve,Reserve,Vormerken
-.medium.reserved,Reserved,Vorgemerkt
-.medium.reserved.by,Reserved by {0},Vorgemerkt von {0}
-.medium.revoke,Return,Zurückgeben
-.medium.revoke.reminder,The book is reserved by '{0}'.\nDo you want to inform him that the book is now available?,Das Buch wurde von '{0}' vorgemerkt.\n\nMöchtest du den Vormerker per Email über die Rückgabe informieren?
-.medium.revoke.success,The book '{0}' was returned successfully.\nNotes: {1},Das Buch '{0}' wurde erfolgreich zurückgegeben.\nNotizen: {1}
-.medium.state,State,Status
-.medium.title,Title,Titel
-.medium.year,Year,Anschaffungsjahr
 .menu.file,File,Datei
 .pref.appearance.dark,Dark Theme,Dunkles Design
 .pref.appearance.header,Appearance,Aussehen
@@ -159,21 +160,21 @@
 .search.action,Search,Suchen
 .search.advanced,Advanced,Erweitert
 .search.base,Basic,Basic
-.search.medium,Books,Bücher
-.search.medium.entry,"Keyword (e.g. Author, Title or ID)","Suchbegriff (z.B. Autor, Titel oder Signatur)"
+.search.book,Books,Bücher
+.search.book.entry,"Keyword (e.g. Author, Title or ID)","Suchbegriff (z.B. Autor, Titel oder Signatur)"
 .search.user,Users,Benutzer
 .search.user.entry,Keyword (e.g. Name or Account),Suchbegriff (z.B. Name oder Account)
 .sql.title,Maintain Database,Datenbank warten
 .user,User,Benutzer
 .user.account,Account,Account
+.user.books,Borrowed or Reserved Books,Ausgeliehene oder Vorgemerkte Bücher
 .user.delete,Remove user from library?\nHis borrows and reservations will also be lost.,Möchtest du diesen Benutzer wirklich löschen?\nAlle seine Entleihungen und Vormerkungen gehen dadurch verloren!
 .user.forename,Forename,Vorname
 .user.invalid,"Account, Forename and Surname are mendatory.","Account, Vorname und Nachname dürfen nicht leer bleiben."
 .user.may-borrow,May Borrow,Darf ausleihen
 .user.may-not-borrow,May not Borrow,Darf nicht ausleihen
-.user.media,Borrowed or Reserved Books,Ausgeliehene oder Vorgemerkte Bücher
 .user.new,Add User,Neuer Benutzer
-.user.no-media,No book borrowed or reserved.,Keine Bücher ausgeliehen oder vorgemerkt.
+.user.no-books,No book borrowed or reserved.,Keine Bücher ausgeliehen oder vorgemerkt.
 .user.permission,Borrowing Permission,Ausleihberechtigung
 .user.role,Role,Gruppe
 .user.role.entry,Role (Class / Grade),Gruppe (Klasse / Jahrgang)

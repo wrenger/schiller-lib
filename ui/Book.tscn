@@ -1,10 +1,10 @@
 [gd_scene load_steps=4 format=2]
 
-[ext_resource path="res://ui/Medium.gd" type="Script" id=1]
+[ext_resource path="res://ui/Book.gd" type="Script" id=1]
 [ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=2]
-[ext_resource path="res://ui/CategorySelect.gd" type="Script" id=5]
+[ext_resource path="res://ui/CategorySelect.gd" type="Script" id=3]
 
-[node name="Medium" type="GridContainer"]
+[node name="Book" type="GridContainer"]
 margin_right = 1024.0
 margin_bottom = 600.0
 size_flags_vertical = 3
@@ -19,7 +19,7 @@ __meta__ = {
 [node name="IDLabel" type="Label" parent="."]
 margin_right = 141.0
 margin_bottom = 22.0
-text = ".medium.id"
+text = ".book.id"
 align = 2
 
 [node name="ID" type="HBoxContainer" parent="."]
@@ -37,7 +37,7 @@ size_flags_horizontal = 3
 margin_left = 866.0
 margin_right = 878.0
 margin_bottom = 22.0
-hint_tooltip = ".medium.id.action"
+hint_tooltip = ".book.id.action"
 script = ExtResource( 2 )
 theme_class = "EditorIcons"
 theme_name = "Reload"
@@ -48,7 +48,7 @@ target_property = "icon"
 margin_top = 27.0
 margin_right = 141.0
 margin_bottom = 49.0
-text = ".medium.isbn"
+text = ".book.isbn"
 align = 2
 
 [node name="ISBN" type="LineEdit" parent="."]
@@ -62,7 +62,7 @@ size_flags_horizontal = 3
 margin_top = 54.0
 margin_right = 141.0
 margin_bottom = 76.0
-text = ".medium.title"
+text = ".book.title"
 align = 2
 
 [node name="Title" type="LineEdit" parent="."]
@@ -76,7 +76,7 @@ size_flags_horizontal = 3
 margin_top = 81.0
 margin_right = 141.0
 margin_bottom = 103.0
-text = ".medium.publisher"
+text = ".book.publisher"
 align = 2
 
 [node name="Publisher" type="LineEdit" parent="."]
@@ -90,7 +90,7 @@ size_flags_horizontal = 3
 margin_top = 191.0
 margin_right = 141.0
 margin_bottom = 213.0
-text = ".medium.authors"
+text = ".book.authors"
 align = 2
 
 [node name="Authors" type="HBoxContainer" parent="."]
@@ -138,7 +138,7 @@ target_property = "icon"
 margin_top = 301.0
 margin_right = 141.0
 margin_bottom = 323.0
-text = ".medium.costs"
+text = ".book.costs"
 align = 2
 
 [node name="Price" type="SpinBox" parent="."]
@@ -153,7 +153,7 @@ step = 0.1
 margin_top = 328.0
 margin_right = 141.0
 margin_bottom = 350.0
-text = ".medium.year"
+text = ".book.year"
 align = 2
 
 [node name="Year" type="SpinBox" parent="."]
@@ -182,13 +182,13 @@ margin_right = 1024.0
 margin_bottom = 377.0
 size_flags_horizontal = 3
 clip_text = true
-script = ExtResource( 5 )
+script = ExtResource( 3 )
 
 [node name="NotesLabel" type="Label" parent="."]
 margin_top = 465.0
 margin_right = 141.0
 margin_bottom = 487.0
-text = ".medium.note"
+text = ".book.note"
 align = 2
 
 [node name="Notes" type="TextEdit" parent="."]
@@ -207,7 +207,7 @@ wrap_enabled = true
 margin_top = 576.0
 margin_right = 141.0
 margin_bottom = 598.0
-text = ".medium.borrowable"
+text = ".book.borrowable"
 align = 2
 
 [node name="Borrowable" type="CheckBox" parent="."]

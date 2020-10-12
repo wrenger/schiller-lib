@@ -7,6 +7,7 @@ onready var _project: Project = $"/root/Project"
 onready var _tabs: TabContainer = $Tabs
 onready var _search: LineEdit = $Tabs/Basic
 
+# advanced book search
 onready var _id: LineEdit = $Tabs/Advanced/Grid/ID
 onready var _isbn: LineEdit = $Tabs/Advanced/Grid/ISBN
 onready var _title: LineEdit = $Tabs/Advanced/Grid/Title
@@ -20,7 +21,7 @@ onready var _state: OptionButton = $Tabs/Advanced/Grid/State
 
 
 func _on_search(_t = null):
-    var result: Dictionary = _project.medium_search(_search.text)
+    var result: Dictionary = _project.book_search(_search.text)
     if result.has("Ok"):
         print("search results: ", len(result["Ok"]))
         emit_signal("search_results", result["Ok"])
@@ -35,7 +36,7 @@ func _on_advanced_search(_t = null):
         var text: String = _category.get_item_text(_category.selected)
         category = text.split(" - ", true, 1)[0]
 
-    var result: Dictionary = _project.medium_search_advanced({
+    var result: Dictionary = _project.book_search_advanced({
         id = _id.text,
         isbn = _isbn.text,
         title = _title.text,
@@ -68,8 +69,15 @@ func clear_advanced():
     _state.select(0)
 
 
-func search_user(account: String):
+func show_user_books(account: String):
     _tabs.current_tab = 1
     clear_advanced()
     _user.text = account
+    _on_advanced_search()
+
+
+func show_book(id: String):
+    _tabs.current_tab = 1
+    clear_advanced()
+    _id.text = id
     _on_advanced_search()

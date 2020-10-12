@@ -2,12 +2,12 @@ extends Control
 
 signal add_user(user)
 signal update_user(user)
-signal show_media(user)
+signal show_books(user)
 
 onready var _project: Project = $"/root/Project"
 
 onready var _user_pane := $User as Control
-onready var _user_show_media := $ShowMedia as Control
+onready var _user_show_books := $ShowBooks as Control
 onready var _user_edit := $Edit as Control
 onready var _user_editing := $Editing as Control
 onready var _user_adding := $Adding as Control
@@ -23,7 +23,7 @@ func set_user(user: Dictionary):
 
     if user:
         _user_pane.user = user
-        _user_show_media.visible = true
+        _user_show_books.visible = true
         _user_edit.visible = true
         _user_editing.visible = false
         _user_adding.visible = false
@@ -37,7 +37,7 @@ func _on_user_selected(user: Dictionary):
 
 func _on_edit():
     before_edit = _user_pane.user
-    _user_show_media.visible = false
+    _user_show_books.visible = false
     _user_edit.visible = false
     _user_adding.visible = false
 
@@ -48,7 +48,7 @@ func _on_edit():
 func _on_add():
     before_edit = {}
     _user_pane.user = {}
-    _user_show_media.visible = false
+    _user_show_books.visible = false
     _user_edit.visible = false
     _user_editing.visible = false
 
@@ -57,9 +57,9 @@ func _on_add():
     _user_pane.editable = true
 
 
-func _on_show_media():
-    print("Show media")
-    emit_signal("show_media", _user_pane.user)
+func _on_show_books():
+    print("Show books")
+    emit_signal("show_books", _user_pane.user)
 
 
 func _on_edit_cancel():

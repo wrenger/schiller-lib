@@ -91,7 +91,7 @@ margin_bottom = 132.0
 [node name="Label" type="Label" parent="Box/Period"]
 margin_right = 458.0
 margin_bottom = 22.0
-text = ".medium.lend.period"
+text = ".book.lend.period"
 
 [node name="Days" type="SpinBox" parent="Box/Period"]
 margin_top = 26.0
@@ -103,7 +103,7 @@ value = 14.0
 rounded = true
 allow_greater = true
 allow_lesser = true
-suffix = ".medium.period.days"
+suffix = ".book.period.days"
 script = ExtResource( 2 )
 
 [node name="State" type="Label" parent="Box"]
@@ -117,9 +117,6 @@ __meta__ = {
 theme_class = "Editor"
 theme_name = "error_color"
 target_property = "custom_colors/font_color"
-[connection signal="about_to_show" from="." to="." method="_about_to_show"]
-[connection signal="confirmed" from="." to="." method="_on_confirmed"]
-[connection signal="popup_hide" from="." to="." method="_popup_hide"]
 [connection signal="text_entered" from="Box/User/Search" to="." method="_on_user_input_entered"]
 [connection signal="index_pressed" from="Box/User/Search/Popup" to="." method="_on_user_selected"]
 [connection signal="pressed" from="Box/User/Search/ToolButton" to="." method="_on_user_input_entered" binds= [ "" ]]

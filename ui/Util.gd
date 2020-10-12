@@ -18,13 +18,13 @@ enum SbvError {
     FileNotFound,
     FileOpenError,
     SQLError,
-    # Rental errors
-    RentalUserMayNotBorrow,
-    RentalMediumNotBorrowable,
-    RentalMediumAlreadyBorrowed,
-    RentalMediumAlreadyBorrowedByUser,
-    RentalMediumNotBorrowed,
-    RentalMediumAlreadyReserved,
+    # Lending errors
+    LendingUserMayNotBorrow,
+    LendingBookNotBorrowable,
+    LendingBookAlreadyBorrowed,
+    LendingBookAlreadyBorrowedByUser,
+    LendingBookNotBorrowed,
+    LendingBookAlreadyReserved,
 }
 
 
@@ -36,12 +36,12 @@ static func error_msg(error: int) -> String:
         SbvError.FileNotFound: return TranslationServer.tr(".error.file-open")
         SbvError.FileOpenError: return TranslationServer.tr(".error.file-open")
         SbvError.SQLError: return TranslationServer.tr(".error.sql")
-        SbvError.RentalUserMayNotBorrow: return TranslationServer.tr(".error.rental.user")
-        SbvError.RentalMediumNotBorrowable: return TranslationServer.tr(".error.rental.medium")
-        SbvError.RentalMediumAlreadyBorrowed: return TranslationServer.tr(".error.rental.already-borrowed")
-        SbvError.RentalMediumAlreadyBorrowedByUser: return TranslationServer.tr(".error.rental.already-borrowed-by")
-        SbvError.RentalMediumNotBorrowed: return TranslationServer.tr(".error.rental.not-borrowed")
-        SbvError.RentalMediumAlreadyReserved: return TranslationServer.tr(".error.rental.already-reserved")
+        SbvError.LendingUserMayNotBorrow: return TranslationServer.tr(".error.lending.user")
+        SbvError.LendingBookNotBorrowable: return TranslationServer.tr(".error.lending.book")
+        SbvError.LendingBookAlreadyBorrowed: return TranslationServer.tr(".error.lending.already-borrowed")
+        SbvError.LendingBookAlreadyBorrowedByUser: return TranslationServer.tr(".error.lending.already-borrowed-by")
+        SbvError.LendingBookNotBorrowed: return TranslationServer.tr(".error.lending.not-borrowed")
+        SbvError.LendingBookAlreadyReserved: return TranslationServer.tr(".error.lending.already-reserved")
         _: return "Internal: Unknown Error"
 
 

@@ -2,7 +2,7 @@ extends GridContainer
 
 export var editable := false setget set_editable
 
-var medium: Dictionary = {} setget set_medium, get_medium
+var book: Dictionary = {} setget set_book, get_book
 
 onready var _project: Project = $"/root/Project"
 
@@ -29,7 +29,7 @@ func _ready():
     set_editable(editable)
 
 
-func set_medium(m: Dictionary):
+func set_book(m: Dictionary):
     if not m.empty():
         _id.text = m.id
         _isbn.text = m.isbn
@@ -64,7 +64,7 @@ func set_medium(m: Dictionary):
         _reservation = ""
 
 
-func get_medium() -> Dictionary:
+func get_book() -> Dictionary:
     var authors := []
     if _authors.get_root():
         var child := _authors.get_root().get_children() as TreeItem
@@ -118,9 +118,9 @@ func set_editable(e: bool):
 
 func _on_generate_id():
     if editable:
-        var medium = get_medium()
-        medium.id = _id_before_edit
-        var result = _project.medium_generate_id(medium)
+        var book = get_book()
+        book.id = _id_before_edit
+        var result = _project.book_generate_id(book)
         if result.has("Ok"):
             _id.text = result["Ok"]
         else:
@@ -129,7 +129,7 @@ func _on_generate_id():
 
 func _on_author_add():
     var item = _authors.create_item(_authors.get_root())
-    item.set_text(0, tr(".medium.authors.def"))
+    item.set_text(0, tr(".book.authors.def"))
     item.set_editable(0, true)
 
 

@@ -115,11 +115,11 @@ margin_top = 136.0
 margin_right = 574.0
 margin_bottom = 158.0
 
-[node name="ShowMedia" type="Button" parent="Split/Rigth/Box"]
+[node name="ShowBooks" type="Button" parent="Split/Rigth/Box"]
 margin_top = 162.0
 margin_right = 574.0
 margin_bottom = 184.0
-text = ".user.media"
+text = ".user.books"
 
 [node name="Edit" type="Button" parent="Split/Rigth/Box"]
 margin_top = 188.0
@@ -183,9 +183,9 @@ text = ".action.apply"
 [connection signal="object_selected" from="Split/Left/Box/UserList" to="Split/Rigth/Box" method="_on_user_selected"]
 [connection signal="pressed" from="Split/Left/Box/Add" to="Split/Rigth/Box" method="_on_add"]
 [connection signal="add_user" from="Split/Rigth/Box" to="Split/Left/Box/UserList" method="add_and_select_object"]
-[connection signal="show_media" from="Split/Rigth/Box" to="." method="_on_show_media"]
+[connection signal="show_books" from="Split/Rigth/Box" to="." method="_on_show_books"]
 [connection signal="update_user" from="Split/Rigth/Box" to="Split/Left/Box/UserList" method="update_selected"]
-[connection signal="pressed" from="Split/Rigth/Box/ShowMedia" to="Split/Rigth/Box" method="_on_show_media"]
+[connection signal="pressed" from="Split/Rigth/Box/ShowBooks" to="Split/Rigth/Box" method="_on_show_books"]
 [connection signal="pressed" from="Split/Rigth/Box/Edit" to="Split/Rigth/Box" method="_on_edit"]
 [connection signal="pressed" from="Split/Rigth/Box/Editing/Cancel" to="Split/Rigth/Box" method="_on_edit_cancel"]
 [connection signal="pressed" from="Split/Rigth/Box/Editing/Apply" to="Split/Rigth/Box" method="_on_edit_apply"]

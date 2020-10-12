@@ -4,7 +4,7 @@ use gdnative::prelude::*;
 
 use crate::api::{self, Error};
 use crate::db::{
-    self, Database, DatabaseCategory, DatabaseMedium, DatabaseRental, DatabaseSettings,
+    self, Database, DatabaseCategory, DatabaseBook, DatabaseLending, DatabaseSettings,
     DatabaseUser,
 };
 
@@ -38,6 +38,8 @@ impl Drop for DebugTimer {
 
 #[methods]
 impl Project {
+    /// Creates a new Project object.
+    /// This functions should not be called directly as this class is a singleton.
     fn new(_owner: &Node) -> Self {
         Project {
             db: None,
@@ -45,12 +47,14 @@ impl Project {
         }
     }
 
+    /// Returns the program version.
+    /// Which may be newer than the project (database) version.
     #[export]
     fn version(&self, _owner: &Node) -> String {
         PKG_VERSION.into()
     }
 
-    /// Opens the specified project and returns if it was successfull.
+    /// Opens the specified project and returns if it was successful.
     #[export]
     fn open(&mut self, _owner: &Node, file: GodotString) -> bool {
         godot_print!("sqlite version: {}", sqlite::version());
@@ -80,60 +84,65 @@ impl Project {
         self.settings = None;
     }
 
-    /// Performes a simple media search with the given `text`.
+    // Book
+
+    /// Preforms a simple media search with the given `text`.
     #[export]
-    fn medium_search(&self, _owner: &Node, text: GodotString) -> api::Result<VariantArray> {
+    fn book_search(&self, _owner: &Node, text: GodotString) -> api::Result<VariantArray> {
         let _timer = DebugTimer::new();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        let result = db.medium_search(&text.to_string())?;
+        let result = db.book_search(&text.to_string())?;
         Ok(VariantArray::from_iter(result).into_shared())
     }
 
+    /// Performs an advanced media search with the given search parameters.
     #[export]
-    fn medium_search_advanced(
+    fn book_search_advanced(
         &self,
         _owner: &Node,
-        params: db::MediumSearch,
+        params: db::BookSearch,
     ) -> api::Result<VariantArray> {
         let _timer = DebugTimer::new();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        let result = db.medium_search_advanced(&params)?;
+        let result = db.book_search_advanced(&params)?;
         Ok(VariantArray::from_iter(result).into_shared())
     }
 
-    /// Adds a new medium.
+    /// Adds a new book.
     #[export]
-    fn medium_add(&self, _owner: &Node, medium: db::Medium) -> api::Result<()> {
+    fn book_add(&self, _owner: &Node, book: db::Book) -> api::Result<()> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.medium_add(&medium)
+        db.book_add(&book)
     }
 
-    /// Updates the medium and all references if its id changes.
+    /// Updates the book and all references if its id changes.
     #[export]
-    fn medium_update(
+    fn book_update(
         &self,
         _owner: &Node,
         previous_id: String,
-        medium: db::Medium,
+        book: db::Book,
     ) -> api::Result<()> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.medium_update(&previous_id, &medium)
+        db.book_update(&previous_id, &book)
     }
 
-    /// Deletes the medium including the its authors.
-    /// Also borrowers & reservations for this medium are removed.
+    /// Deletes the book including the its authors.
+    /// Also borrowers & reservations for this book are removed.
     #[export]
-    fn medium_delete(&self, _owner: &Node, id: String) -> api::Result<()> {
+    fn book_delete(&self, _owner: &Node, id: String) -> api::Result<()> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.medium_delete(&id)
+        db.book_delete(&id)
     }
 
-    /// Generates a new medium id.
+    /// Generates a new book id.
     #[export]
-    fn medium_generate_id(&self, _owner: &Node, medium: db::Medium) -> api::Result<String> {
+    fn book_generate_id(&self, _owner: &Node, book: db::Book) -> api::Result<String> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.medium_generate_id(&medium)
+        db.book_generate_id(&book)
     }
+
+    // User
 
     /// Returns the user with the given `account`.
     #[export]
@@ -142,7 +151,7 @@ impl Project {
         db.user_fetch(&account.to_string())
     }
 
-    /// Performes a simple user search with the given `text`.
+    /// Performs a simple user search with the given `text`.
     #[export]
     fn user_search(&self, _owner: &Node, text: GodotString) -> api::Result<VariantArray> {
         let _timer = DebugTimer::new();
@@ -173,7 +182,9 @@ impl Project {
         db.user_delete(&account)
     }
 
-    /// Performes a simple user search with the given `text`.
+    // Category
+
+    /// Fetches and returns all categories.
     #[export]
     fn category_list(&self, _owner: &Node) -> api::Result<VariantArray> {
         let _timer = DebugTimer::new();
@@ -201,7 +212,7 @@ impl Project {
         db.category_update(&id, &category)
     }
 
-    /// Removes the category, assuming it is not referenced anywhere.
+    /// Removes the category or returns a `LogicError` if it is still in use.
     #[export]
     fn category_remove(&self, _owner: &Node, id: String) -> api::Result<()> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
@@ -216,57 +227,58 @@ impl Project {
     }
 
     // Lending
-    /// Lends the medium to the specified user.
+
+    /// Lends the book to the specified user.
     #[export]
-    fn rental_lend(
+    fn lending_lend(
         &self,
         _owner: &Node,
-        mut medium: db::Medium,
+        mut book: db::Book,
         user: db::User,
         days: i64,
-    ) -> api::Result<db::Medium> {
+    ) -> api::Result<db::Book> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.rental_lend(&mut medium, &user, days)?;
-        Ok(medium)
+        db.lending_lend(&mut book, &user, days)?;
+        Ok(book)
     }
 
-    /// Revokes the borrowing when a borrowed medium is returned.
+    /// Returns the book.
     #[export]
-    fn rental_revoke(&self, _owner: &Node, mut medium: db::Medium) -> api::Result<db::Medium> {
+    fn lending_return(&self, _owner: &Node, mut book: db::Book) -> api::Result<db::Book> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.rental_revoke(&mut medium)?;
-        Ok(medium)
+        db.lending_return(&mut book)?;
+        Ok(book)
     }
 
-    /// Creates a reservation for the borrowed medium.
+    /// Creates a reservation for the borrowed book.
     #[export]
-    fn rental_reserve(
+    fn lending_reserve(
         &self,
         _owner: &Node,
-        mut medium: db::Medium,
+        mut book: db::Book,
         user: db::User,
-    ) -> api::Result<db::Medium> {
+    ) -> api::Result<db::Book> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.rental_reserve(&mut medium, &user)?;
-        Ok(medium)
+        db.lending_reserve(&mut book, &user)?;
+        Ok(book)
     }
 
-    /// Removes the reservation from the specified medium.
+    /// Removes the reservation from the specified book.
     #[export]
-    fn rental_release(&self, _owner: &Node, mut medium: db::Medium) -> api::Result<db::Medium> {
+    fn lending_release(&self, _owner: &Node, mut book: db::Book) -> api::Result<db::Book> {
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.rental_release(&mut medium)?;
-        Ok(medium)
+        db.lending_release(&mut book)?;
+        Ok(book)
     }
 
-    /// Returns the list of exceeded borrowing periods.
+    /// Returns the list of expired borrowing periods.
     #[export]
-    fn rental_overdues(&self, _owner: &Node) -> api::Result<VariantArray> {
+    fn lending_overdues(&self, _owner: &Node) -> api::Result<VariantArray> {
         let _timer = DebugTimer::new();
         let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        let result = db.rental_overdues()?;
-        Ok(VariantArray::from_iter(result.map(|(medium, user)| {
-            VariantArray::from_iter([medium.owned_to_variant(), user.owned_to_variant()].iter())
+        let result = db.lending_overdues()?;
+        Ok(VariantArray::from_iter(result.map(|(book, user)| {
+            VariantArray::from_iter([book.owned_to_variant(), user.owned_to_variant()].iter())
                 .into_shared()
         }))
         .into_shared())

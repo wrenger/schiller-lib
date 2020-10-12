@@ -7,7 +7,7 @@ export var column_names: PoolStringArray
 export var column_sizes: PoolIntArray
 export var column_expand: PoolByteArray
 
-enum Formatter { MEDIUM, USER }
+enum Formatter { BOOK, USER }
 export(Formatter) var formatter: int
 
 
@@ -74,17 +74,17 @@ func _on_item_selected():
 
 func format(object: Dictionary) -> PoolStringArray:
     match formatter:
-        Formatter.MEDIUM: return format_medium(object)
+        Formatter.BOOK: return format_book(object)
         Formatter.USER: return format_user(object)
     return PoolStringArray([])
 
 
-func format_medium(object: Dictionary) -> PoolStringArray:
+func format_book(object: Dictionary) -> PoolStringArray:
     var state := ""
     if object.reservation:
-        state = tr(".medium.reserved")
+        state = tr(".book.reserved")
     elif object.borrower:
-        state = tr(".medium.borrowed")
+        state = tr(".book.borrowed")
     return PoolStringArray([
         object.id,
         object.title,

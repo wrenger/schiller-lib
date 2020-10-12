@@ -4,19 +4,19 @@ use std::path::{Path, PathBuf};
 
 use crate::api;
 
+mod book;
 mod category;
-mod medium;
+mod lending;
 mod raw;
-mod rental;
-mod user;
 mod settings;
+mod user;
 
+pub use book::*;
 pub use category::*;
-pub use medium::*;
+pub use lending::*;
 use raw::StatementExt;
-pub use rental::*;
-pub use user::*;
 pub use settings::*;
+pub use user::*;
 
 pub struct Database {
     path: PathBuf,
@@ -55,13 +55,13 @@ impl DatabaseCategory for Database {
     }
 }
 
-impl DatabaseMedium for Database {
+impl DatabaseBook for Database {
     fn db(&self) -> &sqlite::Connection {
         &self.db
     }
 }
 
-impl DatabaseRental for Database {
+impl DatabaseLending for Database {
     fn db(&self) -> &sqlite::Connection {
         &self.db
     }
@@ -99,7 +99,10 @@ impl<'a, T> DBIter<'a, T> {
 /// Conversion from database entries.
 pub trait ReadStmt: Sized {
     type Error: std::fmt::Debug;
-    fn read(stmt: &sqlite::Statement, columns: &HashMap<String, usize>) -> Result<Self, Self::Error>;
+    fn read(
+        stmt: &sqlite::Statement,
+        columns: &HashMap<String, usize>,
+    ) -> Result<Self, Self::Error>;
 }
 
 impl<'a, T: ReadStmt> Iterator for DBIter<'a, T> {

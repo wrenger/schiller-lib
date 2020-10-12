@@ -1,7 +1,7 @@
 extends MarginContainer
 
-signal show_user_media(user)
+signal show_user_books(user)
 
 
-func _on_show_media(user) -> void:
-    emit_signal("show_user_media", user.account)
+func _on_show_books(user) -> void:
+    emit_signal("show_user_books", user.account)

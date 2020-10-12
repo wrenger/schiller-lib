@@ -5,7 +5,7 @@ use crate::api;
 use super::raw::{DatabaseExt, StatementExt};
 use super::{DBIter, ReadStmt};
 
-const FETCH_MEDIUM: &str = r#"
+const FETCH: &str = r#"
 select
 id,
 isbn,
@@ -26,7 +26,7 @@ where id=?
 group by id
 "#;
 
-const QUERY_MEDIA: &str = r#"
+const SEARCH: &str = r#"
 select
 id,
 isbn,
@@ -52,7 +52,7 @@ or note like '%'||?||'%'
 or authors like '%'||?||'%'
 "#;
 
-const QUERY_MEDIA_ADVANCED: &str = r#"
+const SEARCH_ADVANCED: &str = r#"
 select
 id,
 isbn,
@@ -107,9 +107,9 @@ const UNUSED_ID: &str = r#"
 select max(substr(id, ? + 2)) from medium where id like ?||'%' order by id
 "#;
 
-/// Data object for medium.
+/// Data object for book.
 #[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
-pub struct Medium {
+pub struct Book {
     pub id: String,
     pub isbn: String,
     pub title: String,
@@ -125,17 +125,17 @@ pub struct Medium {
     pub reservation: String,
 }
 
-impl Medium {
+impl Book {
     fn is_valid(&self) -> bool {
         !self.id.is_empty() && !self.title.is_empty() && !self.category.is_empty()
     }
 }
 
-impl ReadStmt for Medium {
+impl ReadStmt for Book {
     type Error = api::Error;
 
-    fn read(stmt: &sqlite::Statement<'_>, columns: &HashMap<String, usize>) -> api::Result<Medium> {
-        Ok(Medium {
+    fn read(stmt: &sqlite::Statement<'_>, columns: &HashMap<String, usize>) -> api::Result<Book> {
+        Ok(Book {
             id: stmt.read(columns["id"])?,
             isbn: stmt.read(columns["isbn"])?,
             title: stmt.read(columns["title"])?,
@@ -157,8 +157,9 @@ impl ReadStmt for Medium {
     }
 }
 
+/// Book search parameters
 #[derive(Debug, Clone, Default, gdnative::ToVariant, gdnative::FromVariant)]
-pub struct MediumSearch {
+pub struct BookSearch {
     id: String,
     isbn: String,
     title: String,
@@ -168,42 +169,42 @@ pub struct MediumSearch {
     category: String,
     note: String,
     user: String,
-    state: MediumState,
+    state: BookState,
 }
 
 #[repr(i64)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum MediumState {
+pub enum BookState {
     None = 0,
     Borrowable,
     NotBorrowable,
     BorrowedOrReserved,
 }
 
-impl Default for MediumState {
-    fn default() -> MediumState {
-        MediumState::None
+impl Default for BookState {
+    fn default() -> BookState {
+        BookState::None
     }
 }
 
-impl From<i64> for MediumState {
+impl From<i64> for BookState {
     fn from(value: i64) -> Self {
         match value {
-            1 => MediumState::Borrowable,
-            2 => MediumState::NotBorrowable,
-            3 => MediumState::BorrowedOrReserved,
-            _ => MediumState::None,
+            1 => BookState::Borrowable,
+            2 => BookState::NotBorrowable,
+            3 => BookState::BorrowedOrReserved,
+            _ => BookState::None,
         }
     }
 }
 
-impl gdnative::core_types::ToVariant for MediumState {
+impl gdnative::core_types::ToVariant for BookState {
     fn to_variant(&self) -> gdnative::core_types::Variant {
         (*self as i64).to_variant()
     }
 }
 
-impl gdnative::core_types::FromVariant for MediumState {
+impl gdnative::core_types::FromVariant for BookState {
     fn from_variant(
         variant: &gdnative::core_types::Variant,
     ) -> Result<Self, gdnative::core_types::FromVariantError> {
@@ -211,23 +212,23 @@ impl gdnative::core_types::FromVariant for MediumState {
     }
 }
 
-pub trait DatabaseMedium {
+pub trait DatabaseBook{
     fn db(&self) -> &sqlite::Connection;
 
-    /// Returns the medium with the given `id`.
-    fn medium_fetch(&self, id: &str) -> api::Result<Medium> {
-        let mut stmt = self.db().prepare(FETCH_MEDIUM)?;
+    /// Returns the book with the given `id`.
+    fn book_fetch(&self, id: &str) -> api::Result<Book> {
+        let mut stmt = self.db().prepare(FETCH)?;
         stmt.bind(1, id)?;
         if stmt.next()? == sqlite::State::Row {
-            Medium::read(&stmt, &stmt.columns())
+            Book::read(&stmt, &stmt.columns())
         } else {
             Err(api::Error::SQLError)
         }
     }
 
-    /// Performes a simple media search with the given `text`.
-    fn medium_search(&self, text: &str) -> api::Result<DBIter<Medium>> {
-        let mut stmt = self.db().prepare(QUERY_MEDIA)?;
+    /// Performs a simple media search with the given `text`.
+    fn book_search(&self, text: &str) -> api::Result<DBIter<Book>> {
+        let mut stmt = self.db().prepare(SEARCH)?;
         stmt.bind(1, text)?;
         stmt.bind(2, text)?;
         stmt.bind(3, text)?;
@@ -237,10 +238,10 @@ pub trait DatabaseMedium {
         Ok(DBIter::new(stmt))
     }
 
-    /// Performes a simple media search with the given `text`.
-    fn medium_search_advanced(&self, params: &MediumSearch) -> api::Result<DBIter<Medium>> {
+    /// Performs an advanced media search with the given search parameters.
+    fn book_search_advanced(&self, params: &BookSearch) -> api::Result<DBIter<Book>> {
         gdnative::godot_print!("State: {:?}", params.state);
-        let mut stmt = self.db().prepare(QUERY_MEDIA_ADVANCED)?;
+        let mut stmt = self.db().prepare(SEARCH_ADVANCED)?;
         stmt.bind(1, params.id.as_str())?;
         stmt.bind(2, params.isbn.as_str())?;
         stmt.bind(3, params.title.as_str())?;
@@ -265,7 +266,7 @@ pub trait DatabaseMedium {
         if !params.user.is_empty() {
             stmt.bind(10, params.user.as_str())?;
             stmt.bind(11, params.user.as_str())?;
-        } else if params.state == MediumState::BorrowedOrReserved {
+        } else if params.state == BookState::BorrowedOrReserved {
             stmt.bind(10, "_%")?;
             stmt.bind(11, "_%")?;
         } else {
@@ -273,38 +274,37 @@ pub trait DatabaseMedium {
             stmt.bind(11, "%")?;
         }
         match params.state {
-            MediumState::Borrowable => stmt.bind(12, 1)?,
-            MediumState::NotBorrowable => stmt.bind(12, 0)?,
+            BookState::Borrowable => stmt.bind(12, 1)?,
+            BookState::NotBorrowable => stmt.bind(12, 0)?,
             _ => stmt.bind(12, "%")?,
         }
         Ok(DBIter::new(stmt))
     }
 
-    /// Adds a new medium.
-    fn medium_add(&self, medium: &Medium) -> api::Result<()> {
-        if !medium.is_valid() {
+    /// Adds a new book.
+    fn book_add(&self, book: &Book) -> api::Result<()> {
+        if !book.is_valid() {
             return Err(api::Error::LogicError);
         }
-        // Add medium
         let transaction = self.db().transaction()?;
         let mut stmt = self.db().prepare(ADD)?;
-        stmt.bind(1, medium.id.as_str())?;
-        stmt.bind(2, medium.isbn.as_str())?;
-        stmt.bind(3, medium.title.as_str())?;
-        stmt.bind(4, medium.publisher.as_str())?;
-        stmt.bind(5, medium.year)?;
-        stmt.bind(6, medium.costs)?;
-        stmt.bind(7, medium.note.as_str())?;
-        stmt.bind(8, medium.borrowable as i64)?;
-        stmt.bind(9, medium.category.as_str())?;
+        stmt.bind(1, book.id.as_str())?;
+        stmt.bind(2, book.isbn.as_str())?;
+        stmt.bind(3, book.title.as_str())?;
+        stmt.bind(4, book.publisher.as_str())?;
+        stmt.bind(5, book.year)?;
+        stmt.bind(6, book.costs)?;
+        stmt.bind(7, book.note.as_str())?;
+        stmt.bind(8, book.borrowable as i64)?;
+        stmt.bind(9, book.category.as_str())?;
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
         }
         // Add authors
-        for author in &medium.authors {
+        for author in &book.authors {
             let mut stmt = self.db().prepare(ADD_AUTHOR)?;
             stmt.bind(1, author.as_str())?;
-            stmt.bind(2, medium.id.as_str())?;
+            stmt.bind(2, book.id.as_str())?;
             if stmt.next()? != sqlite::State::Done {
                 return Err(api::Error::SQLError);
             }
@@ -313,32 +313,32 @@ pub trait DatabaseMedium {
         Ok(())
     }
 
-    /// Updates the medium and all references if its id changes.
-    fn medium_update(&self, previous_id: &str, medium: &Medium) -> api::Result<()> {
-        if !medium.is_valid() {
+    /// Updates the book and all references if its id changes.
+    fn book_update(&self, previous_id: &str, book: &Book) -> api::Result<()> {
+        if !book.is_valid() {
             return Err(api::Error::LogicError);
         }
         let transaction = self.db().transaction()?;
-        // update medium
+        // update book
         let mut stmt = self.db().prepare(UPDATE)?;
-        stmt.bind(1, medium.id.as_str())?;
-        stmt.bind(2, medium.isbn.as_str())?;
-        stmt.bind(3, medium.title.as_str())?;
-        stmt.bind(4, medium.publisher.as_str())?;
-        stmt.bind(5, medium.year)?;
-        stmt.bind(6, medium.costs)?;
-        stmt.bind(7, medium.note.as_str())?;
-        stmt.bind(8, medium.borrowable as i64)?;
-        stmt.bind(9, medium.category.as_str())?;
+        stmt.bind(1, book.id.as_str())?;
+        stmt.bind(2, book.isbn.as_str())?;
+        stmt.bind(3, book.title.as_str())?;
+        stmt.bind(4, book.publisher.as_str())?;
+        stmt.bind(5, book.year)?;
+        stmt.bind(6, book.costs)?;
+        stmt.bind(7, book.note.as_str())?;
+        stmt.bind(8, book.borrowable as i64)?;
+        stmt.bind(9, book.category.as_str())?;
         stmt.bind(10, previous_id)?;
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
         }
 
-        if previous_id != medium.id {
+        if previous_id != book.id {
             // update authors
             let mut stmt = self.db().prepare(UPDATE_AUTHORS)?;
-            stmt.bind(1, medium.id.as_str())?;
+            stmt.bind(1, book.id.as_str())?;
             stmt.bind(2, previous_id)?;
             if stmt.next()? != sqlite::State::Done {
                 return Err(api::Error::SQLError);
@@ -348,11 +348,10 @@ pub trait DatabaseMedium {
         Ok(())
     }
 
-    /// Deletes the medium including the its authors.
-    /// Also borrowers & reservations for this medium are removed.
-    fn medium_delete(&self, id: &str) -> api::Result<()> {
+    /// Deletes the book including the its authors.
+    /// Also borrowers & reservations for this book are removed.
+    fn book_delete(&self, id: &str) -> api::Result<()> {
         let transaction = self.db().transaction()?;
-        // delete medium
         let mut stmt = self.db().prepare(DELETE)?;
         stmt.bind(1, id)?;
         if stmt.next()? != sqlite::State::Done {
@@ -366,21 +365,21 @@ pub trait DatabaseMedium {
     }
 
     /// Generates a new unique id based on the authors surname and the category.
-    fn medium_generate_id(&self, medium: &Medium) -> api::Result<String> {
+    fn book_generate_id(&self, book: &Book) -> api::Result<String> {
         let prefix = id_prefix(
-            medium
+            book
                 .authors
                 .first()
                 .map(|s| s.as_str())
                 .unwrap_or_default(),
-            &medium.category,
+            &book.category,
         );
         println!("Prefix {}", prefix);
-        if medium.id.starts_with(&prefix)
-            && medium.id.len() > prefix.len() + 1
-            && &medium.id[prefix.len()..prefix.len() + 1] == " "
+        if book.id.starts_with(&prefix)
+            && book.id.len() > prefix.len() + 1
+            && &book.id[prefix.len()..prefix.len() + 1] == " "
         {
-            return Ok(medium.id.clone());
+            return Ok(book.id.clone());
         }
 
         let mut stmt = self.db().prepare(UNUSED_ID)?;

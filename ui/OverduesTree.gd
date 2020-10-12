@@ -1,5 +1,7 @@
 extends Tree
 
+signal show_book(id)
+
 onready var _project: Project = $"/root/Project"
 
 
@@ -11,15 +13,15 @@ func _ready():
 
 func reload():
     clear()
-    var result: Dictionary = _project.rental_overdues()
+    var result: Dictionary = _project.lending_overdues()
     var root := create_item()
     if result.has("Ok"):
         var role: TreeItem = null
         for period in result["Ok"]:
-            var medium: Dictionary = period[0]
+            var book: Dictionary = period[0]
             var user: Dictionary = period[1]
             var date := Date.new()
-            var fmt_result: Dictionary = date.set_iso(medium.deadline)
+            var fmt_result: Dictionary = date.set_iso(book.deadline)
             if fmt_result.has("Err"):
                 print(fmt_result["Err"])
 
@@ -29,8 +31,9 @@ func reload():
 
             var item := create_item(role)
             item.set_text(0, user.forename + " " + user.surname)
-            item.set_text(1, medium.title + " (" + medium.id + ")")
-            item.set_text(2, Util.trf(".medium.period", [date.get_local(), date.days_since_today()]))
+            item.set_text(1, book.title + " (" + book.id + ")")
+            item.set_text(2, Util.trf(".book.period", [date.get_local(), date.days_until_today()]))
+            item.set_meta("book_id", book.id)
 
     else:
         MessageDialog.error_code(result["Err"])
@@ -52,3 +55,10 @@ func _on_copy() -> void:
             period = period.get_next()
         role = role.get_next()
     OS.clipboard = text
+
+
+func _on_item_activated() -> void:
+    var selected := get_selected()
+    if selected and selected.has_meta("book_id"):
+        print("TODO: show book ", selected.get_meta("book_id"))
+        emit_signal("show_book", selected.get_meta("book_id"))

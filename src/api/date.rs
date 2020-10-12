@@ -3,10 +3,14 @@ use gdnative::prelude::*;
 use crate::api;
 
 /// The Date wrapper "class"
+///
+/// It provides two date formats:
+/// - The iso date: %Y-%m-%d like 2001-07-08
+/// - The locale date, which is based on the language of the OS (en: %m/%d/%y)
 #[derive(NativeClass, Debug)]
 #[inherit(Reference)]
 pub struct Date {
-    pub date: chrono::NaiveDate,
+    date: chrono::NaiveDate,
 }
 
 #[methods]
@@ -16,6 +20,8 @@ impl Date {
             date: chrono::Local::today().naive_local(),
         }
     }
+
+    /// The iso date: %Y-%m-%d like 2001-07-08
     #[export]
     fn get_iso(&self, _owner: &Reference) -> GodotString {
         self.date.format("%F").to_string().into()
@@ -26,6 +32,7 @@ impl Date {
         Ok(())
     }
 
+    /// The locale date, which is based on the language of the OS (en: %m/%d/%y)
     #[export]
     fn get_local(&self, _owner: TRef<Reference>) -> GodotString {
         self.date.format("%x").to_string().into()
@@ -36,8 +43,9 @@ impl Date {
         Ok(())
     }
 
+    /// Return the number of days until today.
     #[export]
-    fn days_since_today(&self, _owner: &Reference) -> i64 {
+    fn days_until_today(&self, _owner: &Reference) -> i64 {
         (chrono::Local::today().naive_local() - self.date).num_days()
     }
 }

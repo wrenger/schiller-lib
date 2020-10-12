@@ -5,8 +5,8 @@ signal menu_close()
 
 func _ready():
     var menu := get_popup()
-    menu.add_shortcut(Util.create_shortcut("Open", KEY_O))
-    menu.add_item("Close")
+    menu.add_shortcut(Util.create_shortcut(tr(".action.open"), KEY_O))
+    menu.add_item(tr(".action.close"))
 
     var error := menu.connect("index_pressed", self, "_on_index_pressed")
     assert(error == OK)

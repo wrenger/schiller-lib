@@ -22,6 +22,7 @@ func _notification(what: int):
             _project.close()
             get_tree().quit()
 
+
 func _unhandled_key_input(event):
     if event is InputEventKey:
         var key_event := event as InputEventKey

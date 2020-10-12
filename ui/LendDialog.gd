@@ -11,27 +11,37 @@ onready var _user_state: Label = $Box/User/State
 onready var _period: SpinBox = $Box/Period/Days
 onready var _period_panel: Control = $Box/Period
 
-var _medium_panel: Control = null
-var _medium: Dictionary = {}
+var _book_panel: Control = null
+var _book: Dictionary = {}
 var _user: Dictionary = {}
 
 var _user_result := []
 
 
-static func lend(medium_panel: Control, medium: Dictionary, user: Dictionary = {}):
-    var nodes = medium_panel.get_tree().get_nodes_in_group("LendDialog")
-    if nodes: nodes.front()._lend(medium_panel, medium, user)
+static func lend(book_panel: Control, book: Dictionary, user: Dictionary = {}):
+    var nodes = book_panel.get_tree().get_nodes_in_group("LendDialog")
+    if nodes: nodes.front()._lend(book_panel, book, user)
 
 
-static func reserve(medium_panel: Control, medium: Dictionary):
-    var nodes = medium_panel.get_tree().get_nodes_in_group("LendDialog")
-    if nodes: nodes.front()._reserve(medium_panel, medium)
+static func reserve(book_panel: Control, book: Dictionary):
+    var nodes = book_panel.get_tree().get_nodes_in_group("LendDialog")
+    if nodes: nodes.front()._reserve(book_panel, book)
 
 
-func _lend(medium_panel: Control, medium: Dictionary, user: Dictionary):
+func _ready() -> void:
+    var result: int
+    result = connect("popup_hide", self, "_popup_hide")
+    assert(result == OK)
+    result = connect("about_to_show", self, "_about_to_show")
+    assert(result == OK)
+    result = connect("confirmed", self, "_on_confirmed")
+    assert(result == OK)
+
+
+func _lend(book_panel: Control, book: Dictionary, user: Dictionary):
     if not visible:
-        _medium_panel = medium_panel
-        _medium = medium
+        _book_panel = book_panel
+        _book = book
         _set_user(user)
         var result: Dictionary = _project.settings_get()
         if result.has("Err"):
@@ -40,20 +50,20 @@ func _lend(medium_panel: Control, medium: Dictionary, user: Dictionary):
         _period.value = result["Ok"].borrowing_duration
         _period_panel.visible = true
         _state.text = ""
-        window_title = tr(".medium.lend") + " - " + medium.id + ": " + medium.title
-        get_ok().text = tr(".medium.lend")
+        window_title = tr(".book.lend") + " - " + book.id + ": " + book.title
+        get_ok().text = tr(".book.lend")
         popup_centered()
 
 
-func _reserve(medium_panel: Control, medium: Dictionary):
+func _reserve(book_panel: Control, book: Dictionary):
     if not visible:
-        _medium_panel = medium_panel
-        _medium = medium
+        _book_panel = book_panel
+        _book = book
         _set_user({})
         _period_panel.visible = false
         _state.text = ""
-        window_title = tr(".medium.reserve") + " - " + medium.id + ": " + medium.title
-        get_ok().text = tr(".medium.reserve")
+        window_title = tr(".book.reserve") + " - " + book.id + ": " + book.title
+        get_ok().text = tr(".book.reserve")
         popup_centered()
 
 
@@ -97,19 +107,19 @@ func _set_user(user: Dictionary):
 
 
 func _on_confirmed():
-    if not _user or not _medium:
+    if not _user or not _book:
         _state.text = tr(".error.input")
         popup_centered()
         return
 
     var result: Dictionary
     if _period_panel.visible:
-        result = _project.rental_lend(_medium, _user, int(_period.value))
+        result = _project.lending_lend(_book, _user, int(_period.value))
     else:
-        result = _project.rental_reserve(_medium, _user)
+        result = _project.lending_reserve(_book, _user)
 
     if result.has("Ok"):
-        _medium_panel._on_lend_update(result["Ok"])
+        _book_panel._on_lend_update(result["Ok"])
     else:
         _state.text = Util.error_msg(result["Err"])
         popup_centered()
