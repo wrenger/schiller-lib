@@ -3,13 +3,6 @@ image: "registry.gitlab.com/l4r0x/sbv-gd"
 # Global config
 variables:
   CARGO_HOME: "$CI_PROJECT_DIR/.cargo_home"
-default:
-  cache:
-    key: "$CI_COMMIT_REF_NAME"
-    paths:
-      - $CARGO_HOME
-      - target/
-      - Cargo.toml
 
 # Use cargo to test the project
 test:cargo:
@@ -17,14 +10,18 @@ test:cargo:
   script:
     - rustc --version && cargo --version
     - cargo test -- --nocapture
+  cache:
+    key: "$CI_JOB_NAME-CI_COMMIT_REF_NAME"
+    paths:
+      - $CARGO_HOME
+      - target/
+      - Cargo.lock
 
 # Use godot headless to run the ui tests
 test:godot:
   stage: test
   script:
     - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 -s ui/test/TestUtil.gd
-  inherit:
-    default: false
 
 
 # Deployment
@@ -37,7 +34,7 @@ deploy:linux:
     - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 --export "Linux/X11 - Tiny" export/x11/sbv-gd.x86_64
   when: manual
   artifacts:
-    name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+    name: "sbv-win-$CI_COMMIT_REF_NAME"
     paths: [export/x11/*]
     expire_in: 1 week
 
@@ -49,6 +46,6 @@ deploy:windows:
     - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 --export "Windows - Tiny" export/windows/sbv-gd.exe
   when: manual
   artifacts:
-    name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+    name: "sbv-x11-$CI_COMMIT_REF_NAME"
     paths: [export/windows/*]
     expire_in: 1 week
