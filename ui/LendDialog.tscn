@@ -3,12 +3,11 @@
 [ext_resource path="res://ui/LendDialog.gd" type="Script" id=1]
 [ext_resource path="res://ui/SpinBoxTr.gd" type="Script" id=2]
 [ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=3]
-[ext_resource path="res://ui/LendingDialogAddUser.gd" type="Script" id=4]
+[ext_resource path="res://ui/User.gd" type="Script" id=4]
 
 [node name="LendDialog" type="ConfirmationDialog" groups=[
 "LendDialog",
 ]]
-visible = true
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -90,6 +89,11 @@ margin_top = 84.0
 margin_right = 458.0
 margin_bottom = 158.0
 script = ExtResource( 4 )
+editable = true
+account_path = NodePath("Account")
+forename_path = NodePath("Name/Forename")
+surname_path = NodePath("Name/Surname")
+role_path = NodePath("Role")
 
 [node name="Account" type="LineEdit" parent="Box/AddUser"]
 margin_right = 458.0

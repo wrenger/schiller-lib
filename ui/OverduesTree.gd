@@ -60,5 +60,4 @@ func _on_copy() -> void:
 func _on_item_activated() -> void:
     var selected := get_selected()
     if selected and selected.has_meta("book_id"):
-        print("TODO: show book ", selected.get_meta("book_id"))
         emit_signal("show_book", selected.get_meta("book_id"))

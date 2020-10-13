@@ -10,8 +10,8 @@ pub enum Error {
     FileOpenError,
     SQLError,
     // Specific errors
-    UserInvalid,
     BookInvalid,
+    UserInvalid,
     // Lending errors
     LendingUserMayNotBorrow,
     LendingBookNotBorrowable,

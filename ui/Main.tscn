@@ -97,7 +97,6 @@ margin_right = -5.0
 margin_bottom = -5.0
 
 [node name="LendDialog" parent="." instance=ExtResource( 7 )]
-visible = false
 
 [node name="ProjectDialog" type="FileDialog" parent="." groups=[
 "ProjectDialog",
@@ -111,13 +110,13 @@ margin_top = -301.0
 margin_right = 454.5
 margin_bottom = 301.0
 popup_exclusive = true
-window_title = "Open a File"
+window_title = ".alert.data.title"
 resizable = true
 mode = 0
 access = 2
 filters = PoolStringArray( "*.db ; SQLite DB" )
-current_dir = "/Users/larsw/Developer/sbv-gd"
-current_path = "/Users/larsw/Developer/sbv-gd/"
+current_dir = "/home/lars/Documents/projects/sbv-gd"
+current_path = "/home/lars/Documents/projects/sbv-gd/"
 script = ExtResource( 14 )
 __meta__ = {
 "_edit_use_anchors_": false

@@ -146,10 +146,7 @@ func _on_edit_add():
         emit_signal("add_book", book)
         _before_edit = {}
     else:
-        if result["Err"] == Util.SbvError.LogicError:
-            MessageDialog.error(tr(".book.invalid"))
-        else:
-            MessageDialog.error_code(result["Err"])
+        MessageDialog.error_code(result["Err"])
 
 
 func _on_edit_apply():
@@ -160,10 +157,7 @@ func _on_edit_apply():
         emit_signal("update_book", book)
         _before_edit = {}
     else:
-        if result["Err"] == Util.SbvError.LogicError:
-            MessageDialog.error(tr(".book.invalid"))
-        else:
-            MessageDialog.error_code(result["Err"])
+        MessageDialog.error_code(result["Err"])
 
 
 func _on_edit_delete():

@@ -1,42 +1,53 @@
-extends GridContainer
+extends Control
 
 export var editable := false setget set_editable
-
 var user: Dictionary = {} setget set_user, get_user
+
+export var account_path: NodePath
+export var forename_path: NodePath
+export var surname_path: NodePath
+export var role_path: NodePath
+export var may_borrow_path: NodePath
+
+onready var _account: LineEdit = get_node(account_path)
+onready var _forename: LineEdit = get_node(forename_path)
+onready var _surname: LineEdit = get_node(surname_path)
+onready var _role: LineEdit = get_node(role_path)
+onready var _may_borrow: CheckBox = null
 
 func _ready():
     set_editable(editable)
+    if may_borrow_path: _may_borrow = get_node(may_borrow_path)
 
 
-func set_user(m: Dictionary):
-    if not m.empty():
-        $Account.text = m.account
-        $Forename.text = m.forename
-        $Surname.text = m.surname
-        $Role.text = m.role
-        $MayBorrow.pressed = m.may_borrow
-    else:
-        $Account.clear()
-        $Forename.clear()
-        $Surname.clear()
-        $Role.clear()
-        $MayBorrow.pressed = true
+func set_user(u: Dictionary):
+    if is_inside_tree():
+        _account.text = u.get("account", "")
+        _forename.text = u.get("forename", "")
+        _surname.text = u.get("surname", "")
+        _role.text = u.get("role", "")
+        if _may_borrow: _may_borrow.pressed = u.get("may_borrow", true)
 
 
 func get_user() -> Dictionary:
-    return {
-        account = $Account.text,
-        forename = $Forename.text,
-        surname = $Surname.text,
-        role = $Role.text,
-        may_borrow = $MayBorrow.pressed,
-    }
+    if is_inside_tree():
+        var may_borrow := true
+        if _may_borrow: may_borrow = _may_borrow.pressed
+        return {
+            account = _account.text,
+            forename = _forename.text,
+            surname = _surname.text,
+            role = _role.text,
+            may_borrow = may_borrow,
+        }
+    return {}
 
 
 func set_editable(e: bool):
     editable = e
-    $Account.editable = e
-    $Forename.editable = e
-    $Surname.editable = e
-    $Role.editable = e
-    $MayBorrow.disabled = not e
+    if is_inside_tree():
+        _account.editable = e
+        _forename.editable = e
+        _surname.editable = e
+        _role.editable = e
+        if _may_borrow: _may_borrow.disabled = not e

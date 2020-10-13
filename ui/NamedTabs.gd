@@ -7,14 +7,13 @@ export (Array, String) var labels: Array = []
 func _ready() -> void:
     for i in range(len(labels)):
         set_tab_title(i, tr(labels[i]))
-        if editor_icons: set_tab_icon(i, get_icon(editor_icons[i], "EditorIcons"))
 
-    _on_theme_changed_(null)
+    _on_theme_changed_()
     for node in get_tree().get_nodes_in_group("ThemeChanger"):
         node.connect("theme_changed", self, "_on_theme_changed_")
 
 
-func _on_theme_changed_(_x):
+func _on_theme_changed_(_x = null):
     if editor_icons:
         for i in range(len(labels)):
             set_tab_icon(i, get_icon(editor_icons[i], "EditorIcons"))

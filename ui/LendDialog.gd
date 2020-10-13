@@ -114,8 +114,7 @@ func _on_user_selected(index: int):
 func _show_add_user():
     _user_search.visible = false
     _user_add.visible = true
-    _user_add.clear()
-    _user_add.set_account(_user_search_input.text)
+    _user_add.set_user({account = _user_search_input.text})
 
 
 func _set_user(user: Dictionary):
@@ -131,13 +130,12 @@ func _set_user(user: Dictionary):
 func _on_confirmed():
     # Add user if user add panel is shown
     if _user_add.visible:
-        var user: Dictionary = _user_add.get_user()
-        var result: Dictionary = _project.user_add(user)
+        _user = _user_add.get_user()
+        var result: Dictionary = _project.user_add(_user)
         if result.has("Err"):
             _state.text = Util.error_msg(result["Err"])
             popup_centered()
             return
-        _user = user
 
     if not _user or not _book:
         _state.text = tr(".error.input")

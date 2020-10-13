@@ -12,6 +12,11 @@ script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+account_path = NodePath("Account")
+forename_path = NodePath("Forename")
+surname_path = NodePath("Surname")
+role_path = NodePath("Role")
+may_borrow_path = NodePath("MayBorrow")
 
 [node name="AccountLabel" type="Label" parent="."]
 margin_right = 116.0

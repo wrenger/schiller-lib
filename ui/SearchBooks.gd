@@ -14,7 +14,7 @@ onready var _title: LineEdit = $Tabs/Advanced/Grid/Title
 onready var _publisher: LineEdit = $Tabs/Advanced/Grid/Publisher
 onready var _authors: LineEdit = $Tabs/Advanced/Grid/Authors
 onready var _year: LineEdit = $Tabs/Advanced/Grid/Year
-onready var _category: OptionButton = $Tabs/Advanced/Grid/Category
+onready var _category: CategorySelect = $Tabs/Advanced/Grid/Category
 onready var _note: LineEdit = $Tabs/Advanced/Grid/Note
 onready var _user: LineEdit = $Tabs/Advanced/Grid/User
 onready var _state: OptionButton = $Tabs/Advanced/Grid/State
@@ -30,12 +30,6 @@ func _on_search(_t = null):
 
 
 func _on_advanced_search(_t = null):
-    print("Advanced search")
-    var category: String = ""
-    if _category.selected >= 1:
-        var text: String = _category.get_item_text(_category.selected)
-        category = text.split(" - ", true, 1)[0]
-
     var result: Dictionary = _project.book_search_advanced({
         id = _id.text,
         isbn = _isbn.text,
@@ -43,7 +37,7 @@ func _on_advanced_search(_t = null):
         publisher = _publisher.text,
         authors = _authors.text,
         year = _year.text,
-        category = category,
+        category = _category.get_selected_category_id(),
         note = _note.text,
         user = _user.text,
         state = _state.get_selected_id(),

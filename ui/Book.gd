@@ -11,13 +11,13 @@ onready var _id_btn := $ID/Generate as Button
 onready var _isbn := $ISBN as LineEdit
 onready var _title := $Title as LineEdit
 onready var _publisher := $Publisher as LineEdit
-onready var _price := $Price as SpinBox
+onready var _costs := $Price as SpinBox
 onready var _year := $Year as SpinBox
 onready var _authors := $Authors/List as Tree
 onready var _authors_btns := $Authors/Box as Control
 onready var _authors_remove := $Authors/Box/Remove as Button
-onready var _category := $Category as OptionButton
-onready var _notes := $Notes as TextEdit
+onready var _category := $Category as CategorySelect
+onready var _note := $Notes as TextEdit
 onready var _borrowable := $Borrowable as CheckBox
 
 var _borrower := ""
@@ -25,43 +25,33 @@ var _deadline := ""
 var _reservation := ""
 var _id_before_edit := ""
 
+
 func _ready():
     set_editable(editable)
 
 
 func set_book(m: Dictionary):
-    if not m.empty():
-        _id.text = m.id
-        _isbn.text = m.isbn
-        _title.text = m.title
-        _publisher.text = m.publisher
-        _price.value = m.costs
-        _year.value = m.year
+    if is_inside_tree():
+        _id.text = m.get("id", "")
+        _isbn.text = m.get("isbn", "")
+        _title.text = m.get("title", "")
+        _publisher.text = m.get("publisher", "")
+        _costs.value = m.get("costs", 0.0)
+        if m.has("year"): _year.value = m.year
+        else: _year.value = Date.new().get_year()
         _authors.clear()
-        var root := _authors.create_item() as TreeItem
-        for author in m.authors:
-            var item := _authors.create_item(root) as TreeItem
-            item.set_text(0, author)
-        _category.select(_category.get_item_index(m.category.hash()))
-        _notes.text = m.note
-        _borrowable.pressed = m.borrowable
-        _borrower = m.borrower
-        _deadline = m.deadline
-        _reservation = m.reservation
-    else:
-        _id.clear()
-        _isbn.clear()
-        _title.clear()
-        _publisher.clear()
-        _price.value = 0
-        _year.value = 2000
-        _authors.clear()
-        _category.select(0)
-        _notes.text = ""
-        _borrowable.pressed = true
-        _borrower = ""
-        _deadline = ""
-        _reservation = ""
+        if m.has("authors"):
+            var root := _authors.create_item() as TreeItem
+            for author in m.authors:
+                var item := _authors.create_item(root) as TreeItem
+                item.set_text(0, author)
+        if m.has("category"): _category.select_category(m.category)
+        else: _category.select(0)
+        _note.text = m.get("note", "")
+        _borrowable.pressed = m.get("borrowable", true)
+        _borrower = m.get("borrower", "")
+        _deadline = m.get("deadline", "")
+        _reservation = m.get("reservation", "")
 
 
 func get_book() -> Dictionary:
@@ -71,20 +61,16 @@ func get_book() -> Dictionary:
         while child:
             authors.push_back(child.get_text(0))
             child = child.get_next()
-    var category = ""
-    if _category.selected >= 0:
-        var text: String = _category.get_item_text(_category.selected)
-        category = text.split(" - ", true, 1)[0]
     return {
         id = _id.text,
         isbn = _isbn.text,
         title = _title.text,
         publisher = _publisher.text,
-        costs = _price.value,
+        costs = _costs.value,
         year = _year.value as int,
         authors = authors,
-        category = category,
-        note = _notes.text,
+        category = _category.get_selected_category_id(),
+        note = _note.text,
         borrowable = _borrowable.pressed,
         borrower = _borrower,
         deadline = _deadline,
@@ -93,33 +79,34 @@ func get_book() -> Dictionary:
 
 
 func set_editable(e: bool):
-    if e: _id_before_edit = _id.text
-    else: _id_before_edit = ""
-
     editable = e
-    _id.editable = e
-    _id_btn.visible = e
-    _isbn.editable = e
-    _title.editable = e
-    _publisher.editable = e
-    _price.editable = e
-    _year.editable = e
-    _category.disabled = not e
-    _notes.readonly = not e
-    _borrowable.disabled = not e
-    _authors_btns.visible = e
-    _authors_remove.disabled = true
-    if _authors.get_root():
-        var child := _authors.get_root().get_children() as TreeItem
-        while child:
-            child.set_editable(0, e)
-            child = child.get_next()
+    if is_inside_tree():
+        if e: _id_before_edit = _id.text
+        else: _id_before_edit = ""
+
+        _id.editable = e
+        _id_btn.visible = e
+        _isbn.editable = e
+        _title.editable = e
+        _publisher.editable = e
+        _costs.editable = e
+        _year.editable = e
+        _category.disabled = not e
+        _note.readonly = not e
+        _borrowable.disabled = not e
+        _authors_btns.visible = e
+        _authors_remove.disabled = true
+        if _authors.get_root():
+            var child := _authors.get_root().get_children() as TreeItem
+            while child:
+                child.set_editable(0, e)
+                child = child.get_next()
 
 
 func _on_generate_id():
     if editable:
         var book = get_book()
-        book.id = _id_before_edit
+        book.id = _id_before_edit # fallback if nothing changed
         var result = _project.book_generate_id(book)
         if result.has("Ok"):
             _id.text = result["Ok"]

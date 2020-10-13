@@ -1,4 +1,5 @@
 use gdnative::prelude::*;
+use chrono::Datelike;
 
 use crate::api;
 
@@ -34,13 +35,26 @@ impl Date {
 
     /// The locale date, which is based on the language of the OS (en: %m/%d/%y)
     #[export]
-    fn get_local(&self, _owner: TRef<Reference>) -> GodotString {
+    fn get_local(&self, _owner: &Reference) -> GodotString {
         self.date.format("%x").to_string().into()
     }
     #[export]
     fn set_local(&mut self, _owner: &Reference, date: GodotString) -> api::Result<()> {
         self.date = chrono::NaiveDate::parse_from_str(&date.to_string(), "%x")?;
         Ok(())
+    }
+
+    #[export]
+    fn get_year(&self, _owner: &Reference) -> i64 {
+        self.date.year() as _
+    }
+    #[export]
+    fn get_month(&self, _owner: &Reference) -> i64 {
+        self.date.month() as _
+    }
+    #[export]
+    fn get_day(&self, _owner: &Reference) -> i64 {
+        self.date.day() as _
     }
 
     /// Return the number of days until today.

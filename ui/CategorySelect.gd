@@ -1,5 +1,5 @@
 extends OptionButton
-
+class_name CategorySelect
 
 export var allow_empty: bool
 
@@ -17,3 +17,14 @@ func _on_categories_changed(categories: Array):
     for category in categories:
         var text: String = category.id + " - " + category.name + " - " + category.section
         add_item(text,  category.id.hash())
+
+
+func select_category(id: String):
+    select(get_item_index(id.hash()))
+
+
+func get_selected_category_id() -> String:
+    if selected >= 0:
+        var text: String = get_item_text(selected)
+        return text.split(" - ", true, 1)[0]
+    return ""
