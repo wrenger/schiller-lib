@@ -28,6 +28,8 @@ enum SbvError {
     LendingBookAlreadyBorrowedByUser,
     LendingBookNotBorrowed,
     LendingBookAlreadyReserved,
+    # Migration
+    UnsupportedProjectVersion,
 }
 
 
@@ -47,6 +49,7 @@ static func error_msg(error: int) -> String:
         SbvError.LendingBookAlreadyBorrowedByUser: return TranslationServer.tr(".error.lending.already-borrowed-by")
         SbvError.LendingBookNotBorrowed: return TranslationServer.tr(".error.lending.not-borrowed")
         SbvError.LendingBookAlreadyReserved: return TranslationServer.tr(".error.lending.already-reserved")
+        SbvError.UnsupportedProjectVersion: return TranslationServer.tr(".error.update")
         _: return "Internal: Unknown Error"
 
 

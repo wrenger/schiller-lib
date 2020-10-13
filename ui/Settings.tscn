@@ -100,6 +100,7 @@ margin_left = 326.0
 margin_right = 648.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
+disabled = true
 text = ".sql.title"
 
 [node name="Borrowing" type="VBoxContainer" parent="Area/Center/SettingsPanel/Scroll/Box"]
@@ -187,6 +188,7 @@ margin_bottom = 48.0
 margin_right = 322.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
+disabled = true
 text = ".alert.user.title"
 
 [node name="Update" type="Button" parent="Area/Center/SettingsPanel/Scroll/Box/User/Margin/Box/Box"]
@@ -194,6 +196,7 @@ margin_left = 326.0
 margin_right = 648.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
+disabled = true
 text = ".pref.user.update"
 
 [node name="Request" type="VBoxContainer" parent="Area/Center/SettingsPanel/Scroll/Box"]

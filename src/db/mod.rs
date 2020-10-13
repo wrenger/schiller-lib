@@ -9,6 +9,7 @@ mod category;
 mod lending;
 mod raw;
 mod settings;
+mod structure;
 mod user;
 
 pub use book::*;
@@ -16,7 +17,10 @@ pub use category::*;
 pub use lending::*;
 use raw::StatementExt;
 pub use settings::*;
+pub use structure::*;
 pub use user::*;
+
+pub const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct Database {
     path: PathBuf,
@@ -30,14 +34,39 @@ impl fmt::Debug for Database {
 }
 
 impl Database {
+    /// Creates a new database at the given path.
+    pub fn create(path: &str) -> api::Result<Database> {
+        let path = PathBuf::from(path);
+        if !path.exists() {
+            let database = Database {
+                db: sqlite::Connection::open_with_flags(
+                    &path,
+                    sqlite::OpenFlags::new().set_create().set_read_write(),
+                )
+                .map_err(|_| api::Error::FileOpenError)?,
+                path,
+            };
+            database.structure_create(PKG_VERSION)?;
+            Ok(database)
+        } else {
+            Err(api::Error::FileOpenError)
+        }
+    }
+
     /// Opens a database connection to the given project database.
-    pub fn new(path: &str) -> Result<Database, api::Error> {
+    pub fn open(path: &str) -> api::Result<(Database, bool)> {
         let path = PathBuf::from(path);
         if path.exists() {
-            Ok(Database {
-                db: sqlite::Connection::open(&path).map_err(|_| api::Error::FileOpenError)?,
+            let database = Database {
+                db: sqlite::Connection::open_with_flags(
+                    &path,
+                    sqlite::OpenFlags::new().set_read_write(),
+                )
+                .map_err(|_| api::Error::FileOpenError)?,
                 path,
-            })
+            };
+            let updated = database.structure_migrate(PKG_VERSION)?;
+            Ok((database, updated))
         } else {
             Err(api::Error::FileNotFound)
         }
@@ -46,6 +75,15 @@ impl Database {
     /// Returns the filepath to this database.
     pub fn path(&self) -> &Path {
         &self.path
+    }
+
+    /// In memory database for testing purposes.
+    #[cfg(test)]
+    fn memory() -> api::Result<Database> {
+        Ok(Database {
+            path: PathBuf::new(),
+            db: sqlite::open(":memory:")?,
+        })
     }
 }
 
@@ -78,6 +116,8 @@ impl DatabaseSettings for Database {
         &self.db
     }
 }
+
+impl DatabaseStructure for Database {}
 
 /// Iterator over database results.
 pub struct DBIter<'a, T> {

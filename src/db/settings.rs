@@ -25,7 +25,7 @@ replace into sbv_meta values
 ('mail.overdue2.content', ?)
 "#;
 
-#[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
+#[derive(Debug, PartialEq, Clone, gdnative::ToVariant, gdnative::FromVariant)]
 pub struct Settings {
     // Borrowing
     pub borrowing_duration: i64,
@@ -74,7 +74,7 @@ impl Settings {
         let mut settings = Settings::default();
         for (key, value) in iter {
             match key.as_str() {
-                "version" => {},
+                "version" => {}
                 "borrowing.duration" => {
                     settings.borrowing_duration =
                         value.parse().unwrap_or(settings.borrowing_duration)

@@ -5,6 +5,7 @@ pub use error::*;
 
 mod project;
 mod date;
+mod debug;
 
 use project::Project;
 

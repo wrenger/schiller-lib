@@ -24,9 +24,9 @@
 .alert.choice.content,Please Select:,Bitte auswählen:
 .alert.choice.title,Selection,Auswahl
 .alert.confirm,Confirm,Bestätigung
-.alert.data.title,Select Database,Datenbank auswählen
+.alert.create-project,Create new Project Database,Neue Projekt-Datenbank erstellen
 .alert.error,Error,Fehler
-.alert.info,Message,Meldung
+.alert.info,Info,Info
 .alert.mail.overdue,Send warnings for exceeded borrowing periods now?,Sollen die Mahnungen jetzt versendet werden?
 .alert.mail.send.cancel,The transfer was canceled.\nIt will be tried again on the next application startup.,Emailversand abgebrochen.\nBeim Neustart des Programms wird es erneut versucht.
 .alert.mail.send.content,Sending Mails,Versende Emails
@@ -34,12 +34,11 @@
 .alert.mail.send.error.to,Transfer failed for the users:\n{0},Fehler beim senden der Emails an:\n{0}
 .alert.mail.send.success,Finished sending mails.,Senden der Mahnungen erfolgreich.
 .alert.mail.send.title,Mail,Emailversand
+.alert.open-project,Select Project Database,Projekt-Datenbank auswählen
 .alert.overdue,Overdues,Überziehungen
 .alert.overdue.date,Effective: {0},Stand: {0}
 .alert.overdue.none,There are currently no expired borrowing periods.,Momentan gibt es keine Überziehungen.
-.alert.update,Welcome to Version {0},Willkommen zu Version {0}
-.alert.update.db,The database has to be updated to version {0}.,Die Datenbank wird jetzt auf Version {0} aktualisiert.
-.alert.update.succeed,Finished changes.,Die Änderungen wurden übernommen.
+.alert.update,Welcome to Version {0}.\nThe database has been updated successfully.,Willkommen zu Version {0}.\nDie Datenbank wurde erfolgreich aktualisiert.
 .alert.user.title,Select User File,Benutzerdatai auswählen
 .alert.warning,Warning,Warnung
 .book,Book,Buch
@@ -91,6 +90,12 @@
 .category.name,Name,Name
 .category.not-empty.del,"A category has to be empty to be removed. This category, however, is not emtpy.",Eine können nur leere Kategorien gelöscht werden. Diese Kategorie ist allerdings nicht leer.
 .category.section,Section,Bereich
+.category.t1.id,SCFI,SCFI
+.category.t1.name,Science Fiction,Science-Fiction
+.category.t1.section,Novels,Romane
+.category.t2.id,THRL,THRL
+.category.t2.name,Thriller,Thriller
+.category.t2.section,Novels,Romane
 .error.book.existing,The book id '{0}' already exists.,Es gibt bereits ein anderes Buch mit der Signatur {0}.
 .error.book.none,No book found.,Kein Buch gefunden.
 .error.category.existing,The category id '{0}' already exists.,Die Abkürzung '{0}' existiert bereits.

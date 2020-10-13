@@ -110,7 +110,7 @@ margin_top = -301.0
 margin_right = 454.5
 margin_bottom = 301.0
 popup_exclusive = true
-window_title = ".alert.data.title"
+window_title = "Open a File"
 resizable = true
 mode = 0
 access = 2
@@ -147,12 +147,13 @@ visible = false
 [node name="Persist" type="Node" parent="."]
 script = ExtResource( 15 )
 [connection signal="menu_close" from="Content/Menu/File" to="." method="_on_close_project"]
+[connection signal="menu_new" from="Content/Menu/File" to="." method="_on_new_project"]
 [connection signal="menu_open" from="Content/Menu/File" to="." method="_on_open_project"]
 [connection signal="theme_changed" from="Content/Menu/Edit" to="." method="_on_theme_changed"]
 [connection signal="show_user_books" from="Content/Tabs/Users" to="Content/Tabs/Books" method="show_user_books"]
 [connection signal="show_book" from="Content/Tabs/Overdues" to="Content/Tabs/Books" method="show_book"]
 [connection signal="about_to_show" from="ProjectDialog" to="ProjectDialog" method="_about_to_show"]
-[connection signal="file_selected" from="ProjectDialog" to="." method="_on_project_selected"]
 [connection signal="popup_hide" from="ProjectDialog" to="ProjectDialog" method="_popup_hide"]
+[connection signal="project_selected" from="ProjectDialog" to="." method="_on_project_selected"]
 [connection signal="about_to_show" from="MessageDialog" to="MessageDialog" method="_about_to_show"]
 [connection signal="popup_hide" from="MessageDialog" to="MessageDialog" method="_popup_hide"]

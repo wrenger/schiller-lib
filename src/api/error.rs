@@ -19,6 +19,8 @@ pub enum Error {
     LendingBookAlreadyBorrowedByUser,
     LendingBookNotBorrowed,
     LendingBookAlreadyReserved,
+    // Migration
+    UnsupportedProjectVersion,
 }
 
 impl From<sqlite::Error> for Error {
