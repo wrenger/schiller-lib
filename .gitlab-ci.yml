@@ -34,7 +34,7 @@ deploy:linux:
     - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 --export x11 export/x11/sbv-gd.x86_64
   when: manual
   artifacts:
-    name: "sbv-win-$CI_COMMIT_REF_NAME"
+    name: "sbv-x11-$CI_COMMIT_REF_NAME"
     paths: [export/x11/*]
     expire_in: 1 week
 
@@ -46,6 +46,6 @@ deploy:windows:
     - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 --export win export/win/sbv-gd.exe
   when: manual
   artifacts:
-    name: "sbv-x11-$CI_COMMIT_REF_NAME"
+    name: "sbv-win-$CI_COMMIT_REF_NAME"
     paths: [export/win/*]
     expire_in: 1 week
