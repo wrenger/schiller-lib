@@ -31,7 +31,7 @@ deploy:linux:
   script:
     - cargo build --release
     - mkdir export/x11
-    - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 --export "Linux/X11 - Tiny" export/x11/sbv-gd.x86_64
+    - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 --export x11 export/x11/sbv-gd.x86_64
   when: manual
   artifacts:
     name: "sbv-win-$CI_COMMIT_REF_NAME"
@@ -42,10 +42,10 @@ deploy:windows:
   stage: deploy
   script:
     - cargo build --target=x86_64-pc-windows-gnu --release
-    - mkdir export/windows
-    - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 --export "Windows - Tiny" export/windows/sbv-gd.exe
+    - mkdir export/win
+    - ./bin/headless/Godot_v3.2.3-stable_linux_headless.64 --export win export/win/sbv-gd.exe
   when: manual
   artifacts:
     name: "sbv-x11-$CI_COMMIT_REF_NAME"
-    paths: [export/windows/*]
+    paths: [export/win/*]
     expire_in: 1 week
