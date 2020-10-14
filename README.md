@@ -48,7 +48,7 @@ like the `Date` class.
 
 The [SQLite](https://sqlite.org/index.html) database has the following schema:
 
-<img src="images/sbv_db.svg" alt="Database Schema" style="zoom: 67%;" />
+<img src="images/sbv_db.svg" alt="Database Schema" width=600 />
 
 It contains any project specific information and can be distributed as such.
 
