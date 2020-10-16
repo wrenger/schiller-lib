@@ -115,19 +115,19 @@ pub trait DatabaseSettings {
     fn settings_update(&self, settings: &Settings) -> api::Result<()> {
         let mut stmt = self.db().prepare(SETTINGS_UPDATE)?;
         stmt.bind(1, settings.borrowing_duration)?;
-        stmt.bind(2, settings.user_path.as_str())?;
-        stmt.bind(3, settings.user_delimiter.as_str())?;
-        stmt.bind(4, settings.dnb_token.as_str())?;
-        stmt.bind(5, settings.mail_last_reminder.as_str())?;
-        stmt.bind(6, settings.mail_from.as_str())?;
-        stmt.bind(7, settings.mail_host.as_str())?;
-        stmt.bind(8, settings.mail_password.as_str())?;
-        stmt.bind(9, settings.mail_info_subject.as_str())?;
-        stmt.bind(10, settings.mail_info_content.as_str())?;
-        stmt.bind(11, settings.mail_overdue_subject.as_str())?;
-        stmt.bind(12, settings.mail_overdue_content.as_str())?;
-        stmt.bind(13, settings.mail_overdue2_subject.as_str())?;
-        stmt.bind(14, settings.mail_overdue2_content.as_str())?;
+        stmt.bind(2, settings.user_path.trim())?;
+        stmt.bind(3, settings.user_delimiter.trim())?;
+        stmt.bind(4, settings.dnb_token.trim())?;
+        stmt.bind(5, settings.mail_last_reminder.trim())?;
+        stmt.bind(6, settings.mail_from.trim())?;
+        stmt.bind(7, settings.mail_host.trim())?;
+        stmt.bind(8, settings.mail_password.trim())?;
+        stmt.bind(9, settings.mail_info_subject.trim())?;
+        stmt.bind(10, settings.mail_info_content.trim())?;
+        stmt.bind(11, settings.mail_overdue_subject.trim())?;
+        stmt.bind(12, settings.mail_overdue_content.trim())?;
+        stmt.bind(13, settings.mail_overdue2_subject.trim())?;
+        stmt.bind(14, settings.mail_overdue2_content.trim())?;
 
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);

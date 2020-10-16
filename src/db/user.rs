@@ -65,7 +65,9 @@ pub struct User {
 
 impl User {
     fn is_valid(&self) -> bool {
-        !self.account.is_empty() && !self.forename.is_empty() && !self.surname.is_empty()
+        !self.account.trim().is_empty()
+            && !self.forename.trim().is_empty()
+            && !self.surname.trim().is_empty()
     }
 }
 
@@ -100,6 +102,7 @@ pub trait DatabaseUser {
     /// Performes a simple user search with the given `text`.
     fn user_search(&self, text: &str) -> api::Result<DBIter<User>> {
         let mut stmt = self.db().prepare(QUERY_USERS)?;
+        let text = text.trim();
         stmt.bind(1, text)?;
         stmt.bind(2, text)?;
         stmt.bind(3, text)?;
@@ -110,13 +113,13 @@ pub trait DatabaseUser {
     /// Adds a new user.
     fn user_add(&self, user: &User) -> api::Result<()> {
         if !user.is_valid() {
-            return Err(api::Error::UserInvalid);
+            return Err(api::Error::InvalidUser);
         }
         let mut stmt = self.db().prepare(ADD_USER)?;
-        stmt.bind(1, user.account.as_str())?;
-        stmt.bind(2, user.forename.as_str())?;
-        stmt.bind(3, user.surname.as_str())?;
-        stmt.bind(4, user.role.as_str())?;
+        stmt.bind(1, user.account.trim())?;
+        stmt.bind(2, user.forename.trim())?;
+        stmt.bind(3, user.surname.trim())?;
+        stmt.bind(4, user.role.trim())?;
         stmt.bind(5, user.may_borrow as i64)?;
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
@@ -126,16 +129,17 @@ pub trait DatabaseUser {
 
     /// Updates the user and all references if its account changes.
     fn user_update(&self, previous_account: &str, user: &User) -> api::Result<()> {
-        if !user.is_valid() {
-            return Err(api::Error::UserInvalid);
+        let previous_account = previous_account.trim();
+        if previous_account.is_empty() || !user.is_valid() {
+            return Err(api::Error::InvalidUser);
         }
         let transaction = self.db().transaction()?;
         // update user
         let mut stmt = self.db().prepare(UPDATE_USER)?;
-        stmt.bind(1, user.account.as_str())?;
-        stmt.bind(2, user.forename.as_str())?;
-        stmt.bind(3, user.surname.as_str())?;
-        stmt.bind(4, user.role.as_str())?;
+        stmt.bind(1, user.account.trim())?;
+        stmt.bind(2, user.forename.trim())?;
+        stmt.bind(3, user.surname.trim())?;
+        stmt.bind(4, user.role.trim())?;
         stmt.bind(5, user.may_borrow as i64)?;
         stmt.bind(6, previous_account)?;
         if stmt.next()? != sqlite::State::Done {
@@ -144,7 +148,7 @@ pub trait DatabaseUser {
 
         // update borrows
         let mut stmt = self.db().prepare(UPDATE_USER_BORROWS)?;
-        stmt.bind(1, user.account.as_str())?;
+        stmt.bind(1, user.account.trim())?;
         stmt.bind(2, previous_account)?;
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
@@ -152,7 +156,7 @@ pub trait DatabaseUser {
 
         // update reservations
         let mut stmt = self.db().prepare(UPDATE_USER_RESERVATIONS)?;
-        stmt.bind(1, user.account.as_str())?;
+        stmt.bind(1, user.account.trim())?;
         stmt.bind(2, previous_account)?;
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
@@ -164,6 +168,10 @@ pub trait DatabaseUser {
     /// Deletes the user.
     /// This includes all its borrows & reservations.
     fn user_delete(&self, account: &str) -> api::Result<()> {
+        let account = account.trim();
+        if account.is_empty() {
+            return Err(api::Error::InvalidUser);
+        }
         let transaction = self.db().transaction()?;
         // remove user
         let mut stmt = self.db().prepare(DELETE_USER)?;

@@ -83,6 +83,7 @@
 .book.title,Title,Titel
 .book.unavaliable,Borrowed or Reserved,Ausgeliehen oder Vorgemerkt
 .book.year,Year,Anschaffungsjahr
+.book.invalid-isbn,The given ISBN is not valid,Die angegebene ISBN is fehlerhaft
 .category,Category,Kategorie
 .category.edit,Edit Categories,Kategorien bearbeiten
 .category.empty-input,Empty inputs are not allowed.,Leere Eingaben sind nicht erlaubt.

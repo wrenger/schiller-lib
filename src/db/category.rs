@@ -36,6 +36,14 @@ pub struct Category {
     pub section: String,
 }
 
+impl Category {
+    fn is_valid(&self) -> bool {
+        !self.id.trim().is_empty()
+            && !self.name.trim().is_empty()
+            && !self.section.trim().is_empty()
+    }
+}
+
 impl ReadStmt for Category {
     type Error = api::Error;
 
@@ -62,14 +70,14 @@ pub trait DatabaseCategory {
 
     /// Adds a new category.
     fn category_add(&self, category: &Category) -> api::Result<()> {
-        if category.id.is_empty() || category.name.is_empty() || category.section.is_empty() {
+        if !category.is_valid() {
             return Err(api::Error::InvalidArguments);
         }
 
         let mut stmt = self.db().prepare(ADD)?;
-        stmt.bind(1, category.id.as_str())?;
-        stmt.bind(2, category.name.as_str())?;
-        stmt.bind(3, category.section.as_str())?;
+        stmt.bind(1, category.id.trim())?;
+        stmt.bind(2, category.name.trim())?;
+        stmt.bind(3, category.section.trim())?;
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
         }
@@ -78,16 +86,16 @@ pub trait DatabaseCategory {
 
     /// Updates the category and all references.
     fn category_update(&self, id: &str, category: &Category) -> api::Result<()> {
-        if category.id.is_empty() || category.name.is_empty() || category.section.is_empty() {
+        if !category.is_valid() {
             return Err(api::Error::InvalidArguments);
         }
 
         let transaction = self.db().transaction()?;
         // Update category
         let mut stmt = self.db().prepare(UPDATE)?;
-        stmt.bind(1, category.id.as_str())?;
-        stmt.bind(2, category.name.as_str())?;
-        stmt.bind(3, category.section.as_str())?;
+        stmt.bind(1, category.id.trim())?;
+        stmt.bind(2, category.name.trim())?;
+        stmt.bind(3, category.section.trim())?;
         stmt.bind(4, id)?;
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
@@ -96,7 +104,7 @@ pub trait DatabaseCategory {
         if id != category.id {
             // Update category ids of related media
             let mut stmt = self.db().prepare(UPDATE_MEDIA)?;
-            stmt.bind(1, category.id.as_str())?;
+            stmt.bind(1, category.id.trim())?;
             stmt.bind(2, id)?;
             if stmt.next()? != sqlite::State::Done {
                 return Err(api::Error::SQLError);
@@ -109,6 +117,11 @@ pub trait DatabaseCategory {
 
     /// Removes the category, assuming it is not referenced anywhere.
     fn category_delete(&self, id: &str) -> api::Result<()> {
+        let id = id.trim();
+        if id.is_empty() {
+            return Err(api::Error::InvalidArguments);
+        }
+
         let transaction = self.db().transaction()?;
         // Do not allow the removal of used categories
         if self.category_references(id)? > 0 {
@@ -127,6 +140,11 @@ pub trait DatabaseCategory {
 
     /// Returns the number of books in this category.
     fn category_references(&self, id: &str) -> api::Result<i64> {
+        let id = id.trim();
+        if id.is_empty() {
+            return Err(api::Error::InvalidArguments);
+        }
+
         let mut stmt = self.db().prepare(REFERENCED)?;
         stmt.bind(1, id)?;
         if stmt.next()? != sqlite::State::Row {

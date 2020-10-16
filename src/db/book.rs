@@ -127,7 +127,9 @@ pub struct Book {
 
 impl Book {
     fn is_valid(&self) -> bool {
-        !self.id.is_empty() && !self.title.is_empty() && !self.category.is_empty()
+        !self.id.trim().is_empty()
+            && !self.title.trim().is_empty()
+            && !self.category.trim().is_empty()
     }
 }
 
@@ -212,7 +214,7 @@ impl gdnative::core_types::FromVariant for BookState {
     }
 }
 
-pub trait DatabaseBook{
+pub trait DatabaseBook {
     fn db(&self) -> &sqlite::Connection;
 
     /// Returns the book with the given `id`.
@@ -229,6 +231,7 @@ pub trait DatabaseBook{
     /// Performs a simple media search with the given `text`.
     fn book_search(&self, text: &str) -> api::Result<DBIter<Book>> {
         let mut stmt = self.db().prepare(SEARCH)?;
+        let text = text.trim();
         stmt.bind(1, text)?;
         stmt.bind(2, text)?;
         stmt.bind(3, text)?;
@@ -284,27 +287,32 @@ pub trait DatabaseBook{
     /// Adds a new book.
     fn book_add(&self, book: &Book) -> api::Result<()> {
         if !book.is_valid() {
-            return Err(api::Error::BookInvalid);
+            return Err(api::Error::InvalidBook);
         }
+        let isbn = if !book.isbn.trim().is_empty() {
+            crate::isbn::parse(&book.isbn).ok_or(api::Error::InvalidISBN)?
+        } else {
+            String::new()
+        };
         let transaction = self.db().transaction()?;
         let mut stmt = self.db().prepare(ADD)?;
-        stmt.bind(1, book.id.as_str())?;
-        stmt.bind(2, book.isbn.as_str())?;
-        stmt.bind(3, book.title.as_str())?;
-        stmt.bind(4, book.publisher.as_str())?;
+        stmt.bind(1, book.id.trim())?;
+        stmt.bind(2, isbn.trim())?;
+        stmt.bind(3, book.title.trim())?;
+        stmt.bind(4, book.publisher.trim())?;
         stmt.bind(5, book.year)?;
         stmt.bind(6, book.costs)?;
-        stmt.bind(7, book.note.as_str())?;
+        stmt.bind(7, book.note.trim())?;
         stmt.bind(8, book.borrowable as i64)?;
-        stmt.bind(9, book.category.as_str())?;
+        stmt.bind(9, book.category.trim())?;
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
         }
         // Add authors
         for author in &book.authors {
             let mut stmt = self.db().prepare(ADD_AUTHOR)?;
-            stmt.bind(1, author.as_str())?;
-            stmt.bind(2, book.id.as_str())?;
+            stmt.bind(1, author.trim())?;
+            stmt.bind(2, book.id.trim())?;
             if stmt.next()? != sqlite::State::Done {
                 return Err(api::Error::SQLError);
             }
@@ -315,21 +323,27 @@ pub trait DatabaseBook{
 
     /// Updates the book and all references if its id changes.
     fn book_update(&self, previous_id: &str, book: &Book) -> api::Result<()> {
-        if !book.is_valid() {
-            return Err(api::Error::BookInvalid);
+        let previous_id = previous_id.trim();
+        if previous_id.is_empty() || !book.is_valid() {
+            return Err(api::Error::InvalidBook);
         }
+        let isbn = if !book.isbn.trim().is_empty() {
+            crate::isbn::parse(&book.isbn).ok_or(api::Error::InvalidISBN)?
+        } else {
+            String::new()
+        };
         let transaction = self.db().transaction()?;
         // update book
         let mut stmt = self.db().prepare(UPDATE)?;
-        stmt.bind(1, book.id.as_str())?;
-        stmt.bind(2, book.isbn.as_str())?;
-        stmt.bind(3, book.title.as_str())?;
-        stmt.bind(4, book.publisher.as_str())?;
+        stmt.bind(1, book.id.trim())?;
+        stmt.bind(2, isbn.trim())?;
+        stmt.bind(3, book.title.trim())?;
+        stmt.bind(4, book.publisher.trim())?;
         stmt.bind(5, book.year)?;
         stmt.bind(6, book.costs)?;
-        stmt.bind(7, book.note.as_str())?;
+        stmt.bind(7, book.note.trim())?;
         stmt.bind(8, book.borrowable as i64)?;
-        stmt.bind(9, book.category.as_str())?;
+        stmt.bind(9, book.category.trim())?;
         stmt.bind(10, previous_id)?;
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
@@ -338,7 +352,7 @@ pub trait DatabaseBook{
         if previous_id != book.id {
             // update authors
             let mut stmt = self.db().prepare(UPDATE_AUTHORS)?;
-            stmt.bind(1, book.id.as_str())?;
+            stmt.bind(1, book.id.trim())?;
             stmt.bind(2, previous_id)?;
             if stmt.next()? != sqlite::State::Done {
                 return Err(api::Error::SQLError);
@@ -351,6 +365,11 @@ pub trait DatabaseBook{
     /// Deletes the book including the its authors.
     /// Also borrowers & reservations for this book are removed.
     fn book_delete(&self, id: &str) -> api::Result<()> {
+        let id = id.trim();
+        if id.is_empty() {
+            return Err(api::Error::InvalidBook);
+        }
+
         let transaction = self.db().transaction()?;
         let mut stmt = self.db().prepare(DELETE)?;
         stmt.bind(1, id)?;
@@ -367,19 +386,16 @@ pub trait DatabaseBook{
     /// Generates a new unique id based on the authors surname and the category.
     fn book_generate_id(&self, book: &Book) -> api::Result<String> {
         let prefix = id_prefix(
-            book
-                .authors
-                .first()
-                .map(|s| s.as_str())
-                .unwrap_or_default(),
-            &book.category,
+            book.authors.first().map(|s| s.trim()).unwrap_or_default(),
+            book.category.trim(),
         );
         println!("Prefix {}", prefix);
-        if book.id.starts_with(&prefix)
-            && book.id.len() > prefix.len() + 1
-            && &book.id[prefix.len()..prefix.len() + 1] == " "
+        let id = book.id.trim();
+        if id.starts_with(&prefix)
+            && id.len() > prefix.len() + 1
+            && &id[prefix.len()..prefix.len() + 1] == " "
         {
-            return Ok(book.id.clone());
+            return Ok(id.to_string());
         }
 
         let mut stmt = self.db().prepare(UNUSED_ID)?;

@@ -8,9 +8,12 @@ Cargo.lock
 /.import
 /export/**
 !/export/.gdignore
-/test/**
-!/test/.gdignore
 *.translation
+
+# Test data
+/test/*
+!/test/.gdignore
+!/test/dnb
 
 # Misc
 .vscode

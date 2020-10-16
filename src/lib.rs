@@ -1,5 +1,7 @@
 mod api;
 mod db;
+mod request;
+mod isbn;
 
 #[cfg(test)]
 mod tests {

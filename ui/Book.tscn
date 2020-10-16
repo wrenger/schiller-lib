@@ -17,25 +17,25 @@ __meta__ = {
 }
 
 [node name="IDLabel" type="Label" parent="."]
-margin_right = 141.0
+margin_right = 118.0
 margin_bottom = 22.0
 text = ".book.id"
 align = 2
 
 [node name="ID" type="HBoxContainer" parent="."]
-margin_left = 146.0
+margin_left = 123.0
 margin_right = 1024.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 
 [node name="Input" type="LineEdit" parent="ID"]
-margin_right = 862.0
+margin_right = 885.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 
 [node name="Generate" type="ToolButton" parent="ID"]
-margin_left = 866.0
-margin_right = 878.0
+margin_left = 889.0
+margin_right = 901.0
 margin_bottom = 22.0
 hint_tooltip = ".book.id.action"
 script = ExtResource( 2 )
@@ -46,27 +46,41 @@ target_property = "icon"
 
 [node name="ISBNLabel" type="Label" parent="."]
 margin_top = 27.0
-margin_right = 141.0
+margin_right = 118.0
 margin_bottom = 49.0
 text = ".book.isbn"
 align = 2
 
-[node name="ISBN" type="LineEdit" parent="."]
-margin_left = 146.0
+[node name="ISBN" type="HBoxContainer" parent="."]
+margin_left = 123.0
 margin_top = 27.0
 margin_right = 1024.0
 margin_bottom = 49.0
+
+[node name="Input" type="LineEdit" parent="ISBN"]
+margin_right = 885.0
+margin_bottom = 22.0
 size_flags_horizontal = 3
+
+[node name="Request" type="ToolButton" parent="ISBN"]
+margin_left = 889.0
+margin_right = 901.0
+margin_bottom = 22.0
+script = ExtResource( 2 )
+theme_class = "EditorIcons"
+theme_name = "AssetLib"
+theme_type = 2
+target_property = "icon"
 
 [node name="TitleLabel" type="Label" parent="."]
 margin_top = 54.0
-margin_right = 141.0
+margin_right = 118.0
 margin_bottom = 76.0
 text = ".book.title"
 align = 2
 
 [node name="Title" type="LineEdit" parent="."]
-margin_left = 146.0
+margin_left = 123.0
 margin_top = 54.0
 margin_right = 1024.0
 margin_bottom = 76.0
@@ -74,13 +88,13 @@ size_flags_horizontal = 3
 
 [node name="PublisherLabel" type="Label" parent="."]
 margin_top = 81.0
-margin_right = 141.0
+margin_right = 118.0
 margin_bottom = 103.0
 text = ".book.publisher"
 align = 2
 
 [node name="Publisher" type="LineEdit" parent="."]
-margin_left = 146.0
+margin_left = 123.0
 margin_top = 81.0
 margin_right = 1024.0
 margin_bottom = 103.0
@@ -88,20 +102,20 @@ size_flags_horizontal = 3
 
 [node name="AuthorsLabel" type="Label" parent="."]
 margin_top = 191.0
-margin_right = 141.0
+margin_right = 118.0
 margin_bottom = 213.0
 text = ".book.authors"
 align = 2
 
 [node name="Authors" type="HBoxContainer" parent="."]
-margin_left = 146.0
+margin_left = 123.0
 margin_top = 108.0
 margin_right = 1024.0
 margin_bottom = 296.0
 size_flags_vertical = 3
 
 [node name="List" type="Tree" parent="Authors"]
-margin_right = 862.0
+margin_right = 885.0
 margin_bottom = 188.0
 rect_min_size = Vector2( 0, 100 )
 size_flags_horizontal = 3
@@ -111,8 +125,8 @@ hide_root = true
 select_mode = 1
 
 [node name="Box" type="VBoxContainer" parent="Authors"]
-margin_left = 866.0
-margin_right = 878.0
+margin_left = 889.0
+margin_right = 901.0
 margin_bottom = 188.0
 
 [node name="Add" type="Button" parent="Authors/Box"]
@@ -136,13 +150,13 @@ target_property = "icon"
 
 [node name="PriceLabel" type="Label" parent="."]
 margin_top = 301.0
-margin_right = 141.0
+margin_right = 118.0
 margin_bottom = 323.0
 text = ".book.costs"
 align = 2
 
 [node name="Price" type="SpinBox" parent="."]
-margin_left = 146.0
+margin_left = 123.0
 margin_top = 301.0
 margin_right = 1024.0
 margin_bottom = 323.0
@@ -151,13 +165,13 @@ step = 0.1
 
 [node name="YearLabel" type="Label" parent="."]
 margin_top = 328.0
-margin_right = 141.0
+margin_right = 118.0
 margin_bottom = 350.0
 text = ".book.year"
 align = 2
 
 [node name="Year" type="SpinBox" parent="."]
-margin_left = 146.0
+margin_left = 123.0
 margin_top = 328.0
 margin_right = 1024.0
 margin_bottom = 350.0
@@ -170,13 +184,13 @@ allow_greater = true
 
 [node name="CategoryLabel" type="Label" parent="."]
 margin_top = 355.0
-margin_right = 141.0
+margin_right = 118.0
 margin_bottom = 377.0
 text = ".category"
 align = 2
 
 [node name="Category" type="OptionButton" parent="."]
-margin_left = 146.0
+margin_left = 123.0
 margin_top = 355.0
 margin_right = 1024.0
 margin_bottom = 377.0
@@ -186,13 +200,13 @@ script = ExtResource( 3 )
 
 [node name="NotesLabel" type="Label" parent="."]
 margin_top = 465.0
-margin_right = 141.0
+margin_right = 118.0
 margin_bottom = 487.0
 text = ".book.note"
 align = 2
 
 [node name="Notes" type="TextEdit" parent="."]
-margin_left = 146.0
+margin_left = 123.0
 margin_top = 382.0
 margin_right = 1024.0
 margin_bottom = 570.0
@@ -205,18 +219,20 @@ wrap_enabled = true
 
 [node name="BorrowableLabel" type="Label" parent="."]
 margin_top = 576.0
-margin_right = 141.0
+margin_right = 118.0
 margin_bottom = 598.0
 text = ".book.borrowable"
 align = 2
 
 [node name="Borrowable" type="CheckBox" parent="."]
-margin_left = 146.0
+margin_left = 123.0
 margin_top = 575.0
 margin_right = 1024.0
 margin_bottom = 599.0
 size_flags_horizontal = 3
-[connection signal="pressed" from="ID/Generate" to="." method="_on_generate_id"]
+[connection signal="pressed" from="ID/Generate" to="." method="generate_id"]
+[connection signal="text_entered" from="ISBN/Input" to="." method="_on_request"]
+[connection signal="pressed" from="ISBN/Request" to="." method="_on_request"]
 [connection signal="item_selected" from="Authors/List" to="." method="_on_author_selected"]
 [connection signal="pressed" from="Authors/Box/Add" to="." method="_on_author_add"]
 [connection signal="pressed" from="Authors/Box/Remove" to="." method="_on_author_remove"]

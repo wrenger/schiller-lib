@@ -8,7 +8,8 @@ onready var _project: Project = $"/root/Project"
 
 onready var _id := $ID/Input as LineEdit
 onready var _id_btn := $ID/Generate as Button
-onready var _isbn := $ISBN as LineEdit
+onready var _isbn := $ISBN/Input as LineEdit
+onready var _isbn_btn := $ISBN/Request as Button
 onready var _title := $Title as LineEdit
 onready var _publisher := $Publisher as LineEdit
 onready var _costs := $Price as SpinBox
@@ -39,12 +40,8 @@ func set_book(m: Dictionary):
         _costs.value = m.get("costs", 0.0)
         if m.has("year"): _year.value = m.year
         else: _year.value = Date.new().get_year()
-        _authors.clear()
-        if m.has("authors"):
-            var root := _authors.create_item() as TreeItem
-            for author in m.authors:
-                var item := _authors.create_item(root) as TreeItem
-                item.set_text(0, author)
+        if m.has("authors"): _set_authors(m.authors)
+        else: _authors.clear()
         if m.has("category"): _category.select_category(m.category)
         else: _category.select(0)
         _note.text = m.get("note", "")
@@ -87,6 +84,7 @@ func set_editable(e: bool):
         _id.editable = e
         _id_btn.visible = e
         _isbn.editable = e
+        _isbn_btn.visible = e
         _title.editable = e
         _publisher.editable = e
         _costs.editable = e
@@ -103,7 +101,15 @@ func set_editable(e: bool):
                 child = child.get_next()
 
 
-func _on_generate_id():
+func _set_authors(authors):
+    _authors.clear()
+    var root := _authors.create_item() as TreeItem
+    for author in authors:
+        var item := _authors.create_item(root) as TreeItem
+        item.set_text(0, author)
+
+
+func generate_id():
     if editable:
         var book = get_book()
         book.id = _id_before_edit # fallback if nothing changed
@@ -129,3 +135,26 @@ func _on_author_remove():
 
 func _on_author_selected():
      _authors_remove.disabled = _authors.get_selected() == null
+
+
+func _on_request(x = null) -> void:
+    var result: Dictionary = _project.settings_get()
+    if result.has("Err"):
+        MessageDialog.error_code(result["Err"])
+        return
+    var settings: Dictionary = result["Ok"]
+
+    # TODO: flexible provider selection & configuration
+    var provider = BookProvider.new()
+    provider.set_provider({DNB = {}})
+    provider.configure("token", settings.dnb_token)
+    result = provider.request(_isbn.text)
+    if result.has("Ok"):
+        var data: Dictionary = result["Ok"]
+        print(data)
+        _title.text = data.title
+        _set_authors(data.authors)
+        _costs.value = data.costs
+        _publisher.text = data.publisher
+    else:
+        MessageDialog.error("Request failed: error code: " + String(result["Err"]))
