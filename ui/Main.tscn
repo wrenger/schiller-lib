@@ -1,13 +1,13 @@
 [gd_scene load_steps=16 format=2]
 
-[ext_resource path="res://ui/SearchBooks.tscn" type="PackedScene" id=1]
+[ext_resource path="res://ui/book/SearchBooks.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/MenuEdit.gd" type="Script" id=2]
-[ext_resource path="res://ui/SearchUsers.tscn" type="PackedScene" id=3]
-[ext_resource path="res://ui/Overdues.tscn" type="PackedScene" id=4]
-[ext_resource path="res://ui/Settings.tscn" type="PackedScene" id=5]
+[ext_resource path="res://ui/user/SearchUsers.tscn" type="PackedScene" id=3]
+[ext_resource path="res://ui/overdues/Overdues.tscn" type="PackedScene" id=4]
+[ext_resource path="res://ui/settings/Settings.tscn" type="PackedScene" id=5]
 [ext_resource path="res://ui/NamedTabs.gd" type="Script" id=6]
-[ext_resource path="res://ui/LendDialog.tscn" type="PackedScene" id=7]
-[ext_resource path="res://ui/CategoryDialog.tscn" type="PackedScene" id=8]
+[ext_resource path="res://ui/book/LendDialog.tscn" type="PackedScene" id=7]
+[ext_resource path="res://ui/settings/CategoryDialog.tscn" type="PackedScene" id=8]
 [ext_resource path="res://ui/light.tres" type="Theme" id=9]
 [ext_resource path="res://ui/Main.gd" type="Script" id=11]
 [ext_resource path="res://ui/dark.tres" type="Theme" id=12]
@@ -97,7 +97,6 @@ margin_right = -5.0
 margin_bottom = -5.0
 
 [node name="LendDialog" parent="." instance=ExtResource( 7 )]
-visible = false
 
 [node name="ProjectDialog" type="FileDialog" parent="." groups=[
 "ProjectDialog",

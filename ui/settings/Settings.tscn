@@ -1,12 +1,18 @@
 [gd_scene load_steps=8 format=2]
 
-[ext_resource path="res://ui/Settings.gd" type="Script" id=1]
+[ext_resource path="res://ui/settings/Settings.gd" type="Script" id=1]
 [ext_resource path="res://ui/NamedTabs.gd" type="Script" id=2]
 [ext_resource path="res://ui/SpinBoxTr.gd" type="Script" id=3]
 [ext_resource path="res://ui/Shrink.gd" type="Script" id=4]
-[ext_resource path="res://ui/EditCategoriesButton.gd" type="Script" id=5]
-[ext_resource path="res://ui/Userfile.gd" type="Script" id=6]
-[ext_resource path="res://ui/UserUpdateRoles.gd" type="Script" id=7]
+[ext_resource path="res://ui/settings/EditCategoriesButton.gd" type="Script" id=5]
+[ext_resource path="res://ui/settings/Userfile.gd" type="Script" id=6]
+[ext_resource path="res://ui/settings/UserUpdateRoles.gd" type="Script" id=7]
+
+
+
+
+
+
 
 [node name="Settings" type="MarginContainer"]
 anchor_right = 1.0

@@ -17,7 +17,7 @@ _global_script_classes=[ {
 "base": "AcceptDialog",
 "class": "CategoryDialog",
 "language": "GDScript",
-"path": "res://ui/CategoryDialog.gd"
+"path": "res://ui/settings/CategoryDialog.gd"
 }, {
 "base": "OptionButton",
 "class": "CategorySelect",
@@ -32,7 +32,7 @@ _global_script_classes=[ {
 "base": "ConfirmationDialog",
 "class": "LendDialog",
 "language": "GDScript",
-"path": "res://ui/LendDialog.gd"
+"path": "res://ui/book/LendDialog.gd"
 }, {
 "base": "AcceptDialog",
 "class": "MessageDialog",
