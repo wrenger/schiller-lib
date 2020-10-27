@@ -69,7 +69,7 @@ func _on_project_selected(path: String, new: bool):
 
     _on_close_project()
     OS.set_window_title(ProjectSettings.get("application/config/name"))
-    MessageDialog.error(tr(result["Err"]))
+    MessageDialog.error_code(result["Err"])
 
 
 func persist_save() -> Dictionary:

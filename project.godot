@@ -59,6 +59,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/test/Test.gd"
 }, {
+"base": "",
+"class": "UserProvider",
+"language": "NativeScript",
+"path": "res://lib/UserProvider.gdns"
+}, {
 "base": "Reference",
 "class": "Util",
 "language": "GDScript",
@@ -75,6 +80,7 @@ _global_script_class_icons={
 "Project": "",
 "ProjectDialog": "",
 "Test": "",
+"UserProvider": "",
 "Util": ""
 }
 

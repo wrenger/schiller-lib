@@ -1,6 +1,6 @@
 mod api;
 mod db;
-mod request;
+mod provider;
 mod isbn;
 
 #[cfg(test)]

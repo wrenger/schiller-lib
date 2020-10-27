@@ -175,6 +175,20 @@ impl Project {
         db.user_delete(&account)
     }
 
+    /// Deletes the roles from all users and inserts the new roles.
+    ///
+    /// The roles of all users not contained in the given list are cleared.
+    #[export]
+    fn user_update_roles(&self, _owner: &Node, users: Vec<(String, String)>) -> api::Result<()> {
+        let _timer = debug::timer();
+        let db = self.db.as_ref().ok_or(Error::NoProject)?;
+        let users: Vec<(&str, &str)> = users
+            .iter()
+            .map(|(u, r)| (u.as_str(), r.as_str()))
+            .collect();
+        db.user_update_roles(&users)
+    }
+
     // Category
 
     /// Fetches and returns all categories.

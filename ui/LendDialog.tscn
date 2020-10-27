@@ -15,7 +15,7 @@ anchor_bottom = 0.5
 margin_left = -237.0
 margin_top = -104.0
 margin_right = 237.0
-margin_bottom = 104.0
+margin_bottom = 106.0
 popup_exclusive = true
 window_title = ""
 resizable = true
@@ -85,20 +85,37 @@ margin_bottom = 74.0
 text = "-"
 
 [node name="AddUser" type="VBoxContainer" parent="Box"]
+visible = false
 margin_top = 84.0
 margin_right = 458.0
 margin_bottom = 158.0
 script = ExtResource( 4 )
 editable = true
-account_path = NodePath("Account")
+account_path = NodePath("Account/Account")
 forename_path = NodePath("Name/Forename")
 surname_path = NodePath("Name/Surname")
 role_path = NodePath("Role")
+user_request = NodePath("Account/Request")
 
-[node name="Account" type="LineEdit" parent="Box/AddUser"]
+[node name="Account" type="HBoxContainer" parent="Box/AddUser"]
 margin_right = 458.0
 margin_bottom = 22.0
+
+[node name="Account" type="LineEdit" parent="Box/AddUser/Account"]
+margin_right = 442.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
 placeholder_text = ".user.account"
+
+[node name="Request" type="Button" parent="Box/AddUser/Account"]
+margin_left = 446.0
+margin_right = 458.0
+margin_bottom = 22.0
+script = ExtResource( 3 )
+theme_class = "EditorIcons"
+theme_name = "AssetLib"
+theme_type = 2
+target_property = "icon"
 
 [node name="Name" type="HBoxContainer" parent="Box/AddUser"]
 margin_top = 26.0
@@ -125,9 +142,9 @@ margin_bottom = 74.0
 placeholder_text = ".user.role"
 
 [node name="Period" type="VBoxContainer" parent="Box"]
-margin_top = 168.0
+margin_top = 84.0
 margin_right = 458.0
-margin_bottom = 216.0
+margin_bottom = 132.0
 
 [node name="Label" type="Label" parent="Box/Period"]
 margin_right = 458.0
@@ -148,9 +165,9 @@ suffix = ".book.period.days"
 script = ExtResource( 2 )
 
 [node name="State" type="Label" parent="Box"]
-margin_top = 226.0
+margin_top = 142.0
 margin_right = 458.0
-margin_bottom = 248.0
+margin_bottom = 164.0
 script = ExtResource( 3 )
 __meta__ = {
 "_edit_use_anchors_": false
@@ -161,3 +178,5 @@ target_property = "custom_colors/font_color"
 [connection signal="text_entered" from="Box/User/Search" to="." method="_on_user_input_entered"]
 [connection signal="index_pressed" from="Box/User/Search/Popup" to="." method="_on_user_selected"]
 [connection signal="pressed" from="Box/User/Search/ToolButton" to="." method="_on_user_input_entered" binds= [ "" ]]
+[connection signal="text_entered" from="Box/AddUser/Account/Account" to="Box/AddUser" method="_on_request"]
+[connection signal="pressed" from="Box/AddUser/Account/Request" to="Box/AddUser" method="_on_request"]

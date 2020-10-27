@@ -33,7 +33,7 @@ margin_right = 885.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 
-[node name="Generate" type="ToolButton" parent="ID"]
+[node name="Generate" type="Button" parent="ID"]
 margin_left = 889.0
 margin_right = 901.0
 margin_bottom = 22.0
@@ -62,7 +62,7 @@ margin_right = 885.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 
-[node name="Request" type="ToolButton" parent="ISBN"]
+[node name="Request" type="Button" parent="ISBN"]
 margin_left = 889.0
 margin_right = 901.0
 margin_bottom = 22.0

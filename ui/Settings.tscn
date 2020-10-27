@@ -1,10 +1,12 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://ui/Settings.gd" type="Script" id=1]
 [ext_resource path="res://ui/NamedTabs.gd" type="Script" id=2]
 [ext_resource path="res://ui/SpinBoxTr.gd" type="Script" id=3]
 [ext_resource path="res://ui/Shrink.gd" type="Script" id=4]
 [ext_resource path="res://ui/EditCategoriesButton.gd" type="Script" id=5]
+[ext_resource path="res://ui/Userfile.gd" type="Script" id=6]
+[ext_resource path="res://ui/UserUpdateRoles.gd" type="Script" id=7]
 
 [node name="Settings" type="MarginContainer"]
 anchor_right = 1.0
@@ -188,16 +190,16 @@ margin_bottom = 48.0
 margin_right = 322.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
-disabled = true
 text = ".alert.user.title"
+script = ExtResource( 6 )
 
 [node name="Update" type="Button" parent="Area/Center/SettingsPanel/Scroll/Box/User/Margin/Box/Box"]
 margin_left = 326.0
 margin_right = 648.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
-disabled = true
 text = ".pref.user.update"
+script = ExtResource( 7 )
 
 [node name="Request" type="VBoxContainer" parent="Area/Center/SettingsPanel/Scroll/Box"]
 margin_top = 272.0

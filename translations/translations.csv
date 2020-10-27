@@ -40,6 +40,7 @@
 .alert.overdue.none,There are currently no expired borrowing periods.,Momentan gibt es keine Überziehungen.
 .alert.update,Welcome to Version {0}.\nThe database has been updated successfully.,Willkommen zu Version {0}.\nDie Datenbank wurde erfolgreich aktualisiert.
 .alert.user.title,Select User File,Benutzerdatai auswählen
+.alert.user.updated,Updated user roles successfully,Benutzergruppen erfolgreich aktualisiert
 .alert.warning,Warning,Warnung
 .book,Book,Buch
 .book.authors,Authors,Autoren
@@ -119,6 +120,7 @@
 .error.user.existing,The user account '{0}' already exists.,Ein Benutzer mit dem Account '{0}' existiert bereits.
 .error.user.none,No user found.,Kein Benutzer gefunden.
 .error.userfile,The user file could not be opened.,Die Benutzerdatei konnte nicht geöffnet werden.
+.error.provider.config,Invalid value for {0},Invalider Wert für {0}
 .info.about,The development of this application started in the 11th grade computer science course in 2015. Lars Wrenger completed its development and now maintains the project.,"Dieses Programm ist 2015 im Rahmen des Jg. 11 Informatikkurses von Herrn Grave entstanden. Fertiggestellt wurde es von Lars Wrenger, der das Projekt nun betreut."
 .info.category-freq,Number of Books per Category:\n\n{0},Anzahl der Bücher in den Kategorien:\n\n{0}
 .info.help.title,Help,Hilfe
@@ -160,6 +162,7 @@
 .pref.request.header,Requesting Media Information,Anfrage von Mediendaten
 .pref.request.token,DNB Token,DNB Token
 .pref.title,Settings,Einstellungen
+.pref.user.path,User file,Benutzerdatei
 .pref.user.delimiter,Delimiter,Trennzeichen
 .pref.user.header,User,Benutzer
 .pref.user.update,Update Users,Benutzer aktualisieren

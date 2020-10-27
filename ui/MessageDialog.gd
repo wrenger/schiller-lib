@@ -3,6 +3,8 @@ class_name MessageDialog
 
 onready var window_content := $"../Content" as Control
 
+var _is_only_dialog := false
+
 static func alert(text: String):
     var scene: SceneTree = Engine.get_main_loop()
     var nodes = scene.get_nodes_in_group("MessageDialog")
@@ -36,8 +38,9 @@ func _error(text: String):
 
 
 func _popup_hide():
-    window_content.modulate.a = 1
+    if _is_only_dialog: window_content.modulate.a = 1
 
 
 func _about_to_show():
+    _is_only_dialog = window_content.modulate.a >= 1
     window_content.modulate.a = 0.5

@@ -137,17 +137,16 @@ func _on_author_selected():
      _authors_remove.disabled = _authors.get_selected() == null
 
 
-func _on_request(x = null) -> void:
+func _on_request(x = null):
     var result: Dictionary = _project.settings_get()
-    if result.has("Err"):
-        MessageDialog.error_code(result["Err"])
-        return
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
     var settings: Dictionary = result["Ok"]
 
     # TODO: flexible provider selection & configuration
     var provider = BookProvider.new()
     provider.set_provider({DNB = {}})
-    provider.configure("token", settings.dnb_token)
+    if provider.configure("token", settings.dnb_token).has("Err"):
+        return MessageDialog.error(Util.trf(".error.provider.config", [tr(".pref.request.token")]))
     result = provider.request(_isbn.text)
     if result.has("Ok"):
         var data: Dictionary = result["Ok"]

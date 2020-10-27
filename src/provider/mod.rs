@@ -1,5 +1,7 @@
 mod book;
-pub use book::{book, BookData, BookProvider, BookProviderType};
+mod user;
+pub use book::{book, BookData, BookProviderType};
+pub use user::{user, UserData, UserProviderType};
 
 #[repr(i64)]
 #[derive(Debug, Clone, Copy)]
@@ -18,6 +20,13 @@ impl gdnative::core_types::ToVariant for Error {
     }
 }
 
+impl From<std::io::Error> for Error {
+    fn from(e: std::io::Error) -> Error {
+        gdnative::godot_print!("File Error: {:?}", e);
+        Error::FileError
+    }
+}
+
 impl From<reqwest::Error> for Error {
     fn from(e: reqwest::Error) -> Error {
         gdnative::godot_print!("Network Error: {:?}", e);
@@ -32,4 +41,19 @@ impl From<roxmltree::Error> for Error {
     }
 }
 
+impl From<csv::Error> for Error {
+    fn from(e: csv::Error) -> Error {
+        gdnative::godot_print!("Invalid Format {:?}", e);
+        Error::InvalidFormat
+    }
+}
+
 pub type Result<T> = std::result::Result<T, Error>;
+
+/// Provider interface for loading data
+pub trait Provider<T> {
+    fn options(&self) -> Vec<String>;
+    fn configure(&mut self, key: &str, value: &str) -> Result<()>;
+    fn request(&self, id: &str) -> Result<T>;
+    fn bulk_request(&self, ids: &[&str]) -> Result<Vec<T>>;
+}

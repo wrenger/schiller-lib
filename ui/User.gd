@@ -8,12 +8,16 @@ export var forename_path: NodePath
 export var surname_path: NodePath
 export var role_path: NodePath
 export var may_borrow_path: NodePath
+export var user_request: NodePath
+
+onready var _project: Project = $"/root/Project"
 
 onready var _account: LineEdit = get_node(account_path)
 onready var _forename: LineEdit = get_node(forename_path)
 onready var _surname: LineEdit = get_node(surname_path)
 onready var _role: LineEdit = get_node(role_path)
 onready var _may_borrow: CheckBox = null
+onready var _user_request: Button = get_node(user_request)
 
 func _ready():
     set_editable(editable)
@@ -51,3 +55,27 @@ func set_editable(e: bool):
         _surname.editable = e
         _role.editable = e
         if _may_borrow: _may_borrow.disabled = not e
+        _user_request.visible = e
+
+
+func _on_request(x = null):
+    var result: Dictionary = _project.settings_get()
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+    var settings: Dictionary = result["Ok"]
+
+    # TODO: flexible provider selection & configuration
+    var provider = UserProvider.new()
+    provider.set_provider({CSV = {}})
+    if provider.configure("path", settings.user_path).has("Err"):
+        return MessageDialog.error(Util.trf(".error.provider.config", [tr(".pref.user.path")]))
+    if provider.configure("delimiter", settings.user_delimiter).has("Err"):
+        return MessageDialog.error(Util.trf(".error.provider.config", [tr(".pref.user.delimiter")]))
+    result = provider.request(_account.text)
+    if result.has("Ok"):
+        var data: Dictionary = result["Ok"]
+        _account.text = data.account
+        _forename.text = data.forename
+        _surname.text = data.surname
+        _role.text = data.role
+    else:
+        MessageDialog.error("Request failed: error code: " + String(result["Err"]))

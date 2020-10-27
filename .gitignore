@@ -1,12 +1,12 @@
 # Rust
 /.cargo_home
-/target/**
+/target/*
 !/target/.gdignore
 Cargo.lock
 
 # Godot
 /.import
-/export/**
+/export/*
 !/export/.gdignore
 *.translation
 
@@ -14,6 +14,7 @@ Cargo.lock
 /test/*
 !/test/.gdignore
 !/test/dnb
+!/test/csv
 
 # Misc
 .vscode

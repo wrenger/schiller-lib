@@ -1,5 +1,5 @@
 mod dnb;
-use crate::request;
+use crate::provider;
 
 #[derive(Debug, Default, PartialEq, gdnative::ToVariant, gdnative::FromVariant)]
 pub struct BookData {
@@ -20,14 +20,8 @@ impl BookProviderType {
     }
 }
 
-pub fn book(provider: BookProviderType) -> impl BookProvider {
+pub fn book(provider: BookProviderType) -> impl provider::Provider<BookData> {
     match provider {
-        BookProviderType::DNB => dnb::DNB::new(),
+        BookProviderType::DNB => dnb::DNB::default(),
     }
-}
-
-pub trait BookProvider {
-    fn options(&self) -> Vec<String>;
-    fn configure(&mut self, key: &str, value: &str) -> request::Result<()>;
-    fn request(&self, isbn: &str) -> request::Result<BookData>;
 }

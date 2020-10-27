@@ -52,9 +52,15 @@ const DELETE_UNUSED_USERS: &str = r#"
 update medium set reservation='' where reservation not in (select account from user);
 update medium set borrower='' where borrower not in (select account from user);
 "#;
+const DELETE_USER_ROLES: &str = r#"
+update user set role=''
+"#;
+const UPDATE_USER_ROLE: &str = r#"
+update user set role=? where account=?
+"#;
 
 /// Data object for a user.
-#[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
+#[derive(Debug, Clone, PartialEq, gdnative::ToVariant, gdnative::FromVariant)]
 pub struct User {
     pub account: String,
     pub forename: String,
@@ -184,5 +190,98 @@ pub trait DatabaseUser {
         self.db().execute(DELETE_UNUSED_USERS)?;
         transaction.commit()?;
         Ok(())
+    }
+
+    /// Deletes the roles from all users and inserts the new roles.
+    ///
+    /// The roles of all users not contained in the given list are cleared.
+    fn user_update_roles(&self, users: &[(&str, &str)]) -> api::Result<()> {
+        if users.is_empty() {
+            return Err(api::Error::LogicError);
+        }
+        let transaction = self.db().transaction()?;
+        self.db().execute(DELETE_USER_ROLES)?;
+
+        let mut stmt = self.db().prepare(UPDATE_USER_ROLE)?;
+        for &(account, role) in users {
+            let account = account.trim();
+            if !account.is_empty() {
+                stmt.bind(1, role.trim())?;
+                stmt.bind(2, account)?;
+                if stmt.next()? != sqlite::State::Done {
+                    return Err(api::Error::SQLError);
+                }
+                stmt.reset()?;
+            }
+        }
+        transaction.commit()?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::*;
+    use super::*;
+
+    #[test]
+    fn add_remove_users() {
+        let db = Database::memory().unwrap();
+        db.structure_create(PKG_VERSION).unwrap();
+
+        let user1 = User {
+            account: "foo.bar".into(),
+            forename: "Foo".into(),
+            surname: "Bar".into(),
+            role: "Demo".into(),
+            may_borrow: true,
+        };
+        db.user_add(&user1).unwrap();
+
+        let result: Vec<User> = db.user_search("").unwrap().collect();
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0], user1);
+
+        db.user_delete(&user1.account).unwrap();
+        let result: Vec<User> = db.user_search("").unwrap().collect();
+        assert_eq!(result.len(), 0);
+    }
+
+    #[test]
+    fn update_user_roles() {
+        let db = Database::memory().unwrap();
+        db.structure_create(PKG_VERSION).unwrap();
+
+        let mut user1 = User {
+            account: "foo.bar".into(),
+            forename: "Foo".into(),
+            surname: "Bar".into(),
+            role: "Demo".into(),
+            may_borrow: true,
+        };
+        let mut user2 = User {
+            account: "baz.boz".into(),
+            forename: "Baz".into(),
+            surname: "Boz".into(),
+            role: "Demo".into(),
+            may_borrow: true,
+        };
+        db.user_add(&user1).unwrap();
+        db.user_add(&user2).unwrap();
+
+        let result: Vec<User> = db.user_search("").unwrap().collect();
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0], user2);
+        assert_eq!(result[1], user1);
+
+        db.user_update_roles(&[("foo.bar", "Teacher")]).unwrap();
+
+        user1.role = "Teacher".into();
+        user2.role = "".into();
+
+        let result: Vec<User> = db.user_search("").unwrap().collect();
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0], user2);
+        assert_eq!(result[1], user1);
     }
 }

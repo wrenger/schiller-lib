@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://ui/User.gd" type="Script" id=1]
+[ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=2]
 
 [node name="User" type="GridContainer"]
 margin_right = 602.0
@@ -12,11 +13,12 @@ script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
-account_path = NodePath("Account")
+account_path = NodePath("Box/Account")
 forename_path = NodePath("Forename")
 surname_path = NodePath("Surname")
 role_path = NodePath("Role")
 may_borrow_path = NodePath("MayBorrow")
+user_request = NodePath("Box/Request")
 
 [node name="AccountLabel" type="Label" parent="."]
 margin_right = 116.0
@@ -24,11 +26,26 @@ margin_bottom = 22.0
 text = ".user.account"
 align = 2
 
-[node name="Account" type="LineEdit" parent="."]
+[node name="Box" type="HBoxContainer" parent="."]
 margin_left = 121.0
 margin_right = 602.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
+
+[node name="Account" type="LineEdit" parent="Box"]
+margin_right = 465.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
+
+[node name="Request" type="Button" parent="Box"]
+margin_left = 469.0
+margin_right = 481.0
+margin_bottom = 22.0
+script = ExtResource( 2 )
+theme_class = "EditorIcons"
+theme_name = "AssetLib"
+theme_type = 2
+target_property = "icon"
 
 [node name="ForenameLabel" type="Label" parent="."]
 margin_top = 27.0
@@ -91,3 +108,5 @@ margin_top = 108.0
 margin_right = 602.0
 margin_bottom = 132.0
 size_flags_horizontal = 3
+[connection signal="text_entered" from="Box/Account" to="." method="_on_request"]
+[connection signal="pressed" from="Box/Request" to="." method="_on_request"]

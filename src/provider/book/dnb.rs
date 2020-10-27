@@ -1,35 +1,36 @@
-use crate::request::{self, BookData, BookProvider};
+use crate::provider::{self, BookData, Provider};
 
 use unicode_normalization::UnicodeNormalization;
 
+#[derive(Default)]
 pub struct DNB {
     token: String,
 }
 
-impl DNB {
-    pub const fn new() -> DNB {
-        DNB {
-            token: String::new(),
-        }
-    }
-}
-
-impl BookProvider for DNB {
-    fn configure(&mut self, key: &str, value: &str) -> request::Result<()> {
+impl Provider<BookData> for DNB {
+    fn configure(&mut self, key: &str, value: &str) -> provider::Result<()> {
         if key == "token" {
             self.token = value.into();
             Ok(())
         } else {
-            Err(request::Error::InvalidConfig)
+            Err(provider::Error::InvalidConfig)
         }
     }
 
-    fn request(&self, isbn: &str) -> request::Result<BookData> {
+    fn request(&self, isbn: &str) -> provider::Result<BookData> {
         if self.token.is_empty() {
-            return Err(request::Error::InvalidConfig);
+            return Err(provider::Error::InvalidConfig);
         }
 
         request(&self.token, isbn).and_then(|response| parse(&response, isbn))
+    }
+
+    fn bulk_request(&self, isbns: &[&str]) -> provider::Result<Vec<BookData>> {
+        let mut result = Vec::with_capacity(isbns.len());
+        for isbn in isbns {
+            result.push(self.request(isbn)?);
+        }
+        Ok(result)
     }
 
     fn options(&self) -> Vec<String> {
@@ -37,7 +38,7 @@ impl BookProvider for DNB {
     }
 }
 
-fn request(token: &str, isbn: &str) -> request::Result<String> {
+fn request(token: &str, isbn: &str) -> provider::Result<String> {
     let url = format!("http://services.dnb.de/sru/accessToken~{}/dnb?version=1.1&operation=searchRetrieve&recordSchema=MARC21-xml&query=NUM%3D{}", token, isbn);
     Ok(reqwest::blocking::get(&url)?.text()?)
 }
@@ -60,7 +61,7 @@ const PUBLISHER_CODE: &str = "b";
 // Warning: legacy: 1 DM => 0.51129 EUR
 const DM_TO_EUR: f64 = 0.51129;
 
-fn parse(response: &str, isbn: &str) -> request::Result<BookData> {
+fn parse(response: &str, isbn: &str) -> provider::Result<BookData> {
     let document = roxmltree::Document::parse(response)?;
 
     let mut first_result = None;
@@ -71,7 +72,6 @@ fn parse(response: &str, isbn: &str) -> request::Result<BookData> {
     {
         for record in records.children() {
             let record = parse_record(record)?;
-            println!("Record parsed: {:?}", record);
             if record.isbns.iter().any(|e| e == isbn) {
                 return Ok(record.data);
             }
@@ -81,7 +81,7 @@ fn parse(response: &str, isbn: &str) -> request::Result<BookData> {
         }
     }
 
-    first_result.ok_or(request::Error::NothingFound)
+    first_result.ok_or(provider::Error::NothingFound)
 }
 
 #[derive(Debug, Default)]
@@ -90,7 +90,7 @@ struct Record {
     data: BookData,
 }
 
-fn parse_record(record: roxmltree::Node) -> request::Result<Record> {
+fn parse_record(record: roxmltree::Node) -> provider::Result<Record> {
     let mut r = Record::default();
     let mut persons = Vec::new();
     for datafield in record
