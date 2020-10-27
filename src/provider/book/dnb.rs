@@ -154,7 +154,6 @@ fn subfield(datafield: roxmltree::Node, code: &str) -> Option<String> {
 }
 
 fn parse_costs(costs: &str) -> f64 {
-    println!("costs {:?}", costs);
     if let Some(begin) = costs.find("EUR") {
         let begin = begin + 4;
         if begin < costs.len() {
@@ -187,7 +186,6 @@ mod tests {
     fn simple_request() {
         let dnb_token = std::env::var("SBV_DNB_TOKEN").unwrap();
         let response = request(&dnb_token, "9783570303337").unwrap();
-        println!("response {}", response);
         assert!(!response.is_empty());
         let data = parse(&response, "9783570303337").unwrap();
         assert_eq!(
