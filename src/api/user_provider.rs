@@ -1,6 +1,6 @@
 use gdnative::prelude::*;
 
-use crate::provider;
+use crate::api;
 use crate::provider::user::{UserData, CSV};
 
 struct Delimiter(u8);
@@ -51,12 +51,12 @@ impl UserCSVProvider {
     }
 
     #[export]
-    fn request(&self, _owner: &Reference, account: String) -> provider::Result<UserData> {
+    fn request(&self, _owner: &Reference, account: String) -> api::Result<UserData> {
         let account = account.trim();
         if !account.is_empty() {
             self.provider.request(account)
         } else {
-            Err(provider::Error::InvalidInput)
+            Err(api::Error::InvalidArguments)
         }
     }
 
@@ -65,7 +65,7 @@ impl UserCSVProvider {
         &self,
         _owner: &Reference,
         accounts: Vec<String>,
-    ) -> provider::Result<Vec<UserData>> {
+    ) -> api::Result<Vec<UserData>> {
         let accounts: Vec<&str> = accounts.iter().map(|a| a.trim()).collect();
         self.provider.bulk_request(&accounts)
     }

@@ -2,6 +2,7 @@ mod api;
 mod db;
 mod provider;
 mod isbn;
+mod mail;
 
 #[cfg(test)]
 mod tests {

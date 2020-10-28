@@ -4,9 +4,6 @@
 [ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=2]
 [ext_resource path="res://ui/overdues/OverduesTab.gd" type="Script" id=3]
 
-
-
-
 [node name="Overdues" type="MarginContainer"]
 anchor_right = 1.0
 anchor_bottom = 1.0

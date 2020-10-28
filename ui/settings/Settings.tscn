@@ -196,7 +196,7 @@ margin_bottom = 48.0
 margin_right = 322.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
-text = ".alert.user.title"
+text = ".alert.userfile"
 script = ExtResource( 6 )
 
 [node name="Update" type="Button" parent="Area/Center/SettingsPanel/Scroll/Box/User/Margin/Box/Box"]

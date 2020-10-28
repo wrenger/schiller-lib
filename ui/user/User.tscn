@@ -91,6 +91,7 @@ margin_top = 81.0
 margin_right = 602.0
 margin_bottom = 103.0
 size_flags_horizontal = 3
+placeholder_text = ".user.role.entry"
 
 [node name="MayBorrowLabel" type="Label" parent="."]
 margin_top = 109.0

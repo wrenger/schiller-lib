@@ -51,7 +51,7 @@ func _create():
 func _userfile():
     if not visible:
         popup_centered()
-        window_title = tr(".alert.user.title")
+        window_title = tr(".alert.userfile")
         filters = PoolStringArray(["*.csv ; CSV File"])
         mode = FileDialog.MODE_OPEN_FILE
         type = DialogType.USERFILE

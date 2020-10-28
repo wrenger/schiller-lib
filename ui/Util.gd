@@ -18,6 +18,9 @@ enum SbvError {
     FileNotFound,
     FileOpenError,
     SQLError,
+    NetworkError,
+    InvalidFormat,
+    NothingFound,
     # Specific errors
     InvalidBook,
     InvalidISBN,
@@ -42,6 +45,9 @@ static func error_msg(error: int) -> String:
         SbvError.FileNotFound: return TranslationServer.tr(".error.file-open")
         SbvError.FileOpenError: return TranslationServer.tr(".error.file-open")
         SbvError.SQLError: return TranslationServer.tr(".error.sql")
+        SbvError.NetworkError: return TranslationServer.tr(".error.network")
+        SbvError.InvalidFormat: return TranslationServer.tr(".error.format")
+        SbvError.NothingFound: return TranslationServer.tr(".error.none")
         SbvError.InvalidBook: return TranslationServer.tr(".book.invalid")
         SbvError.InvalidISBN: return TranslationServer.tr(".book.invalid-isbn")
         SbvError.InvalidUser: return TranslationServer.tr(".user.invalid")

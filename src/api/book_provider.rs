@@ -1,6 +1,6 @@
 use gdnative::prelude::*;
 
-use crate::provider;
+use crate::api;
 use crate::provider::book::{BookData, DNB};
 
 /// The BookDNBProvider wrapper "class"
@@ -21,11 +21,11 @@ impl BookDNBProvider {
 
     /// Perform a request to the DNB and fetch the metadata for the given isbn.
     #[export]
-    fn request(&self, _owner: &Reference, isbn: String) -> provider::Result<BookData> {
+    fn request(&self, _owner: &Reference, isbn: String) -> api::Result<BookData> {
         if let Some(isbn) = crate::isbn::parse(&isbn) {
             self.provider.request(&isbn)
         } else {
-            Err(provider::Error::InvalidInput)
+            Err(api::Error::InvalidArguments)
         }
     }
 

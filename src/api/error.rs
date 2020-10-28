@@ -9,6 +9,9 @@ pub enum Error {
     FileNotFound,
     FileOpenError,
     SQLError,
+    NetworkError,
+    InvalidFormat,
+    NothingFound,
     // Specific errors
     InvalidBook,
     InvalidISBN,
@@ -31,13 +34,6 @@ impl From<sqlite::Error> for Error {
     }
 }
 
-impl From<chrono::ParseError> for Error {
-    fn from(e: chrono::ParseError) -> Error {
-        godot_print!("chrono::ParseError: {}", e);
-        Error::LogicError
-    }
-}
-
 impl From<std::convert::Infallible> for Error {
     fn from(e: std::convert::Infallible) -> Error {
         godot_print!("convert::Infallible: {}", e);
@@ -45,9 +41,38 @@ impl From<std::convert::Infallible> for Error {
     }
 }
 
+impl From<std::io::Error> for Error {
+    fn from(e: std::io::Error) -> Error {
+        gdnative::godot_print!("File Error: {:?}", e);
+        Error::FileOpenError
+    }
+}
+
+impl From<csv::Error> for Error {
+    fn from(e: csv::Error) -> Error {
+        gdnative::godot_print!("Invalid Format {:?}", e);
+        Error::InvalidFormat
+    }
+}
+
+impl From<reqwest::Error> for Error {
+    fn from(e: reqwest::Error) -> Error {
+        gdnative::godot_print!("Network Error: {:?}", e);
+        Error::NetworkError
+    }
+}
+
+impl From<roxmltree::Error> for Error {
+    fn from(e: roxmltree::Error) -> Error {
+        gdnative::godot_print!("Invalid XML Format: {:?}", e);
+        Error::InvalidFormat
+    }
+}
+
 impl ToVariant for Error {
+    #[inline]
     fn to_variant(&self) -> Variant {
-        Variant::from_i64(*self as i64)
+        (*self as i64).to_variant()
     }
 }
 

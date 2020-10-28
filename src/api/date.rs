@@ -63,3 +63,10 @@ impl Date {
         (chrono::Local::today().naive_local() - self.date).num_days()
     }
 }
+
+impl From<chrono::ParseError> for api::Error {
+    fn from(e: chrono::ParseError) -> api::Error {
+        godot_print!("chrono::ParseError: {}", e);
+        api::Error::LogicError
+    }
+}

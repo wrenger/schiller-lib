@@ -66,6 +66,7 @@ size_flags_horizontal = 3
 margin_left = 889.0
 margin_right = 901.0
 margin_bottom = 22.0
+hint_tooltip = ".book.request"
 script = ExtResource( 3 )
 theme_class = "EditorIcons"
 theme_name = "AssetLib"

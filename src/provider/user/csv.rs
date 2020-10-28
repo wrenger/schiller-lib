@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
-use crate::provider::{self, user::UserData};
+use crate::api;
+use crate::provider::user::UserData;
 
 #[derive(Debug)]
 pub struct CSV {
@@ -28,7 +29,7 @@ impl Default for CSV {
 }
 
 impl CSV {
-    pub fn request(&self, account: &str) -> provider::Result<UserData> {
+    pub fn request(&self, account: &str) -> api::Result<UserData> {
         let reader = csv::ReaderBuilder::new()
             .has_headers(self.has_headers)
             .delimiter(self.delimiter)
@@ -38,7 +39,7 @@ impl CSV {
             let record = record?;
             if record
                 .get(self.column_account)
-                .ok_or(provider::Error::InvalidConfig)?
+                .ok_or(api::Error::InvalidArguments)?
                 .trim()
                 == account
             {
@@ -46,24 +47,24 @@ impl CSV {
                     account,
                     record
                         .get(self.column_forename)
-                        .ok_or(provider::Error::InvalidConfig)?
+                        .ok_or(api::Error::InvalidArguments)?
                         .trim(),
                     record
                         .get(self.column_surname)
-                        .ok_or(provider::Error::InvalidConfig)?
+                        .ok_or(api::Error::InvalidArguments)?
                         .trim(),
                     record
                         .get(self.column_role)
-                        .ok_or(provider::Error::InvalidConfig)?
+                        .ok_or(api::Error::InvalidArguments)?
                         .trim(),
                 ));
             }
         }
 
-        Err(provider::Error::NothingFound)
+        Err(api::Error::NothingFound)
     }
 
-    pub fn bulk_request(&self, accounts: &[&str]) -> provider::Result<Vec<UserData>> {
+    pub fn bulk_request(&self, accounts: &[&str]) -> api::Result<Vec<UserData>> {
         let reader = csv::ReaderBuilder::new()
             .has_headers(self.has_headers)
             .delimiter(self.delimiter)
@@ -76,22 +77,22 @@ impl CSV {
             let record = record?;
             let account = record
                 .get(self.column_account)
-                .ok_or(provider::Error::InvalidConfig)?
+                .ok_or(api::Error::InvalidArguments)?
                 .trim();
             if accounts.contains(&account) {
                 result.push(UserData::from(
                     account,
                     record
                         .get(self.column_forename)
-                        .ok_or(provider::Error::InvalidConfig)?
+                        .ok_or(api::Error::InvalidArguments)?
                         .trim(),
                     record
                         .get(self.column_surname)
-                        .ok_or(provider::Error::InvalidConfig)?
+                        .ok_or(api::Error::InvalidArguments)?
                         .trim(),
                     record
                         .get(self.column_role)
-                        .ok_or(provider::Error::InvalidConfig)?
+                        .ok_or(api::Error::InvalidArguments)?
                         .trim(),
                 ));
             }

@@ -9,7 +9,7 @@
 config_version=4
 
 _global_script_classes=[ {
-"base": "",
+"base": "Reference",
 "class": "BookDNBProvider",
 "language": "NativeScript",
 "path": "res://lib/BookDNBProvider.gdns"
@@ -33,6 +33,11 @@ _global_script_classes=[ {
 "class": "LendDialog",
 "language": "GDScript",
 "path": "res://ui/book/LendDialog.gd"
+}, {
+"base": "Reference",
+"class": "Mailer",
+"language": "NativeScript",
+"path": "res://lib/Mailer.gdns"
 }, {
 "base": "AcceptDialog",
 "class": "MessageDialog",
@@ -59,7 +64,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/test/Test.gd"
 }, {
-"base": "",
+"base": "Reference",
 "class": "UserCSVProvider",
 "language": "NativeScript",
 "path": "res://lib/UserCSVProvider.gdns"
@@ -75,6 +80,7 @@ _global_script_class_icons={
 "CategorySelect": "",
 "Date": "",
 "LendDialog": "",
+"Mailer": "",
 "MessageDialog": "",
 "ObjectList": "",
 "Project": "",

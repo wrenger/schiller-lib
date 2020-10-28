@@ -1,4 +1,5 @@
-use crate::provider::{self, book::BookData};
+use crate::api;
+use crate::provider::book::BookData;
 
 use unicode_normalization::UnicodeNormalization;
 
@@ -12,16 +13,16 @@ pub struct DNB {
 }
 
 impl DNB {
-    pub fn request(&self, isbn: &str) -> provider::Result<BookData> {
+    pub fn request(&self, isbn: &str) -> api::Result<BookData> {
         if self.token.is_empty() {
-            return Err(provider::Error::InvalidConfig);
+            return Err(api::Error::InvalidArguments);
         }
 
         request(&self.token, isbn).and_then(|response| parse(&response, isbn))
     }
 }
 
-fn request(token: &str, isbn: &str) -> provider::Result<String> {
+fn request(token: &str, isbn: &str) -> api::Result<String> {
     let url = format!(
         "http://services.dnb.de/sru/accessToken~{}/dnb?version=1.1&operation=searchRetrieve&recordSchema=MARC21-xml&query=NUM%3D{}",
         token, isbn);
@@ -48,7 +49,7 @@ const PUBLISHER_CODE: &str = "b";
 // Warning: legacy: 1 DM => 0.51129 EUR
 const DM_TO_EUR: f64 = 0.51129;
 
-fn parse(response: &str, isbn: &str) -> provider::Result<BookData> {
+fn parse(response: &str, isbn: &str) -> api::Result<BookData> {
     let document = roxmltree::Document::parse(response)?;
 
     let mut first_result = None;
@@ -68,7 +69,7 @@ fn parse(response: &str, isbn: &str) -> provider::Result<BookData> {
         }
     }
 
-    first_result.ok_or(provider::Error::NothingFound)
+    first_result.ok_or(api::Error::NothingFound)
 }
 
 #[derive(Debug, Default)]
@@ -77,7 +78,7 @@ struct Record {
     data: BookData,
 }
 
-fn parse_record(record: roxmltree::Node) -> provider::Result<Record> {
+fn parse_record(record: roxmltree::Node) -> api::Result<Record> {
     let mut r = Record::default();
     let mut persons = Vec::new();
     for datafield in record

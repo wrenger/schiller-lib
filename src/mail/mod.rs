@@ -1,0 +1,69 @@
+use crate::api;
+
+use lettre::message::{header::ContentType, Mailbox, SinglePartBuilder};
+use lettre::transport::smtp::authentication::Credentials;
+use lettre::{Address, Message, SmtpTransport, Transport};
+
+pub fn send(
+    host: &str,
+    password: &str,
+    from: &str,
+    to: &str,
+    subject: &str,
+    body: &str,
+) -> api::Result<()> {
+    let email = Message::builder()
+        .from(Mailbox::new(None, Address::new(from, host)?))
+        .to(Mailbox::new(None, Address::new(to, host)?))
+        .subject(subject)
+        .singlepart(
+            SinglePartBuilder::new()
+                .content_type(ContentType::text_utf8())
+                .body(body),
+        )?;
+
+    // Open a remote connection to gmail
+    let mailer = SmtpTransport::relay(host)?
+        .credentials(Credentials::new(from.to_string(), password.to_string()))
+        .build();
+
+    // Send the email
+    mailer.send(&email)?;
+    Ok(())
+}
+
+impl From<lettre::address::AddressError> for api::Error {
+    fn from(e: lettre::address::AddressError) -> Self {
+        gdnative::godot_print!("Invalid Mail Address {:?}", e);
+        api::Error::InvalidArguments
+    }
+}
+impl From<lettre::error::Error> for api::Error {
+    fn from(e: lettre::error::Error) -> Self {
+        gdnative::godot_print!("Invalid Mail Format {:?}", e);
+        api::Error::InvalidArguments
+    }
+}
+impl From<lettre::transport::smtp::Error> for api::Error {
+    fn from(e: lettre::transport::smtp::Error) -> Self {
+        gdnative::godot_print!("Mail SMTP Error {:?}", e);
+        api::Error::NetworkError
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    #[ignore]
+    fn send_mail() {
+        super::send(
+            &std::env::var("SBV_MAIL_HOST").unwrap(),
+            &std::env::var("SBV_MAIL_PASSWORD").unwrap(),
+            &std::env::var("SBV_MAIL_FROM").unwrap(),
+            &std::env::var("SBV_MAIL_TO").unwrap(),
+            "Test Mail",
+            "Test Content 🔥",
+        )
+        .unwrap();
+    }
+}
