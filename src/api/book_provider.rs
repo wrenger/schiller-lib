@@ -1,60 +1,49 @@
-use std::cell::RefCell;
-
 use gdnative::prelude::*;
 
-use crate::provider::{self, Provider, BookData, BookProviderType};
+use crate::provider;
+use crate::provider::book::{BookData, DNB};
 
-/// The BookProvider wrapper "class"
+/// The BookDNBProvider wrapper "class"
 #[derive(NativeClass)]
 #[inherit(Reference)]
-pub struct BookProvider {
-    provider: Option<Box<RefCell<dyn Provider<BookData>>>>,
+#[register_with(Self::register)]
+pub struct BookDNBProvider {
+    provider: DNB,
 }
 
 #[methods]
-impl BookProvider {
+impl BookDNBProvider {
     fn new(_owner: &Reference) -> Self {
-        BookProvider { provider: None }
-    }
-
-    #[export]
-    fn get_providers(&self, _owner: &Reference) -> Vec<BookProviderType> {
-        BookProviderType::values()
-    }
-
-    #[export]
-    fn set_provider(&mut self, _owner: &Reference, provider: BookProviderType) {
-        self.provider = Some(Box::new(RefCell::new(provider::book(provider))))
-    }
-
-    #[export]
-    fn get_options(&self, _owner: &Reference) -> Vec<String> {
-        if let Some(provider) = &self.provider {
-            provider.borrow().options()
-        } else {
-            Vec::new()
+        BookDNBProvider {
+            provider: DNB::default(),
         }
     }
 
-    #[export]
-    fn configure(&self, _owner: &Reference, key: String, value: String) -> provider::Result<()> {
-        if let Some(provider) = &self.provider {
-            provider.borrow_mut().configure(&key, &value)
-        } else {
-            Err(provider::Error::InvalidConfig)
-        }
-    }
-
+    /// Perform a request to the DNB and fetch the metadata for the given isbn.
     #[export]
     fn request(&self, _owner: &Reference, isbn: String) -> provider::Result<BookData> {
         if let Some(isbn) = crate::isbn::parse(&isbn) {
-            if let Some(provider) = &self.provider {
-                provider.borrow().request(&isbn)
-            } else {
-                Err(provider::Error::InvalidConfig)
-            }
+            self.provider.request(&isbn)
         } else {
             Err(provider::Error::InvalidInput)
         }
+    }
+
+    // Properties
+
+    fn register(builder: &ClassBuilder<Self>) {
+        builder
+            .add_property::<GodotString>("token")
+            .with_getter(Self::get_token)
+            .with_setter(Self::set_token)
+            .done();
+    }
+
+    fn get_token(&self, _owner: TRef<Reference>) -> GodotString {
+        GodotString::from_str(&self.provider.token)
+    }
+
+    fn set_token(&mut self, _owner: TRef<Reference>, token: GodotString) {
+        self.provider.token = token.to_string();
     }
 }

@@ -64,12 +64,11 @@ func _on_request(x = null):
     var settings: Dictionary = result["Ok"]
 
     # TODO: flexible provider selection & configuration
-    var provider = UserProvider.new()
-    provider.set_provider({CSV = {}})
-    if provider.configure("path", settings.user_path).has("Err"):
-        return MessageDialog.error(Util.trf(".error.provider.config", [tr(".pref.user.path")]))
-    if provider.configure("delimiter", settings.user_delimiter).has("Err"):
+    var provider = UserCSVProvider.new()
+    provider.path = settings.user_path
+    if len(settings.user_delimiter) != 1:
         return MessageDialog.error(Util.trf(".error.provider.config", [tr(".pref.user.delimiter")]))
+    provider.delimiter = settings.user_delimiter
     result = provider.request(_account.text)
     if result.has("Ok"):
         var data: Dictionary = result["Ok"]

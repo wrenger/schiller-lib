@@ -10,9 +10,9 @@ config_version=4
 
 _global_script_classes=[ {
 "base": "",
-"class": "BookProvider",
+"class": "BookDNBProvider",
 "language": "NativeScript",
-"path": "res://lib/BookProvider.gdns"
+"path": "res://lib/BookDNBProvider.gdns"
 }, {
 "base": "AcceptDialog",
 "class": "CategoryDialog",
@@ -60,9 +60,9 @@ _global_script_classes=[ {
 "path": "res://ui/test/Test.gd"
 }, {
 "base": "",
-"class": "UserProvider",
+"class": "UserCSVProvider",
 "language": "NativeScript",
-"path": "res://lib/UserProvider.gdns"
+"path": "res://lib/UserCSVProvider.gdns"
 }, {
 "base": "Reference",
 "class": "Util",
@@ -70,7 +70,7 @@ _global_script_classes=[ {
 "path": "res://ui/Util.gd"
 } ]
 _global_script_class_icons={
-"BookProvider": "",
+"BookDNBProvider": "",
 "CategoryDialog": "",
 "CategorySelect": "",
 "Date": "",
@@ -80,7 +80,7 @@ _global_script_class_icons={
 "Project": "",
 "ProjectDialog": "",
 "Test": "",
-"UserProvider": "",
+"UserCSVProvider": "",
 "Util": ""
 }
 

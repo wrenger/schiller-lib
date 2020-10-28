@@ -1,7 +1,5 @@
-mod book;
-mod user;
-pub use book::{book, BookData, BookProviderType};
-pub use user::{user, UserData, UserProviderType};
+pub mod book;
+pub mod user;
 
 #[repr(i64)]
 #[derive(Debug, Clone, Copy)]
@@ -49,11 +47,3 @@ impl From<csv::Error> for Error {
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
-
-/// Provider interface for loading data
-pub trait Provider<T> {
-    fn options(&self) -> Vec<String>;
-    fn configure(&mut self, key: &str, value: &str) -> Result<()>;
-    fn request(&self, id: &str) -> Result<T>;
-    fn bulk_request(&self, ids: &[&str]) -> Result<Vec<T>>;
-}

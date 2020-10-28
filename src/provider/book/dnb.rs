@@ -1,47 +1,34 @@
-use crate::provider::{self, BookData, Provider};
+use crate::provider::{self, book::BookData};
 
 use unicode_normalization::UnicodeNormalization;
 
-#[derive(Default)]
+/// Provider for dnb requests.
+///
+/// ## See Also
+/// https://www.dnb.de/EN/Professionell/Metadatendienste/Datenbezug/SRU/sru_node.html
+#[derive(Debug, Default, gdnative::FromVariant, gdnative::ToVariant)]
 pub struct DNB {
-    token: String,
+    pub token: String,
 }
 
-impl Provider<BookData> for DNB {
-    fn configure(&mut self, key: &str, value: &str) -> provider::Result<()> {
-        if key == "token" {
-            self.token = value.into();
-            Ok(())
-        } else {
-            Err(provider::Error::InvalidConfig)
-        }
-    }
-
-    fn request(&self, isbn: &str) -> provider::Result<BookData> {
+impl DNB {
+    pub fn request(&self, isbn: &str) -> provider::Result<BookData> {
         if self.token.is_empty() {
             return Err(provider::Error::InvalidConfig);
         }
 
         request(&self.token, isbn).and_then(|response| parse(&response, isbn))
     }
-
-    fn bulk_request(&self, isbns: &[&str]) -> provider::Result<Vec<BookData>> {
-        let mut result = Vec::with_capacity(isbns.len());
-        for isbn in isbns {
-            result.push(self.request(isbn)?);
-        }
-        Ok(result)
-    }
-
-    fn options(&self) -> Vec<String> {
-        vec!["token".into()]
-    }
 }
 
 fn request(token: &str, isbn: &str) -> provider::Result<String> {
-    let url = format!("http://services.dnb.de/sru/accessToken~{}/dnb?version=1.1&operation=searchRetrieve&recordSchema=MARC21-xml&query=NUM%3D{}", token, isbn);
+    let url = format!(
+        "http://services.dnb.de/sru/accessToken~{}/dnb?version=1.1&operation=searchRetrieve&recordSchema=MARC21-xml&query=NUM%3D{}",
+        token, isbn);
     Ok(reqwest::blocking::get(&url)?.text()?)
 }
+
+// MARC21 Parsing
 
 const ISBN_COSTS_TAG: &str = "020";
 const ISBN_CODE: &str = "a";
@@ -201,8 +188,7 @@ mod tests {
 
     #[test]
     fn parse_single_record() {
-        let response =
-            fs::read_to_string("test/dnb/dnb-response_9783570303337.xml").unwrap();
+        let response = fs::read_to_string("test/dnb/dnb-response_9783570303337.xml").unwrap();
         let data = parse(&response, "9783570303337").unwrap();
         assert_eq!(
             data,
@@ -217,8 +203,7 @@ mod tests {
 
     #[test]
     fn parse_multiple_records() {
-        let response =
-            fs::read_to_string("test/dnb/dnb-response_3440040585.xml").unwrap();
+        let response = fs::read_to_string("test/dnb/dnb-response_3440040585.xml").unwrap();
         let data = parse(&response, "3440040585").unwrap();
         assert_eq!(
             data,
@@ -233,8 +218,7 @@ mod tests {
 
     #[test]
     fn parse_no_authors() {
-        let response =
-            fs::read_to_string("test/dnb/dnb-response_9783060016150.xml").unwrap();
+        let response = fs::read_to_string("test/dnb/dnb-response_9783060016150.xml").unwrap();
         let data = parse(&response, "9783060016150").unwrap();
         assert_eq!(
             data,

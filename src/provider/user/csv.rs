@@ -1,23 +1,22 @@
 use std::collections::HashSet;
-use std::path::PathBuf;
 
-use crate::provider::{self, Provider, UserData};
+use crate::provider::{self, user::UserData};
 
 #[derive(Debug)]
 pub struct CSV {
-    path: PathBuf,
-    delimiter: u8,
-    has_headers: bool,
-    column_account: usize,
-    column_forename: usize,
-    column_surname: usize,
-    column_role: usize,
+    pub path: String,
+    pub delimiter: u8,
+    pub has_headers: bool,
+    pub column_account: usize,
+    pub column_forename: usize,
+    pub column_surname: usize,
+    pub column_role: usize,
 }
 
 impl Default for CSV {
     fn default() -> CSV {
         CSV {
-            path: PathBuf::new(),
+            path: String::new(),
             delimiter: b',',
             has_headers: false,
             column_account: 0,
@@ -28,58 +27,8 @@ impl Default for CSV {
     }
 }
 
-impl Provider<UserData> for CSV {
-    fn configure(&mut self, key: &str, value: &str) -> provider::Result<()> {
-        let value = value.trim();
-        match key {
-            "path" => {
-                if !value.is_empty() {
-                    self.path = PathBuf::from(value)
-                } else {
-                    return Err(provider::Error::InvalidConfig);
-                }
-            }
-            "delimiter" => {
-                if value.chars().count() == 1 && value.is_ascii() {
-                    self.delimiter =
-                        value.chars().next().ok_or(provider::Error::InvalidConfig)? as u32 as u8
-                } else {
-                    return Err(provider::Error::InvalidConfig);
-                }
-            }
-            "has_headers" => {
-                self.has_headers = value.parse().map_err(|_| provider::Error::InvalidConfig)?
-            }
-            "column_account" => {
-                self.column_account = value.parse().map_err(|_| provider::Error::InvalidConfig)?
-            }
-            "column_forename" => {
-                self.column_forename = value.parse().map_err(|_| provider::Error::InvalidConfig)?
-            }
-            "column_surname" => {
-                self.column_surname = value.parse().map_err(|_| provider::Error::InvalidConfig)?
-            }
-            "column_role" => {
-                self.column_role = value.parse().map_err(|_| provider::Error::InvalidConfig)?
-            }
-            _ => return Err(provider::Error::InvalidConfig),
-        }
-        Ok(())
-    }
-
-    fn options(&self) -> Vec<String> {
-        vec![
-            "path".into(),
-            "delimiter".into(),
-            "has_headers".into(),
-            "column_account".into(),
-            "column_forename".into(),
-            "column_surname".into(),
-            "column_role".into(),
-        ]
-    }
-
-    fn request(&self, account: &str) -> provider::Result<UserData> {
+impl CSV {
+    pub fn request(&self, account: &str) -> provider::Result<UserData> {
         let reader = csv::ReaderBuilder::new()
             .has_headers(self.has_headers)
             .delimiter(self.delimiter)
@@ -114,7 +63,7 @@ impl Provider<UserData> for CSV {
         Err(provider::Error::NothingFound)
     }
 
-    fn bulk_request(&self, accounts: &[&str]) -> provider::Result<Vec<UserData>> {
+    pub fn bulk_request(&self, accounts: &[&str]) -> provider::Result<Vec<UserData>> {
         let reader = csv::ReaderBuilder::new()
             .has_headers(self.has_headers)
             .delimiter(self.delimiter)
@@ -184,10 +133,10 @@ mod tests {
 
     #[test]
     fn request_single() {
-        let mut csv_provider = CSV::default();
-        csv_provider
-            .configure("path", "test/csv/users.csv")
-            .unwrap();
+        let csv_provider = CSV {
+            path: "test/csv/users.csv".into(),
+            ..CSV::default()
+        };
         assert_eq!(
             csv_provider.request("callen.lawson").unwrap(),
             UserData::from("callen.lawson", "Callen", "Lawson", "Person")
@@ -204,10 +153,10 @@ mod tests {
 
     #[test]
     fn request_multiple() {
-        let mut csv_provider = CSV::default();
-        csv_provider
-            .configure("path", "test/csv/users.csv")
-            .unwrap();
+        let csv_provider = CSV {
+            path: "test/csv/users.csv".into(),
+            ..CSV::default()
+        };
         let result = csv_provider
             .bulk_request(&["charlotte.penn", "callen.lawson", "safah.scott"])
             .unwrap();

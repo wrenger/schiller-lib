@@ -143,10 +143,8 @@ func _on_request(x = null):
     var settings: Dictionary = result["Ok"]
 
     # TODO: flexible provider selection & configuration
-    var provider = BookProvider.new()
-    provider.set_provider({DNB = {}})
-    if provider.configure("token", settings.dnb_token).has("Err"):
-        return MessageDialog.error(Util.trf(".error.provider.config", [tr(".pref.request.token")]))
+    var provider = BookDNBProvider.new()
+    provider.token = settings.dnb_token
     result = provider.request(_isbn.text)
     if result.has("Ok"):
         var data: Dictionary = result["Ok"]

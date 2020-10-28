@@ -9,12 +9,11 @@ func _pressed():
     var settings: Dictionary = result["Ok"]
 
     # TODO: flexible provider selection & configuration
-    var provider = UserProvider.new()
-    provider.set_provider({CSV = {}})
-    if provider.configure("path", settings.user_path).has("Err"):
-        return MessageDialog.error(Util.trf(".error.provider.config", [tr(".pref.user.path")]))
-    if provider.configure("delimiter", settings.user_delimiter).has("Err"):
+    var provider = UserCSVProvider.new()
+    provider.path = settings.user_path
+    if len(settings.user_delimiter) != 1:
         return MessageDialog.error(Util.trf(".error.provider.config", [tr(".pref.user.delimiter")]))
+    provider.delimiter = settings.user_delimiter
 
     # collect all user accounts
     result = _project.user_search("")
