@@ -71,8 +71,7 @@ func _default_if_empty():
 
 
 func _on_save() -> void:
-    if _settings.empty():
-        return
+    if _settings.empty(): return
     var settings := get_settings()
     var result: Dictionary = _project.settings_update(settings)
     if result.has("Err"):

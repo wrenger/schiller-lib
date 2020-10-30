@@ -23,6 +23,14 @@ static func error_code(code: int):
     if nodes: nodes.front()._error(Util.error_msg(code))
 
 
+func _ready() -> void:
+    var result := OK
+    result = connect("popup_hide", self, "_popup_hide")
+    assert(result == OK)
+    result = connect("about_to_show", self, "_about_to_show")
+    assert(result == OK)
+
+
 func _alert(text: String):
     if not visible:
         dialog_text = text

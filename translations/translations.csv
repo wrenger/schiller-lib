@@ -29,7 +29,7 @@
 .alert.mail.send.cancel,The transfer was canceled.\nIt will be tried again on the next application startup.,Emailversand abgebrochen.\nBeim Neustart des Programms wird es erneut versucht.
 .alert.mail.send.content,Sending Mails,Versende Emails
 .alert.mail.send.error,The mail transfer failed.,Fehler beim senden der Emails.
-.alert.mail.send.error.to,Transfer failed for the users:\n{0},Fehler beim senden der Emails an:\n{0}
+.alert.mail.send.error.to,Transfer failed for the users:,Fehler beim senden der Emails an:
 .alert.mail.send.success,Finished sending mails.,Senden der Mahnungen erfolgreich.
 .alert.mail.send.title,Mail,Emailversand
 .alert.open-project,Select Project Database,Projekt-Datenbank auswählen

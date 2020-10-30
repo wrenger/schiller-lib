@@ -40,17 +40,16 @@ func _open():
     _add_id.clear()
     _add_name.clear()
     _add_section.clear()
+    _list.clear()
     _status.text = ""
 
     var result: Dictionary = _project.category_list()
-    if result.has("Ok"):
-        _list.clear()
-        var root := _list.create_item()
-        for category in result["Ok"]:
-            set_category(_list.create_item(root), category)
-        popup_centered()
-    else:
-        MessageDialog.error_code(result["Err"])
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+
+    var root := _list.create_item()
+    for category in result["Ok"]:
+        set_category(_list.create_item(root), category)
+    popup_centered()
 
 
 func set_category(item: TreeItem, category: Dictionary):
@@ -77,6 +76,7 @@ func _on_add() -> void:
         _add_id.clear()
         _add_name.clear()
         _add_section.clear()
+        _status.text = ""
     elif result["Err"] == Util.SbvError.InvalidArguments:
         _status.text = tr(".category.empty-input")
     else:
@@ -90,6 +90,7 @@ func _on_delete() -> void:
         if result.has("Ok"):
             item.deselect(0)
             _list.get_root().remove_child(item)
+            _status.text = ""
         elif result["Err"] == Util.SbvError.LogicError:
             _status.text = tr(".category.not-empty.del")
         else:
@@ -110,6 +111,7 @@ func _on_edited() -> void:
     var result: Dictionary = _project.category_update(category_backup.id, category)
     if result.has("Ok"):
         item.set_meta("category_backup", category)
+        _status.text = ""
     elif result["Err"] == Util.SbvError.InvalidArguments:
         set_category(item, category_backup)
         _status.text = tr(".category.empty-input")
@@ -121,10 +123,9 @@ func _on_edited() -> void:
 func _popup_hide():
     _window_content.modulate.a = 1
     var result: Dictionary = _project.category_list()
-    if result.has("Ok"):
-        emit_signal("categories_changed", result["Ok"])
-    else:
-        MessageDialog.error_code(result["Err"])
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+
+    emit_signal("categories_changed", result["Ok"])
 
 
 func _about_to_show():

@@ -36,17 +36,17 @@ func set_book(book: Dictionary):
         if borrowed:
             var date := Date.new()
             date.set_iso(book.deadline)
-            _book_state.text = tr(".book.borrowed.by").replace("{0}", book.borrower).replace("{1}", date.get_local())
+            _book_state.text = Util.trf(".book.borrowed.by", [book.borrower, date.get_local()])
         if reserved:
             if book.borrower:
                 _book_state.text += "\n"
-            _book_state.text += tr(".book.reserved.by").replace("{0}", book.reservation)
+            _book_state.text += Util.trf(".book.reserved.by", [book.reservation])
         if not borrowed and not reserved:
             _book_state.text = tr(".book.available")
 
         _book_lend.visible = book.borrowable and not borrowed and not reserved
         _book_lend_to.visible = not borrowed and reserved
-        if reserved: _book_lend_to.text = tr(".book.lend.to").replace("{0}", book.reservation)
+        if reserved: _book_lend_to.text = Util.trf(".book.lend.to", [book.reservation])
         _book_revoke.visible = borrowed
         _book_reserve.visible = borrowed and not reserved
         _book_release.visible = reserved
@@ -81,11 +81,10 @@ func _on_reserve():
 func _on_release():
     var book: Dictionary = _book_pane.book
     var result: Dictionary = _project.lending_release(book)
-    if result.has("Ok"):
-        set_book(result["Ok"])
-        emit_signal("update_book", result["Ok"])
-    else:
-        MessageDialog.error_code(result["Err"])
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+
+    set_book(result["Ok"])
+    emit_signal("update_book", result["Ok"])
 
 
 func _on_revoke():
@@ -94,6 +93,13 @@ func _on_revoke():
     if result.has("Ok"):
         set_book(result["Ok"])
         emit_signal("update_book", result["Ok"])
+
+        if book.reservation:
+            var confirmed = yield(ConfirmDialog.open(Util.trf(".book.revoke.reminder", [book.reservation])), "response")
+            if confirmed:
+                result = _project.user_fetch(book.reservation)
+                if result.has("Ok"):
+                    MailDialog.info(result["Ok"], book.title)
     else:
         MessageDialog.error_code(result["Err"])
 
@@ -141,30 +147,27 @@ func _on_edit_cancel():
 func _on_edit_add():
     var book: Dictionary = _book_pane.book
     var result: Dictionary = _project.book_add(book)
-    if result.has("Ok"):
-        set_book(book)
-        emit_signal("add_book", book)
-        _before_edit = {}
-    else:
-        MessageDialog.error_code(result["Err"])
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+
+    set_book(book)
+    emit_signal("add_book", book)
+    _before_edit = {}
 
 
 func _on_edit_apply():
     var book: Dictionary = _book_pane.book
     var result: Dictionary = _project.book_update(_before_edit.id, book)
-    if result.has("Ok"):
-        set_book(book)
-        emit_signal("update_book", book)
-        _before_edit = {}
-    else:
-        MessageDialog.error_code(result["Err"])
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+
+    set_book(book)
+    emit_signal("update_book", book)
+    _before_edit = {}
 
 
 func _on_edit_delete():
     var result: Dictionary = _project.book_delete(_before_edit.id)
-    if result.has("Ok"):
-        set_book({})
-        emit_signal("update_book", {})
-        _before_edit = {}
-    else:
-        MessageDialog.error_code(result["Err"])
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+
+    set_book({})
+    emit_signal("update_book", {})
+    _before_edit = {}

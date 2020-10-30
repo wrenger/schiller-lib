@@ -10,15 +10,16 @@ func _enter_tree():
 
         if result.error:
             print("Error parsing ui settings: ", result.error_string)
-        else:
-            var settings := result.result as Dictionary
-            if settings:
-                for key in settings.keys():
-                    var node := get_node(key)
-                    if node and node.is_in_group("Persist"):
-                        node.persist_load(settings[key])
-                    else:
-                        print("Error missing node: ", key)
+            return
+
+        var settings := result.result as Dictionary
+        if settings:
+            for key in settings.keys():
+                var node := get_node(key)
+                if node and node.is_in_group("Persist"):
+                    node.persist_load(settings[key])
+                else:
+                    push_error("Error missing node: " + key)
 
 
 func _exit_tree():

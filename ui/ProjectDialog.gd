@@ -26,7 +26,12 @@ static func userfile(scene: SceneTree):
 
 
 func _ready() -> void:
-    var result := connect("file_selected", self, "_on_file_selected")
+    var result := OK
+    result = connect("popup_hide", self, "_popup_hide")
+    assert(result == OK)
+    result = connect("about_to_show", self, "_about_to_show")
+    assert(result == OK)
+    result = connect("file_selected", self, "_on_file_selected")
     assert(result == OK)
 
 

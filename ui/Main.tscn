@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=2]
+[gd_scene load_steps=18 format=2]
 
 [ext_resource path="res://ui/book/SearchBooks.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/MenuEdit.gd" type="Script" id=2]
@@ -9,11 +9,13 @@
 [ext_resource path="res://ui/book/LendDialog.tscn" type="PackedScene" id=7]
 [ext_resource path="res://ui/settings/CategoryDialog.tscn" type="PackedScene" id=8]
 [ext_resource path="res://ui/light.tres" type="Theme" id=9]
+[ext_resource path="res://ui/ConfirmDialog.gd" type="Script" id=10]
 [ext_resource path="res://ui/Main.gd" type="Script" id=11]
 [ext_resource path="res://ui/dark.tres" type="Theme" id=12]
 [ext_resource path="res://ui/MessageDialog.gd" type="Script" id=13]
 [ext_resource path="res://ui/ProjectDialog.gd" type="Script" id=14]
 [ext_resource path="res://ui/Persistant.gd" type="Script" id=15]
+[ext_resource path="res://ui/MailDialog.tscn" type="PackedScene" id=16]
 [ext_resource path="res://ui/MenuFile.gd" type="Script" id=17]
 
 [node name="MainWindow" type="Panel" groups=[
@@ -144,6 +146,32 @@ __meta__ = {
 [node name="CategoryDialog" parent="." instance=ExtResource( 8 )]
 visible = false
 
+[node name="ConfirmDialog" type="ConfirmationDialog" parent="." groups=[
+"ConfirmDialog",
+]]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -100.0
+margin_top = -35.0
+margin_right = 100.0
+margin_bottom = 35.0
+popup_exclusive = true
+window_title = ".alert.confirm"
+resizable = true
+script = ExtResource( 10 )
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": ""
+}
+
+[node name="MailDialog" parent="." instance=ExtResource( 16 )]
+margin_left = -137.5
+margin_top = -33.5
+margin_right = 137.5
+margin_bottom = 33.5
+
 [node name="Persist" type="Node" parent="."]
 script = ExtResource( 15 )
 [connection signal="menu_close" from="Content/Menu/File" to="." method="_on_close_project"]
@@ -152,8 +180,4 @@ script = ExtResource( 15 )
 [connection signal="theme_changed" from="Content/Menu/Edit" to="." method="_on_theme_changed"]
 [connection signal="show_user_books" from="Content/Tabs/Users" to="Content/Tabs/Books" method="show_user_books"]
 [connection signal="show_book" from="Content/Tabs/Overdues" to="Content/Tabs/Books" method="show_book"]
-[connection signal="about_to_show" from="ProjectDialog" to="ProjectDialog" method="_about_to_show"]
-[connection signal="popup_hide" from="ProjectDialog" to="ProjectDialog" method="_popup_hide"]
 [connection signal="project_selected" from="ProjectDialog" to="." method="_on_project_selected"]
-[connection signal="about_to_show" from="MessageDialog" to="MessageDialog" method="_about_to_show"]
-[connection signal="popup_hide" from="MessageDialog" to="MessageDialog" method="_popup_hide"]

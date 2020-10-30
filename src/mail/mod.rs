@@ -1,8 +1,11 @@
+use std::time::Duration;
+
 use crate::api;
 
 use lettre::message::{header::ContentType, Mailbox, SinglePartBuilder};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Address, Message, SmtpTransport, Transport};
+use unicode_normalization::UnicodeNormalization;
 
 pub fn send(
     host: &str,
@@ -12,6 +15,11 @@ pub fn send(
     subject: &str,
     body: &str,
 ) -> api::Result<()> {
+    // Change encoding of äöü to ascii
+    let subject = subject.nfc().collect::<String>();
+    let body = body.nfc().collect::<String>();
+
+    // Create mail
     let email = Message::builder()
         .from(Mailbox::new(None, Address::new(from, host)?))
         .to(Mailbox::new(None, Address::new(to, host)?))
@@ -22,9 +30,10 @@ pub fn send(
                 .body(body),
         )?;
 
-    // Open a remote connection to gmail
+    // Open tls encrypted smtp connection
     let mailer = SmtpTransport::relay(host)?
         .credentials(Credentials::new(from.to_string(), password.to_string()))
+        .timeout(Some(Duration::from_secs(1)))
         .build();
 
     // Send the email
@@ -61,8 +70,8 @@ mod tests {
             &std::env::var("SBV_MAIL_PASSWORD").unwrap(),
             &std::env::var("SBV_MAIL_FROM").unwrap(),
             &std::env::var("SBV_MAIL_TO").unwrap(),
-            "Test Mail",
-            "Test Content 🔥",
+            "Test Mail 🚧",
+            "Test Content 🚧",
         )
         .unwrap();
     }

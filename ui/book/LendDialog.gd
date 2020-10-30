@@ -49,9 +49,8 @@ func _lend(book_panel: Control, book: Dictionary, user: Dictionary):
         _book = book
         _set_user(user)
         var result: Dictionary = _project.settings_get()
-        if result.has("Err"):
-            MessageDialog.error_code(result["Err"])
-            return
+        if result.has("Err"): return MessageDialog.error_code(result["Err"])
+
         _period.value = result["Ok"].borrowing_duration
         _period_panel.visible = true
         _state.text = ""

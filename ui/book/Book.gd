@@ -146,12 +146,11 @@ func _on_request(x = null):
     var provider = BookDNBProvider.new()
     provider.token = settings.dnb_token
     result = provider.request(_isbn.text)
-    if result.has("Ok"):
-        var data: Dictionary = result["Ok"]
-        print(data)
-        _title.text = data.title
-        _set_authors(data.authors)
-        _costs.value = data.costs
-        _publisher.text = data.publisher
-    else:
-        MessageDialog.error("Request failed: error code: " + String(result["Err"]))
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+
+    var data: Dictionary = result["Ok"]
+    print(data)
+    _title.text = data.title
+    _set_authors(data.authors)
+    _costs.value = data.costs
+    _publisher.text = data.publisher
