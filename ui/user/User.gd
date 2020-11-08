@@ -58,7 +58,7 @@ func set_editable(e: bool):
         _user_request.visible = e
 
 
-func _on_request(x = null):
+func _on_request(_x = null):
     var result: Dictionary = _project.settings_get()
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
     var settings: Dictionary = result["Ok"]

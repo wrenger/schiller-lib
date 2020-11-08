@@ -2,8 +2,10 @@ extends MenuButton
 
 signal theme_changed(dark)
 
+export var theme_icon: String
 export var theme_dark: Theme
 export var theme_light: Theme
+export var settings_icon: String
 
 var _dark: bool = true
 
@@ -11,15 +13,17 @@ func _ready():
     var menu := get_popup()
     menu.add_check_item(tr(".pref.appearance.dark"))
     menu.set_item_checked(0, _dark)
+    menu.add_separator()
+    menu.add_shortcut(Util.create_shortcut(tr(".pref.title"), KEY_COMMA))
 
     var error := menu.connect("index_pressed", self, "_on_index_pressed")
     assert(error == OK)
 
 
 func _on_index_pressed(index: int):
-    print(name, ":_on_index_pressed ", index)
     match index:
         0: _set_theme(not get_popup().is_item_checked(0))
+        2: SettingsDialog.open()
 
 
 func _set_theme(dark: bool):

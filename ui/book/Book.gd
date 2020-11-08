@@ -137,7 +137,7 @@ func _on_author_selected():
      _authors_remove.disabled = _authors.get_selected() == null
 
 
-func _on_request(x = null):
+func _on_request(_x = null):
     var result: Dictionary = _project.settings_get()
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
     var settings: Dictionary = result["Ok"]
@@ -149,7 +149,6 @@ func _on_request(x = null):
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
     var data: Dictionary = result["Ok"]
-    print(data)
     _title.text = data.title
     _set_authors(data.authors)
     _costs.value = data.costs

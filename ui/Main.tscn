@@ -4,7 +4,6 @@
 [ext_resource path="res://ui/MenuEdit.gd" type="Script" id=2]
 [ext_resource path="res://ui/user/SearchUsers.tscn" type="PackedScene" id=3]
 [ext_resource path="res://ui/overdues/Overdues.tscn" type="PackedScene" id=4]
-[ext_resource path="res://ui/settings/Settings.tscn" type="PackedScene" id=5]
 [ext_resource path="res://ui/NamedTabs.gd" type="Script" id=6]
 [ext_resource path="res://ui/book/LendDialog.tscn" type="PackedScene" id=7]
 [ext_resource path="res://ui/settings/CategoryDialog.tscn" type="PackedScene" id=8]
@@ -17,6 +16,7 @@
 [ext_resource path="res://ui/Persistant.gd" type="Script" id=15]
 [ext_resource path="res://ui/MailDialog.tscn" type="PackedScene" id=16]
 [ext_resource path="res://ui/MenuFile.gd" type="Script" id=17]
+[ext_resource path="res://ui/settings/SettingsDialog.tscn" type="PackedScene" id=18]
 
 [node name="MainWindow" type="Panel" groups=[
 "CategoryChanger",
@@ -57,8 +57,10 @@ margin_right = 165.0
 margin_bottom = 22.0
 text = ".action.edit"
 script = ExtResource( 2 )
+theme_icon = "CanvasItem"
 theme_dark = ExtResource( 12 )
 theme_light = ExtResource( 9 )
+settings_icon = "Tools"
 
 [node name="Tabs" type="TabContainer" parent="Content"]
 margin_top = 26.0
@@ -69,7 +71,7 @@ size_flags_vertical = 3
 tab_align = 0
 script = ExtResource( 6 )
 editor_icons = [ "Search", "Search", "Time", "Tools" ]
-labels = [ ".search.book", ".search.user", ".alert.overdue", ".pref.title" ]
+labels = [ ".search.book", ".search.user", ".alert.overdue" ]
 
 [node name="Books" parent="Content/Tabs" instance=ExtResource( 1 )]
 margin_left = 5.0
@@ -85,13 +87,6 @@ margin_right = -5.0
 margin_bottom = -5.0
 
 [node name="Overdues" parent="Content/Tabs" instance=ExtResource( 4 )]
-visible = false
-margin_left = 5.0
-margin_top = 29.0
-margin_right = -5.0
-margin_bottom = -5.0
-
-[node name="Settings" parent="Content/Tabs" instance=ExtResource( 5 )]
 visible = false
 margin_left = 5.0
 margin_top = 29.0
@@ -171,6 +166,15 @@ margin_left = -137.5
 margin_top = -33.5
 margin_right = 137.5
 margin_bottom = 33.5
+
+[node name="SettingsDialog" parent="." groups=[
+"SettingsDialog",
+] instance=ExtResource( 18 )]
+margin_left = -348.0
+margin_top = -360.5
+margin_right = 348.0
+margin_bottom = 360.5
+rect_min_size = Vector2( 0, 0 )
 
 [node name="Persist" type="Node" parent="."]
 script = ExtResource( 15 )
