@@ -23,6 +23,7 @@ func _ready():
 func _on_index_pressed(index: int):
     match index:
         0: _set_theme(not get_popup().is_item_checked(0))
+        1: pass # separator
         2: SettingsDialog.open()
 
 

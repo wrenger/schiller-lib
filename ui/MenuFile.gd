@@ -20,4 +20,5 @@ func _on_index_pressed(index: int):
     match index:
         0: emit_signal("menu_new")
         1: emit_signal("menu_open")
-        2: emit_signal("menu_close")
+        2: pass # separator
+        3: emit_signal("menu_close")

@@ -23,9 +23,9 @@ var _user: Dictionary = {}
 var _user_result := []
 
 
-static func lend(book_panel: Control, book: Dictionary, user: Dictionary = {}):
+static func lend(book_panel: Control, book: Dictionary, account: String = ""):
     var nodes = book_panel.get_tree().get_nodes_in_group("LendDialog")
-    if nodes: nodes.front()._lend(book_panel, book, user)
+    if nodes: nodes.front()._lend(book_panel, book, account)
 
 
 static func reserve(book_panel: Control, book: Dictionary):
@@ -43,11 +43,18 @@ func _ready() -> void:
     assert(result == OK)
 
 
-func _lend(book_panel: Control, book: Dictionary, user: Dictionary):
+func _lend(book_panel: Control, book: Dictionary, account: String):
     if not visible:
         _book_panel = book_panel
         _book = book
-        _set_user(user)
+
+        if account:
+            var result: Dictionary = _project.user_fetch(account)
+            if result.has("Err"): return MessageDialog.error_code(result["Err"])
+            _set_user(result["Ok"])
+        else:
+            _set_user({})
+
         var result: Dictionary = _project.settings_get()
         if result.has("Err"): return MessageDialog.error_code(result["Err"])
 

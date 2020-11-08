@@ -23,8 +23,11 @@ func _ready():
         set_column_min_width(i, column_sizes[i])
         set_column_expand(i, column_expand[i] != 0)
 
+    for node in get_tree().get_nodes_in_group("ProjectChanger"):
+        node.connect("project_changed", self, "fill")
 
-func fill(rows: Array):
+
+func fill(rows: Array = []):
     clear()
     var _root := create_item()
     for object in rows:

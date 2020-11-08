@@ -9,6 +9,7 @@ onready var _book_pane := $Book as Control
 onready var _book_state := $State as Label
 onready var _book_lend := $Lend as Control
 onready var _book_lend_to := $LendTo as Control
+onready var _book_renew := $Renew as Control
 onready var _book_revoke := $Revoke as Control
 onready var _book_reserve := $Reserve as Control
 onready var _book_release := $Release as Control
@@ -46,6 +47,7 @@ func set_book(book: Dictionary):
 
         _book_lend.visible = book.borrowable and not borrowed and not reserved
         _book_lend_to.visible = not borrowed and reserved
+        _book_renew.visible = borrowed and not reserved
         if reserved: _book_lend_to.text = Util.trf(".book.lend.to", [book.reservation])
         _book_revoke.visible = borrowed
         _book_reserve.visible = borrowed and not reserved
@@ -57,21 +59,18 @@ func set_book(book: Dictionary):
     _book_pane.editable = false
 
 
-func _on_book_selected(book: Dictionary):
-    set_book(book)
-
-
 func _on_lend():
     LendDialog.lend(self, _book_pane.book)
 
 
 func _on_lend_to():
     var book: Dictionary = _book_pane.book
-    var result: Dictionary = _project.user_fetch(book.reservation)
-    if result.has("Ok"):
-        LendDialog.lend(self, book, result["Ok"])
-    else:
-        MessageDialog.error_code(result["Err"])
+    LendDialog.lend(self, book, book.reservation)
+
+
+func _on_renew():
+    var book: Dictionary = _book_pane.book
+    LendDialog.lend(self, book, book.borrower)
 
 
 func _on_reserve():
@@ -113,6 +112,7 @@ func _on_edit():
     _before_edit = _book_pane.book
     _book_lend.visible = false
     _book_lend_to.visible = false
+    _book_renew.visible = false
     _book_revoke.visible = false
     _book_reserve.visible = false
     _book_release.visible = false
@@ -128,6 +128,7 @@ func _on_add_book():
     _book_pane.book = {}
     _book_lend.visible = false
     _book_lend_to.visible = false
+    _book_renew.visible = false
     _book_revoke.visible = false
     _book_reserve.visible = false
     _book_release.visible = false

@@ -31,6 +31,8 @@ func _ready() -> void:
     assert(result == OK)
     result = get_cancel().connect("pressed", self, "_cancelled")
     assert(result == OK)
+    result = get_close_button().connect("pressed", self, "_cancelled")
+    assert(result == OK)
 
 
 func _cancelled():

@@ -10,6 +10,9 @@ func _ready():
     set_column_min_width(1, 200)
     set_column_min_width(2, 100)
 
+    for node in get_tree().get_nodes_in_group("ProjectChanger"):
+        node.connect("project_changed", self, "reload")
+
 
 func reload():
     clear()
