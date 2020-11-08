@@ -24,7 +24,7 @@ func select_category(id: String):
 
 
 func get_selected_category_id() -> String:
-    if selected >= 0:
+    if selected > 0:
         var text: String = get_item_text(selected)
         return text.split(" - ", true, 1)[0]
     return ""
