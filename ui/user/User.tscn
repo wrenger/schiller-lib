@@ -22,25 +22,25 @@ user_request = NodePath("Box/Request")
 
 [node name="AccountLabel" type="Label" parent="."]
 margin_right = 116.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 text = ".user.account"
 align = 2
 
 [node name="Box" type="HBoxContainer" parent="."]
 margin_left = 121.0
 margin_right = 602.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 size_flags_horizontal = 3
 
 [node name="Account" type="LineEdit" parent="Box"]
 margin_right = 465.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 size_flags_horizontal = 3
 
 [node name="Request" type="Button" parent="Box"]
 margin_left = 469.0
 margin_right = 481.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 script = ExtResource( 2 )
 theme_class = "EditorIcons"
 theme_name = "AssetLib"
@@ -48,37 +48,37 @@ theme_type = 2
 target_property = "icon"
 
 [node name="ForenameLabel" type="Label" parent="."]
-margin_top = 27.0
+margin_top = 31.0
 margin_right = 116.0
-margin_bottom = 49.0
+margin_bottom = 57.0
 text = ".user.forename"
 align = 2
 
 [node name="Forename" type="LineEdit" parent="."]
 margin_left = 121.0
-margin_top = 27.0
+margin_top = 31.0
 margin_right = 602.0
-margin_bottom = 49.0
+margin_bottom = 57.0
 size_flags_horizontal = 3
 
 [node name="SurnameLabel" type="Label" parent="."]
-margin_top = 54.0
+margin_top = 62.0
 margin_right = 116.0
-margin_bottom = 76.0
+margin_bottom = 88.0
 text = ".user.surname"
 align = 2
 
 [node name="Surname" type="LineEdit" parent="."]
 margin_left = 121.0
-margin_top = 54.0
+margin_top = 62.0
 margin_right = 602.0
-margin_bottom = 76.0
+margin_bottom = 88.0
 size_flags_horizontal = 3
 
 [node name="RoleLabel" type="Label" parent="."]
-margin_top = 81.0
+margin_top = 93.0
 margin_right = 116.0
-margin_bottom = 103.0
+margin_bottom = 119.0
 text = ".user.role"
 align = 2
 __meta__ = {
@@ -87,16 +87,16 @@ __meta__ = {
 
 [node name="Role" type="LineEdit" parent="."]
 margin_left = 121.0
-margin_top = 81.0
+margin_top = 93.0
 margin_right = 602.0
-margin_bottom = 103.0
+margin_bottom = 119.0
 size_flags_horizontal = 3
 placeholder_text = ".user.role.entry"
 
 [node name="MayBorrowLabel" type="Label" parent="."]
-margin_top = 109.0
+margin_top = 125.0
 margin_right = 116.0
-margin_bottom = 131.0
+margin_bottom = 151.0
 text = ".user.permission"
 align = 2
 __meta__ = {
@@ -105,9 +105,9 @@ __meta__ = {
 
 [node name="MayBorrow" type="CheckBox" parent="."]
 margin_left = 121.0
-margin_top = 108.0
+margin_top = 124.0
 margin_right = 602.0
-margin_bottom = 132.0
+margin_bottom = 152.0
 size_flags_horizontal = 3
 [connection signal="text_entered" from="Box/Account" to="." method="_on_request"]
 [connection signal="pressed" from="Box/Request" to="." method="_on_request"]

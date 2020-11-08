@@ -3,12 +3,10 @@
 [ext_resource path="res://ui/settings/CategoryDialog.gd" type="Script" id=1]
 [ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=2]
 
-
 [node name="CategoryDialog" type="AcceptDialog" groups=[
 "CategoryChanger",
 "CategoryDialog",
 ]]
-visible = true
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -31,14 +29,14 @@ anchor_bottom = 1.0
 margin_left = 8.0
 margin_top = 8.0
 margin_right = -8.0
-margin_bottom = -38.0
+margin_bottom = -42.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Box" type="HBoxContainer" parent="Box"]
 margin_right = 850.0
-margin_bottom = 436.0
+margin_bottom = 424.0
 size_flags_vertical = 3
 __meta__ = {
 "_edit_use_anchors_": false
@@ -46,7 +44,7 @@ __meta__ = {
 
 [node name="Tree" type="Tree" parent="Box/Box"]
 margin_right = 834.0
-margin_bottom = 436.0
+margin_bottom = 424.0
 size_flags_horizontal = 3
 columns = 3
 hide_folding = true
@@ -55,11 +53,11 @@ hide_root = true
 [node name="Buttons" type="VBoxContainer" parent="Box/Box"]
 margin_left = 838.0
 margin_right = 850.0
-margin_bottom = 436.0
+margin_bottom = 424.0
 
 [node name="Delete" type="Button" parent="Box/Box/Buttons"]
 margin_right = 12.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 disabled = true
 script = ExtResource( 2 )
 theme_class = "EditorIcons"
@@ -68,34 +66,34 @@ theme_type = 2
 target_property = "icon"
 
 [node name="New" type="HBoxContainer" parent="Box"]
-margin_top = 440.0
+margin_top = 428.0
 margin_right = 850.0
-margin_bottom = 462.0
+margin_bottom = 454.0
 
 [node name="ID" type="LineEdit" parent="Box/New"]
 margin_right = 275.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 size_flags_horizontal = 3
 placeholder_text = ".category.id"
 
 [node name="Name" type="LineEdit" parent="Box/New"]
 margin_left = 279.0
 margin_right = 554.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 size_flags_horizontal = 3
 placeholder_text = ".category.name"
 
 [node name="Section" type="LineEdit" parent="Box/New"]
 margin_left = 558.0
 margin_right = 834.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 size_flags_horizontal = 3
 placeholder_text = ".category.section"
 
 [node name="Add" type="Button" parent="Box/New"]
 margin_left = 838.0
 margin_right = 850.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 script = ExtResource( 2 )
 theme_class = "EditorIcons"
 theme_name = "Add"
@@ -103,9 +101,9 @@ theme_type = 2
 target_property = "icon"
 
 [node name="Status" type="Label" parent="Box"]
-margin_top = 466.0
+margin_top = 458.0
 margin_right = 850.0
-margin_bottom = 488.0
+margin_bottom = 484.0
 script = ExtResource( 2 )
 theme_class = "Editor"
 theme_name = "error_color"

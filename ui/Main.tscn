@@ -40,11 +40,11 @@ __meta__ = {
 
 [node name="Menu" type="HBoxContainer" parent="Content"]
 margin_right = 1200.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 
 [node name="File" type="MenuButton" parent="Content/Menu"]
 margin_right = 77.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 text = ".menu.file"
 script = ExtResource( 17 )
 
@@ -54,7 +54,7 @@ script = ExtResource( 17 )
 ]]
 margin_left = 81.0
 margin_right = 165.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 text = ".action.edit"
 script = ExtResource( 2 )
 theme_icon = "CanvasItem"
@@ -63,7 +63,7 @@ theme_light = ExtResource( 9 )
 settings_icon = "Tools"
 
 [node name="Tabs" type="TabContainer" parent="Content"]
-margin_top = 26.0
+margin_top = 30.0
 margin_right = 1200.0
 margin_bottom = 800.0
 size_flags_horizontal = 3
@@ -75,21 +75,18 @@ labels = [ ".search.book", ".search.user", ".alert.overdue" ]
 
 [node name="Books" parent="Content/Tabs" instance=ExtResource( 1 )]
 margin_left = 5.0
-margin_top = 29.0
 margin_right = -5.0
 margin_bottom = -5.0
 
 [node name="Users" parent="Content/Tabs" instance=ExtResource( 3 )]
 visible = false
 margin_left = 5.0
-margin_top = 29.0
 margin_right = -5.0
 margin_bottom = -5.0
 
 [node name="Overdues" parent="Content/Tabs" instance=ExtResource( 4 )]
 visible = false
 margin_left = 5.0
-margin_top = 29.0
 margin_right = -5.0
 margin_bottom = -5.0
 

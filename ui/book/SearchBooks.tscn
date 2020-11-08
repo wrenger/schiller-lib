@@ -50,7 +50,7 @@ __meta__ = {
 
 [node name="Tabs" type="TabContainer" parent="Split/Left/Search"]
 margin_right = 600.0
-margin_bottom = 56.0
+margin_bottom = 63.0
 tab_align = 0
 script = ExtResource( 9 )
 editor_icons = [ "Search", "Zoom" ]
@@ -60,7 +60,7 @@ labels = [ ".search.base", ".search.advanced" ]
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 5.0
-margin_top = 29.0
+margin_top = 32.0
 margin_right = -5.0
 margin_bottom = -5.0
 placeholder_text = ".search.book.entry"
@@ -84,7 +84,7 @@ visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 5.0
-margin_top = 29.0
+margin_top = 32.0
 margin_right = -5.0
 margin_bottom = -5.0
 
@@ -179,9 +179,9 @@ size_flags_horizontal = 3
 text = ".search.action"
 
 [node name="BookList" type="Tree" parent="Split/Left/Search"]
-margin_top = 61.0
+margin_top = 68.0
 margin_right = 600.0
-margin_bottom = 722.0
+margin_bottom = 718.0
 size_flags_vertical = 3
 columns = 4
 hide_folding = true
@@ -193,7 +193,7 @@ column_sizes = PoolIntArray( 120, 150, 100, 100 )
 column_expand = PoolByteArray( 0, 1, 1, 0 )
 
 [node name="Add" type="Button" parent="Split/Left/Search"]
-margin_top = 727.0
+margin_top = 723.0
 margin_right = 600.0
 margin_bottom = 749.0
 text = ".book.new"

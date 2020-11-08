@@ -5,8 +5,6 @@
 [ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=3]
 [ext_resource path="res://ui/user/User.gd" type="Script" id=4]
 
-
-
 [node name="LendDialog" type="ConfirmationDialog" groups=[
 "LendDialog",
 ]]
@@ -32,7 +30,7 @@ anchor_bottom = 1.0
 margin_left = 8.0
 margin_top = 8.0
 margin_right = -8.0
-margin_bottom = -38.0
+margin_bottom = -42.0
 custom_constants/separation = 10
 __meta__ = {
 "_edit_use_anchors_": false
@@ -40,17 +38,17 @@ __meta__ = {
 
 [node name="User" type="VBoxContainer" parent="Box"]
 margin_right = 458.0
-margin_bottom = 74.0
+margin_bottom = 86.0
 
 [node name="Label" type="Label" parent="Box/User"]
 margin_right = 458.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 text = ".user"
 
 [node name="Search" type="LineEdit" parent="Box/User"]
-margin_top = 26.0
+margin_top = 30.0
 margin_right = 458.0
-margin_bottom = 48.0
+margin_bottom = 56.0
 placeholder_text = ".user.account"
 
 [node name="Popup" type="PopupMenu" parent="Box/User/Search"]
@@ -81,9 +79,9 @@ theme_type = 2
 target_property = "icon"
 
 [node name="State" type="Label" parent="Box/User"]
-margin_top = 52.0
+margin_top = 60.0
 margin_right = 458.0
-margin_bottom = 74.0
+margin_bottom = 86.0
 text = "-"
 
 [node name="AddUser" type="VBoxContainer" parent="Box"]
@@ -144,19 +142,19 @@ margin_bottom = 74.0
 placeholder_text = ".user.role"
 
 [node name="Period" type="VBoxContainer" parent="Box"]
-margin_top = 84.0
+margin_top = 96.0
 margin_right = 458.0
-margin_bottom = 132.0
+margin_bottom = 152.0
 
 [node name="Label" type="Label" parent="Box/Period"]
 margin_right = 458.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 text = ".book.lend.period"
 
 [node name="Days" type="SpinBox" parent="Box/Period"]
-margin_top = 26.0
+margin_top = 30.0
 margin_right = 458.0
-margin_bottom = 48.0
+margin_bottom = 56.0
 min_value = 1.0
 max_value = 30.0
 value = 14.0
@@ -167,9 +165,9 @@ suffix = ".book.period.days"
 script = ExtResource( 2 )
 
 [node name="State" type="Label" parent="Box"]
-margin_top = 142.0
+margin_top = 162.0
 margin_right = 458.0
-margin_bottom = 164.0
+margin_bottom = 188.0
 script = ExtResource( 3 )
 __meta__ = {
 "_edit_use_anchors_": false
