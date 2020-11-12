@@ -136,7 +136,6 @@ __meta__ = {
 }
 
 [node name="CategoryDialog" parent="." instance=ExtResource( 8 )]
-visible = false
 
 [node name="ConfirmDialog" type="ConfirmationDialog" parent="." groups=[
 "ConfirmDialog",

@@ -14,6 +14,9 @@ onready var _add_name: LineEdit = $Box/New/Name
 onready var _add_section: LineEdit = $Box/New/Section
 
 
+var _is_only_dialog := false
+
+
 func _ready() -> void:
     var result := 0
     result = connect("about_to_show", self, "_about_to_show")
@@ -121,7 +124,7 @@ func _on_edited() -> void:
 
 
 func _popup_hide():
-    _window_content.modulate.a = 1
+    if _is_only_dialog: _window_content.modulate.a = 1
     var result: Dictionary = _project.category_list()
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
@@ -129,7 +132,9 @@ func _popup_hide():
 
 
 func _about_to_show():
+    _is_only_dialog = _window_content.modulate.a >= 1
     _window_content.modulate.a = 0.5
+
 
 
 func _on_selected() -> void:

@@ -6,6 +6,8 @@ signal userfile_selected(path)
 
 onready var window_content: Control = $"../Content"
 
+var _is_only_dialog := false
+
 enum DialogType { PROJECT, USERFILE }
 var type: int = DialogType.PROJECT
 
@@ -73,8 +75,9 @@ func _on_file_selected(path):
 
 
 func _popup_hide():
-    window_content.modulate.a = 1
+    if _is_only_dialog: window_content.modulate.a = 1
 
 
 func _about_to_show():
+    _is_only_dialog = window_content.modulate.a >= 1
     window_content.modulate.a = 0.5

@@ -88,11 +88,6 @@ func persist_load(data: Dictionary):
     OS.window_position = Vector2(data.get("x", OS.window_position.x), data.get("y", OS.window_position.y))
 
 
-func _enter_tree():
-    pass
-    # TranslationServer.set_locale("de")
-
-
 func _on_theme_changed(theme):
     self.theme = theme
 

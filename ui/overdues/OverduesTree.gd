@@ -38,7 +38,7 @@ func reload():
             item.set_text(2, Util.trf(".book.period", [date.get_local(), date.days_until_today()]))
             item.set_meta("book_id", book.id)
 
-    else:
+    elif is_visible_in_tree():
         MessageDialog.error_code(result["Err"])
 
 
