@@ -2,8 +2,6 @@ extends Tree
 
 signal show_book(id)
 
-onready var _project: Project = $"/root/Project"
-
 
 func _ready():
     set_column_min_width(0, 100)
@@ -16,7 +14,7 @@ func _ready():
 
 func reload():
     clear()
-    var result: Dictionary = _project.lending_overdues()
+    var result: Dictionary = Project.lending_overdues()
     var root := create_item()
     if result.has("Ok"):
         var role: TreeItem = null

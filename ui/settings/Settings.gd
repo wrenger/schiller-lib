@@ -1,7 +1,6 @@
 extends ConfirmationDialog
 class_name SettingsDialog
 
-onready var _project: Project = $"/root/Project"
 onready var _window_content := $"../Content" as Control
 
 onready var _borrowing_duration: SpinBox = $Scroll/Box/Borrowing/Margin/Duration/Value
@@ -50,7 +49,7 @@ func _ready() -> void:
 func reload():
     if not get_parent().is_visible_in_tree(): return
 
-    var result: Dictionary = _project.settings_get()
+    var result: Dictionary = Project.settings_get()
     if result.has("Ok"):
         _settings = result["Ok"]
         visible = true
@@ -85,7 +84,7 @@ func _default_if_empty():
 func save() -> void:
     if _settings.empty(): return
     var settings := get_settings()
-    var result: Dictionary = _project.settings_update(settings)
+    var result: Dictionary = Project.settings_update(settings)
     if result.has("Err"):
         MessageDialog.error_code(result["Err"])
 

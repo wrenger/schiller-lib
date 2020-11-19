@@ -3,8 +3,6 @@ extends Control
 signal add_book(book)
 signal update_book(book)
 
-onready var _project: Project = $"/root/Project"
-
 onready var _book_pane := $Book as Control
 onready var _book_state := $State as Label
 onready var _book_lend := $Lend as Control
@@ -79,7 +77,7 @@ func _on_reserve():
 
 func _on_release():
     var book: Dictionary = _book_pane.book
-    var result: Dictionary = _project.lending_release(book)
+    var result: Dictionary = Project.lending_release(book)
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
     set_book(result["Ok"])
@@ -88,7 +86,7 @@ func _on_release():
 
 func _on_revoke():
     var book: Dictionary = _book_pane.book
-    var result: Dictionary = _project.lending_return(book)
+    var result: Dictionary = Project.lending_return(book)
     if result.has("Ok"):
         set_book(result["Ok"])
         emit_signal("update_book", result["Ok"])
@@ -96,7 +94,7 @@ func _on_revoke():
         if book.reservation:
             var confirmed = yield(ConfirmDialog.open(Util.trf(".book.revoke.reminder", [book.reservation])), "response")
             if confirmed:
-                result = _project.user_fetch(book.reservation)
+                result = Project.user_fetch(book.reservation)
                 if result.has("Ok"):
                     MailDialog.info(result["Ok"], book.title)
     else:
@@ -147,7 +145,7 @@ func _on_edit_cancel():
 
 func _on_edit_add():
     var book: Dictionary = _book_pane.book
-    var result: Dictionary = _project.book_add(book)
+    var result: Dictionary = Project.book_add(book)
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
     set_book(book)
@@ -157,7 +155,7 @@ func _on_edit_add():
 
 func _on_edit_apply():
     var book: Dictionary = _book_pane.book
-    var result: Dictionary = _project.book_update(_before_edit.id, book)
+    var result: Dictionary = Project.book_update(_before_edit.id, book)
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
     set_book(book)
@@ -166,7 +164,7 @@ func _on_edit_apply():
 
 
 func _on_edit_delete():
-    var result: Dictionary = _project.book_delete(_before_edit.id)
+    var result: Dictionary = Project.book_delete(_before_edit.id)
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
     set_book({})

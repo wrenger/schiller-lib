@@ -10,8 +10,6 @@ export var role_path: NodePath
 export var may_borrow_path: NodePath
 export var user_request: NodePath
 
-onready var _project: Project = $"/root/Project"
-
 onready var _account: LineEdit = get_node(account_path)
 onready var _forename: LineEdit = get_node(forename_path)
 onready var _surname: LineEdit = get_node(surname_path)
@@ -59,7 +57,7 @@ func set_editable(e: bool):
 
 
 func _on_request(_x = null):
-    var result: Dictionary = _project.settings_get()
+    var result: Dictionary = Project.settings_get()
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
     var settings: Dictionary = result["Ok"]
 

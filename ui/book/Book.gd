@@ -4,8 +4,6 @@ export var editable := false setget set_editable
 
 var book: Dictionary = {} setget set_book, get_book
 
-onready var _project: Project = $"/root/Project"
-
 onready var _id := $ID/Input as LineEdit
 onready var _id_btn := $ID/Generate as Button
 onready var _isbn := $ISBN/Input as LineEdit
@@ -113,7 +111,7 @@ func generate_id():
     if editable:
         var book = get_book()
         book.id = _id_before_edit # fallback if nothing changed
-        var result = _project.book_generate_id(book)
+        var result = Project.book_generate_id(book)
         if result.has("Ok"):
             _id.text = result["Ok"]
         else:
@@ -138,7 +136,7 @@ func _on_author_selected():
 
 
 func _on_request(_x = null):
-    var result: Dictionary = _project.settings_get()
+    var result: Dictionary = Project.settings_get()
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
     var settings: Dictionary = result["Ok"]
 

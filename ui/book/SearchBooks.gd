@@ -2,8 +2,6 @@ extends Control
 
 signal search_results(results)
 
-onready var _project: Project = $"/root/Project"
-
 onready var _tabs: TabContainer = $Tabs
 onready var _search: LineEdit = $Tabs/Basic
 
@@ -21,7 +19,7 @@ onready var _state: OptionButton = $Tabs/Advanced/Grid/State
 
 
 func _on_search(_t = null):
-    var result: Dictionary = _project.book_search(_search.text)
+    var result: Dictionary = Project.book_search(_search.text)
     if result.has("Ok"):
         print("search results: ", len(result["Ok"]))
         emit_signal("search_results", result["Ok"])
@@ -30,7 +28,7 @@ func _on_search(_t = null):
 
 
 func _on_advanced_search(_t = null):
-    var result: Dictionary = _project.book_search_advanced({
+    var result: Dictionary = Project.book_search_advanced({
         id = _id.text,
         isbn = _isbn.text,
         title = _title.text,

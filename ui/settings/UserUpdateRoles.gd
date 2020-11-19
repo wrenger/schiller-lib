@@ -1,14 +1,12 @@
 extends Button
 
-onready var _project: Project = $"/root/Project"
-
 
 func _pressed():
-    var result: Dictionary = _project.settings_get()
+    var result: Dictionary = Project.settings_get()
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
     var settings: Dictionary = result["Ok"]
 
-    # TODO: flexible provider selection & configuration
+    # provider selection & configuration
     var provider = UserCSVProvider.new()
     provider.path = settings.user_path
     if len(settings.user_delimiter) != 1:
@@ -16,7 +14,7 @@ func _pressed():
     provider.delimiter = settings.user_delimiter
 
     # collect all user accounts
-    result = _project.user_search("")
+    result = Project.user_search("")
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
     var user_accounts := []
     for user in result["Ok"]:
@@ -31,6 +29,6 @@ func _pressed():
         user_roles.push_back([user.account, user.role])
 
     # update user roles
-    result = _project.user_update_roles(user_roles)
+    result = Project.user_update_roles(user_roles)
     if result.has("Err"): MessageDialog.error_code(result["Err"])
     else: MessageDialog.alert(tr(".alert.user.updated"))

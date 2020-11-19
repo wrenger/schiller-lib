@@ -2,7 +2,6 @@ extends WindowDialog
 class_name MailDialog
 
 onready var _window_content: Control = $"../Content"
-onready var _project: Project = $"/root/Project"
 
 var _is_only_dialog := false
 
@@ -26,12 +25,12 @@ func _ready() -> void:
     result = connect("about_to_show", self, "_about_to_show")
     assert(result == OK)
     for node in get_tree().get_nodes_in_group("ProjectChanger"):
-        result = node.connect("project_changed", self, "_project_changed")
+        result = node.connect("project_changed", self, "Project_changed")
         assert(result == OK)
 
 
-func _project_changed():
-    var result: Dictionary = _project.settings_get()
+func Project_changed():
+    var result: Dictionary = Project.settings_get()
     if result.has("Ok"):
         var settings: Dictionary = result["Ok"]
         var today = Date.new()
@@ -45,7 +44,7 @@ func _info(user: Dictionary, booktitle: String):
     popup_centered()
     yield(get_tree().create_timer(0.1), "timeout")
 
-    var result: Dictionary = _project.settings_get()
+    var result: Dictionary = Project.settings_get()
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
     var settings: Dictionary = result["Ok"]
 
@@ -73,7 +72,7 @@ func _overdues():
     popup_centered()
     yield(get_tree().create_timer(0.1), "timeout")
 
-    var result: Dictionary = _project.settings_get()
+    var result: Dictionary = Project.settings_get()
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
     var settings: Dictionary = result["Ok"]
 
@@ -84,7 +83,7 @@ func _overdues():
 
     var errors := PoolStringArray([])
 
-    result = _project.lending_overdues()
+    result = Project.lending_overdues()
     if result.has("Ok"):
         for period in result["Ok"]:
             var book: Dictionary = period[0]
@@ -116,7 +115,7 @@ func _overdues():
     hide()
     if not errors:
         settings.mail_last_reminder = Date.new().get_iso()
-        result = _project.settings_update(settings)
+        result = Project.settings_update(settings)
         if result.has("Ok"):
             MessageDialog.alert(tr(".alert.mail.send.success"))
         else:

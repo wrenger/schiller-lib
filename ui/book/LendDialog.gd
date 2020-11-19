@@ -1,8 +1,6 @@
 extends ConfirmationDialog
 class_name LendDialog
 
-onready var _project: Project = $"/root/Project"
-
 onready var _window_content: Control = $"../Content"
 onready var _state: Label = $Box/State
 
@@ -49,13 +47,13 @@ func _lend(book_panel: Control, book: Dictionary, account: String):
         _book = book
 
         if account:
-            var result: Dictionary = _project.user_fetch(account)
+            var result: Dictionary = Project.user_fetch(account)
             if result.has("Err"): return MessageDialog.error_code(result["Err"])
             _set_user(result["Ok"])
         else:
             _set_user({})
 
-        var result: Dictionary = _project.settings_get()
+        var result: Dictionary = Project.settings_get()
         if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
         _period.value = result["Ok"].borrowing_duration
@@ -92,7 +90,7 @@ func _about_to_show():
 
 func _on_user_input_entered(new_text: String):
     if not new_text: new_text = _user_search_input.text
-    var result: Dictionary = _project.user_search(new_text)
+    var result: Dictionary = Project.user_search(new_text)
     if result.has("Ok"):
         _user = {}
         _user_search_state.text = ""
@@ -137,7 +135,7 @@ func _on_confirmed():
     # Add user if user add panel is shown
     if _user_add.visible:
         _user = _user_add.get_user()
-        var result: Dictionary = _project.user_add(_user)
+        var result: Dictionary = Project.user_add(_user)
         if result.has("Err"):
             _state.text = Util.error_msg(result["Err"])
             popup_centered()
@@ -150,9 +148,9 @@ func _on_confirmed():
 
     var result: Dictionary
     if _period_panel.visible:
-        result = _project.lending_lend(_book, _user, int(_period.value))
+        result = Project.lending_lend(_book, _user, int(_period.value))
     else:
-        result = _project.lending_reserve(_book, _user)
+        result = Project.lending_reserve(_book, _user)
 
     if result.has("Ok"):
         _book_panel._on_lend_update(result["Ok"])

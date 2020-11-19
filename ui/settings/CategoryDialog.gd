@@ -3,8 +3,6 @@ class_name CategoryDialog
 
 signal categories_changed(categories)
 
-onready var _project: Project = $"/root/Project"
-
 onready var _window_content: Control = $"../Content"
 onready var _list: Tree = $Box/Box/Tree
 onready var _status: Label = $Box/Status
@@ -46,7 +44,7 @@ func _open():
     _list.clear()
     _status.text = ""
 
-    var result: Dictionary = _project.category_list()
+    var result: Dictionary = Project.category_list()
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
     var root := _list.create_item()
@@ -71,7 +69,7 @@ func _on_add() -> void:
         name = _add_name.text,
         section = _add_section.text,
     }
-    var result: Dictionary = _project.category_add(category)
+    var result: Dictionary = Project.category_add(category)
     if result.has("Ok"):
         var item := _list.create_item(_list.get_root())
         set_category(item, category)
@@ -89,7 +87,7 @@ func _on_add() -> void:
 func _on_delete() -> void:
     var item := _list.get_selected()
     if item:
-        var result: Dictionary = _project.category_remove(item.get_text(0))
+        var result: Dictionary = Project.category_remove(item.get_text(0))
         if result.has("Ok"):
             item.deselect(0)
             _list.get_root().remove_child(item)
@@ -111,7 +109,7 @@ func _on_edited() -> void:
     var category_backup = item.get_meta("category_backup")
     if category == category_backup: return
 
-    var result: Dictionary = _project.category_update(category_backup.id, category)
+    var result: Dictionary = Project.category_update(category_backup.id, category)
     if result.has("Ok"):
         item.set_meta("category_backup", category)
         _status.text = ""
@@ -125,7 +123,7 @@ func _on_edited() -> void:
 
 func _popup_hide():
     if _is_only_dialog: _window_content.modulate.a = 1
-    var result: Dictionary = _project.category_list()
+    var result: Dictionary = Project.category_list()
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
     emit_signal("categories_changed", result["Ok"])

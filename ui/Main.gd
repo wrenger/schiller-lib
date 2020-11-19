@@ -3,8 +3,6 @@ extends Panel
 signal categories_changed(categories)
 signal project_changed()
 
-onready var _project: Project = $"/root/Project"
-
 var _project_path: String = ""
 
 
@@ -19,15 +17,8 @@ func _ready():
 func _notification(what: int):
     match what:
         MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
-            _project.close()
+            Project.close()
             get_tree().quit()
-
-
-func _unhandled_key_input(event):
-    if event is InputEventKey:
-        var key_event := event as InputEventKey
-        if key_event.scancode == KEY_P and key_event.control and key_event.pressed:
-            MessageDialog.alert("ctrl+P pressed")
 
 
 func _on_open_project():
@@ -40,7 +31,7 @@ func _on_new_project() -> void:
 
 
 func _on_close_project():
-    _project.close()
+    Project.close()
     _project_path = ""
     emit_signal("project_changed")
     emit_signal("categories_changed", [])
@@ -50,16 +41,16 @@ func _on_close_project():
 func _on_project_selected(path: String, new: bool):
     var result: Dictionary
     if new:
-        result = _project.create(path)
+        result = Project.create(path)
         if result.has("Ok"): _add_new_dummy_data()
     else:
-        result = _project.open(path)
+        result = Project.open(path)
 
     if result.has("Ok"):
         if not new and result["Ok"]: # updated
-            MessageDialog.alert(Util.trf(".alert.update", [_project.version()]))
+            MessageDialog.alert(Util.trf(".alert.update", [Project.version()]))
 
-        result = _project.category_list()
+        result = Project.category_list()
         if result.has("Ok"):
             _project_path = path
             OS.set_window_title(ProjectSettings.get("application/config/name") + " - " + path.get_file())
@@ -93,16 +84,16 @@ func _on_theme_changed(theme):
 
 
 func _add_new_dummy_data() -> Dictionary:
-        var result: Dictionary
-        result = _project.category_add({
-            id = tr(".category.t1.id"),
-            name = tr(".category.t1.name"),
-            section = tr(".category.t1.section"),
-        })
-        if result.has("Err"): return result
-        result = _project.category_add({
-            id = tr(".category.t2.id"),
-            name = tr(".category.t2.name"),
-            section = tr(".category.t2.section"),
-        })
-        return result
+    var result: Dictionary
+    result = Project.category_add({
+        id = tr(".category.t1.id"),
+        name = tr(".category.t1.name"),
+        section = tr(".category.t1.section"),
+    })
+    if result.has("Err"): return result
+    result = Project.category_add({
+        id = tr(".category.t2.id"),
+        name = tr(".category.t2.name"),
+        section = tr(".category.t2.section"),
+    })
+    return result
