@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=2]
 
-[ext_resource path="res://ui/book/BookPanel.gd" type="Script" id=2]
-[ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=3]
-[ext_resource path="res://ui/book/Book.tscn" type="PackedScene" id=4]
+[ext_resource path="res://ui/book/BookPane.gd" type="Script" id=2]
+[ext_resource path="res://ui/util/ThemeProperty.gd" type="Script" id=3]
+[ext_resource path="res://ui/book/BookView.tscn" type="PackedScene" id=4]
 
 [node name="BookPane" type="VBoxContainer"]
 anchor_right = 1.0
@@ -38,13 +38,6 @@ margin_right = 602.0
 margin_bottom = 633.0
 text = ".book.lend.to"
 
-[node name="Renew" type="Button" parent="."]
-visible = false
-margin_top = 699.0
-margin_right = 574.0
-margin_bottom = 721.0
-text = ".book.renew"
-
 [node name="Reserve" type="Button" parent="."]
 visible = false
 margin_top = 638.0
@@ -56,8 +49,15 @@ text = ".book.reserve"
 visible = false
 margin_top = 665.0
 margin_right = 602.0
-margin_bottom = 687.0
+margin_bottom = 691.0
 text = ".book.delete-reservation"
+
+[node name="Renew" type="Button" parent="."]
+visible = false
+margin_top = 699.0
+margin_right = 574.0
+margin_bottom = 725.0
+text = ".book.renew"
 
 [node name="Revoke" type="Button" parent="."]
 visible = false
@@ -123,9 +123,9 @@ size_flags_horizontal = 3
 text = ".action.add"
 [connection signal="pressed" from="Lend" to="." method="_on_lend"]
 [connection signal="pressed" from="LendTo" to="." method="_on_lend_to"]
-[connection signal="pressed" from="Renew" to="." method="_on_renew"]
 [connection signal="pressed" from="Reserve" to="." method="_on_reserve"]
 [connection signal="pressed" from="Release" to="." method="_on_release"]
+[connection signal="pressed" from="Renew" to="." method="_on_renew"]
 [connection signal="pressed" from="Revoke" to="." method="_on_revoke"]
 [connection signal="pressed" from="Edit" to="." method="_on_edit"]
 [connection signal="pressed" from="Editing/Cancel" to="." method="_on_edit_cancel"]

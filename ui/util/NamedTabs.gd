@@ -1,4 +1,5 @@
 extends TabContainer
+class_name NamedTabs
 
 export (Array, String) var editor_icons: Array = []
 export (Array, String) var labels: Array = []

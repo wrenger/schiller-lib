@@ -12,17 +12,11 @@ onready var _mail_host: LineEdit = $Scroll/Box/MailAccount/Margin/Box/Host/Value
 onready var _mail_from: LineEdit = $Scroll/Box/MailAccount/Margin/Box/From/Value
 onready var _mail_password: LineEdit = $Scroll/Box/MailAccount/Margin/Box/Password/Value
 
-onready var _mail_info_subject: LineEdit = $Scroll/Box/MailTemplates/Margin/Box/TabContainer/Info/Subject
-onready var _mail_info_content: TextEdit = $Scroll/Box/MailTemplates/Margin/Box/TabContainer/Info/Content
-onready var _mail_overdue_subject: LineEdit = $Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue/Subject
-onready var _mail_overdue_content: TextEdit = $Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue/Content
-onready var _mail_overdue2_subject: LineEdit = $Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue2/Subject
-onready var _mail_overdue2_content: TextEdit = $Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue2/Content
-
+onready var _mail_info: MailView = $Scroll/Box/MailTemplates/Margin/Box/Tabs/Info
+onready var _mail_overdue: MailView = $Scroll/Box/MailTemplates/Margin/Box/Tabs/Overdue
+onready var _mail_overdue2: MailView = $Scroll/Box/MailTemplates/Margin/Box/Tabs/Overdue2
 
 var _settings: Dictionary = {}
-
-
 var _is_only_dialog := false
 
 
@@ -60,25 +54,15 @@ func reload():
         _mail_host.text = _settings.mail_host
         _mail_from.text = _settings.mail_from
         _mail_password.text = _settings.mail_password
-        _mail_info_subject.text = _settings.mail_info_subject
-        _mail_info_content.text = _settings.mail_info_content
-        _mail_overdue_subject.text = _settings.mail_overdue_subject
-        _mail_overdue_content.text = _settings.mail_overdue_content
-        _mail_overdue2_subject.text = _settings.mail_overdue2_subject
-        _mail_overdue2_content.text = _settings.mail_overdue2_content
-        _default_if_empty()
+        _mail_info.subject = _settings.mail_info_subject
+        _mail_info.content = _settings.mail_info_content
+        _mail_overdue.subject = _settings.mail_overdue_subject
+        _mail_overdue.content = _settings.mail_overdue_content
+        _mail_overdue2.subject = _settings.mail_overdue2_subject
+        _mail_overdue2.content = _settings.mail_overdue2_content
     else:
         _settings = {}
         visible = false
-
-
-func _default_if_empty():
-    if not _mail_info_subject.text: _mail_info_subject.text = tr(".mail.info.subject")
-    if not _mail_info_content.text: _mail_info_content.text = tr(".mail.info.content")
-    if not _mail_overdue_subject.text: _mail_overdue_subject.text = tr(".mail.overdue.subject")
-    if not _mail_overdue_content.text: _mail_overdue_content.text = tr(".mail.overdue.content")
-    if not _mail_overdue2_subject.text: _mail_overdue2_subject.text = tr(".mail.overdue2.subject")
-    if not _mail_overdue2_content.text: _mail_overdue2_content.text = tr(".mail.overdue2.content")
 
 
 func save() -> void:
@@ -99,12 +83,12 @@ func get_settings() -> Dictionary:
         mail_host = _mail_host.text,
         mail_from = _mail_from.text,
         mail_password = _mail_password.text,
-        mail_info_subject = _mail_info_subject.text,
-        mail_info_content = _mail_info_content.text,
-        mail_overdue_subject = _mail_overdue_subject.text,
-        mail_overdue_content = _mail_overdue_content.text,
-        mail_overdue2_subject = _mail_overdue2_subject.text,
-        mail_overdue2_content = _mail_overdue2_content.text,
+        mail_info_subject = _mail_info.subject,
+        mail_info_content = _mail_info.content,
+        mail_overdue_subject = _mail_overdue.subject,
+        mail_overdue_content = _mail_overdue.content,
+        mail_overdue2_subject = _mail_overdue2.subject,
+        mail_overdue2_content = _mail_overdue2.content,
     }
 
 

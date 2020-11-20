@@ -1,8 +1,11 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://ui/CategorySelect.gd" type="Script" id=1]
-[ext_resource path="res://ui/book/Book.gd" type="Script" id=2]
-[ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=3]
+[ext_resource path="res://ui/book/CategorySelect.gd" type="Script" id=1]
+[ext_resource path="res://ui/book/BookView.gd" type="Script" id=2]
+[ext_resource path="res://ui/util/ThemeProperty.gd" type="Script" id=3]
+[ext_resource path="res://ui/book/AuthorList.gd" type="Script" id=4]
+
+
 
 [node name="Book" type="GridContainer"]
 margin_right = 1024.0
@@ -124,6 +127,7 @@ size_flags_vertical = 3
 hide_folding = true
 hide_root = true
 select_mode = 1
+script = ExtResource( 4 )
 
 [node name="Box" type="VBoxContainer" parent="Authors"]
 margin_left = 889.0
@@ -234,6 +238,6 @@ size_flags_horizontal = 3
 [connection signal="pressed" from="ID/Generate" to="." method="generate_id"]
 [connection signal="text_entered" from="ISBN/Input" to="." method="_on_request"]
 [connection signal="pressed" from="ISBN/Request" to="." method="_on_request"]
-[connection signal="item_selected" from="Authors/List" to="." method="_on_author_selected"]
-[connection signal="pressed" from="Authors/Box/Add" to="." method="_on_author_add"]
-[connection signal="pressed" from="Authors/Box/Remove" to="." method="_on_author_remove"]
+[connection signal="item_selected" from="Authors/List" to="Authors/List" method="_on_author_selected"]
+[connection signal="pressed" from="Authors/Box/Add" to="Authors/List" method="_on_author_add"]
+[connection signal="pressed" from="Authors/Box/Remove" to="Authors/List" method="_on_author_remove"]

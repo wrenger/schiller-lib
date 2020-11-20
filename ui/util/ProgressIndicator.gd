@@ -1,5 +1,6 @@
 tool
 extends TextureRect
+class_name ProgressIndicator
 
 
 export var theme_class: String = "EditorIcons"

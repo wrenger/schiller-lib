@@ -4,8 +4,6 @@ signal add_user(user)
 signal update_user(user)
 signal show_books(user)
 
-onready var _project: Project = $"/root/Project"
-
 onready var _user_pane := $User as Control
 onready var _user_show_books := $ShowBooks as Control
 onready var _user_edit := $Edit as Control
@@ -58,7 +56,6 @@ func _on_add():
 
 
 func _on_show_books():
-    print("Show books")
     emit_signal("show_books", _user_pane.user)
 
 
@@ -68,36 +65,29 @@ func _on_edit_cancel():
 
 
 func _on_edit_add():
-    var result: Dictionary = _project.user_add(_user_pane.user)
-    if result.has("Ok"):
-        set_user(_user_pane.user)
-        emit_signal("add_user", _user_pane.user)
-        before_edit = {}
-    else:
-        if result["Err"] == Util.SbvError.LogicError:
-            MessageDialog.error(tr(".user.invalid"))
-        else:
-            MessageDialog.error_code(result["Err"])
+    var user: Dictionary = _user_pane.user
+    var result: Dictionary = Project.user_add(user)
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+
+    set_user(_user_pane.user)
+    emit_signal("add_user", user)
+    before_edit = {}
 
 
 func _on_edit_apply():
-    var result: Dictionary = _project.user_update(before_edit.account, _user_pane.user)
-    if result.has("Ok"):
-        set_user(_user_pane.user)
-        emit_signal("update_user", _user_pane.user)
-        before_edit = {}
-    else:
-        if result["Err"] == Util.SbvError.LogicError:
-            MessageDialog.error(tr(".user.invalid"))
-        else:
-            MessageDialog.error_code(result["Err"])
+    var user: Dictionary = _user_pane.user
+    var result: Dictionary = Project.user_update(before_edit.account, user)
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+
+    set_user(user)
+    emit_signal("update_user", user)
+    before_edit = {}
 
 
 func _on_edit_delete():
-    var result: Dictionary = _project.user_delete(before_edit.account)
-    if result.has("Ok"):
-        set_user({})
-        emit_signal("update_user", {})
-        before_edit = {}
-    else:
-        MessageDialog.error_code(result["Err"])
+    var result: Dictionary = Project.user_delete(before_edit.account)
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+
+    set_user({})
+    emit_signal("update_user", {})
+    before_edit = {}

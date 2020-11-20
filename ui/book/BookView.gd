@@ -1,8 +1,7 @@
 extends GridContainer
 
+export var book: Dictionary = {} setget set_book, get_book
 export var editable := false setget set_editable
-
-var book: Dictionary = {} setget set_book, get_book
 
 onready var _id := $ID/Input as LineEdit
 onready var _id_btn := $ID/Generate as Button
@@ -12,9 +11,7 @@ onready var _title := $Title as LineEdit
 onready var _publisher := $Publisher as LineEdit
 onready var _costs := $Price as SpinBox
 onready var _year := $Year as SpinBox
-onready var _authors := $Authors/List as Tree
-onready var _authors_btns := $Authors/Box as Control
-onready var _authors_remove := $Authors/Box/Remove as Button
+onready var _authors := $Authors/List as AuthorList
 onready var _category := $Category as CategorySelect
 onready var _note := $Notes as TextEdit
 onready var _borrowable := $Borrowable as CheckBox
@@ -38,10 +35,8 @@ func set_book(m: Dictionary):
         _costs.value = m.get("costs", 0.0)
         if m.has("year"): _year.value = m.year
         else: _year.value = Date.new().get_year()
-        if m.has("authors"): _set_authors(m.authors)
-        else: _authors.clear()
-        if m.has("category"): _category.select_category(m.category)
-        else: _category.select(0)
+        _authors.authors = m.get("authors")
+        _category.select_category(m.get("category", ""))
         _note.text = m.get("note", "")
         _borrowable.pressed = m.get("borrowable", true)
         _borrower = m.get("borrower", "")
@@ -50,27 +45,23 @@ func set_book(m: Dictionary):
 
 
 func get_book() -> Dictionary:
-    var authors := []
-    if _authors.get_root():
-        var child := _authors.get_root().get_children() as TreeItem
-        while child:
-            authors.push_back(child.get_text(0))
-            child = child.get_next()
-    return {
-        id = _id.text,
-        isbn = _isbn.text,
-        title = _title.text,
-        publisher = _publisher.text,
-        costs = _costs.value,
-        year = _year.value as int,
-        authors = authors,
-        category = _category.get_selected_category_id(),
-        note = _note.text,
-        borrowable = _borrowable.pressed,
-        borrower = _borrower,
-        deadline = _deadline,
-        reservation = _reservation,
-    }
+    if is_inside_tree():
+        return {
+            id = _id.text,
+            isbn = _isbn.text,
+            title = _title.text,
+            publisher = _publisher.text,
+            costs = _costs.value,
+            year = _year.value as int,
+            authors = _authors.authors,
+            category = _category.get_selected_category_id(),
+            note = _note.text,
+            borrowable = _borrowable.pressed,
+            borrower = _borrower,
+            deadline = _deadline,
+            reservation = _reservation,
+        }
+    return {}
 
 
 func set_editable(e: bool):
@@ -90,49 +81,16 @@ func set_editable(e: bool):
         _category.disabled = not e
         _note.readonly = not e
         _borrowable.disabled = not e
-        _authors_btns.visible = e
-        _authors_remove.disabled = true
-        if _authors.get_root():
-            var child := _authors.get_root().get_children() as TreeItem
-            while child:
-                child.set_editable(0, e)
-                child = child.get_next()
-
-
-func _set_authors(authors):
-    _authors.clear()
-    var root := _authors.create_item() as TreeItem
-    for author in authors:
-        var item := _authors.create_item(root) as TreeItem
-        item.set_text(0, author)
+        _authors.editable = e
 
 
 func generate_id():
     if editable:
-        var book = get_book()
-        book.id = _id_before_edit # fallback if nothing changed
-        var result = Project.book_generate_id(book)
-        if result.has("Ok"):
-            _id.text = result["Ok"]
-        else:
-            MessageDialog.error_code(result["Err"])
-
-
-func _on_author_add():
-    var item = _authors.create_item(_authors.get_root())
-    item.set_text(0, tr(".book.authors.def"))
-    item.set_editable(0, true)
-
-
-func _on_author_remove():
-    var selected = _authors.get_selected()
-    if selected:
-        selected.deselect(0)
-        _authors.get_root().remove_child(selected)
-
-
-func _on_author_selected():
-     _authors_remove.disabled = _authors.get_selected() == null
+        var b := get_book()
+        b.id = _id_before_edit # fallback if nothing changed
+        var result: Dictionary = Project.book_generate_id(b)
+        if result.has("Err"): return MessageDialog.error_code(result["Err"])
+        _id.text = result["Ok"]
 
 
 func _on_request(_x = null):
@@ -140,7 +98,7 @@ func _on_request(_x = null):
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
     var settings: Dictionary = result["Ok"]
 
-    # TODO: flexible provider selection & configuration
+    # provider selection & configuration
     var provider = BookDNBProvider.new()
     provider.token = settings.dnb_token
     result = provider.request(_isbn.text)
@@ -148,6 +106,6 @@ func _on_request(_x = null):
 
     var data: Dictionary = result["Ok"]
     _title.text = data.title
-    _set_authors(data.authors)
+    _authors.authors = data.authors
     _costs.value = data.costs
     _publisher.text = data.publisher

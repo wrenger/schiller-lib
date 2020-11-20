@@ -59,13 +59,9 @@ func _userfile():
     if not visible:
         popup_centered()
         window_title = tr(".alert.userfile")
-        filters = PoolStringArray(["*.csv ; CSV File"])
+        filters = PoolStringArray(["*.csv ; CSV File", "*.txt ; Text File"])
         mode = FileDialog.MODE_OPEN_FILE
         type = DialogType.USERFILE
-
-
-func _on_userfile_selected(path):
-    emit_signal("userfile_selected", path)
 
 
 func _on_file_selected(path):

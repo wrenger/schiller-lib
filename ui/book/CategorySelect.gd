@@ -23,7 +23,8 @@ func _on_categories_changed(categories: Array):
 
 
 func select_category(id: String):
-    select(get_item_index(id.hash()))
+    if id: select(get_item_index(id.hash()))
+    else: select(0)
 
 
 func get_selected_category_id() -> String:

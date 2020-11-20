@@ -22,8 +22,7 @@ func _pressed():
 
     # fetch new roles for all users
     result = provider.bulk_request(user_accounts)
-    if result.has("Err"):
-        return MessageDialog.error("Request failed: error code: " + String(result["Err"]))
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
     var user_roles := []
     for user in result["Ok"]:
         user_roles.push_back([user.account, user.role])

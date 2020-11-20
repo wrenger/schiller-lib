@@ -61,18 +61,17 @@ func _on_request(_x = null):
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
     var settings: Dictionary = result["Ok"]
 
-    # TODO: flexible provider selection & configuration
+    # provider selection & configuration
     var provider = UserCSVProvider.new()
     provider.path = settings.user_path
     if len(settings.user_delimiter) != 1:
         return MessageDialog.error(Util.trf(".error.provider.config", [tr(".pref.user.delimiter")]))
     provider.delimiter = settings.user_delimiter
     result = provider.request(_account.text)
-    if result.has("Ok"):
-        var data: Dictionary = result["Ok"]
-        _account.text = data.account
-        _forename.text = data.forename
-        _surname.text = data.surname
-        _role.text = data.role
-    else:
-        MessageDialog.error("Request failed: error code: " + String(result["Err"]))
+    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+
+    var data: Dictionary = result["Ok"]
+    _account.text = data.account
+    _forename.text = data.forename
+    _surname.text = data.surname
+    _role.text = data.role

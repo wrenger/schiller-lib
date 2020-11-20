@@ -1,10 +1,10 @@
 [gd_scene load_steps=18 format=2]
 
-[ext_resource path="res://ui/book/SearchBooks.tscn" type="PackedScene" id=1]
+[ext_resource path="res://ui/book/BookTab.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/MenuEdit.gd" type="Script" id=2]
-[ext_resource path="res://ui/user/SearchUsers.tscn" type="PackedScene" id=3]
-[ext_resource path="res://ui/overdues/Overdues.tscn" type="PackedScene" id=4]
-[ext_resource path="res://ui/NamedTabs.gd" type="Script" id=6]
+[ext_resource path="res://ui/user/UserTab.tscn" type="PackedScene" id=3]
+[ext_resource path="res://ui/overdues/OverduesTab.tscn" type="PackedScene" id=4]
+[ext_resource path="res://ui/util/NamedTabs.gd" type="Script" id=6]
 [ext_resource path="res://ui/book/LendDialog.tscn" type="PackedScene" id=7]
 [ext_resource path="res://ui/settings/CategoryDialog.tscn" type="PackedScene" id=8]
 [ext_resource path="res://ui/light.tres" type="Theme" id=9]
@@ -166,6 +166,7 @@ margin_bottom = 33.5
 [node name="SettingsDialog" parent="." groups=[
 "SettingsDialog",
 ] instance=ExtResource( 18 )]
+visible = false
 margin_left = -348.0
 margin_top = -360.5
 margin_right = 348.0

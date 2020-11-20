@@ -9,6 +9,11 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Tree",
+"class": "AuthorList",
+"language": "GDScript",
+"path": "res://ui/book/AuthorList.gd"
+}, {
 "base": "Reference",
 "class": "BookDNBProvider",
 "language": "NativeScript",
@@ -22,7 +27,7 @@ _global_script_classes=[ {
 "base": "OptionButton",
 "class": "CategorySelect",
 "language": "GDScript",
-"path": "res://ui/CategorySelect.gd"
+"path": "res://ui/book/CategorySelect.gd"
 }, {
 "base": "ConfirmationDialog",
 "class": "ConfirmDialog",
@@ -44,6 +49,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/MailDialog.gd"
 }, {
+"base": "VBoxContainer",
+"class": "MailView",
+"language": "GDScript",
+"path": "res://ui/settings/MailView.gd"
+}, {
 "base": "Reference",
 "class": "Mailer",
 "language": "NativeScript",
@@ -54,10 +64,20 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/MessageDialog.gd"
 }, {
+"base": "TabContainer",
+"class": "NamedTabs",
+"language": "GDScript",
+"path": "res://ui/util/NamedTabs.gd"
+}, {
 "base": "Tree",
 "class": "ObjectList",
 "language": "GDScript",
-"path": "res://ui/ObjectList.gd"
+"path": "res://ui/util/ObjectList.gd"
+}, {
+"base": "TextureRect",
+"class": "ProgressIndicator",
+"language": "GDScript",
+"path": "res://ui/util/ProgressIndicator.gd"
 }, {
 "base": "Node",
 "class": "Project",
@@ -74,6 +94,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/settings/Settings.gd"
 }, {
+"base": "SpinBox",
+"class": "SpinBoxTr",
+"language": "GDScript",
+"path": "res://ui/util/SpinBoxTr.gd"
+}, {
 "base": "MainLoop",
 "class": "Test",
 "language": "GDScript",
@@ -87,9 +112,10 @@ _global_script_classes=[ {
 "base": "Reference",
 "class": "Util",
 "language": "GDScript",
-"path": "res://ui/Util.gd"
+"path": "res://ui/util/Util.gd"
 } ]
 _global_script_class_icons={
+"AuthorList": "",
 "BookDNBProvider": "",
 "CategoryDialog": "",
 "CategorySelect": "",
@@ -97,12 +123,16 @@ _global_script_class_icons={
 "Date": "",
 "LendDialog": "",
 "MailDialog": "",
+"MailView": "",
 "Mailer": "",
 "MessageDialog": "",
+"NamedTabs": "",
 "ObjectList": "",
+"ProgressIndicator": "",
 "Project": "",
 "ProjectDialog": "",
 "SettingsDialog": "",
+"SpinBoxTr": "",
 "Test": "",
 "UserCSVProvider": "",
 "Util": ""

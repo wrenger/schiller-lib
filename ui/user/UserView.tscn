@@ -1,7 +1,9 @@
 [gd_scene load_steps=3 format=2]
 
-[ext_resource path="res://ui/user/User.gd" type="Script" id=1]
-[ext_resource path="res://ui/ThemeProperty.gd" type="Script" id=2]
+[ext_resource path="res://ui/user/UserView.gd" type="Script" id=1]
+[ext_resource path="res://ui/util/ThemeProperty.gd" type="Script" id=2]
+
+
 
 [node name="User" type="GridContainer"]
 margin_right = 602.0

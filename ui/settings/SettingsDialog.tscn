@@ -1,13 +1,15 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://ui/settings/Userfile.gd" type="Script" id=1]
 [ext_resource path="res://ui/settings/EditCategoriesButton.gd" type="Script" id=2]
-[ext_resource path="res://ui/NamedTabs.gd" type="Script" id=3]
-[ext_resource path="res://ui/SpinBoxTr.gd" type="Script" id=4]
+[ext_resource path="res://ui/util/NamedTabs.gd" type="Script" id=3]
+[ext_resource path="res://ui/util/SpinBoxTr.gd" type="Script" id=4]
 [ext_resource path="res://ui/settings/Settings.gd" type="Script" id=5]
 [ext_resource path="res://ui/settings/UserUpdateRoles.gd" type="Script" id=6]
+[ext_resource path="res://ui/settings/MailView.gd" type="Script" id=7]
 
 [node name="SettingsDialog" type="ConfirmationDialog"]
+visible = true
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -38,8 +40,8 @@ __meta__ = {
 }
 
 [node name="Box" type="VBoxContainer" parent="Scroll"]
-margin_right = 739.0
-margin_bottom = 681.0
+margin_right = 727.0
+margin_bottom = 843.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 20
@@ -321,7 +323,7 @@ margin_bottom = 26.0
 text = ".mail.info"
 autowrap = true
 
-[node name="TabContainer" type="TabContainer" parent="Scroll/Box/MailTemplates/Margin/Box"]
+[node name="Tabs" type="TabContainer" parent="Scroll/Box/MailTemplates/Margin/Box"]
 margin_top = 30.0
 margin_right = 687.0
 margin_bottom = 297.0
@@ -329,28 +331,31 @@ tab_align = 0
 script = ExtResource( 3 )
 labels = [ ".mail.info.title", ".mail.overdue.title", ".mail.overdue2.title" ]
 
-[node name="Info" type="VBoxContainer" parent="Scroll/Box/MailTemplates/Margin/Box/TabContainer"]
+[node name="Info" type="VBoxContainer" parent="Scroll/Box/MailTemplates/Margin/Box/Tabs"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 5.0
 margin_top = 32.0
 margin_right = -5.0
 margin_bottom = -5.0
+script = ExtResource( 7 )
+default_subject = ".mail.info.subject"
+default_content = ".mail.info.content"
 
-[node name="Subject" type="LineEdit" parent="Scroll/Box/MailTemplates/Margin/Box/TabContainer/Info"]
+[node name="Subject" type="LineEdit" parent="Scroll/Box/MailTemplates/Margin/Box/Tabs/Info"]
 margin_right = 677.0
 margin_bottom = 26.0
 placeholder_text = ".mail.label.title"
 caret_blink = true
 caret_blink_speed = 0.5
 
-[node name="Content" type="TextEdit" parent="Scroll/Box/MailTemplates/Margin/Box/TabContainer/Info"]
+[node name="Content" type="TextEdit" parent="Scroll/Box/MailTemplates/Margin/Box/Tabs/Info"]
 margin_top = 30.0
 margin_right = 677.0
 margin_bottom = 230.0
 rect_min_size = Vector2( 0, 200 )
 
-[node name="Overdue" type="VBoxContainer" parent="Scroll/Box/MailTemplates/Margin/Box/TabContainer"]
+[node name="Overdue" type="VBoxContainer" parent="Scroll/Box/MailTemplates/Margin/Box/Tabs"]
 visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -358,21 +363,24 @@ margin_left = 5.0
 margin_top = 32.0
 margin_right = -5.0
 margin_bottom = -5.0
+script = ExtResource( 7 )
+default_subject = ".mail.overdue.subject"
+default_content = ".mail.overdue.content"
 
-[node name="Subject" type="LineEdit" parent="Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue"]
+[node name="Subject" type="LineEdit" parent="Scroll/Box/MailTemplates/Margin/Box/Tabs/Overdue"]
 margin_right = 1120.0
 margin_bottom = 22.0
 placeholder_text = ".mail.label.title"
 caret_blink = true
 caret_blink_speed = 0.5
 
-[node name="Content" type="TextEdit" parent="Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue"]
+[node name="Content" type="TextEdit" parent="Scroll/Box/MailTemplates/Margin/Box/Tabs/Overdue"]
 margin_top = 26.0
 margin_right = 1120.0
 margin_bottom = 226.0
 rect_min_size = Vector2( 0, 200 )
 
-[node name="Overdue2" type="VBoxContainer" parent="Scroll/Box/MailTemplates/Margin/Box/TabContainer"]
+[node name="Overdue2" type="VBoxContainer" parent="Scroll/Box/MailTemplates/Margin/Box/Tabs"]
 visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -380,15 +388,18 @@ margin_left = 5.0
 margin_top = 32.0
 margin_right = -5.0
 margin_bottom = -5.0
+script = ExtResource( 7 )
+default_subject = ".mail.overdue2.subject"
+default_content = ".mail.overdue2.content"
 
-[node name="Subject" type="LineEdit" parent="Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue2"]
+[node name="Subject" type="LineEdit" parent="Scroll/Box/MailTemplates/Margin/Box/Tabs/Overdue2"]
 margin_right = 1120.0
 margin_bottom = 22.0
 placeholder_text = ".mail.label.title"
 caret_blink = true
 caret_blink_speed = 0.5
 
-[node name="Content" type="TextEdit" parent="Scroll/Box/MailTemplates/Margin/Box/TabContainer/Overdue2"]
+[node name="Content" type="TextEdit" parent="Scroll/Box/MailTemplates/Margin/Box/Tabs/Overdue2"]
 margin_top = 26.0
 margin_right = 1120.0
 margin_bottom = 226.0
