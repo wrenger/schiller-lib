@@ -196,9 +196,6 @@ pub trait DatabaseUser {
     ///
     /// The roles of all users not contained in the given list are cleared.
     fn user_update_roles(&self, users: &[(&str, &str)]) -> api::Result<()> {
-        if users.is_empty() {
-            return Err(api::Error::LogicError);
-        }
         let transaction = self.db().transaction()?;
         self.db().execute(DELETE_USER_ROLES)?;
 
