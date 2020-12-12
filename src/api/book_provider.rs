@@ -22,10 +22,10 @@ impl BookDNBProvider {
     /// Perform a request to the DNB and fetch the metadata for the given isbn.
     #[export]
     fn request(&self, _owner: &Reference, isbn: String) -> api::Result<BookData> {
-        if let Some(isbn) = crate::isbn::parse(&isbn) {
+        if let Ok(isbn) = crate::isbn::parse(&isbn) {
             self.provider.request(&isbn)
         } else {
-            Err(api::Error::InvalidArguments)
+            Err(api::Error::InvalidISBN)
         }
     }
 

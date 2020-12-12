@@ -109,6 +109,7 @@ select max(substr(id, ? + 2)) from medium where id like ?||'%' order by id
 
 /// Data object for book.
 #[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
+#[cfg_attr(test, derive(PartialEq, Default))]
 pub struct Book {
     pub id: String,
     pub isbn: String,
@@ -245,30 +246,33 @@ pub trait DatabaseBook {
     fn book_search_advanced(&self, params: &BookSearch) -> api::Result<DBIter<Book>> {
         gdnative::godot_print!("State: {:?}", params.state);
         let mut stmt = self.db().prepare(SEARCH_ADVANCED)?;
-        stmt.bind(1, params.id.as_str())?;
-        stmt.bind(2, params.isbn.as_str())?;
-        stmt.bind(3, params.title.as_str())?;
-        stmt.bind(4, params.publisher.as_str())?;
-        stmt.bind(5, params.authors.as_str())?;
-        if let Some(i) = params.year.find('-') {
-            stmt.bind(6, &params.year[..i])?;
-            stmt.bind(7, &params.year[i + 1..])?;
-        } else if params.year.is_empty() {
+        stmt.bind(1, params.id.trim())?;
+        stmt.bind(2, params.isbn.trim())?;
+        stmt.bind(3, params.title.trim())?;
+        stmt.bind(4, params.publisher.trim())?;
+        stmt.bind(5, params.authors.trim())?;
+        let year = params.year.trim();
+        if let Some(i) = year.find('-') {
+            stmt.bind(6, year[..i].trim())?;
+            stmt.bind(7, year[i + 1..].trim())?;
+        } else if year.is_empty() {
             stmt.bind(6, std::i64::MIN)?;
             stmt.bind(7, std::i64::MAX)?;
         } else {
-            stmt.bind(6, params.year.as_str())?;
-            stmt.bind(7, params.year.as_str())?;
+            stmt.bind(6, year)?;
+            stmt.bind(7, year)?;
         }
-        if !params.category.is_empty() {
-            stmt.bind(8, params.category.as_str())?;
+        let category = params.category.trim();
+        if !category.is_empty() {
+            stmt.bind(8, category)?;
         } else {
             stmt.bind(8, "%")?;
         }
-        stmt.bind(9, params.note.as_str())?;
-        if !params.user.is_empty() {
-            stmt.bind(10, params.user.as_str())?;
-            stmt.bind(11, params.user.as_str())?;
+        stmt.bind(9, params.note.trim())?;
+        let user = params.user.trim();
+        if !user.is_empty() {
+            stmt.bind(10, user)?;
+            stmt.bind(11, user)?;
         } else if params.state == BookState::BorrowedOrReserved {
             stmt.bind(10, "_%")?;
             stmt.bind(11, "_%")?;
@@ -290,7 +294,7 @@ pub trait DatabaseBook {
             return Err(api::Error::InvalidBook);
         }
         let isbn = if !book.isbn.trim().is_empty() {
-            crate::isbn::parse(&book.isbn).ok_or(api::Error::InvalidISBN)?
+            crate::isbn::parse(&book.isbn).unwrap_or_else(|invalid_isbn| invalid_isbn)
         } else {
             String::new()
         };
@@ -328,7 +332,7 @@ pub trait DatabaseBook {
             return Err(api::Error::InvalidBook);
         }
         let isbn = if !book.isbn.trim().is_empty() {
-            crate::isbn::parse(&book.isbn).ok_or(api::Error::InvalidISBN)?
+            crate::isbn::parse(&book.isbn).unwrap_or_else(|invalid_isbn| invalid_isbn)
         } else {
             String::new()
         };
@@ -429,6 +433,9 @@ fn id_prefix(author: &str, category: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use super::super::*;
+    use super::*;
+
     #[test]
     fn id_prefix() {
         use super::id_prefix;
@@ -440,5 +447,51 @@ mod tests {
             id_prefix("Remigius Bäumer", "RErk"),
             "RErk BAUM".to_string()
         );
+    }
+
+    #[test]
+    fn add_update_remove_book() {
+        let db = Database::memory().unwrap();
+        db.structure_create(PKG_VERSION).unwrap();
+
+        assert_eq!(db.book_search("").unwrap().count(), 0);
+
+        // New book
+        let book = Book {
+            id: "FANT DOE 1".into(),
+            isbn: "".into(),
+            title: "Demo Test Book".into(),
+            publisher: "Test".into(),
+            year: 2020,
+            costs: 7.5,
+            note: "Not a real book".into(),
+            borrowable: true,
+            category: "FANT".into(),
+            authors: vec!["John Doe".into()],
+            ..Book::default()
+        };
+
+        db.book_add(&book).unwrap();
+
+        let db_book = db.book_search("").unwrap().next().unwrap();
+        assert_eq!(book, db_book);
+
+        // Update book
+        db.book_update(
+            &book.id,
+            &Book {
+                title: "Another Title".into(),
+                ..book.clone()
+            },
+        )
+        .unwrap();
+
+        let db_book = db.book_search("").unwrap().next().unwrap();
+        assert_eq!(db_book.title, "Another Title");
+
+        // Remove book
+        db.book_delete(&book.id).unwrap();
+
+        assert_eq!(db.book_search("").unwrap().count(), 0);
     }
 }

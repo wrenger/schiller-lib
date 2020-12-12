@@ -1,5 +1,7 @@
 /// Parses the isbn and removing invalid characters.
-pub fn parse(input: &str) -> Option<String> {
+///
+/// If the checksum is invalid the stripped invalid isbn is returned.
+pub fn parse(input: &str) -> Result<String, String> {
     // Collect numeric values
     let isbn: Vec<u8> = input
         .chars()
@@ -13,9 +15,9 @@ pub fn parse(input: &str) -> Option<String> {
         .collect();
 
     if is10(&isbn) || is13(&isbn) {
-        Some(isbn_str(&isbn))
+        Ok(isbn_str(&isbn))
     } else {
-        None
+        Err(isbn_str(&isbn))
     }
 }
 
@@ -55,12 +57,12 @@ mod tests {
 
     #[test]
     fn parse_isbns() {
-        assert_eq!(parse(""), None);
-        assert_eq!(parse("1234567890"), None);
-        assert_eq!(parse("3-440-03914-5"), Some("3440039145".into()));
-        assert_eq!(parse("978-3923923410"), Some("9783923923410".into()));
-        assert_eq!(parse("978-1338099133"), Some("9781338099133".into()));
-        assert_eq!(parse("353411292X"), Some("353411292X".into()));
-        assert_eq!(parse("35341129XX"), None);
+        assert_eq!(parse(""), Err("".into()));
+        assert_eq!(parse("1234567890"), Err("1234567890".into()));
+        assert_eq!(parse("3-440-03914-5"), Ok("3440039145".into()));
+        assert_eq!(parse("978-3923923410"), Ok("9783923923410".into()));
+        assert_eq!(parse("978-1338099133"), Ok("9781338099133".into()));
+        assert_eq!(parse("353411292X"), Ok("353411292X".into()));
+        assert_eq!(parse("35341129XX"), Err("35341129XX".into()));
     }
 }

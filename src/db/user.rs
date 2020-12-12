@@ -60,7 +60,8 @@ update user set role=? where account=?
 "#;
 
 /// Data object for a user.
-#[derive(Debug, Clone, PartialEq, gdnative::ToVariant, gdnative::FromVariant)]
+#[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
+#[cfg_attr(test, derive(PartialEq, Default))]
 pub struct User {
     pub account: String,
     pub forename: String,
@@ -222,24 +223,29 @@ mod tests {
     use super::*;
 
     #[test]
-    fn add_remove_users() {
+    fn add_update_remove_users() {
         let db = Database::memory().unwrap();
         db.structure_create(PKG_VERSION).unwrap();
 
-        let user1 = User {
+        let user = User {
             account: "foo.bar".into(),
             forename: "Foo".into(),
             surname: "Bar".into(),
             role: "Demo".into(),
             may_borrow: true,
         };
-        db.user_add(&user1).unwrap();
+        db.user_add(&user).unwrap();
 
         let result: Vec<User> = db.user_search("").unwrap().collect();
         assert_eq!(result.len(), 1);
-        assert_eq!(result[0], user1);
+        assert_eq!(result[0], user);
 
-        db.user_delete(&user1.account).unwrap();
+        db.user_update(&user.account, &User{ role: "Teacher".into(), .. user.clone() }).unwrap();
+        let result: Vec<User> = db.user_search("").unwrap().collect();
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].role, "Teacher");
+
+        db.user_delete(&user.account).unwrap();
         let result: Vec<User> = db.user_search("").unwrap().collect();
         assert_eq!(result.len(), 0);
     }
