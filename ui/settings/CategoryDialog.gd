@@ -3,7 +3,6 @@ class_name CategoryDialog
 
 signal categories_changed(categories)
 
-onready var _window_content: Control = $"../Content"
 onready var _list: Tree = $Box/Box/Tree
 onready var _status: Label = $Box/Status
 onready var _delete_btn: Button = $Box/Box/Buttons/Delete
@@ -12,13 +11,8 @@ onready var _add_name: LineEdit = $Box/New/Name
 onready var _add_section: LineEdit = $Box/New/Section
 
 
-var _is_only_dialog := false
-
-
 func _ready() -> void:
-    var result := 0
-    result = connect("about_to_show", self, "_about_to_show")
-    assert(result == OK)
+    var result := OK
     result = connect("popup_hide", self, "_popup_hide")
     assert(result == OK)
     _list.set_column_min_width(0, 100)
@@ -122,17 +116,10 @@ func _on_edited() -> void:
 
 
 func _popup_hide():
-    if _is_only_dialog: _window_content.modulate.a = 1
     var result: Dictionary = Project.category_list()
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
     emit_signal("categories_changed", result["Ok"])
-
-
-func _about_to_show():
-    _is_only_dialog = _window_content.modulate.a >= 1
-    _window_content.modulate.a = 0.5
-
 
 
 func _on_selected() -> void:

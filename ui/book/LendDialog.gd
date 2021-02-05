@@ -1,7 +1,7 @@
 extends ConfirmationDialog
 class_name LendDialog
 
-onready var _window_content: Control = $"../Content"
+
 onready var _state: Label = $Box/State
 
 onready var _user_search: Control = $Box/User
@@ -33,10 +33,6 @@ static func reserve(book_panel: Control, book: Dictionary):
 
 func _ready() -> void:
     var result: int
-    result = connect("popup_hide", self, "_popup_hide")
-    assert(result == OK)
-    result = connect("about_to_show", self, "_about_to_show")
-    assert(result == OK)
     result = connect("confirmed", self, "_on_confirmed")
     assert(result == OK)
 
@@ -78,14 +74,6 @@ func _reserve(book_panel: Control, book: Dictionary):
         window_title = tr(".book.reserve") + " - " + book.id + ": " + book.title
         get_ok().text = tr(".book.reserve")
         popup_centered(Vector2(rect_size.x, 0))
-
-
-func _popup_hide():
-    _window_content.modulate.a = 1
-
-
-func _about_to_show():
-    _window_content.modulate.a = 0.5
 
 
 func _on_user_input_entered(new_text: String):

@@ -1,10 +1,6 @@
 extends WindowDialog
 class_name MailDialog
 
-onready var _window_content: Control = $"../Content"
-
-var _is_only_dialog := false
-
 
 static func info(user: Dictionary, booktitle: String):
     var scene: SceneTree = Engine.get_main_loop()
@@ -123,11 +119,3 @@ func _overdues():
     else:
         MessageDialog.error(tr(".alert.mail.send.error.to") + "\n\n" + errors.join("\n"))
 
-
-func _popup_hide():
-    if _is_only_dialog: _window_content.modulate.a = 1
-
-
-func _about_to_show():
-    _is_only_dialog = _window_content.modulate.a >= 1
-    _window_content.modulate.a = 0.5

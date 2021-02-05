@@ -1,8 +1,6 @@
 extends ConfirmationDialog
 class_name SettingsDialog
 
-onready var _window_content := $"../Content" as Control
-
 onready var _borrowing_duration: SpinBox = $Scroll/Box/Borrowing/Margin/Duration/Value
 onready var _user_delimiter: LineEdit = $Scroll/Box/User/Margin/Box/Delimiter/Value
 onready var _user_path: Button = $Scroll/Box/User/Margin/Box/Box/File
@@ -17,7 +15,6 @@ onready var _mail_overdue: MailView = $Scroll/Box/MailTemplates/Margin/Box/Tabs/
 onready var _mail_overdue2: MailView = $Scroll/Box/MailTemplates/Margin/Box/Tabs/Overdue2
 
 var _settings: Dictionary = {}
-var _is_only_dialog := false
 
 
 static func open():
@@ -33,10 +30,6 @@ func _open():
 func _ready() -> void:
     var result := OK
     result = connect("about_to_show", self, "_about_to_show")
-    assert(result == OK)
-    result = connect("popup_hide", self, "_popup_hide")
-    assert(result == OK)
-    result = connect("confirmed", self, "save")
     assert(result == OK)
 
 
@@ -92,12 +85,6 @@ func get_settings() -> Dictionary:
     }
 
 
-func _popup_hide():
-    if _is_only_dialog: _window_content.modulate.a = 1
-
-
 func _about_to_show():
-    _is_only_dialog = _window_content.modulate.a >= 1
-    _window_content.modulate.a = 0.5
     reload()
 

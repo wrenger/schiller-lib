@@ -155,6 +155,7 @@
 .search.base,Basic,Basic
 .search.book,Books,Bücher
 .search.book.entry,"Keyword (e.g. Author, Title or ID)","Suchbegriff (z.B. Autor, Titel oder Signatur)"
+.search.results,{0} Results, {0} Ergebnisse
 .search.user,Users,Benutzer
 .search.user.entry,Keyword (e.g. Name or Account),Suchbegriff (z.B. Name oder Account)
 .sql.title,Maintain Database,Datenbank warten

@@ -7,12 +7,6 @@
 [ext_resource path="res://ui/user/UserPane.gd" type="Script" id=6]
 [ext_resource path="res://ui/user/UserTab.gd" type="Script" id=8]
 
-
-
-
-
-
-
 [node name="Users" type="MarginContainer"]
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -54,7 +48,7 @@ __meta__ = {
 
 [node name="Search" type="LineEdit" parent="Split/Left/Box"]
 margin_right = 600.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 placeholder_text = ".search.user.entry"
 script = ExtResource( 2 )
 
@@ -73,9 +67,9 @@ theme_type = 2
 target_property = "icon"
 
 [node name="UserList" type="Tree" parent="Split/Left/Box"]
-margin_top = 27.0
+margin_top = 31.0
 margin_right = 600.0
-margin_bottom = 722.0
+margin_bottom = 718.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 columns = 4
@@ -89,7 +83,7 @@ column_expand = PoolByteArray( 1, 1, 1, 1 )
 formatter = 1
 
 [node name="Add" type="Button" parent="Split/Left/Box"]
-margin_top = 727.0
+margin_top = 723.0
 margin_right = 600.0
 margin_bottom = 749.0
 text = ".user.new"
@@ -115,22 +109,23 @@ __meta__ = {
 
 [node name="User" parent="Split/Rigth/Box" instance=ExtResource( 5 )]
 margin_right = 574.0
+margin_bottom = 152.0
 
 [node name="State" type="Label" parent="Split/Rigth/Box"]
-margin_top = 136.0
+margin_top = 156.0
 margin_right = 574.0
-margin_bottom = 158.0
+margin_bottom = 182.0
 
 [node name="ShowBooks" type="Button" parent="Split/Rigth/Box"]
-margin_top = 162.0
+margin_top = 186.0
 margin_right = 574.0
-margin_bottom = 184.0
+margin_bottom = 212.0
 text = ".user.books"
 
 [node name="Edit" type="Button" parent="Split/Rigth/Box"]
-margin_top = 188.0
+margin_top = 216.0
 margin_right = 574.0
-margin_bottom = 210.0
+margin_bottom = 242.0
 text = ".action.edit"
 
 [node name="Editing" type="HBoxContainer" parent="Split/Rigth/Box"]

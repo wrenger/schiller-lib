@@ -1,9 +1,10 @@
-[gd_scene load_steps=18 format=2]
+[gd_scene load_steps=19 format=2]
 
 [ext_resource path="res://ui/book/BookTab.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/MenuEdit.gd" type="Script" id=2]
 [ext_resource path="res://ui/user/UserTab.tscn" type="PackedScene" id=3]
 [ext_resource path="res://ui/overdues/OverduesTab.tscn" type="PackedScene" id=4]
+[ext_resource path="res://ui/Dialogs.gd" type="Script" id=5]
 [ext_resource path="res://ui/util/NamedTabs.gd" type="Script" id=6]
 [ext_resource path="res://ui/book/LendDialog.tscn" type="PackedScene" id=7]
 [ext_resource path="res://ui/settings/CategoryDialog.tscn" type="PackedScene" id=8]
@@ -90,9 +91,17 @@ margin_left = 5.0
 margin_right = -5.0
 margin_bottom = -5.0
 
-[node name="LendDialog" parent="." instance=ExtResource( 7 )]
+[node name="Dialogs" type="ColorRect" parent="."]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color( 0, 0, 0, 0.25098 )
+script = ExtResource( 5 )
 
-[node name="ProjectDialog" type="FileDialog" parent="." groups=[
+[node name="LendDialog" parent="Dialogs" instance=ExtResource( 7 )]
+margin_bottom = 134.0
+
+[node name="ProjectDialog" type="FileDialog" parent="Dialogs" groups=[
 "ProjectDialog",
 ]]
 anchor_left = 0.5
@@ -116,7 +125,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="MessageDialog" type="AcceptDialog" parent="." groups=[
+[node name="MessageDialog" type="AcceptDialog" parent="Dialogs" groups=[
 "MessageDialog",
 ]]
 anchor_left = 0.5
@@ -126,7 +135,7 @@ anchor_bottom = 0.5
 margin_left = -82.0
 margin_top = -34.0
 margin_right = 82.0
-margin_bottom = 34.0
+margin_bottom = 42.0
 popup_exclusive = true
 window_title = ".alert.info"
 resizable = true
@@ -135,9 +144,9 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="CategoryDialog" parent="." instance=ExtResource( 8 )]
+[node name="CategoryDialog" parent="Dialogs" instance=ExtResource( 8 )]
 
-[node name="ConfirmDialog" type="ConfirmationDialog" parent="." groups=[
+[node name="ConfirmDialog" type="ConfirmationDialog" parent="Dialogs" groups=[
 "ConfirmDialog",
 ]]
 anchor_left = 0.5
@@ -147,7 +156,7 @@ anchor_bottom = 0.5
 margin_left = -100.0
 margin_top = -35.0
 margin_right = 100.0
-margin_bottom = 35.0
+margin_bottom = 41.0
 popup_exclusive = true
 window_title = ".alert.confirm"
 resizable = true
@@ -157,16 +166,15 @@ __meta__ = {
 "_editor_description_": ""
 }
 
-[node name="MailDialog" parent="." instance=ExtResource( 16 )]
+[node name="MailDialog" parent="Dialogs" instance=ExtResource( 16 )]
 margin_left = -137.5
 margin_top = -33.5
 margin_right = 137.5
 margin_bottom = 33.5
 
-[node name="SettingsDialog" parent="." groups=[
+[node name="SettingsDialog" parent="Dialogs" groups=[
 "SettingsDialog",
 ] instance=ExtResource( 18 )]
-visible = false
 margin_left = -348.0
 margin_top = -360.5
 margin_right = 348.0
@@ -181,4 +189,4 @@ script = ExtResource( 15 )
 [connection signal="theme_changed" from="Content/Menu/Edit" to="." method="_on_theme_changed"]
 [connection signal="show_user_books" from="Content/Tabs/Users" to="Content/Tabs/Books" method="show_user_books"]
 [connection signal="show_book" from="Content/Tabs/Overdues" to="Content/Tabs/Books" method="show_book"]
-[connection signal="project_selected" from="ProjectDialog" to="." method="_on_project_selected"]
+[connection signal="project_selected" from="Dialogs/ProjectDialog" to="." method="_on_project_selected"]
