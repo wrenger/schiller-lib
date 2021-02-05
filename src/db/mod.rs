@@ -11,6 +11,7 @@ mod raw;
 mod settings;
 mod structure;
 mod user;
+mod stats;
 
 pub use book::*;
 pub use category::*;
@@ -19,6 +20,7 @@ use raw::StatementExt;
 pub use settings::*;
 pub use structure::*;
 pub use user::*;
+pub use stats::*;
 
 pub const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -112,6 +114,12 @@ impl DatabaseUser for Database {
 }
 
 impl DatabaseSettings for Database {
+    fn db(&self) -> &sqlite::Connection {
+        &self.db
+    }
+}
+
+impl DatabaseStats for Database {
     fn db(&self) -> &sqlite::Connection {
         &self.db
     }

@@ -31,6 +31,7 @@ func fill(rows: Array = []):
     clear()
     var _root := create_item()
     for object in rows:
+        # warning-ignore:return_value_discarded
         add_object(object)
     if rows:
         get_root().get_children().select(0)

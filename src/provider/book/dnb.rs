@@ -148,7 +148,7 @@ fn parse_costs(costs: &str) -> f64 {
             let end = costs[begin..]
                 .find(' ')
                 .map(|i| begin + i)
-                .unwrap_or(costs.len());
+                .unwrap_or_else(|| costs.len());
             return costs[begin..end].parse().unwrap_or_default();
         }
     } else if let Some(begin) = costs.find("DM") {
@@ -157,7 +157,7 @@ fn parse_costs(costs: &str) -> f64 {
             let end = costs[begin..]
                 .find(' ')
                 .map(|i| begin + i)
-                .unwrap_or(costs.len());
+                .unwrap_or_else(|| costs.len());
             let costs: f64 = costs[begin..end].parse().unwrap_or_default();
             return (costs * DM_TO_EUR * 100.0).round() / 100.0;
         }

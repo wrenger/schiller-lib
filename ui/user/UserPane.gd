@@ -10,7 +10,8 @@ onready var _user_edit := $Edit as Control
 onready var _user_editing := $Editing as Control
 onready var _user_adding := $Adding as Control
 
-var before_edit: Dictionary = {}
+var _before_edit: Dictionary = {}
+
 
 func _ready():
     set_user({})
@@ -34,7 +35,7 @@ func _on_user_selected(user: Dictionary):
 
 
 func _on_edit():
-    before_edit = _user_pane.user
+    _before_edit = _user_pane.user
     _user_show_books.visible = false
     _user_edit.visible = false
     _user_adding.visible = false
@@ -44,7 +45,7 @@ func _on_edit():
 
 
 func _on_add():
-    before_edit = {}
+    _before_edit = {}
     _user_pane.user = {}
     _user_show_books.visible = false
     _user_edit.visible = false
@@ -60,8 +61,8 @@ func _on_show_books():
 
 
 func _on_edit_cancel():
-    set_user(before_edit)
-    before_edit = {}
+    set_user(_before_edit)
+    _before_edit = {}
 
 
 func _on_edit_add():
@@ -71,23 +72,25 @@ func _on_edit_add():
 
     set_user(_user_pane.user)
     emit_signal("add_user", user)
-    before_edit = {}
+    _before_edit = {}
 
 
 func _on_edit_apply():
     var user: Dictionary = _user_pane.user
-    var result: Dictionary = Project.user_update(before_edit.account, user)
+    var result: Dictionary = Project.user_update(_before_edit.account, user)
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
     set_user(user)
     emit_signal("update_user", user)
-    before_edit = {}
+    _before_edit = {}
 
 
 func _on_edit_delete():
-    var result: Dictionary = Project.user_delete(before_edit.account)
-    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+    var confirmed = yield(ConfirmDialog.open(tr(".user.delete")), "response")
+    if confirmed:
+        var result: Dictionary = Project.user_delete(_before_edit.account)
+        if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
-    set_user({})
-    emit_signal("update_user", {})
-    before_edit = {}
+        set_user({})
+        emit_signal("update_user", {})
+        _before_edit = {}

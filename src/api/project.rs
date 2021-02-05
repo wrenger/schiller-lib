@@ -5,7 +5,8 @@ use gdnative::prelude::*;
 use super::debug;
 use crate::api::{self, Error};
 use crate::db::{
-    self, Database, DatabaseBook, DatabaseCategory, DatabaseLending, DatabaseSettings, DatabaseUser,
+    self, Database, DatabaseBook, DatabaseCategory, DatabaseLending, DatabaseSettings,
+    DatabaseStats, DatabaseUser, Stats,
 };
 
 /// The Global Project Singleton
@@ -319,5 +320,13 @@ impl Project {
         self.settings = Some(db.settings_fetch()?);
         godot_print!("Settings synced");
         Ok(())
+    }
+
+    /// Returns the project statistics.
+    #[export]
+    fn stats(&self, _owner: &Node) -> api::Result<Stats> {
+        let _timer = debug::timer();
+        let db = self.db.as_ref().ok_or(Error::NoProject)?;
+        db.stats()
     }
 }

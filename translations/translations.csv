@@ -47,7 +47,7 @@
 .book.borrowed.by,Borrowed by {0} until {1},Ausgeliehen von {0} bis zum {1}
 .book.costs,Costs,Preis
 .book.delete-reservation,Delete Reservation,Vormerkung Löschen
-.book.delete,Do you want to delete the book '{0}'?,Möchtest du das Buch '{0}' wirklich löschen?
+.book.delete,Do you want to delete this book?,Möchtest du dieses Buch wirklich löschen?
 .book.from-user,By {0} ({1}),Von {0} ({1})
 .book.id,ID,Signatur
 .book.id.action,Suggest,Vorschlagen
@@ -113,7 +113,13 @@
 .error.user.none,No user found.,Kein Benutzer gefunden.
 .info.category-freq,Number of Books per Category:\n\n{0},Anzahl der Bücher in den Kategorien:\n\n{0}
 .info.help.title,Help,Hilfe
-.info.stats,{0} book{0:|s} total.\n\n{1} authors{1:|s} total\n\n{2} user{2:|s} total.\n\n{3} book{3:|s} borrowed.\n{4} expired periods.\n\n{5} book{5:|s} reserved.\n\nTotal costs of all books: {6}\n(sum of all entered costs),{0} {0:Buch|Bücher} eingetragen.\n\n{1} Autor{1:|en} eingetragen\n\n{2} Benutzer eingetragen.\n\n{3} {3:Buch|Bücher} ausgeliehen.\nDavon {4} {4:Buch|Bücher} überzogen.\n\n{5} {5:Buch|Bücher} vorgemerkt.\n\nGesamtpreis aller Medien: {6}\n(Summe aller eingetragenen Preise)
+.info.books,{0} book{0:|s},{0} {0:Buch|Bücher}
+.info.authors,{0} author{0:|s},{0} Autor{0:|en}
+.info.users,{0} user{0:|s},{0} Benutzer
+.info.borrows,{0} borrow{0:|s},{0} Ausleihung{0:|en}
+.info.reservations,{0} reservation{0:|s},{0} Vormerkung{0:|en}
+.info.overdues,{0} overdue{0:|s},{0} Überziehung{0:|en}
+.info.costs,Total costs of all books: {0}\n(sum of all entered costs),Gesamtpreis aller Medien: {0}\n(Summe aller eingetragenen Preise)
 .info.title,Info - Version: {0},Info - Version: {0}
 .mail.info,"You can use keywords in the subject and content. They are replace with the respective values before the mail is send.\n\n{username}: Username, {booktitle}: Book Title","Sowohl im Titel und auch im Inhalt können Schlüsselwörter verwendet werden. Diese werden beim Senden der Email durch den entsprechenden Werte ersetzt.\n\n{username}: Benutzername, {booktitle}: Buchtitel"
 .mail.info.content,"Hallo {username},\nYou have shown interest in the book '{booktitle}.'\nNow it is back in the library, reserved for you to borrow.\n\nRegards,\nThe Library Team.","Hallo {username},\nDu hast dich für das Buch '{booktitle}' interessiert.\nDas Buch war ausgeliehen und liegt nun wieder in der Schülerbücherei.\nWenn du willst, kannst du es jetzt ausleihen.\n\nViele Grüße vom Schülerbüchereiteam."
@@ -162,7 +168,7 @@
 .user,User,Benutzer
 .user.account,Account,Account
 .user.books,Borrowed or Reserved Books,Ausgeliehene oder Vorgemerkte Bücher
-.user.delete,Remove user from library?\nHis borrows and reservations will also be lost.,Möchtest du diesen Benutzer wirklich löschen?\nAlle seine Entleihungen und Vormerkungen gehen dadurch verloren!
+.user.delete,Do you want to delete this user?\nHis borrows and reservations will also be removed.,Möchtest du diesen Benutzer wirklich löschen?\nAlle seine Entleihungen und Vormerkungen gehen dadurch verloren!
 .user.forename,Forename,Vorname
 .user.invalid,"Account, Forename and Surname are mendatory.","Account, Vorname und Nachname dürfen nicht leer bleiben."
 .user.may-borrow,May Borrow,Darf ausleihen

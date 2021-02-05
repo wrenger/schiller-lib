@@ -42,7 +42,8 @@ func _on_project_selected(path: String, new: bool):
     var result: Dictionary
     if new:
         result = Project.create(path)
-        if result.has("Ok"): _add_new_dummy_data()
+        if result.has("Ok"):
+            result = _add_new_dummy_data()
     else:
         result = Project.open(path)
 

@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::iter::FromIterator;
 
 /// Additional database functions
 pub trait DatabaseExt {
@@ -54,12 +53,11 @@ pub trait StatementExt {
 
 impl<'a> StatementExt for sqlite::Statement<'a> {
     fn columns(&self) -> HashMap<String, usize> {
-        HashMap::from_iter(
-            self.names()
-                .into_iter()
-                .enumerate()
-                .map(|(i, col)| (col.to_string(), i)),
-        )
+        self.names()
+            .into_iter()
+            .enumerate()
+            .map(|(i, col)| (col.to_string(), i))
+            .collect()
     }
 }
 

@@ -16,7 +16,7 @@ crate-type = ["cdylib"]
 lto = true
 
 [dependencies]
-gdnative = "0.9.1"
+gdnative = "0.9.3"
 sqlite = "0.25.3"
 chrono = "0.4.19"
 roxmltree = "0.14.0"
@@ -29,6 +29,6 @@ default-features = false
 features = ["blocking"]
 
 [dependencies.lettre]
-version = "0.10.0-alpha.3"
+version = "0.10.0-alpha.5"
 default-features = false
 features = ["builder", "smtp-transport", "native-tls"]

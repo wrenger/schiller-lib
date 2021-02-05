@@ -6,6 +6,9 @@ export (Array, String) var labels: Array = []
 
 
 func _ready() -> void:
+    assert(len(labels) == get_child_count())
+    assert(not editor_icons or len(editor_icons) == get_child_count())
+
     for i in range(len(labels)):
         set_tab_title(i, tr(labels[i]))
 

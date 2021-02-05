@@ -1,0 +1,89 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://ui/info/Stats.gd" type="Script" id=1]
+[ext_resource path="res://ui/info/InfoLabel.gd" type="Script" id=2]
+
+[node name="Info" type="MarginContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_constants/margin_right = 5
+custom_constants/margin_top = 10
+custom_constants/margin_left = 5
+custom_constants/margin_bottom = 5
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+margin_left = 5.0
+margin_top = 10.0
+margin_right = 1195.0
+margin_bottom = 795.0
+
+[node name="Box" type="VBoxContainer" parent="Scroll"]
+margin_right = 1190.0
+margin_bottom = 128.0
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Scroll/Box"]
+margin_right = 1190.0
+margin_bottom = 26.0
+script = ExtResource( 2 )
+
+[node name="Stats" type="HBoxContainer" parent="Scroll/Box"]
+margin_top = 30.0
+margin_right = 1190.0
+margin_bottom = 128.0
+size_flags_horizontal = 3
+script = ExtResource( 1 )
+
+[node name="Entries" type="PanelContainer" parent="Scroll/Box/Stats"]
+margin_right = 593.0
+margin_bottom = 98.0
+size_flags_horizontal = 3
+
+[node name="Box" type="VBoxContainer" parent="Scroll/Box/Stats/Entries"]
+margin_left = 6.0
+margin_top = 6.0
+margin_right = 587.0
+margin_bottom = 92.0
+
+[node name="Books" type="Label" parent="Scroll/Box/Stats/Entries/Box"]
+margin_right = 581.0
+margin_bottom = 26.0
+
+[node name="Authors" type="Label" parent="Scroll/Box/Stats/Entries/Box"]
+margin_top = 30.0
+margin_right = 581.0
+margin_bottom = 56.0
+
+[node name="Users" type="Label" parent="Scroll/Box/Stats/Entries/Box"]
+margin_top = 60.0
+margin_right = 581.0
+margin_bottom = 86.0
+
+[node name="Borrowing" type="PanelContainer" parent="Scroll/Box/Stats"]
+margin_left = 597.0
+margin_right = 1190.0
+margin_bottom = 98.0
+size_flags_horizontal = 3
+
+[node name="Box" type="VBoxContainer" parent="Scroll/Box/Stats/Borrowing"]
+margin_left = 6.0
+margin_top = 6.0
+margin_right = 587.0
+margin_bottom = 92.0
+
+[node name="Borrows" type="Label" parent="Scroll/Box/Stats/Borrowing/Box"]
+margin_right = 581.0
+margin_bottom = 26.0
+
+[node name="Reservations" type="Label" parent="Scroll/Box/Stats/Borrowing/Box"]
+margin_top = 30.0
+margin_right = 581.0
+margin_bottom = 56.0
+
+[node name="Overdues" type="Label" parent="Scroll/Box/Stats/Borrowing/Box"]
+margin_top = 60.0
+margin_right = 581.0
+margin_bottom = 86.0

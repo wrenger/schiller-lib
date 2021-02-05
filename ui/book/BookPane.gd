@@ -164,6 +164,17 @@ func _on_edit_apply():
 
 
 func _on_edit_delete():
+    var confirmed = yield(ConfirmDialog.open(tr(".book.delete")), "response")
+    if confirmed:
+        var result: Dictionary = Project.book_delete(_before_edit.id)
+        if result.has("Err"): return MessageDialog.error_code(result["Err"])
+
+        set_book({})
+        emit_signal("update_book", {})
+        _before_edit = {}
+
+
+func _on_edit_delete_confirmed():
     var result: Dictionary = Project.book_delete(_before_edit.id)
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
