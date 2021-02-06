@@ -112,7 +112,10 @@
 .error.user.existing,The user account '{0}' already exists.,Ein Benutzer mit dem Account '{0}' existiert bereits.
 .error.user.none,No user found.,Kein Benutzer gefunden.
 .info.category-freq,Number of Books per Category:\n\n{0},Anzahl der Bücher in den Kategorien:\n\n{0}
-.info.help.title,Help,Hilfe
+.info.about,About {0} - Version {1},Über {0} - Version {1}
+.info.about.repo,Repository:,Repository:
+.info.about.license,License: {0},Lizenz: {0}
+.info.about.devs,Developers:,Entwickler:
 .info.books,{0} book{0:|s},{0} {0:Buch|Bücher}
 .info.authors,{0} author{0:|s},{0} Autor{0:|en}
 .info.users,{0} user{0:|s},{0} Benutzer
@@ -120,7 +123,7 @@
 .info.reservations,{0} reservation{0:|s},{0} Vormerkung{0:|en}
 .info.overdues,{0} overdue{0:|s},{0} Überziehung{0:|en}
 .info.costs,Total costs of all books: {0}\n(sum of all entered costs),Gesamtpreis aller Medien: {0}\n(Summe aller eingetragenen Preise)
-.info.title,Info - Version: {0},Info - Version: {0}
+.info.stats,Statistics,Statistiken
 .mail.info,"You can use keywords in the subject and content. They are replace with the respective values before the mail is send.\n\n{username}: Username, {booktitle}: Book Title","Sowohl im Titel und auch im Inhalt können Schlüsselwörter verwendet werden. Diese werden beim Senden der Email durch den entsprechenden Werte ersetzt.\n\n{username}: Benutzername, {booktitle}: Buchtitel"
 .mail.info.content,"Hallo {username},\nYou have shown interest in the book '{booktitle}.'\nNow it is back in the library, reserved for you to borrow.\n\nRegards,\nThe Library Team.","Hallo {username},\nDu hast dich für das Buch '{booktitle}' interessiert.\nDas Buch war ausgeliehen und liegt nun wieder in der Schülerbücherei.\nWenn du willst, kannst du es jetzt ausleihen.\n\nViele Grüße vom Schülerbüchereiteam."
 .mail.info.subject,'{booktitle}' is back in the library,'{booktitle}' ist nun verfügbar!

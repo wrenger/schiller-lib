@@ -219,8 +219,8 @@ rect_min_size = Vector2( 200, 0 )
 [node name="BookPane" parent="Split/Right" instance=ExtResource( 5 )]
 margin_top = 26.0
 size_flags_horizontal = 3
-[connection signal="search_results" from="Split/Left/Search" to="Split/Left/Search/BookList" method="fill"]
 [connection signal="search_results" from="Split/Left/Search" to="Split/Left/Search/Status" method="_on_search_results"]
+[connection signal="search_results" from="Split/Left/Search" to="Split/Left/Search/BookList" method="fill"]
 [connection signal="text_entered" from="Split/Left/Search/Tabs/Basic" to="Split/Left/Search" method="_on_search"]
 [connection signal="pressed" from="Split/Left/Search/Tabs/Basic/ToolButton" to="Split/Left/Search" method="_on_search"]
 [connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/Title" to="Split/Left/Search" method="_on_advanced_search"]

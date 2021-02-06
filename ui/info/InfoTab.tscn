@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://ui/info/Stats.gd" type="Script" id=1]
-[ext_resource path="res://ui/info/InfoLabel.gd" type="Script" id=2]
+[ext_resource path="res://ui/util/ThemeProperty.gd" type="Script" id=2]
+[ext_resource path="res://ui/info/About.gd" type="Script" id=3]
 
 [node name="Info" type="MarginContainer"]
 anchor_right = 1.0
@@ -22,13 +23,13 @@ margin_bottom = 795.0
 
 [node name="Box" type="VBoxContainer" parent="Scroll"]
 margin_right = 1190.0
-margin_bottom = 128.0
+margin_bottom = 332.0
 size_flags_horizontal = 3
 
 [node name="Label" type="Label" parent="Scroll/Box"]
 margin_right = 1190.0
 margin_bottom = 26.0
-script = ExtResource( 2 )
+text = ".info.stats"
 
 [node name="Stats" type="HBoxContainer" parent="Scroll/Box"]
 margin_top = 30.0
@@ -41,12 +42,20 @@ script = ExtResource( 1 )
 margin_right = 593.0
 margin_bottom = 98.0
 size_flags_horizontal = 3
+script = ExtResource( 2 )
+theme_class = "Panel"
+theme_name = "panel"
+theme_type = 3
+target_property = "custom_styles/panel"
 
 [node name="Box" type="VBoxContainer" parent="Scroll/Box/Stats/Entries"]
 margin_left = 6.0
 margin_top = 6.0
 margin_right = 587.0
 margin_bottom = 92.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="Books" type="Label" parent="Scroll/Box/Stats/Entries/Box"]
 margin_right = 581.0
@@ -67,12 +76,20 @@ margin_left = 597.0
 margin_right = 1190.0
 margin_bottom = 98.0
 size_flags_horizontal = 3
+script = ExtResource( 2 )
+theme_class = "Panel"
+theme_name = "panel"
+theme_type = 3
+target_property = "custom_styles/panel"
 
 [node name="Box" type="VBoxContainer" parent="Scroll/Box/Stats/Borrowing"]
 margin_left = 6.0
 margin_top = 6.0
 margin_right = 587.0
 margin_bottom = 92.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="Borrows" type="Label" parent="Scroll/Box/Stats/Borrowing/Box"]
 margin_right = 581.0
@@ -87,3 +104,70 @@ margin_bottom = 56.0
 margin_top = 60.0
 margin_right = 581.0
 margin_bottom = 86.0
+
+[node name="HSeparator" type="HSeparator" parent="Scroll/Box"]
+margin_top = 132.0
+margin_right = 1190.0
+margin_bottom = 136.0
+
+[node name="About" type="VBoxContainer" parent="Scroll/Box"]
+margin_top = 140.0
+margin_right = 1190.0
+margin_bottom = 332.0
+script = ExtResource( 3 )
+
+[node name="Name" type="Label" parent="Scroll/Box/About"]
+margin_right = 1190.0
+margin_bottom = 26.0
+text = ".info.about"
+
+[node name="HSeparator" type="HSeparator" parent="Scroll/Box/About"]
+margin_top = 30.0
+margin_right = 1190.0
+margin_bottom = 34.0
+
+[node name="Description" type="Label" parent="Scroll/Box/About"]
+margin_top = 38.0
+margin_right = 1190.0
+margin_bottom = 64.0
+
+[node name="Repo" type="HBoxContainer" parent="Scroll/Box/About"]
+margin_top = 68.0
+margin_right = 1190.0
+margin_bottom = 94.0
+
+[node name="Label" type="Label" parent="Scroll/Box/About/Repo"]
+margin_right = 109.0
+margin_bottom = 26.0
+text = ".info.about.repo"
+
+[node name="Url" type="LinkButton" parent="Scroll/Box/About/Repo"]
+margin_left = 113.0
+margin_top = 6.0
+margin_right = 113.0
+margin_bottom = 20.0
+size_flags_vertical = 4
+underline = 1
+
+[node name="License" type="Label" parent="Scroll/Box/About"]
+margin_top = 98.0
+margin_right = 1190.0
+margin_bottom = 124.0
+text = ".info.about.license"
+
+[node name="HSeparator2" type="HSeparator" parent="Scroll/Box/About"]
+margin_top = 128.0
+margin_right = 1190.0
+margin_bottom = 132.0
+
+[node name="DevsLabel" type="Label" parent="Scroll/Box/About"]
+margin_top = 136.0
+margin_right = 1190.0
+margin_bottom = 162.0
+text = ".info.about.devs"
+
+[node name="Devs" type="Label" parent="Scroll/Box/About"]
+margin_top = 166.0
+margin_right = 1190.0
+margin_bottom = 192.0
+[connection signal="pressed" from="Scroll/Box/About/Repo/Url" to="Scroll/Box/About" method="_on_repo_pressed"]

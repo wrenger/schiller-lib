@@ -22,7 +22,7 @@ pub use structure::*;
 pub use user::*;
 pub use stats::*;
 
-pub const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
+use super::PKG_VERSION;
 
 pub struct Database {
     path: PathBuf,

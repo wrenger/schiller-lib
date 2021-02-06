@@ -9,6 +9,8 @@ use crate::db::{
     DatabaseStats, DatabaseUser, Stats,
 };
 
+use crate::{PKG_AUTHORS, PKG_DESCRIPTION, PKG_LICENSE, PKG_NAME, PKG_REPOSITORY, PKG_VERSION};
+
 /// The Global Project Singleton
 #[derive(NativeClass, Debug)]
 #[inherit(Node)]
@@ -33,7 +35,26 @@ impl Project {
     /// Which may be newer than the project (database) version.
     #[export]
     fn version(&self, _owner: &Node) -> String {
-        db::PKG_VERSION.into()
+        PKG_VERSION.into()
+    }
+
+    /// Returns info about this project.
+    #[export]
+    fn about(&self, _owner: &Node) -> Dictionary {
+        let dict = Dictionary::new();
+        dict.insert("name", PKG_NAME);
+        dict.insert("version", PKG_VERSION);
+        dict.insert("repository", PKG_REPOSITORY);
+        dict.insert(
+            "authors",
+            PKG_AUTHORS
+                .split(';')
+                .map(|s| GodotString::from_str(s.trim()))
+                .collect::<TypedArray<GodotString>>(),
+        );
+        dict.insert("description", PKG_DESCRIPTION);
+        dict.insert("license", PKG_LICENSE);
+        dict.into_shared()
     }
 
     /// Opens the specified project and returns if it was successful.
