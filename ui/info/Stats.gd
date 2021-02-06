@@ -20,9 +20,17 @@ func _ready() -> void:
 func _reload():
     if visible:
         var result: Dictionary = Project.stats()
-        if result.has("Err"): return MessageDialog.error_code(result["Err"])
 
-        var stats: Dictionary = result["Ok"]
+        var stats: Dictionary
+        if result.has("Ok"):
+            stats = result["Ok"]
+        elif result["Err"] == Util.SbvError.NoProject:
+            stats = {"books": 0, "authors": 0, "users": 0,
+                "borrows": 0, "reservations": 0, "overdues": 0}
+        else:
+            MessageDialog.error_code(result["Err"])
+            return
+
         _books.text = Util.trf(".info.books", [stats.books])
         _authors.text = Util.trf(".info.authors", [stats.authors])
         _users.text = Util.trf(".info.users", [stats.users])
