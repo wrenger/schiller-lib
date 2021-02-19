@@ -9,8 +9,6 @@ use crate::db::{
     DatabaseStats, DatabaseUser, Stats,
 };
 
-use crate::{PKG_AUTHORS, PKG_DESCRIPTION, PKG_LICENSE, PKG_NAME, PKG_REPOSITORY, PKG_VERSION};
-
 /// The Global Project Singleton
 #[derive(NativeClass, Debug)]
 #[inherit(Node)]
@@ -31,38 +29,43 @@ impl Project {
         }
     }
 
+    #[inline]
+    fn get_db(&self) -> api::Result<&Database> {
+        self.db.as_ref().ok_or(Error::NoProject)
+    }
+
     /// Returns the program version.
     /// Which may be newer than the project (database) version.
     #[export]
     fn version(&self, _owner: &Node) -> String {
-        PKG_VERSION.into()
+        crate::PKG_VERSION.into()
     }
 
     /// Returns info about this project.
     #[export]
     fn about(&self, _owner: &Node) -> Dictionary {
         let dict = Dictionary::new();
-        dict.insert("name", PKG_NAME);
-        dict.insert("version", PKG_VERSION);
-        dict.insert("repository", PKG_REPOSITORY);
+        dict.insert("name", crate::PKG_NAME);
+        dict.insert("version", crate::PKG_VERSION);
+        dict.insert("repository", crate::PKG_REPOSITORY);
         dict.insert(
             "authors",
-            PKG_AUTHORS
+            crate::PKG_AUTHORS
                 .split(';')
                 .map(|s| GodotString::from_str(s.trim()))
                 .collect::<TypedArray<GodotString>>(),
         );
-        dict.insert("description", PKG_DESCRIPTION);
-        dict.insert("license", PKG_LICENSE);
+        dict.insert("description", crate::PKG_DESCRIPTION);
+        dict.insert("license", crate::PKG_LICENSE);
         dict.into_shared()
     }
 
-    /// Opens the specified project and returns if it was successful.
+    /// Opens the specified project and returns if it was upgraded to a new version.
     #[export]
-    fn open(&mut self, owner: &Node, file: GodotString) -> api::Result<bool> {
+    fn open(&mut self, owner: &Node, file: String) -> api::Result<bool> {
         let _timer = debug::timer();
         self.close(owner);
-        let (db, updated) = Database::open(&file.to_string())?;
+        let (db, updated) = Database::open(&file)?;
         self.settings = Some(db.settings_fetch()?);
         self.db = Some(db);
         Ok(updated)
@@ -70,10 +73,10 @@ impl Project {
 
     /// Creates a new project database.
     #[export]
-    fn create(&mut self, owner: &Node, file: GodotString) -> api::Result<()> {
+    fn create(&mut self, owner: &Node, file: String) -> api::Result<()> {
         let _timer = debug::timer();
         self.close(owner);
-        let db = Database::create(&file.to_string())?;
+        let db = Database::create(&file)?;
         self.settings = Some(db.settings_fetch()?);
         self.db = Some(db);
         Ok(())
@@ -81,11 +84,11 @@ impl Project {
 
     /// Returns the path to the currently opened project or an empty string.
     #[export]
-    fn path(&self, _owner: &Node) -> GodotString {
+    fn path(&self, _owner: &Node) -> String {
         if let Some(db) = &self.db {
             db.path().to_str().unwrap_or_default().into()
         } else {
-            GodotString::new()
+            String::new()
         }
     }
 
@@ -98,12 +101,18 @@ impl Project {
 
     // Book
 
+    /// Returns the book with the given `id`.
+    #[export]
+    fn book_fetch(&self, _owner: &Node, id: String) -> api::Result<db::Book> {
+        let _timer = debug::timer();
+        self.get_db()?.book_fetch(&id)
+    }
+
     /// Preforms a simple media search with the given `text`.
     #[export]
-    fn book_search(&self, _owner: &Node, text: GodotString) -> api::Result<VariantArray> {
+    fn book_search(&self, _owner: &Node, text: String) -> api::Result<VariantArray> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        let result = db.book_search(&text.to_string())?;
+        let result = self.get_db()?.book_search(&text)?;
         Ok(VariantArray::from_iter(result).into_shared())
     }
 
@@ -115,8 +124,7 @@ impl Project {
         params: db::BookSearch,
     ) -> api::Result<VariantArray> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        let result = db.book_search_advanced(&params)?;
+        let result = self.get_db()?.book_search_advanced(&params)?;
         Ok(VariantArray::from_iter(result).into_shared())
     }
 
@@ -124,16 +132,14 @@ impl Project {
     #[export]
     fn book_add(&self, _owner: &Node, book: db::Book) -> api::Result<()> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.book_add(&book)
+        self.get_db()?.book_add(&book)
     }
 
     /// Updates the book and all references if its id changes.
     #[export]
     fn book_update(&self, _owner: &Node, previous_id: String, book: db::Book) -> api::Result<()> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.book_update(&previous_id, &book)
+        self.get_db()?.book_update(&previous_id, &book)
     }
 
     /// Deletes the book including the its authors.
@@ -141,34 +147,30 @@ impl Project {
     #[export]
     fn book_delete(&self, _owner: &Node, id: String) -> api::Result<()> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.book_delete(&id)
+        self.get_db()?.book_delete(&id)
     }
 
     /// Generates a new book id.
     #[export]
     fn book_generate_id(&self, _owner: &Node, book: db::Book) -> api::Result<String> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.book_generate_id(&book)
+        self.get_db()?.book_generate_id(&book)
     }
 
     // User
 
     /// Returns the user with the given `account`.
     #[export]
-    fn user_fetch(&self, _owner: &Node, account: GodotString) -> api::Result<db::User> {
+    fn user_fetch(&self, _owner: &Node, account: String) -> api::Result<db::User> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.user_fetch(&account.to_string())
+        self.get_db()?.user_fetch(&account)
     }
 
     /// Performs a simple user search with the given `text`.
     #[export]
-    fn user_search(&self, _owner: &Node, text: GodotString) -> api::Result<VariantArray> {
+    fn user_search(&self, _owner: &Node, text: String) -> api::Result<VariantArray> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        let result = db.user_search(&text.to_string())?;
+        let result = self.get_db()?.user_search(&text)?;
         Ok(VariantArray::from_iter(result).into_shared())
     }
 
@@ -176,16 +178,14 @@ impl Project {
     #[export]
     fn user_add(&self, _owner: &Node, user: db::User) -> api::Result<()> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.user_add(&user)
+        self.get_db()?.user_add(&user)
     }
 
     /// Updates the user and all references if its account changes.
     #[export]
     fn user_update(&self, _owner: &Node, account: String, user: db::User) -> api::Result<()> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.user_update(&account, &user)
+        self.get_db()?.user_update(&account, &user)
     }
 
     /// Deletes the user.
@@ -193,8 +193,7 @@ impl Project {
     #[export]
     fn user_delete(&self, _owner: &Node, account: String) -> api::Result<()> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.user_delete(&account)
+        self.get_db()?.user_delete(&account)
     }
 
     /// Deletes the roles from all users and inserts the new roles.
@@ -203,7 +202,7 @@ impl Project {
     #[export]
     fn user_update_roles(&self, _owner: &Node, users: Vec<(String, String)>) -> api::Result<()> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
+        let db = self.get_db()?;
         let users: Vec<(&str, &str)> = users
             .iter()
             .map(|(u, r)| (u.as_str(), r.as_str()))
@@ -217,8 +216,7 @@ impl Project {
     #[export]
     fn category_list(&self, _owner: &Node) -> api::Result<VariantArray> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        let result = db.category_list()?;
+        let result = self.get_db()?.category_list()?;
         Ok(VariantArray::from_iter(result).into_shared())
     }
 
@@ -226,8 +224,7 @@ impl Project {
     #[export]
     fn category_add(&self, _owner: &Node, category: db::Category) -> api::Result<()> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.category_add(&category)
+        self.get_db()?.category_add(&category)
     }
 
     /// Updates the category and all references.
@@ -239,24 +236,21 @@ impl Project {
         category: db::Category,
     ) -> api::Result<()> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.category_update(&id, &category)
+        self.get_db()?.category_update(&id, &category)
     }
 
     /// Removes the category or returns a `LogicError` if it is still in use.
     #[export]
     fn category_remove(&self, _owner: &Node, id: String) -> api::Result<()> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.category_delete(&id)
+        self.get_db()?.category_delete(&id)
     }
 
     /// Returns the number of books in this category.
     #[export]
     fn category_references(&self, _owner: &Node, id: String) -> api::Result<i64> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.category_references(&id)
+        self.get_db()?.category_references(&id)
     }
 
     // Lending
@@ -271,8 +265,7 @@ impl Project {
         days: i64,
     ) -> api::Result<db::Book> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.lending_lend(&mut book, &user, days)?;
+        self.get_db()?.lending_lend(&mut book, &user, days)?;
         Ok(book)
     }
 
@@ -280,8 +273,7 @@ impl Project {
     #[export]
     fn lending_return(&self, _owner: &Node, mut book: db::Book) -> api::Result<db::Book> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.lending_return(&mut book)?;
+        self.get_db()?.lending_return(&mut book)?;
         Ok(book)
     }
 
@@ -294,8 +286,7 @@ impl Project {
         user: db::User,
     ) -> api::Result<db::Book> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.lending_reserve(&mut book, &user)?;
+        self.get_db()?.lending_reserve(&mut book, &user)?;
         Ok(book)
     }
 
@@ -303,8 +294,7 @@ impl Project {
     #[export]
     fn lending_release(&self, _owner: &Node, mut book: db::Book) -> api::Result<db::Book> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.lending_release(&mut book)?;
+        self.get_db()?.lending_release(&mut book)?;
         Ok(book)
     }
 
@@ -312,8 +302,7 @@ impl Project {
     #[export]
     fn lending_overdues(&self, _owner: &Node) -> api::Result<VariantArray> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        let result = db.lending_overdues()?;
+        let result = self.get_db()?.lending_overdues()?;
         Ok(VariantArray::from_iter(result.map(|(book, user)| {
             VariantArray::from_iter([book.owned_to_variant(), user.owned_to_variant()].iter())
                 .into_shared()
@@ -334,7 +323,7 @@ impl Project {
     #[export]
     fn settings_update(&mut self, _owner: &Node, settings: db::Settings) -> api::Result<()> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
+        let db = self.get_db()?;
         db.settings_update(&settings)?;
         godot_print!("Settings updated");
         // Reload cached settings
@@ -347,7 +336,6 @@ impl Project {
     #[export]
     fn stats(&self, _owner: &Node) -> api::Result<Stats> {
         let _timer = debug::timer();
-        let db = self.db.as_ref().ok_or(Error::NoProject)?;
-        db.stats()
+        self.get_db()?.stats()
     }
 }

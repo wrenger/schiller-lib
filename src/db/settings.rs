@@ -70,7 +70,7 @@ impl Default for Settings {
 }
 
 impl Settings {
-    fn from_iter<I: IntoIterator<Item = (String, String)>>(iter: I) -> api::Result<Self> {
+    fn from_iter<I: IntoIterator<Item = (String, String)>>(iter: I) -> Settings {
         let mut settings = Settings::default();
         for (key, value) in iter {
             match key.as_str() {
@@ -95,7 +95,7 @@ impl Settings {
                 _ => gdnative::godot_error!("Unknown option: {} = {}", key, value),
             }
         }
-        Ok(settings)
+        settings
     }
 }
 
@@ -137,6 +137,6 @@ pub trait DatabaseSettings {
 
     fn settings_fetch(&self) -> api::Result<Settings> {
         let stmt = self.db().prepare(SETTINGS_FETCH)?;
-        Settings::from_iter(DBIter::new(stmt))
+        Ok(Settings::from_iter(DBIter::new(stmt)))
     }
 }

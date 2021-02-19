@@ -59,7 +59,7 @@ fn parse(response: &str, isbn: &str) -> api::Result<BookData> {
         .find(|n| n.tag_name().name() == "records")
     {
         for record in records.children() {
-            let record = parse_record(record)?;
+            let record = parse_record(record);
             if record.isbns.iter().any(|e| e == isbn) {
                 return Ok(record.data);
             }
@@ -78,7 +78,7 @@ struct Record {
     data: BookData,
 }
 
-fn parse_record(record: roxmltree::Node) -> api::Result<Record> {
+fn parse_record(record: roxmltree::Node) -> Record {
     let mut r = Record::default();
     let mut persons = Vec::new();
     for datafield in record
@@ -122,7 +122,7 @@ fn parse_record(record: roxmltree::Node) -> api::Result<Record> {
             .collect::<Vec<_>>()
             .join(" ");
     }
-    Ok(r)
+    r
 }
 
 fn subfield(datafield: roxmltree::Node, code: &str) -> Option<String> {
