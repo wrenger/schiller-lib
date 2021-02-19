@@ -5,12 +5,12 @@ use crate::api;
 
 const STATS: &str = r#"
 select
-(select count(id) from medium) as books,
-(select count(name) from author) as authors,
-(select count(account) from user) as users,
-(select count(id) from medium where borrower <> '') as borrows,
-(select count(id) from medium where reservation <> '') as reservations,
-(select count(id) from medium where borrower <> '' and JulianDay(date('now')) > JulianDay(date(deadline))) as overdues
+(select count(*) from medium) as books,
+(select count(distinct name) from author) as authors,
+(select count(*) from user) as users,
+(select count(*) from medium where borrower <> '') as borrows,
+(select count(*) from medium where reservation <> '') as reservations,
+(select count(*) from medium where borrower <> '' and JulianDay(date('now')) > JulianDay(date(deadline))) as overdues
 "#;
 
 /// Data object for book.

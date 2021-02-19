@@ -23,7 +23,7 @@ margin_bottom = 795.0
 
 [node name="Box" type="VBoxContainer" parent="Scroll"]
 margin_right = 1190.0
-margin_bottom = 332.0
+margin_bottom = 370.0
 size_flags_horizontal = 3
 
 [node name="Label" type="Label" parent="Scroll/Box"]
@@ -108,40 +108,52 @@ margin_bottom = 86.0
 [node name="HSeparator" type="HSeparator" parent="Scroll/Box"]
 margin_top = 132.0
 margin_right = 1190.0
-margin_bottom = 136.0
+margin_bottom = 162.0
+rect_min_size = Vector2( 0, 30 )
 
-[node name="About" type="VBoxContainer" parent="Scroll/Box"]
-margin_top = 140.0
+[node name="Panel" type="PanelContainer" parent="Scroll/Box"]
+margin_top = 166.0
 margin_right = 1190.0
-margin_bottom = 332.0
+margin_bottom = 370.0
+script = ExtResource( 2 )
+theme_class = "Panel"
+theme_name = "panel"
+theme_type = 3
+target_property = "custom_styles/panel"
+
+[node name="About" type="VBoxContainer" parent="Scroll/Box/Panel"]
+margin_left = 6.0
+margin_top = 6.0
+margin_right = 1184.0
+margin_bottom = 198.0
 script = ExtResource( 3 )
 
-[node name="Name" type="Label" parent="Scroll/Box/About"]
-margin_right = 1190.0
+[node name="Name" type="Label" parent="Scroll/Box/Panel/About"]
+margin_right = 1178.0
 margin_bottom = 26.0
 text = ".info.about"
 
-[node name="HSeparator" type="HSeparator" parent="Scroll/Box/About"]
+[node name="HSeparator" type="HSeparator" parent="Scroll/Box/Panel/About"]
 margin_top = 30.0
-margin_right = 1190.0
+margin_right = 1178.0
 margin_bottom = 34.0
 
-[node name="Description" type="Label" parent="Scroll/Box/About"]
+[node name="Description" type="Label" parent="Scroll/Box/Panel/About"]
 margin_top = 38.0
-margin_right = 1190.0
+margin_right = 1178.0
 margin_bottom = 64.0
 
-[node name="Repo" type="HBoxContainer" parent="Scroll/Box/About"]
+[node name="Repo" type="HBoxContainer" parent="Scroll/Box/Panel/About"]
 margin_top = 68.0
-margin_right = 1190.0
+margin_right = 1178.0
 margin_bottom = 94.0
 
-[node name="Label" type="Label" parent="Scroll/Box/About/Repo"]
+[node name="Label" type="Label" parent="Scroll/Box/Panel/About/Repo"]
 margin_right = 109.0
 margin_bottom = 26.0
 text = ".info.about.repo"
 
-[node name="Url" type="LinkButton" parent="Scroll/Box/About/Repo"]
+[node name="Url" type="LinkButton" parent="Scroll/Box/Panel/About/Repo"]
 margin_left = 113.0
 margin_top = 6.0
 margin_right = 113.0
@@ -149,25 +161,25 @@ margin_bottom = 20.0
 size_flags_vertical = 4
 underline = 1
 
-[node name="License" type="Label" parent="Scroll/Box/About"]
+[node name="License" type="Label" parent="Scroll/Box/Panel/About"]
 margin_top = 98.0
-margin_right = 1190.0
+margin_right = 1178.0
 margin_bottom = 124.0
 text = ".info.about.license"
 
-[node name="HSeparator2" type="HSeparator" parent="Scroll/Box/About"]
+[node name="HSeparator2" type="HSeparator" parent="Scroll/Box/Panel/About"]
 margin_top = 128.0
-margin_right = 1190.0
+margin_right = 1178.0
 margin_bottom = 132.0
 
-[node name="DevsLabel" type="Label" parent="Scroll/Box/About"]
+[node name="DevsLabel" type="Label" parent="Scroll/Box/Panel/About"]
 margin_top = 136.0
-margin_right = 1190.0
+margin_right = 1178.0
 margin_bottom = 162.0
 text = ".info.about.devs"
 
-[node name="Devs" type="Label" parent="Scroll/Box/About"]
+[node name="Devs" type="Label" parent="Scroll/Box/Panel/About"]
 margin_top = 166.0
-margin_right = 1190.0
+margin_right = 1178.0
 margin_bottom = 192.0
-[connection signal="pressed" from="Scroll/Box/About/Repo/Url" to="Scroll/Box/About" method="_on_repo_pressed"]
+[connection signal="pressed" from="Scroll/Box/Panel/About/Repo/Url" to="Scroll/Box/Panel/About" method="_on_repo_pressed"]

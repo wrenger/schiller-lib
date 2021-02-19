@@ -12,4 +12,5 @@ func _ready() -> void:
 
 
 func _on_repo_pressed() -> void:
-    OS.shell_open($Repo/Url.text)
+    var result := OS.shell_open($Repo/Url.text)
+    assert(result == OK)
