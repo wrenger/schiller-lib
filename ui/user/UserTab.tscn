@@ -80,7 +80,7 @@ script = ExtResource( 3 )
 column_names = PoolStringArray( ".user.account", ".user.forename", ".user.surname", ".user.role" )
 column_sizes = PoolIntArray( 150, 100, 100, 100 )
 column_expand = PoolByteArray( 1, 1, 1, 1 )
-formatter = 1
+column_selectors = PoolStringArray( "account", "forename", "surname", "role" )
 
 [node name="Add" type="Button" parent="Split/Left/Box"]
 margin_top = 723.0
@@ -180,7 +180,6 @@ text = ".action.apply"
 [connection signal="search_results" from="Split/Left/Box/Search" to="Split/Left/Box/UserList" method="fill"]
 [connection signal="text_entered" from="Split/Left/Box/Search" to="Split/Left/Box/Search" method="_on_search"]
 [connection signal="pressed" from="Split/Left/Box/Search/ToolButton" to="Split/Left/Box/Search" method="_on_search"]
-[connection signal="item_selected" from="Split/Left/Box/UserList" to="Split/Left/Box/UserList" method="_on_item_selected"]
 [connection signal="object_selected" from="Split/Left/Box/UserList" to="Split/Rigth/Box" method="_on_user_selected"]
 [connection signal="pressed" from="Split/Left/Box/Add" to="Split/Rigth/Box" method="_on_add"]
 [connection signal="add_user" from="Split/Rigth/Box" to="Split/Left/Box/UserList" method="add_and_select_object"]

@@ -192,6 +192,7 @@ script = ExtResource( 3 )
 column_names = PoolStringArray( ".book.id", ".book.title", ".book.authors", ".book.state" )
 column_sizes = PoolIntArray( 120, 150, 100, 100 )
 column_expand = PoolByteArray( 0, 1, 1, 0 )
+column_selectors = PoolStringArray( "id", "title", "#book_authors", "#book_state" )
 
 [node name="Status" type="Label" parent="Split/Left/Search"]
 margin_top = 692.0
@@ -234,7 +235,6 @@ size_flags_horizontal = 3
 [connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/User" to="Split/Left/Search" method="_on_advanced_search"]
 [connection signal="item_selected" from="Split/Left/Search/Tabs/Advanced/Grid/State" to="Split/Left/Search" method="_on_advanced_search"]
 [connection signal="pressed" from="Split/Left/Search/Tabs/Advanced/Search" to="Split/Left/Search" method="_on_advanced_search"]
-[connection signal="item_selected" from="Split/Left/Search/BookList" to="Split/Left/Search/BookList" method="_on_item_selected"]
 [connection signal="object_selected" from="Split/Left/Search/BookList" to="Split/Right/BookPane" method="set_book"]
 [connection signal="pressed" from="Split/Left/Search/Add" to="Split/Right/BookPane" method="_on_add_book"]
 [connection signal="add_book" from="Split/Right/BookPane" to="Split/Left/Search/BookList" method="add_object"]

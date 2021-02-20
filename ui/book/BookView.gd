@@ -35,7 +35,7 @@ func set_book(m: Dictionary):
         _costs.value = m.get("costs", 0.0)
         if m.has("year"): _year.value = m.year
         else: _year.value = Date.new().get_year()
-        _authors.authors = m.get("authors")
+        _authors.authors = m.get("authors", [])
         _category.select_category(m.get("category", ""))
         _note.text = m.get("note", "")
         _borrowable.pressed = m.get("borrowable", true)
@@ -93,6 +93,7 @@ func generate_id():
         _id.text = result["Ok"]
 
 
+# Requesting metadata from the book provider
 func _on_request(_x = null):
     var result: Dictionary = Project.settings_get()
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
