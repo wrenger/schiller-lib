@@ -220,8 +220,8 @@ rect_min_size = Vector2( 200, 0 )
 [node name="BookPane" parent="Split/Right" instance=ExtResource( 5 )]
 margin_top = 26.0
 size_flags_horizontal = 3
-[connection signal="search_results" from="Split/Left/Search" to="Split/Left/Search/Status" method="_on_search_results"]
 [connection signal="search_results" from="Split/Left/Search" to="Split/Left/Search/BookList" method="fill"]
+[connection signal="search_results" from="Split/Left/Search" to="Split/Left/Search/Status" method="_on_search_results"]
 [connection signal="text_entered" from="Split/Left/Search/Tabs/Basic" to="Split/Left/Search" method="_on_search"]
 [connection signal="pressed" from="Split/Left/Search/Tabs/Basic/ToolButton" to="Split/Left/Search" method="_on_search"]
 [connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/Title" to="Split/Left/Search" method="_on_advanced_search"]
@@ -237,5 +237,5 @@ size_flags_horizontal = 3
 [connection signal="pressed" from="Split/Left/Search/Tabs/Advanced/Search" to="Split/Left/Search" method="_on_advanced_search"]
 [connection signal="object_selected" from="Split/Left/Search/BookList" to="Split/Right/BookPane" method="set_book"]
 [connection signal="pressed" from="Split/Left/Search/Add" to="Split/Right/BookPane" method="_on_add_book"]
-[connection signal="add_book" from="Split/Right/BookPane" to="Split/Left/Search/BookList" method="add_object"]
+[connection signal="add_book" from="Split/Right/BookPane" to="Split/Left/Search/BookList" method="add_and_select_object"]
 [connection signal="update_book" from="Split/Right/BookPane" to="Split/Left/Search/BookList" method="update_selected"]
