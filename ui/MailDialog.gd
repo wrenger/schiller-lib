@@ -15,17 +15,12 @@ static func overdues():
 
 
 func _ready() -> void:
-    var result := OK
-    result = connect("popup_hide", self, "_popup_hide")
-    assert(result == OK)
-    result = connect("about_to_show", self, "_about_to_show")
-    assert(result == OK)
     for node in get_tree().get_nodes_in_group("ProjectChanger"):
-        result = node.connect("project_changed", self, "Project_changed")
+        var result = node.connect("project_changed", self, "_project_changed")
         assert(result == OK)
 
 
-func Project_changed():
+func _project_changed():
     var result: Dictionary = Project.settings_get()
     if result.has("Ok"):
         var settings: Dictionary = result["Ok"]
@@ -56,12 +51,14 @@ func _info(user: Dictionary, booktitle: String):
     body = body.replace("{username}", username).replace("{booktitle}", booktitle)
 
     result = mailer.send(user.account, subject, body)
+    if result.has("Ok"):
+        result = yield(mailer, "done")
 
     hide()
     if result.has("Ok"):
         MessageDialog.alert(tr(".alert.mail.send.success"))
     else:
-        MessageDialog.error(tr(".alert.mail.send.error") + "\n\n" + Util.error_msg(result["Err"]))
+        MessageDialog.error(tr(".alert.mail.send.error") + "\n\n" +  Util.error_msg(result["Err"]))
 
 
 func _overdues():
@@ -85,10 +82,15 @@ func _overdues():
             var book: Dictionary = period[0]
             var user: Dictionary = period[1]
             var username: String = user.forename + " " + user.surname
+
+            if not visible:
+                errors.append(user.account + " (" + book.id + ") - " + tr(".alert.mail.send.cancel"))
+                continue
+
             var date := Date.new()
             result = date.set_iso(book.deadline)
             if result.has("Err"):
-                errors.append(user.account + " - " + Util.error_msg(result["Err"]))
+                errors.append(user.account + " (" + book.id + ") - " + Util.error_msg(result["Err"]))
                 continue
 
             var subject := ""
@@ -103,10 +105,10 @@ func _overdues():
             body = body.replace("{username}", username).replace("{booktitle}", book.title)
 
             result = mailer.send(user.account, subject, body)
+            if result.has("Ok"):
+                result = yield(mailer, "done")
             if result.has("Err"):
-                errors.append(user.account + " - " + Util.error_msg(result["Err"]))
-
-            yield(get_tree().create_timer(0.2), "timeout")
+                errors.append(user.account + " (" + book.id + ") - " + Util.error_msg(result["Err"]))
 
     hide()
     if not errors:
@@ -118,4 +120,3 @@ func _overdues():
             MessageDialog.error_code(result["Err"])
     else:
         MessageDialog.error(tr(".alert.mail.send.error.to") + "\n\n" + errors.join("\n"))
-

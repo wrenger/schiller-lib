@@ -26,10 +26,10 @@
 .alert.error,Error,Fehler
 .alert.info,Info,Info
 .alert.mail.overdue,Send warnings for exceeded borrowing periods now?,Sollen die Mahnungen jetzt versendet werden?
-.alert.mail.send.cancel,The transfer was canceled.\nIt will be tried again on the next application startup.,Emailversand abgebrochen.\nBeim Neustart des Programms wird es erneut versucht.
+.alert.mail.send.cancel,Cancelled,Abgebrochen
 .alert.mail.send.content,Sending Mails,Versende Emails
 .alert.mail.send.error,The mail transfer failed.,Fehler beim senden der Emails.
-.alert.mail.send.error.to,Transfer failed for the users:,Fehler beim senden der Emails an:
+.alert.mail.send.error.to,Mail transfer failed for:,Fehler beim senden der Emails an:
 .alert.mail.send.success,Finished sending mails.,Senden der Mahnungen erfolgreich.
 .alert.mail.send.title,Mail,Emailversand
 .alert.open-project,Select Project Database,Projekt-Datenbank auswählen

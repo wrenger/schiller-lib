@@ -74,6 +74,20 @@ impl From<roxmltree::Error> for Error {
     }
 }
 
+impl gdnative::core_types::FromVariant for Error {
+    fn from_variant(
+        variant: &gdnative::core_types::Variant,
+    ) -> std::result::Result<Self, gdnative::core_types::FromVariantError> {
+        i64::from_variant(variant).and_then(|x| {
+            if 0 < x || x <= Error::UnsupportedProjectVersion as i64 {
+                Ok(unsafe { std::mem::transmute(x) })
+            } else {
+                Err(gdnative::core_types::FromVariantError::Unspecified)
+            }
+        })
+    }
+}
+
 impl ToVariant for Error {
     #[inline]
     fn to_variant(&self) -> Variant {
