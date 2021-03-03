@@ -62,7 +62,11 @@ func _on_request(_x = null):
     var settings: Dictionary = result["Ok"]
 
     # provider selection & configuration
-    var provider = UserCSVProvider.new()
+    var provider_plugin = load("res://plugins/UserProvider.gd")
+    if provider_plugin == null:
+        return MessageDialog.error(Util.trf(".error.provider.none", ["UserProvider"]))
+
+    var provider = provider_plugin.new()
     provider.path = settings.user_path
     if len(settings.user_delimiter) != 1:
         return MessageDialog.error(Util.trf(".error.provider.config", [tr(".pref.user.delimiter")]))

@@ -11,10 +11,10 @@ Cargo.lock
 *.translation
 
 # Test data
-/test/*
-!/test/.gdignore
-!/test/dnb
-!/test/csv
+/test/data/*
+!/test/data/.gdignore
+!/test/data/dnb
+!/test/data/csv
 
 # Misc
 .vscode

@@ -8,7 +8,13 @@ var _current_assert := 0
 
 
 func assert_eq(expected, actual, msg = ""):
-    if expected != actual:
+    var equal = false
+    if expected is Dictionary and actual is Dictionary:
+        equal = expected.hash() == actual.hash()
+    else:
+        equal = expected == actual
+
+    if not equal:
         if expected is String and actual is String:
             expected = expected.c_escape()
             actual = actual.c_escape()
@@ -42,7 +48,7 @@ func _idle(_delta: float) -> bool:
                 printerr(method.name + ": " + String(_counter) + " Assertions failed\n")
                 _success = false
             else:
-                printerr(method.name + ": Succeeded\n")
+                printerr(method.name + ": ok\n")
             _counter = 0
 
     print("Finalized:")

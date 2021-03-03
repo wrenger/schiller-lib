@@ -53,13 +53,6 @@ impl From<std::io::Error> for Error {
     }
 }
 
-impl From<csv::Error> for Error {
-    fn from(e: csv::Error) -> Error {
-        godot_print!("Invalid Format {:?}", e);
-        Error::InvalidFormat
-    }
-}
-
 impl From<reqwest::Error> for Error {
     fn from(e: reqwest::Error) -> Error {
         godot_print!("Network Error: {:?}", e);

@@ -31,6 +31,8 @@ func _ready() -> void:
     var result := OK
     result = connect("about_to_show", self, "_about_to_show")
     assert(result == OK)
+    result = connect("confirmed", self, "save")
+    assert(result == OK)
 
 
 func reload():

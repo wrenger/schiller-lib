@@ -102,12 +102,12 @@ _global_script_classes=[ {
 "base": "MainLoop",
 "class": "Test",
 "language": "GDScript",
-"path": "res://ui/test/Test.gd"
+"path": "res://test/Test.gd"
 }, {
 "base": "Reference",
 "class": "UserCSVProvider",
-"language": "NativeScript",
-"path": "res://lib/UserCSVProvider.gdns"
+"language": "GDScript",
+"path": "res://lib/UserCSVProvider.gd"
 }, {
 "base": "Reference",
 "class": "Util",

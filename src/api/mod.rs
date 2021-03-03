@@ -7,7 +7,6 @@ mod project;
 mod date;
 mod debug;
 mod book_provider;
-mod user_provider;
 mod mailer;
 
 use project::Project;
@@ -17,7 +16,6 @@ fn init(handle: InitHandle) {
     handle.add_class::<Project>();
     handle.add_class::<date::Date>();
     handle.add_class::<book_provider::BookDNBProvider>();
-    handle.add_class::<user_provider::UserCSVProvider>();
     handle.add_class::<mailer::Mailer>();
 }
 

@@ -106,6 +106,7 @@
 .error.network,Could not connect to server,Verbindung zum Server fehlgeschlagen
 .error.no-project,No project has been opened.,Es wurde noch kein Projekt geöffnet.
 .error.none,No results found,Keine Ergebnisse gefunden
+.error.provider.none,No {0} plugin installed,Kein {0} Plugin installiert
 .error.provider.config,Invalid value for {0},Invalider Wert für {0}
 .error.sql,Database access failed.,Datenbankzugriff fehlgeschlagen.
 .error.update,Critical error during the update of the database!\nPlease contanct a developer.,Kritischer Fehler beim Aktualisieren der Datenbank!\nBitte kontaktiere einen Entwickler.

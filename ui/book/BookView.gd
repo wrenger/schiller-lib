@@ -100,7 +100,11 @@ func _on_request(_x = null):
     var settings: Dictionary = result["Ok"]
 
     # provider selection & configuration
-    var provider = BookDNBProvider.new()
+    var provider_plugin = load("res://plugins/BookProvider.gd")
+    if provider_plugin == null:
+        return MessageDialog.error(Util.trf(".error.provider.none", ["BookProvider"]))
+
+    var provider = provider_plugin.new()
     provider.token = settings.dnb_token
     result = provider.request(_isbn.text)
     if result.has("Err"): return MessageDialog.error_code(result["Err"])
