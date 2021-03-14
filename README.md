@@ -9,8 +9,8 @@ It is based on the [godot](https://godotengine.org/) engine.
 
 ### Download latest builds
 
-* [Windows](https://gitlab.com/l4r0x/sbv-gd/-/jobs/artifacts/master/download?job=deploy%3Awindows)
-* [Linux](https://gitlab.com/l4r0x/sbv-gd/-/jobs/artifacts/master/download?job=deploy%3Alinux)
+* [Windows](https://gitlab.com/wrenger/sbv-gd/-/jobs/artifacts/master/download?job=deploy%3Awindows)
+* [Linux](https://gitlab.com/wrenger/sbv-gd/-/jobs/artifacts/master/download?job=deploy%3Alinux)
 
 
 ## Architecture
@@ -77,10 +77,10 @@ This container can be used for the cross-compilation as shown below:
 
 ```bash
 # Build the docker image (only once)
-docker build -t registry.gitlab.com/l4r0x/sbv-gd docker
+docker build -t registry.gitlab.com/wrenger/sbv-gd docker
 # Start the image and compile
 docker run --rm -it --volume=$(pwd):/home/docker/project -w /home/docker/project \
-    registry.gitlab.com/l4r0x/sbv-gd \
+    registry.gitlab.com/wrenger/sbv-gd \
     cargo build --target=x86_64-pc-windows-gnu --release
 ```
 

@@ -6,7 +6,7 @@ authors = ["Lars Wrenger <lars@wrenger.net>"]
 edition = "2018"
 readme = "README.md"
 license = "MIT"
-repository = "https://gitlab.com/l4r0x/sbv-gd"
+repository = "https://gitlab.com/wrenger/sbv-gd"
 publish = false
 
 [lib]

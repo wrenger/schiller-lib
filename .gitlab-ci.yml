@@ -1,4 +1,4 @@
-image: "registry.gitlab.com/l4r0x/sbv-gd"
+image: "registry.gitlab.com/wrenger/sbv-gd"
 
 # Global config
 variables:

@@ -1,2 +1,2 @@
 [target.x86_64-pc-windows-gnu]
-image = "registry.gitlab.com/l4r0x/sbv-gd/cross-win"
+image = "registry.gitlab.com/wrenger/sbv-gd"
