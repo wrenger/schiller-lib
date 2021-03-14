@@ -13,6 +13,9 @@ func _ready():
     else:
         ProjectDialog.open(get_tree())
 
+    for node in get_tree().get_nodes_in_group("ThemeChanger"):
+        node.connect("theme_changed", self, "_on_theme_changed")
+
 
 func _notification(what: int):
     match what:
@@ -27,7 +30,6 @@ func _on_open_project():
 
 func _on_new_project() -> void:
     ProjectDialog.create(get_tree())
-
 
 
 func _on_close_project():
