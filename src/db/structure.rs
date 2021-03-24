@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use crate::api;
 
-use super::{raw::DatabaseExt, DatabaseSettings, Settings};
+use super::{raw::DatabaseExt, settings, settings::Settings, Database};
 
 const CREATE_TABLES: &str = r#"
 create table sbv_meta (
@@ -58,43 +58,41 @@ type MigrationRoutine = fn(&sqlite::Connection) -> api::Result<()>;
 /// Database migration routines
 const PATCHES: [(Version, MigrationRoutine); 1] = [(Version::new(0, 8, 0), patch_0_8_0)];
 
-pub trait DatabaseStructure: DatabaseSettings {
-    fn structure_create(&self, version: &str) -> api::Result<()> {
-        let transaction = self.db().transaction()?;
-        self.db().execute(CREATE_TABLES)?;
-        update_version(self.db(), version)?;
-        self.settings_update(&Settings::default())?;
-        transaction.commit()?;
-        Ok(())
-    }
+pub fn create(db: &Database, version: &str) -> api::Result<()> {
+    let transaction = db.db.transaction()?;
+    db.db.execute(CREATE_TABLES)?;
+    update_version(&db.db, version)?;
+    settings::update(db, &Settings::default())?;
+    transaction.commit()?;
+    Ok(())
+}
 
-    /// Applies the related migration routines if the version changed.
-    /// Returns true if the database was updated.
-    fn structure_migrate(&self, version: &str) -> api::Result<bool> {
-        let transaction = self.db().transaction()?;
-        let mut stmt = self.db().prepare(FETCH_VERSION)?;
-        let old_version = if stmt.next()? == sqlite::State::Row {
-            stmt.read::<String>(0)?
-        } else {
-            return Err(api::Error::UnsupportedProjectVersion);
-        };
-        gdnative::godot_print!("Start migration of {}", old_version);
+/// Applies the related migration routines if the version changed.
+/// Returns true if the database was updated.
+pub fn migrate(db: &Database, version: &str) -> api::Result<bool> {
+    let transaction = db.db.transaction()?;
+    let mut stmt = db.db.prepare(FETCH_VERSION)?;
+    let old_version = if stmt.next()? == sqlite::State::Row {
+        stmt.read::<String>(0)?
+    } else {
+        return Err(api::Error::UnsupportedProjectVersion);
+    };
+    gdnative::godot_print!("Start migration of {}", old_version);
 
-        let old_version: Version = old_version.parse()?;
-        let new_version: Version = version.parse()?;
-        if MIN_VERSION <= old_version && old_version <= new_version {
-            for (patch_version, patch) in &PATCHES {
-                if old_version < *patch_version {
-                    gdnative::godot_print!("Applying patch {}", patch_version);
-                    patch(self.db())?;
-                }
+    let old_version: Version = old_version.parse()?;
+    let new_version: Version = version.parse()?;
+    if MIN_VERSION <= old_version && old_version <= new_version {
+        for (patch_version, patch) in &PATCHES {
+            if old_version < *patch_version {
+                gdnative::godot_print!("Applying patch {}", patch_version);
+                patch(&db.db)?;
             }
-            update_version(self.db(), version)?;
-            transaction.commit()?;
-            Ok(old_version != new_version)
-        } else {
-            Err(api::Error::UnsupportedProjectVersion)
         }
+        update_version(&db.db, version)?;
+        transaction.commit()?;
+        Ok(old_version != new_version)
+    } else {
+        Err(api::Error::UnsupportedProjectVersion)
     }
 }
 
@@ -193,23 +191,27 @@ mod tests {
 
     #[test]
     fn create_tables() {
-        let db = Database::memory().unwrap();
-        db.structure_create(PKG_VERSION).unwrap();
+        use book::Book;
+        use category::Category;
+        use user::User;
 
-        let books: Vec<Book> = db.book_search("").unwrap().collect();
+        let db = Database::memory().unwrap();
+        structure::create(&db, PKG_VERSION).unwrap();
+
+        let books: Vec<Book> = book::search(&db, "").unwrap().collect();
         assert!(books.is_empty());
-        let users: Vec<User> = db.user_search("").unwrap().collect();
+        let users: Vec<User> = user::search(&db, "").unwrap().collect();
         assert!(users.is_empty());
-        let categories: Vec<Category> = db.category_list().unwrap().collect();
+        let categories: Vec<Category> = category::list(&db).unwrap().collect();
         assert!(categories.is_empty());
-        let settings: Settings = db.settings_fetch().unwrap();
+        let settings: Settings = settings::fetch(&db).unwrap();
         assert!(settings == Settings::default());
     }
 
     #[test]
     fn migrate_0_8_0() {
         let db = Database::memory().unwrap();
-        db.structure_create("7.0").unwrap();
+        structure::create(&db, "7.0").unwrap();
         let settings = Settings {
             mail_info_subject: "[mediumtitel]' is back in the library".into(),
             mail_info_content: "Hallo [name],\nYou have shown interest in the book '[mediumtitel].".into(),
@@ -220,11 +222,11 @@ mod tests {
             mail_host: "[mediumtitel] [name]".into(),
             ..Settings::default()
         };
-        db.settings_update(&settings).unwrap();
+        settings::update(&db, &settings).unwrap();
 
         patch_0_8_0(&db.db).unwrap();
 
-        let settings = db.settings_fetch().unwrap();
+        let settings = settings::fetch(&db).unwrap();
         assert!(settings.mail_info_subject == "{booktitle}' is back in the library");
         assert!(
             settings.mail_info_content

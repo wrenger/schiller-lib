@@ -4,16 +4,13 @@ use gdnative::prelude::*;
 
 use super::debug;
 use crate::api::{self, Error};
-use crate::db::{
-    self, Database, DatabaseBook, DatabaseCategory, DatabaseLending, DatabaseSettings,
-    DatabaseStats, DatabaseUser, Stats,
-};
+use crate::db;
 
 /// The Global Project Singleton
 #[derive(NativeClass, Debug)]
 #[inherit(Node)]
 pub struct Project {
-    db: Option<Database>,
+    db: Option<db::Database>,
     settings: Option<db::Settings>,
 }
 
@@ -30,7 +27,7 @@ impl Project {
     }
 
     #[inline]
-    fn get_db(&self) -> api::Result<&Database> {
+    fn get_db(&self) -> api::Result<&db::Database> {
         self.db.as_ref().ok_or(Error::NoProject)
     }
 
@@ -65,8 +62,8 @@ impl Project {
     fn open(&mut self, owner: &Node, file: String) -> api::Result<bool> {
         let _timer = debug::timer();
         self.close(owner);
-        let (db, updated) = Database::open(&file)?;
-        self.settings = Some(db.settings_fetch()?);
+        let (db, updated) = db::Database::open(&file)?;
+        self.settings = Some(db::settings::fetch(&db)?);
         self.db = Some(db);
         Ok(updated)
     }
@@ -76,8 +73,8 @@ impl Project {
     fn create(&mut self, owner: &Node, file: String) -> api::Result<()> {
         let _timer = debug::timer();
         self.close(owner);
-        let db = Database::create(&file)?;
-        self.settings = Some(db.settings_fetch()?);
+        let db = db::Database::create(&file)?;
+        self.settings = Some(db::settings::fetch(&db)?);
         self.db = Some(db);
         Ok(())
     }
@@ -105,14 +102,14 @@ impl Project {
     #[export]
     fn book_fetch(&self, _owner: &Node, id: String) -> api::Result<db::Book> {
         let _timer = debug::timer();
-        self.get_db()?.book_fetch(&id)
+        db::book::fetch(self.get_db()?, &id)
     }
 
     /// Preforms a simple media search with the given `text`.
     #[export]
     fn book_search(&self, _owner: &Node, text: String) -> api::Result<VariantArray> {
         let _timer = debug::timer();
-        let result = self.get_db()?.book_search(&text)?;
+        let result = db::book::search(self.get_db()?, &text)?;
         Ok(VariantArray::from_iter(result).into_shared())
     }
 
@@ -124,7 +121,7 @@ impl Project {
         params: db::BookSearch,
     ) -> api::Result<VariantArray> {
         let _timer = debug::timer();
-        let result = self.get_db()?.book_search_advanced(&params)?;
+        let result = db::book::search_advanced(self.get_db()?, &params)?;
         Ok(VariantArray::from_iter(result).into_shared())
     }
 
@@ -132,14 +129,14 @@ impl Project {
     #[export]
     fn book_add(&self, _owner: &Node, book: db::Book) -> api::Result<()> {
         let _timer = debug::timer();
-        self.get_db()?.book_add(&book)
+        db::book::add(self.get_db()?, &book)
     }
 
     /// Updates the book and all references if its id changes.
     #[export]
     fn book_update(&self, _owner: &Node, previous_id: String, book: db::Book) -> api::Result<()> {
         let _timer = debug::timer();
-        self.get_db()?.book_update(&previous_id, &book)
+        db::book::update(self.get_db()?, &previous_id, &book)
     }
 
     /// Deletes the book including the its authors.
@@ -147,14 +144,14 @@ impl Project {
     #[export]
     fn book_delete(&self, _owner: &Node, id: String) -> api::Result<()> {
         let _timer = debug::timer();
-        self.get_db()?.book_delete(&id)
+        db::book::delete(self.get_db()?, &id)
     }
 
     /// Generates a new book id.
     #[export]
     fn book_generate_id(&self, _owner: &Node, book: db::Book) -> api::Result<String> {
         let _timer = debug::timer();
-        self.get_db()?.book_generate_id(&book)
+        db::book::generate_id(self.get_db()?, &book)
     }
 
     // User
@@ -163,14 +160,14 @@ impl Project {
     #[export]
     fn user_fetch(&self, _owner: &Node, account: String) -> api::Result<db::User> {
         let _timer = debug::timer();
-        self.get_db()?.user_fetch(&account)
+        db::user::fetch(self.get_db()?, &account)
     }
 
     /// Performs a simple user search with the given `text`.
     #[export]
     fn user_search(&self, _owner: &Node, text: String) -> api::Result<VariantArray> {
         let _timer = debug::timer();
-        let result = self.get_db()?.user_search(&text)?;
+        let result = db::user::search(self.get_db()?, &text)?;
         Ok(VariantArray::from_iter(result).into_shared())
     }
 
@@ -178,14 +175,14 @@ impl Project {
     #[export]
     fn user_add(&self, _owner: &Node, user: db::User) -> api::Result<()> {
         let _timer = debug::timer();
-        self.get_db()?.user_add(&user)
+        db::user::add(self.get_db()?, &user)
     }
 
     /// Updates the user and all references if its account changes.
     #[export]
     fn user_update(&self, _owner: &Node, account: String, user: db::User) -> api::Result<()> {
         let _timer = debug::timer();
-        self.get_db()?.user_update(&account, &user)
+        db::user::update(self.get_db()?, &account, &user)
     }
 
     /// Deletes the user.
@@ -193,7 +190,7 @@ impl Project {
     #[export]
     fn user_delete(&self, _owner: &Node, account: String) -> api::Result<()> {
         let _timer = debug::timer();
-        self.get_db()?.user_delete(&account)
+        db::user::delete(self.get_db()?, &account)
     }
 
     /// Deletes the roles from all users and inserts the new roles.
@@ -207,7 +204,7 @@ impl Project {
             .iter()
             .map(|(u, r)| (u.as_str(), r.as_str()))
             .collect();
-        db.user_update_roles(&users)
+        db::user::update_roles(db, &users)
     }
 
     // Category
@@ -216,7 +213,7 @@ impl Project {
     #[export]
     fn category_list(&self, _owner: &Node) -> api::Result<VariantArray> {
         let _timer = debug::timer();
-        let result = self.get_db()?.category_list()?;
+        let result = db::category::list(self.get_db()?)?;
         Ok(VariantArray::from_iter(result).into_shared())
     }
 
@@ -224,7 +221,7 @@ impl Project {
     #[export]
     fn category_add(&self, _owner: &Node, category: db::Category) -> api::Result<()> {
         let _timer = debug::timer();
-        self.get_db()?.category_add(&category)
+        db::category::add(self.get_db()?, &category)
     }
 
     /// Updates the category and all references.
@@ -236,21 +233,21 @@ impl Project {
         category: db::Category,
     ) -> api::Result<()> {
         let _timer = debug::timer();
-        self.get_db()?.category_update(&id, &category)
+        db::category::update(self.get_db()?, &id, &category)
     }
 
     /// Removes the category or returns a `LogicError` if it is still in use.
     #[export]
     fn category_remove(&self, _owner: &Node, id: String) -> api::Result<()> {
         let _timer = debug::timer();
-        self.get_db()?.category_delete(&id)
+        db::category::delete(self.get_db()?, &id)
     }
 
     /// Returns the number of books in this category.
     #[export]
     fn category_references(&self, _owner: &Node, id: String) -> api::Result<i64> {
         let _timer = debug::timer();
-        self.get_db()?.category_references(&id)
+        db::category::references(self.get_db()?, &id)
     }
 
     // Lending
@@ -265,7 +262,7 @@ impl Project {
         days: i64,
     ) -> api::Result<db::Book> {
         let _timer = debug::timer();
-        self.get_db()?.lending_lend(&mut book, &user, days)?;
+        db::lending::lend(self.get_db()?, &mut book, &user, days)?;
         Ok(book)
     }
 
@@ -273,7 +270,7 @@ impl Project {
     #[export]
     fn lending_return(&self, _owner: &Node, mut book: db::Book) -> api::Result<db::Book> {
         let _timer = debug::timer();
-        self.get_db()?.lending_return(&mut book)?;
+        db::lending::return_back(self.get_db()?, &mut book)?;
         Ok(book)
     }
 
@@ -286,7 +283,7 @@ impl Project {
         user: db::User,
     ) -> api::Result<db::Book> {
         let _timer = debug::timer();
-        self.get_db()?.lending_reserve(&mut book, &user)?;
+        db::lending::reserve(self.get_db()?, &mut book, &user)?;
         Ok(book)
     }
 
@@ -294,7 +291,7 @@ impl Project {
     #[export]
     fn lending_release(&self, _owner: &Node, mut book: db::Book) -> api::Result<db::Book> {
         let _timer = debug::timer();
-        self.get_db()?.lending_release(&mut book)?;
+        db::lending::release(self.get_db()?, &mut book)?;
         Ok(book)
     }
 
@@ -302,7 +299,7 @@ impl Project {
     #[export]
     fn lending_overdues(&self, _owner: &Node) -> api::Result<VariantArray> {
         let _timer = debug::timer();
-        let result = self.get_db()?.lending_overdues()?;
+        let result = db::lending::overdues(self.get_db()?)?;
         Ok(VariantArray::from_iter(result.map(|(book, user)| {
             VariantArray::from_iter([book.owned_to_variant(), user.owned_to_variant()].iter())
                 .into_shared()
@@ -324,18 +321,18 @@ impl Project {
     fn settings_update(&mut self, _owner: &Node, settings: db::Settings) -> api::Result<()> {
         let _timer = debug::timer();
         let db = self.get_db()?;
-        db.settings_update(&settings)?;
+        db::settings::update(db, &settings)?;
         godot_print!("Settings updated");
         // Reload cached settings
-        self.settings = Some(db.settings_fetch()?);
+        self.settings = Some(db::settings::fetch(&db)?);
         godot_print!("Settings synced");
         Ok(())
     }
 
     /// Returns the project statistics.
     #[export]
-    fn stats(&self, _owner: &Node) -> api::Result<Stats> {
+    fn stats(&self, _owner: &Node) -> api::Result<db::Stats> {
         let _timer = debug::timer();
-        self.get_db()?.stats()
+        db::stats::fetch(self.get_db()?)
     }
 }

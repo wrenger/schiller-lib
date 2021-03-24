@@ -6,7 +6,7 @@ pub fn parse(input: &str) -> Result<String, String> {
     let isbn: Vec<u8> = input
         .chars()
         .flat_map(|c| {
-            if c == 'X' {
+            if c == 'X' || c == 'x' {
                 Some(10)
             } else {
                 c.to_digit(10).map(|n| n as u8)

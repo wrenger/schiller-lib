@@ -28,6 +28,6 @@ default-features = false
 features = ["blocking"]
 
 [dependencies.lettre]
-version = "0.10.0-beta.2"
+version = "0.10.0-beta.3"
 default-features = false
 features = ["builder", "smtp-transport", "native-tls"]

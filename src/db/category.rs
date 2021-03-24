@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::api;
 
 use super::raw::DatabaseExt;
-use super::{DBIter, ReadStmt};
+use super::{DBIter, Database, ReadStmt};
 
 const LIST: &str = r#"
 select id, name, section from category order by section, id
@@ -59,97 +59,93 @@ impl ReadStmt for Category {
     }
 }
 
-pub trait DatabaseCategory {
-    fn db(&self) -> &sqlite::Connection;
+/// Returns all categories.
+pub fn list(db: &Database) -> api::Result<DBIter<Category>> {
+    let stmt = db.db.prepare(LIST)?;
+    Ok(DBIter::new(stmt))
+}
 
-    /// Returns all categories.
-    fn category_list(&self) -> api::Result<DBIter<Category>> {
-        let stmt = self.db().prepare(LIST)?;
-        Ok(DBIter::new(stmt))
+/// Adds a new category.
+pub fn add(db: &Database, category: &Category) -> api::Result<()> {
+    if !category.is_valid() {
+        return Err(api::Error::InvalidArguments);
     }
 
-    /// Adds a new category.
-    fn category_add(&self, category: &Category) -> api::Result<()> {
-        if !category.is_valid() {
-            return Err(api::Error::InvalidArguments);
-        }
+    let mut stmt = db.db.prepare(ADD)?;
+    stmt.bind(1, category.id.trim())?;
+    stmt.bind(2, category.name.trim())?;
+    stmt.bind(3, category.section.trim())?;
+    if stmt.next()? != sqlite::State::Done {
+        return Err(api::Error::SQLError);
+    }
+    Ok(())
+}
 
-        let mut stmt = self.db().prepare(ADD)?;
+/// Updates the category and all references.
+pub fn update(db: &Database, id: &str, category: &Category) -> api::Result<()> {
+    if !category.is_valid() {
+        return Err(api::Error::InvalidArguments);
+    }
+
+    let transaction = db.db.transaction()?;
+    // Update category
+    let mut stmt = db.db.prepare(UPDATE)?;
+    stmt.bind(1, category.id.trim())?;
+    stmt.bind(2, category.name.trim())?;
+    stmt.bind(3, category.section.trim())?;
+    stmt.bind(4, id)?;
+    if stmt.next()? != sqlite::State::Done {
+        return Err(api::Error::SQLError);
+    }
+
+    if id != category.id {
+        // Update category ids of related media
+        let mut stmt = db.db.prepare(UPDATE_MEDIA)?;
         stmt.bind(1, category.id.trim())?;
-        stmt.bind(2, category.name.trim())?;
-        stmt.bind(3, category.section.trim())?;
+        stmt.bind(2, id)?;
         if stmt.next()? != sqlite::State::Done {
             return Err(api::Error::SQLError);
         }
-        Ok(())
     }
 
-    /// Updates the category and all references.
-    fn category_update(&self, id: &str, category: &Category) -> api::Result<()> {
-        if !category.is_valid() {
-            return Err(api::Error::InvalidArguments);
-        }
+    transaction.commit()?;
+    Ok(())
+}
 
-        let transaction = self.db().transaction()?;
-        // Update category
-        let mut stmt = self.db().prepare(UPDATE)?;
-        stmt.bind(1, category.id.trim())?;
-        stmt.bind(2, category.name.trim())?;
-        stmt.bind(3, category.section.trim())?;
-        stmt.bind(4, id)?;
-        if stmt.next()? != sqlite::State::Done {
-            return Err(api::Error::SQLError);
-        }
-
-        if id != category.id {
-            // Update category ids of related media
-            let mut stmt = self.db().prepare(UPDATE_MEDIA)?;
-            stmt.bind(1, category.id.trim())?;
-            stmt.bind(2, id)?;
-            if stmt.next()? != sqlite::State::Done {
-                return Err(api::Error::SQLError);
-            }
-        }
-
-        transaction.commit()?;
-        Ok(())
+/// Removes the category, assuming it is not referenced anywhere.
+pub fn delete(db: &Database, id: &str) -> api::Result<()> {
+    let id = id.trim();
+    if id.is_empty() {
+        return Err(api::Error::InvalidArguments);
     }
 
-    /// Removes the category, assuming it is not referenced anywhere.
-    fn category_delete(&self, id: &str) -> api::Result<()> {
-        let id = id.trim();
-        if id.is_empty() {
-            return Err(api::Error::InvalidArguments);
-        }
-
-        let transaction = self.db().transaction()?;
-        // Do not allow the removal of used categories
-        if self.category_references(id)? > 0 {
-            return Err(api::Error::LogicError);
-        }
-
-        let mut stmt = self.db().prepare(DELETE)?;
-        stmt.bind(1, id)?;
-        if stmt.next()? != sqlite::State::Done {
-            return Err(api::Error::SQLError);
-        }
-
-        transaction.commit()?;
-        Ok(())
+    let transaction = db.db.transaction()?;
+    // Do not allow the removal of used categories
+    if references(db, id)? > 0 {
+        return Err(api::Error::LogicError);
     }
 
-    /// Returns the number of books in this category.
-    fn category_references(&self, id: &str) -> api::Result<i64> {
-        let id = id.trim();
-        if id.is_empty() {
-            return Err(api::Error::InvalidArguments);
-        }
-
-        let mut stmt = self.db().prepare(REFERENCED)?;
-        stmt.bind(1, id)?;
-        if stmt.next()? != sqlite::State::Row {
-            return Err(api::Error::SQLError);
-        }
-        Ok(stmt.read(0)?)
+    let mut stmt = db.db.prepare(DELETE)?;
+    stmt.bind(1, id)?;
+    if stmt.next()? != sqlite::State::Done {
+        return Err(api::Error::SQLError);
     }
+
+    transaction.commit()?;
+    Ok(())
+}
+
+/// Returns the number of books in this category.
+pub fn references(db: &Database, id: &str) -> api::Result<i64> {
+    let id = id.trim();
+    if id.is_empty() {
+        return Err(api::Error::InvalidArguments);
+    }
+
+    let mut stmt = db.db.prepare(REFERENCED)?;
+    stmt.bind(1, id)?;
+    if stmt.next()? != sqlite::State::Row {
+        return Err(api::Error::SQLError);
+    }
+    Ok(stmt.read(0)?)
 }

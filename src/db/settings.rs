@@ -1,7 +1,7 @@
 use crate::api;
 use std::collections::HashMap;
 
-use super::{DBIter, ReadStmt};
+use super::{DBIter, Database, ReadStmt};
 
 const SETTINGS_FETCH: &str = r#"
 select key, value from sbv_meta
@@ -109,34 +109,30 @@ impl ReadStmt for (String, String) {
     }
 }
 
-pub trait DatabaseSettings {
-    fn db(&self) -> &sqlite::Connection;
+pub fn update(db: &Database, settings: &Settings) -> api::Result<()> {
+    let mut stmt = db.db.prepare(SETTINGS_UPDATE)?;
+    stmt.bind(1, settings.borrowing_duration)?;
+    stmt.bind(2, settings.user_path.trim())?;
+    stmt.bind(3, settings.user_delimiter.trim())?;
+    stmt.bind(4, settings.dnb_token.trim())?;
+    stmt.bind(5, settings.mail_last_reminder.trim())?;
+    stmt.bind(6, settings.mail_from.trim())?;
+    stmt.bind(7, settings.mail_host.trim())?;
+    stmt.bind(8, settings.mail_password.trim())?;
+    stmt.bind(9, settings.mail_info_subject.trim())?;
+    stmt.bind(10, settings.mail_info_content.trim())?;
+    stmt.bind(11, settings.mail_overdue_subject.trim())?;
+    stmt.bind(12, settings.mail_overdue_content.trim())?;
+    stmt.bind(13, settings.mail_overdue2_subject.trim())?;
+    stmt.bind(14, settings.mail_overdue2_content.trim())?;
 
-    fn settings_update(&self, settings: &Settings) -> api::Result<()> {
-        let mut stmt = self.db().prepare(SETTINGS_UPDATE)?;
-        stmt.bind(1, settings.borrowing_duration)?;
-        stmt.bind(2, settings.user_path.trim())?;
-        stmt.bind(3, settings.user_delimiter.trim())?;
-        stmt.bind(4, settings.dnb_token.trim())?;
-        stmt.bind(5, settings.mail_last_reminder.trim())?;
-        stmt.bind(6, settings.mail_from.trim())?;
-        stmt.bind(7, settings.mail_host.trim())?;
-        stmt.bind(8, settings.mail_password.trim())?;
-        stmt.bind(9, settings.mail_info_subject.trim())?;
-        stmt.bind(10, settings.mail_info_content.trim())?;
-        stmt.bind(11, settings.mail_overdue_subject.trim())?;
-        stmt.bind(12, settings.mail_overdue_content.trim())?;
-        stmt.bind(13, settings.mail_overdue2_subject.trim())?;
-        stmt.bind(14, settings.mail_overdue2_content.trim())?;
-
-        if stmt.next()? != sqlite::State::Done {
-            return Err(api::Error::SQLError);
-        }
-        Ok(())
+    if stmt.next()? != sqlite::State::Done {
+        return Err(api::Error::SQLError);
     }
+    Ok(())
+}
 
-    fn settings_fetch(&self) -> api::Result<Settings> {
-        let stmt = self.db().prepare(SETTINGS_FETCH)?;
-        Ok(Settings::from_iter(DBIter::new(stmt)))
-    }
+pub fn fetch(db: &Database) -> api::Result<Settings> {
+    let stmt = db.db.prepare(SETTINGS_FETCH)?;
+    Ok(Settings::from_iter(DBIter::new(stmt)))
 }

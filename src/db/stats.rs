@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::{ReadStmt, StatementExt};
+use super::{Database, ReadStmt, StatementExt};
 use crate::api;
 
 const STATS: &str = r#"
@@ -40,15 +40,11 @@ impl ReadStmt for Stats {
     }
 }
 
-pub trait DatabaseStats {
-    fn db(&self) -> &sqlite::Connection;
-
-    fn stats(&self) -> api::Result<Stats> {
-        let mut stmt = self.db().prepare(STATS)?;
-        if stmt.next()? == sqlite::State::Row {
-            ReadStmt::read(&stmt, &stmt.columns())
-        } else {
-            Err(api::Error::SQLError)
-        }
+pub fn fetch(db: &Database) -> api::Result<Stats> {
+    let mut stmt = db.db.prepare(STATS)?;
+    if stmt.next()? == sqlite::State::Row {
+        ReadStmt::read(&stmt, &stmt.columns())
+    } else {
+        Err(api::Error::SQLError)
     }
 }

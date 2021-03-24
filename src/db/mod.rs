@@ -4,23 +4,21 @@ use std::path::{Path, PathBuf};
 
 use crate::api;
 
-mod book;
-mod category;
-mod lending;
-mod raw;
-mod settings;
-mod structure;
-mod user;
-mod stats;
+pub mod book;
+pub use book::{Book, BookSearch, BookState};
+pub mod category;
+pub use category::Category;
+pub mod lending;
+pub mod raw;
+pub mod settings;
+pub use settings::Settings;
+pub mod stats;
+pub use stats::Stats;
+pub mod structure;
+pub mod user;
+pub use user::User;
 
-pub use book::*;
-pub use category::*;
-pub use lending::*;
 use raw::StatementExt;
-pub use settings::*;
-pub use structure::*;
-pub use user::*;
-pub use stats::*;
 
 use super::PKG_VERSION;
 
@@ -48,7 +46,7 @@ impl Database {
                 .map_err(|_| api::Error::FileOpenError)?,
                 path,
             };
-            database.structure_create(PKG_VERSION)?;
+            structure::create(&database, PKG_VERSION)?;
             Ok(database)
         } else {
             Err(api::Error::FileOpenError)
@@ -67,7 +65,7 @@ impl Database {
                 .map_err(|_| api::Error::FileOpenError)?,
                 path,
             };
-            let updated = database.structure_migrate(PKG_VERSION)?;
+            let updated = structure::migrate(&database, PKG_VERSION)?;
             Ok((database, updated))
         } else {
             Err(api::Error::FileNotFound)
@@ -88,44 +86,6 @@ impl Database {
         })
     }
 }
-
-impl DatabaseCategory for Database {
-    fn db(&self) -> &sqlite::Connection {
-        &self.db
-    }
-}
-
-impl DatabaseBook for Database {
-    fn db(&self) -> &sqlite::Connection {
-        &self.db
-    }
-}
-
-impl DatabaseLending for Database {
-    fn db(&self) -> &sqlite::Connection {
-        &self.db
-    }
-}
-
-impl DatabaseUser for Database {
-    fn db(&self) -> &sqlite::Connection {
-        &self.db
-    }
-}
-
-impl DatabaseSettings for Database {
-    fn db(&self) -> &sqlite::Connection {
-        &self.db
-    }
-}
-
-impl DatabaseStats for Database {
-    fn db(&self) -> &sqlite::Connection {
-        &self.db
-    }
-}
-
-impl DatabaseStructure for Database {}
 
 /// Iterator over database results.
 pub struct DBIter<'a, T> {
