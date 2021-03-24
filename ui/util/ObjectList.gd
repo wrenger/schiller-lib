@@ -150,7 +150,7 @@ class RowSorter:
     func default(a: Dictionary, b: Dictionary) -> bool:
         return a[_selector].nocasecmp_to(b[_selector]) < 0
 
-    # format method for the '#book_authors' selector
+    # sort method for the '#book_authors' selector
     func book_authors(a: Dictionary, b: Dictionary) -> bool:
         var a_name := ""
         if a.authors: a_name = a.authors[0]
@@ -165,6 +165,6 @@ class RowSorter:
 
         return a_name.nocasecmp_to(b_name) < 0
 
-    # format method for the '#book_state' selector
+    # sort method for the '#book_state' selector
     func book_state(a: Dictionary, b: Dictionary) -> bool:
         return a.borrower < b.borrower or (a.borrower == b.borrower and a.reservation < b.reservation)
