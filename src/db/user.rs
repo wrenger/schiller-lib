@@ -25,10 +25,10 @@ surname,
 role,
 may_borrow
 from user
-where account like '%'||?||'%'
-or forename like '%'||?||'%'
-or surname like '%'||?||'%'
-or role like '%'||?||'%'
+where account like '%'||?1||'%'
+or forename like '%'||?1||'%'
+or surname like '%'||?1||'%'
+or role like '%'||?1||'%'
 order by account
 "#;
 
@@ -108,9 +108,6 @@ pub fn search<'a>(db: &'a Database, text: &str) -> api::Result<DBIter<'a, User>>
     let mut stmt = db.db.prepare(QUERY_USERS)?;
     let text = text.trim();
     stmt.bind(1, text)?;
-    stmt.bind(2, text)?;
-    stmt.bind(3, text)?;
-    stmt.bind(4, text)?;
     Ok(DBIter::new(stmt))
 }
 

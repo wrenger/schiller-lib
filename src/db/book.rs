@@ -44,12 +44,12 @@ reservation
 from medium
 left join author on author.medium=id
 group by id
-having id like '%'||?||'%'
-or isbn like '%'||?||'%'
-or title like '%'||?||'%'
-or publisher like '%'||?||'%'
-or note like '%'||?||'%'
-or authors like '%'||?||'%'
+having id like '%'||?1||'%'
+or isbn like '%'||?1||'%'
+or title like '%'||?1||'%'
+or publisher like '%'||?1||'%'
+or note like '%'||?1||'%'
+or authors like '%'||?1||'%'
 "#;
 
 const SEARCH_ADVANCED: &str = r#"
@@ -231,11 +231,6 @@ pub fn search<'a>(db: &'a Database, text: &str) -> api::Result<DBIter<'a, Book>>
     let mut stmt = db.db.prepare(SEARCH)?;
     let text = text.trim();
     stmt.bind(1, text)?;
-    stmt.bind(2, text)?;
-    stmt.bind(3, text)?;
-    stmt.bind(4, text)?;
-    stmt.bind(5, text)?;
-    stmt.bind(6, text)?;
     Ok(DBIter::new(stmt))
 }
 

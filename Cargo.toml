@@ -17,7 +17,7 @@ lto = true
 
 [dependencies]
 gdnative = "0.9.3"
-sqlite = "0.25.3"
+sqlite = "0.26.0"
 chrono = "0.4.19"
 roxmltree = "0.14.0"
 unicode-normalization = "0.1.16"

@@ -53,7 +53,7 @@ pub trait StatementExt {
 
 impl<'a> StatementExt for sqlite::Statement<'a> {
     fn columns(&self) -> HashMap<String, usize> {
-        self.names()
+        self.column_names()
             .into_iter()
             .enumerate()
             .map(|(i, col)| (col.to_string(), i))
@@ -118,7 +118,8 @@ mod tests {
         stmt.bind(3, "3").unwrap();
         assert_eq!(stmt.next().unwrap(), sqlite::State::Done);
 
-        let mut stmt = db.prepare("insert into abc values (?, ?, ?)").unwrap();
+        // Explicit binding ids
+        let mut stmt = db.prepare("insert into abc values (?3, ?2, ?1)").unwrap();
         stmt.bind(1, "4").unwrap();
         stmt.bind(2, "5").unwrap();
         stmt.bind(3, "6").unwrap();
@@ -127,7 +128,7 @@ mod tests {
         assert_eq!(
             vec![
                 vec![String::from("1"), String::from("2"), String::from("3")],
-                vec![String::from("4"), String::from("5"), String::from("6")]
+                vec![String::from("6"), String::from("5"), String::from("4")]
             ],
             db.fetch("select * from abc").unwrap()
         );
