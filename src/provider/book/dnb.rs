@@ -171,6 +171,7 @@ mod tests {
     use std::fs;
 
     #[test]
+    #[ignore]
     fn simple_request() {
         let dnb_token = std::env::var("SBV_DNB_TOKEN").unwrap();
         let response = request(&dnb_token, "9783570303337").unwrap();
