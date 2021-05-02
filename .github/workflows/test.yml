@@ -1,0 +1,29 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always  
+
+jobs:
+  test-rust:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v1.2.0
+    - name: Run rust tests
+      run: cargo test
+
+  test-gd:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run gdscript tests
+      run: |
+        ./bin/headless/Godot_v3.3-stable_linux_headless.64 -s test/TestUtil.gd
+        ./bin/headless/Godot_v3.3-stable_linux_headless.64 -s test/TestUserProvider.gd
