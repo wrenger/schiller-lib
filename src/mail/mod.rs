@@ -26,7 +26,7 @@ pub fn send(
         .subject(subject)
         .singlepart(
             SinglePartBuilder::new()
-                .content_type(ContentType::text_utf8())
+                .content_type(ContentType::TEXT_PLAIN)
                 .body(body),
         )?;
 
