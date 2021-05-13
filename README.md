@@ -7,10 +7,9 @@ It is based on the [godot](https://godotengine.org/) engine.
 > Note: This project is under heavy development and some features may not work
 > as expected or are completely missing at the moment.
 
-### Download latest builds
+### Download
 
-* [Windows](https://gitlab.com/wrenger/sbv-gd/-/jobs/artifacts/master/download?job=deploy%3Awindows)
-* [Linux](https://gitlab.com/wrenger/sbv-gd/-/jobs/artifacts/master/download?job=deploy%3Alinux)
+The latest builds can be downloaded from the [releases page](https://github.com/wrenger/schiller-lib/releases/latest).
 
 
 ## Architecture
@@ -48,7 +47,7 @@ like the `Date` class.
 
 The [SQLite](https://sqlite.org/index.html) database has the following schema:
 
-<img src="images/sbv_db.svg" alt="Database Schema" width=600 />
+<img src="images/sbv_db.svg" alt="Database Schema" width=400 />
 
 It contains any project specific information and can be distributed as such.
 
