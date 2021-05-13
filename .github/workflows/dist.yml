@@ -66,8 +66,16 @@ jobs:
       run: |
         mkdir -p export/${{ matrix.platform }}
         ./bin/headless/Godot_v3.3-stable_linux_headless.64 --export ${{ matrix.platform }} export/${{ matrix.platform }}/${{ matrix.exe }}
+        zip schiller-lib-${{ matrix.platform }} -rj export/${{ matrix.platform }}
     - name: Upload
       uses: actions/upload-artifact@v2
       with:
-        name: schiller-lib-${{ matrix.platform }}
-        path: export/${{ matrix.platform }}
+        name: schiller-lib-${{ matrix.platform }}.zip
+        path: schiller-lib-${{ matrix.platform }}.zip
+    - name: Upload Release Asset
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: schiller-lib-${{ matrix.platform }}.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
