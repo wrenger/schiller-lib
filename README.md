@@ -76,10 +76,10 @@ This container can be used for the cross-compilation as shown below:
 
 ```bash
 # Build the docker image (only once)
-docker build -t registry.gitlab.com/wrenger/sbv-gd docker
+docker build -t wrenger/sbv-gd docker
 # Start the image and compile
-docker run --rm -it --volume=$(pwd):/home/docker/project -w /home/docker/project \
-    registry.gitlab.com/wrenger/sbv-gd \
+docker run --rm -it --user "$(id -u)":"$(id -g)" --volume=$(pwd):/home/docker/project -w /home/docker/project \
+    wrenger/sbv-gd \
     cargo build --target=x86_64-pc-windows-gnu --release
 ```
 
@@ -92,7 +92,7 @@ docker run --rm -it --volume=$(pwd):/home/docker/project -w /home/docker/project
 > ```
 
 
-## Distribute
+## Package & Distribute
 
 After the GDNative library has been build, the project can be exported within the godot editor.
 
