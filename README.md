@@ -70,7 +70,7 @@ cargo build --release
 ### Cross-Compilation: Linux to Windows
 
 Because of the `bindgen` dependencies there is a custom docker container that
-is also been used for the CI ([Dockerfile](docker/cross-win/Dockerfile)).
+is also been used for the CI ([Dockerfile](docker/Dockerfile)).
 
 This container can be used for the cross-compilation as shown below:
 
