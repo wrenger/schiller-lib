@@ -123,8 +123,6 @@ resizable = true
 mode = 0
 access = 2
 filters = PoolStringArray( "*.db ; SQLite DB" )
-current_dir = "/home/lars/Documents/projects/sbv-gd"
-current_path = "/home/lars/Documents/projects/sbv-gd/"
 script = ExtResource( 14 )
 __meta__ = {
 "_edit_use_anchors_": false

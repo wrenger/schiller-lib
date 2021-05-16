@@ -1,4 +1,4 @@
-# SBV
+# SchillerLib
 
 The schiller library software.
 
@@ -65,7 +65,7 @@ After the dependencies are installed the library can be build with cargo:
 cargo build --release
 ```
 
-> The paths in [sbv.gdnlib](lib/sbv.gdnlib) have to be updated accordingly.
+> The paths in [schiller_lib.gdnlib](lib/schiller_lib.gdnlib) have to be updated accordingly.
 
 ### Cross-Compilation: Linux to Windows
 
@@ -76,10 +76,10 @@ This container can be used for the cross-compilation as shown below:
 
 ```bash
 # Build the docker image (only once)
-docker build -t wrenger/sbv-gd docker
+docker build -t ghcr.io/wrenger/schiller-lib/cross docker
 # Start the image and compile
 docker run --rm -it --user "$(id -u)":"$(id -g)" --volume=$(pwd):/home/docker/project -w /home/docker/project \
-    wrenger/sbv-gd \
+    ghcr.io/wrenger/schiller-lib/cross \
     cargo build --target=x86_64-pc-windows-gnu --release
 ```
 
@@ -102,8 +102,8 @@ Alternatively this can also be done from the command line:
 ```bash
 # linux
 mkdir export/x11
-path/to/godot --export x11 export/x11/sbv-gd.x86_64
+path/to/godot --export x11 export/x11/schiller-lib.x86_64
 # windows
 mkdir export/win
-path/to/godot --export win export/win/sbv-gd.exe
+path/to/godot --export win export/win/schiller-lib.exe
 ```

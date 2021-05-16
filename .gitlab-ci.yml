@@ -32,10 +32,10 @@ deploy:linux:
   script:
     - cargo build --release
     - mkdir export/x11
-    - ./bin/headless/Godot_v3.3-stable_linux_headless.64 --export x11 export/x11/sbv-gd.x86_64
+    - ./bin/headless/Godot_v3.3-stable_linux_headless.64 --export x11 export/x11/schiller-lib.x86_64
   when: manual
   artifacts:
-    name: "sbv-x11-$CI_COMMIT_REF_NAME"
+    name: "schiller_lib-x11-$CI_COMMIT_REF_NAME"
     paths: [export/x11/*]
     expire_in: 1 week
 
@@ -44,9 +44,9 @@ deploy:windows:
   script:
     - cargo build --target=x86_64-pc-windows-gnu --release
     - mkdir export/win
-    - ./bin/headless/Godot_v3.3-stable_linux_headless.64 --export win export/win/sbv-gd.exe
+    - ./bin/headless/Godot_v3.3-stable_linux_headless.64 --export win export/win/schiller-lib.exe
   when: manual
   artifacts:
-    name: "sbv-win-$CI_COMMIT_REF_NAME"
+    name: "schiller_lib-win-$CI_COMMIT_REF_NAME"
     paths: [export/win/*]
     expire_in: 1 week

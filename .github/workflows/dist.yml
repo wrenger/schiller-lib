@@ -17,9 +17,9 @@ jobs:
       matrix:
         include:
         - os: ubuntu-latest
-          lib: libsbv_gd.so
+          lib: libschiller_lib.so
         - os: windows-latest
-          lib: sbv_gd.dll
+          lib: schiller_lib.dll
 
     steps:
     - name: Install LLVM and Clang # required for bindgen: https://github.com/actions/virtual-environments/issues/3316
@@ -49,10 +49,10 @@ jobs:
       matrix:
         include:
         - platform: x11
-          lib: libsbv_gd.so
+          lib: libschiller_lib.so
           exe: schiller-lib.x86_64
         - platform: win
-          lib: sbv_gd.dll
+          lib: schiller_lib.dll
           exe: schiller-lib.exe
 
     steps:

@@ -14,7 +14,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/book/AuthorList.gd"
 }, {
-"base": "Reference",
+"base": "",
 "class": "BookDNBProvider",
 "language": "NativeScript",
 "path": "res://lib/BookDNBProvider.gdns"
@@ -34,7 +34,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/ConfirmDialog.gd"
 }, {
-"base": "Reference",
+"base": "",
 "class": "Date",
 "language": "NativeScript",
 "path": "res://lib/Date.gdns"
@@ -54,7 +54,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/settings/MailView.gd"
 }, {
-"base": "Reference",
+"base": "",
 "class": "Mailer",
 "language": "NativeScript",
 "path": "res://lib/Mailer.gdns"
@@ -79,7 +79,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/util/ProgressIndicator.gd"
 }, {
-"base": "Node",
+"base": "",
 "class": "Project",
 "language": "NativeScript",
 "path": "res://lib/Project.gdns"
@@ -140,7 +140,7 @@ _global_script_class_icons={
 
 [application]
 
-config/name="sbv-gd"
+config/name="schiller-lib"
 config/description="The schiller library software."
 run/main_scene="res://ui/Main.tscn"
 run/low_processor_mode=true

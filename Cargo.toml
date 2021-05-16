@@ -1,12 +1,12 @@
 [package]
-name = "sbv-gd"
+name = "schiller-lib"
 description = "Schiller library software"
 version = "0.8.0"
 authors = ["Lars Wrenger <lars@wrenger.net>"]
 edition = "2018"
 readme = "README.md"
 license = "MIT"
-repository = "https://gitlab.com/wrenger/sbv-gd"
+repository = "https://github.com/wrenger/schiller-lib"
 publish = false
 
 [lib]
@@ -28,6 +28,6 @@ default-features = false
 features = ["blocking"]
 
 [dependencies.lettre]
-version = "0.10.0-beta.4"
+version = "0.10.0-rc.1"
 default-features = false
 features = ["builder", "smtp-transport", "native-tls"]
