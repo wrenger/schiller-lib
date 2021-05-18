@@ -22,18 +22,18 @@ pub fn parse(input: &str) -> Result<String, String> {
 }
 
 fn is10(isbn: &[u8]) -> bool {
-    isbn.len() == 10 && isbn[9] == checksum10(isbn)
+    isbn.len() == 10 && isbn[0..9].iter().all(|&n| n < 10) && isbn[9] == checksum10(isbn)
 }
 
 fn is13(isbn: &[u8]) -> bool {
-    isbn.len() == 13 && isbn[12] == checksum13(isbn)
+    isbn.len() == 13 && isbn.iter().all(|&n| n < 10) && isbn[12] == checksum13(isbn)
 }
 
 fn checksum10(isbn: &[u8]) -> u8 {
     let checksum = isbn[..9]
         .iter()
         .enumerate()
-        .fold(0, |acc, (i, &n)| acc + (i as u32 + 1) * n as u32);
+        .fold(0, |acc, (i, &n)| acc + (i + 1) * n as usize);
     (checksum % 11) as u8
 }
 
@@ -41,7 +41,7 @@ fn checksum13(isbn: &[u8]) -> u8 {
     let checksum = isbn[..12]
         .iter()
         .enumerate()
-        .fold(0, |acc, (i, &n)| acc + (1 + 2 * (i as u32 % 2)) * n as u32);
+        .fold(0, |acc, (i, &n)| acc + (1 + 2 * (i % 2)) * n as usize);
     ((400 - checksum) % 10) as u8
 }
 
