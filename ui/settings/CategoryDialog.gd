@@ -26,7 +26,7 @@ func _ready() -> void:
 
 static func open():
     var scene: SceneTree = Engine.get_main_loop()
-    var nodes = scene.get_nodes_in_group("CategoryDialog")
+    var nodes := scene.get_nodes_in_group("CategoryDialog")
     if nodes: nodes.front()._open()
 
 

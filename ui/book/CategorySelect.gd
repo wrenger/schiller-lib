@@ -14,8 +14,13 @@ func _on_categories_changed(categories: Array):
     clear()
     if allow_empty:
         add_item(tr(".category"))
-        set_item_metadata(get_item_count() - 1, "")
+        set_item_metadata(get_item_count() - 1, "%")
         add_separator()
+
+    # uncategorized
+    add_item(tr(".category.none"))
+    set_item_metadata(get_item_count() - 1, "")
+
     for category in categories:
         var text: String = category.id + " - " + category.name + " - " + category.section
         add_item(text,  category.id.hash())

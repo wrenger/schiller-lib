@@ -128,9 +128,7 @@ pub struct Book {
 
 impl Book {
     fn is_valid(&self) -> bool {
-        !self.id.trim().is_empty()
-            && !self.title.trim().is_empty()
-            && !self.category.trim().is_empty()
+        !self.id.trim().is_empty() && !self.title.trim().is_empty()
     }
 }
 
@@ -254,12 +252,7 @@ pub fn search_advanced<'a>(db: &'a Database, params: &BookSearch) -> api::Result
         stmt.bind(6, year)?;
         stmt.bind(7, year)?;
     }
-    let category = params.category.trim();
-    if !category.is_empty() {
-        stmt.bind(8, category)?;
-    } else {
-        stmt.bind(8, "%")?;
-    }
+    stmt.bind(8, params.category.trim())?;
     stmt.bind(9, params.note.trim())?;
     let user = params.user.trim();
     if !user.is_empty() {
@@ -415,6 +408,13 @@ fn id_prefix(author: &str, category: &str) -> String {
     if author_prefix.is_empty() {
         author_prefix = "XXXX".into();
     }
+
+    let category = if !category.is_empty() {
+        category
+    } else {
+        "XXXX"
+    };
+
     format!(
         "{} {}",
         category,
@@ -438,6 +438,7 @@ mod tests {
             id_prefix("Remigius Bäumer", "RErk"),
             "RErk BAUM".to_string()
         );
+        assert_eq!(id_prefix("Isabel Abedi", ""), "XXXX ABED".to_string());
     }
 
     #[test]

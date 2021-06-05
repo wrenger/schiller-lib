@@ -53,7 +53,7 @@
 .book.id.action,Suggest,Vorschlagen
 .book.id.format,"The Book ID has to consist of the category, author and a numeric id.","Die Signatur muss aus der Kategorie, dem Autor und einer ID bestehen."
 .book.invalid-isbn,The given ISBN is not valid,Die angegebene ISBN is fehlerhaft
-.book.invalid,"ID, Title and Category are mandatory.","ID, Titel und Kategory dürfen nicht leer bleiben."
+.book.invalid,"ID and Title are mandatory.","ID und Titel dürfen nicht leer bleiben."
 .book.isbn,ISBN,ISBN
 .book.lend,Lend,Ausleihen
 .book.lend.period,Period,Dauer
@@ -83,6 +83,7 @@
 .category.name,Name,Name
 .category.not-empty.del,"A category has to be empty to be removed. This category, however, is not emtpy.",Es können nur leere Kategorien gelöscht werden. Diese Kategorie ist allerdings nicht leer.
 .category.section,Section,Bereich
+.category.none,Uncategorized,Unkategorisiert
 .category.t1.id,SCFI,SCFI
 .category.t1.name,Science Fiction,Science-Fiction
 .category.t1.section,Novels,Romane

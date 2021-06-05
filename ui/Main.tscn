@@ -186,6 +186,7 @@ rect_min_size = Vector2( 0, 0 )
 
 [node name="Persist" type="Node" parent="."]
 script = ExtResource( 15 )
+
 [connection signal="show_user_books" from="Tabs/Users" to="Tabs/Books" method="show_user_books"]
 [connection signal="show_book" from="Tabs/Overdues" to="Tabs/Books" method="show_book"]
 [connection signal="menu_close" from="Menu" to="." method="_on_close_project"]
