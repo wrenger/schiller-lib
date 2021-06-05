@@ -3,7 +3,7 @@
 [ext_resource path="res://lib/schiller_lib.gdnlib" type="GDNativeLibrary" id=1]
 
 [resource]
-resource_name = "BookDNBProvider"
-class_name = "BookDNBProvider"
+resource_name = "Marc21"
+class_name = "Marc21"
 library = ExtResource( 1 )
-script_class_name = "BookDNBProvider"
+script_class_name = "Marc21"

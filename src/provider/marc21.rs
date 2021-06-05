@@ -1,35 +1,7 @@
 use crate::api;
-use crate::provider::book::BookData;
+use crate::provider::BookData;
 
 use unicode_normalization::UnicodeNormalization;
-
-/// Provider for dnb requests.
-///
-/// ## See Also
-/// https://www.dnb.de/EN/Professionell/Metadatendienste/Datenbezug/SRU/sru_node.html
-#[derive(Debug, Default, gdnative::FromVariant, gdnative::ToVariant)]
-pub struct DNB {
-    pub token: String,
-}
-
-impl DNB {
-    pub fn request(&self, isbn: &str) -> api::Result<BookData> {
-        if self.token.is_empty() {
-            return Err(api::Error::NetworkError);
-        }
-
-        request(&self.token, isbn).and_then(|response| parse(&response, isbn))
-    }
-}
-
-fn request(token: &str, isbn: &str) -> api::Result<String> {
-    let url = format!(
-        "http://services.dnb.de/sru/accessToken~{}/dnb?version=1.1&operation=searchRetrieve&recordSchema=MARC21-xml&query=NUM%3D{}",
-        token, isbn);
-    Ok(reqwest::blocking::get(&url)?.text()?)
-}
-
-// MARC21 Parsing
 
 const ISBN_COSTS_TAG: &str = "020";
 const ISBN_CODE: &str = "a";
@@ -49,7 +21,11 @@ const PUBLISHER_CODE: &str = "b";
 // Warning: legacy: 1 DM => 0.51129 EUR
 const DM_TO_EUR: f64 = 0.51129;
 
-fn parse(response: &str, isbn: &str) -> api::Result<BookData> {
+/// MARC21 Parsing
+///
+/// ## See Also
+/// https://www.dnb.de/EN/Professionell/Metadatendienste/Datenbezug/SRU/sru_node.html
+pub fn parse(response: &str, isbn: &str) -> api::Result<BookData> {
     let document = roxmltree::Document::parse(response)?;
 
     let mut first_result = None;
@@ -169,24 +145,6 @@ fn parse_costs(costs: &str) -> f64 {
 mod tests {
     use super::*;
     use std::fs;
-
-    #[test]
-    #[ignore]
-    fn simple_request() {
-        let dnb_token = std::env::var("SBV_DNB_TOKEN").unwrap();
-        let response = request(&dnb_token, "9783570303337").unwrap();
-        assert!(!response.is_empty());
-        let data = parse(&response, "9783570303337").unwrap();
-        assert_eq!(
-            data,
-            BookData {
-                title: "Eragon - Das Vermächtnis der Drachenreiter".into(),
-                authors: vec!["Christopher Paolini".into()],
-                publisher: "cbj".into(),
-                costs: 9.95,
-            }
-        )
-    }
 
     #[test]
     fn parse_single_record() {

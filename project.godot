@@ -14,10 +14,10 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/book/AuthorList.gd"
 }, {
-"base": "",
+"base": "Reference",
 "class": "BookDNBProvider",
-"language": "NativeScript",
-"path": "res://lib/BookDNBProvider.gdns"
+"language": "GDScript",
+"path": "res://lib/BookDNBProvider.gd"
 }, {
 "base": "AcceptDialog",
 "class": "CategoryDialog",
@@ -58,6 +58,11 @@ _global_script_classes=[ {
 "class": "Mailer",
 "language": "NativeScript",
 "path": "res://lib/Mailer.gdns"
+}, {
+"base": "Reference",
+"class": "Marc21",
+"language": "NativeScript",
+"path": "res://lib/Marc21.gdns"
 }, {
 "base": "AcceptDialog",
 "class": "MessageDialog",
@@ -125,6 +130,7 @@ _global_script_class_icons={
 "MailDialog": "",
 "MailView": "",
 "Mailer": "",
+"Marc21": "",
 "MessageDialog": "",
 "NamedTabs": "",
 "ObjectList": "",

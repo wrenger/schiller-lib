@@ -53,13 +53,6 @@ impl From<std::io::Error> for Error {
     }
 }
 
-impl From<reqwest::Error> for Error {
-    fn from(e: reqwest::Error) -> Error {
-        godot_print!("Network Error: {:?}", e);
-        Error::NetworkError
-    }
-}
-
 impl From<roxmltree::Error> for Error {
     fn from(e: roxmltree::Error) -> Error {
         godot_print!("Invalid XML Format: {:?}", e);

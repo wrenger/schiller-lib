@@ -6,8 +6,8 @@ pub use error::*;
 mod project;
 mod date;
 mod debug;
-mod book_provider;
 mod mailer;
+mod marc21;
 
 use project::Project;
 
@@ -15,8 +15,8 @@ use project::Project;
 fn init(handle: InitHandle) {
     handle.add_class::<Project>();
     handle.add_class::<date::Date>();
-    handle.add_class::<book_provider::BookDNBProvider>();
     handle.add_class::<mailer::Mailer>();
+    handle.add_class::<marc21::Marc21>();
 }
 
 // Macros that create the entry-points of the dynamic library.
