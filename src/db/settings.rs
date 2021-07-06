@@ -70,7 +70,7 @@ impl Default for Settings {
 }
 
 impl Settings {
-    fn from_iter<I: IntoIterator<Item = (String, String)>>(iter: I) -> Settings {
+    pub fn from_iter<I: IntoIterator<Item = (String, String)>>(iter: I) -> Settings {
         let mut settings = Settings::default();
         for (key, value) in iter {
             match key.as_str() {

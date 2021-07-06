@@ -51,12 +51,15 @@ replace into sbv_meta values ('version', ?)
 "#;
 
 /// Minimum supported version.
-const MIN_VERSION: Version = Version::new(0, 7, 0);
+const MIN_VERSION: Version = Version(0, 6, 2);
 
-type MigrationRoutine = fn(&sqlite::Connection) -> api::Result<()>;
+type MigrationRoutine = fn(&Database) -> api::Result<()>;
 
 /// Database migration routines
-const PATCHES: [(Version, MigrationRoutine); 1] = [(Version::new(0, 8, 0), patch_0_8_0)];
+const PATCHES: [(Version, MigrationRoutine); 2] = [
+    (Version(0, 6, 3), patch_0_6_3),
+    (Version(0, 8, 0), patch_0_8_0),
+];
 
 pub fn create(db: &Database, version: &str) -> api::Result<()> {
     let transaction = db.db.transaction()?;
@@ -85,7 +88,7 @@ pub fn migrate(db: &Database, version: &str) -> api::Result<bool> {
         for (patch_version, patch) in &PATCHES {
             if old_version < *patch_version {
                 gdnative::godot_print!("Applying patch {}", patch_version);
-                patch(&db.db)?;
+                patch(&db)?;
             }
         }
         update_version(&db.db, version)?;
@@ -107,21 +110,7 @@ fn update_version(db: &sqlite::Connection, version: &str) -> api::Result<()> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct Version {
-    major: u8,
-    minor: u8,
-    patch: u8,
-}
-
-impl Version {
-    const fn new(major: u8, minor: u8, patch: u8) -> Version {
-        Version {
-            major,
-            minor,
-            patch,
-        }
-    }
-}
+struct Version(u8, u8, u8);
 
 impl FromStr for Version {
     type Err = api::Error;
@@ -131,17 +120,13 @@ impl FromStr for Version {
             .map(|x| x.parse().map_err(|_| api::Error::UnsupportedProjectVersion))
             .collect();
         if version_parts.len() == 3 {
-            Ok(Version {
-                major: version_parts[0]?,
-                minor: version_parts[1]?,
-                patch: version_parts[2]?,
-            })
+            Ok(Version(
+                version_parts[0]?,
+                version_parts[1]?,
+                version_parts[2]?,
+            ))
         } else if version_parts.len() == 2 {
-            Ok(Version {
-                major: 0,
-                minor: version_parts[0]?,
-                patch: version_parts[1]?,
-            })
+            Ok(Version(0, version_parts[0]?, version_parts[1]?))
         } else {
             Err(api::Error::UnsupportedProjectVersion)
         }
@@ -150,17 +135,77 @@ impl FromStr for Version {
 
 impl Display for Version {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}.{}.{}", self.major, self.minor, self.patch)
+        write!(f, "{}.{}.{}", self.0, self.1, self.2)
     }
 }
 
-fn patch_0_8_0(db: &sqlite::Connection) -> api::Result<()> {
+fn patch_0_6_3(db: &Database) -> api::Result<()> {
+    use std::fs::File;
+    use std::io::BufReader;
+
+    use gdnative::api::RegEx;
+
+    fn regex_search(regex: &str, text: &str) -> String {
+        let re = RegEx::new();
+        if re.compile(regex).is_err() {
+            gdnative::godot_error!("Malformed regex: {}", regex);
+            return String::new();
+        }
+        re.search(text, 0, -1)
+            .map(|s| unsafe { s.assume_safe().get_string(1).to_string() })
+            .unwrap_or_default()
+    }
+
+    // apply new key setting names
+    fn update(item: (String, String), db: &Database) -> (String, String) {
+        match item.0.as_str() {
+            "data.ausleihdauer" => ("borrowing.duration".into(), item.1),
+            "letzteMahnung" => ("mail.lastReminder".into(), item.1),
+            "email.absender" => ("mail.from".into(), item.1),
+            "email.host" => ("mail.host".into(), item.1),
+            "email.passwort" => ("mail.password".into(), item.1),
+            "email.infoTitel" => ("mail.info.subject".into(), item.1),
+            "email.info" => ("mail.info.content".into(), item.1),
+            "email.mahnungTitel" => ("mail.overdue.subject".into(), item.1),
+            "email.mahnung" => ("mail.overdue.content".into(), item.1),
+            "email.mahnung2Titel" => ("mail.overdue2.subject".into(), item.1),
+            "email.mahnung2" => ("mail.overdue2.content".into(), item.1),
+            "data.benutzer.regex" => ("user.delimiter".into(), item.1),
+            "data.benutzer" => (
+                "user.path".into(),
+                db.path
+                    .parent()
+                    .and_then(|p| p.join(&item.1).to_str().map(|s| String::from(s)))
+                    .unwrap_or(item.1),
+            ),
+            "dnb.url.medien" => (
+                "dnb.token".into(),
+                regex_search("accessToken~(\\w+)/", &item.1),
+            ),
+            other => (other.into(), item.1),
+        }
+    }
+
+    if let Some(path) = db.path.parent().map(|p| p.join("sbv.properties")) {
+        let f = File::open(&path)?;
+        if let Ok(data) = java_properties::read(BufReader::new(f)) {
+            let settings = Settings::from_iter(data.into_iter().map(|e| update(e, db)));
+            settings::update(db, &settings)?;
+        } else {
+            return Err(api::Error::FileOpenError);
+        }
+    }
+
+    Ok(())
+}
+
+fn patch_0_8_0(db: &Database) -> api::Result<()> {
     const UPDATE_MAIL_PLACEHOLDERS: &str = r#"
 update sbv_meta set
 value=replace(replace(value, '[mediumtitel]', '{booktitle}'), '[name]', '{username}')
 where key like 'mail.%.subject' or key like 'mail.%.content'
 "#;
-    db.execute(UPDATE_MAIL_PLACEHOLDERS)?;
+    db.db.execute(UPDATE_MAIL_PLACEHOLDERS)?;
     Ok(())
 }
 
@@ -171,14 +216,14 @@ mod tests {
 
     #[test]
     fn version_parsing() {
-        assert!("0.0".parse::<Version>().unwrap() == Version::new(0, 0, 0));
-        assert!("1.0".parse::<Version>().unwrap() == Version::new(0, 1, 0));
-        assert!("3.55".parse::<Version>().unwrap() == Version::new(0, 3, 55));
-        assert!("0.0.0".parse::<Version>().unwrap() == Version::new(0, 0, 0));
-        assert!("0.1.0".parse::<Version>().unwrap() == Version::new(0, 1, 0));
-        assert!("0.9.22".parse::<Version>().unwrap() == Version::new(0, 9, 22));
-        assert!("10.9.22".parse::<Version>().unwrap() == Version::new(10, 9, 22));
-        assert!("255.255.255".parse::<Version>().unwrap() == Version::new(255, 255, 255));
+        assert!("0.0".parse::<Version>().unwrap() == Version(0, 0, 0));
+        assert!("1.0".parse::<Version>().unwrap() == Version(0, 1, 0));
+        assert!("3.55".parse::<Version>().unwrap() == Version(0, 3, 55));
+        assert!("0.0.0".parse::<Version>().unwrap() == Version(0, 0, 0));
+        assert!("0.1.0".parse::<Version>().unwrap() == Version(0, 1, 0));
+        assert!("0.9.22".parse::<Version>().unwrap() == Version(0, 9, 22));
+        assert!("10.9.22".parse::<Version>().unwrap() == Version(10, 9, 22));
+        assert!("255.255.255".parse::<Version>().unwrap() == Version(255, 255, 255));
 
         assert!("10".parse::<Version>().is_err());
         assert!("1.2.3.4".parse::<Version>().is_err());
@@ -224,7 +269,7 @@ mod tests {
         };
         settings::update(&db, &settings).unwrap();
 
-        patch_0_8_0(&db.db).unwrap();
+        patch_0_8_0(&db).unwrap();
 
         let settings = settings::fetch(&db).unwrap();
         assert!(settings.mail_info_subject == "{booktitle}' is back in the library");
