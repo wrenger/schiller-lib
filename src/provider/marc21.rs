@@ -18,8 +18,11 @@ const PERSON_CODE: &str = "a";
 const PUBLISHER_TAG: &str = "264";
 const PUBLISHER_CODE: &str = "b";
 
-// Warning: legacy: 1 DM => 0.51129 EUR
+/// Warning: legacy: 1 DM => 0.51129 EUR
 const DM_TO_EUR: f64 = 0.51129;
+
+/// If the title is shorter than this, the subtitle is appended
+const SHORT_TITLE_LEN: usize = 16;
 
 /// MARC21 Parsing
 ///
@@ -70,7 +73,7 @@ fn parse_record(record: roxmltree::Node) -> Record {
             TITLE_TAG => {
                 subfield(datafield, TITLE_CODE).map_or((), |t| r.data.title = t);
                 // Add subtitle if the title is to short
-                if r.data.title.len() < 16 {
+                if r.data.title.len() < SHORT_TITLE_LEN {
                     subfield(datafield, SUBTITLE_CODE).map_or((), |t| {
                         if !t.is_empty() {
                             r.data.title.push_str(" - ");
@@ -203,14 +206,29 @@ mod tests {
 
     #[test]
     fn parse_costs() {
-        assert_eq!(super::parse_costs("kart. : EUR"), 0.0);
-        assert_eq!(super::parse_costs("kart. : EUR 9.95"), 9.95);
-        assert_eq!(super::parse_costs("Pp. (nicht im Buchhandel)"), 0.0);
-        assert_eq!(
+        fn approx_eq(a: f64, b: f64) -> bool {
+            (a - b).abs() < 8.0 * f64::EPSILON
+        }
+
+        macro_rules! assert_approx_eq {
+            ($left:expr, $right:expr $(,)?) => {
+                assert!(
+                    approx_eq($left, $right),
+                    "assertion failed: `left == right`\n  left: `{:?}`,\n right: `{:?}`",
+                    $left,
+                    $right
+                )
+            };
+        }
+
+        assert_approx_eq!(super::parse_costs("kart. : EUR"), 0.0);
+        assert_approx_eq!(super::parse_costs("kart. : EUR 9.95"), 9.95);
+        assert_approx_eq!(super::parse_costs("Pp. (nicht im Buchhandel)"), 0.0);
+        assert_approx_eq!(
             super::parse_costs("Pp. : EUR 14.95 (DE), EUR 15.40 (AT), sfr 21.90 (freier Pr.)"),
             14.95
         );
-        assert_eq!(
+        assert_approx_eq!(
             super::parse_costs("Lw. : DM 9.80"),
             (9.80 * DM_TO_EUR * 100.0).round() / 100.0
         );

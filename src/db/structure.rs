@@ -175,7 +175,7 @@ fn patch_0_6_3(db: &Database) -> api::Result<()> {
                 "user.path".into(),
                 db.path
                     .parent()
-                    .and_then(|p| p.join(&item.1).to_str().map(|s| String::from(s)))
+                    .and_then(|p| p.join(&item.1).to_str().map(String::from))
                     .unwrap_or(item.1),
             ),
             "dnb.url.medien" => (
