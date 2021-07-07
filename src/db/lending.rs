@@ -3,50 +3,49 @@ use std::collections::HashMap;
 use super::{Book, DBIter, Database, ReadStmt, User};
 use crate::api;
 
-const UPDATE_LEND: &str = r#"
-update medium set borrower=?, deadline=? where id=?
-"#;
-const UPDATE_REVOKE: &str = r#"
-update medium set borrower='', deadline='' where id=?
-"#;
-const UPDATE_RESERVE: &str = r#"
-update medium set reservation=? where id=?
-"#;
-const UPDATE_RELEASE: &str = r#"
-update medium set reservation='' where id=?
-"#;
+const UPDATE_LEND: &str = "\
+    update medium set borrower=?, deadline=? where id=? \
+";
+const UPDATE_REVOKE: &str = "\
+    update medium set borrower='', deadline='' where id=? \
+";
+const UPDATE_RESERVE: &str = "\
+    update medium set reservation=? where id=? \
+";
+const UPDATE_RELEASE: &str = "\
+    update medium set reservation='' where id=? \
+";
+const QUERY_EXPIRED: &str = "\
+    select \
+    id, \
+    isbn, \
+    title, \
+    publisher, \
+    year, \
+    costs, \
+    note, \
+    borrowable, \
+    category, \
+    ifnull(group_concat(author.name),'') as authors, \
+    borrower, \
+    deadline, \
+    reservation, \
 
-const QUERY_EXPIRED: &str = r#"
-select
-id,
-isbn,
-title,
-publisher,
-year,
-costs,
-note,
-borrowable,
-category,
-ifnull(group_concat(author.name),'') as authors,
-borrower,
-deadline,
-reservation,
+    account, \
+    forename, \
+    surname, \
+    role, \
+    may_borrow, \
 
-account,
-forename,
-surname,
-role,
-may_borrow,
+    JulianDay(date('now')) - JulianDay(date(deadline)) as days \
 
-JulianDay(date('now')) - JulianDay(date(deadline)) as days
-
-from medium
-left join author on author.medium=id
-join user on account=borrower
-where days > 0
-group by id
-order by role, account
-"#;
+    from medium \
+    left join author on author.medium=id \
+    join user on account=borrower \
+    where days > 0 \
+    group by id \
+    order by role, account \
+";
 
 /// Lends the book to the specified user.
 pub fn lend(db: &Database, book: &mut Book, user: &User, days: i64) -> api::Result<()> {

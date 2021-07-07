@@ -5,29 +5,24 @@ use crate::api;
 use super::raw::DatabaseExt;
 use super::{DBIter, Database, ReadStmt};
 
-const LIST: &str = r#"
-select id, name, section from category order by section, id
-"#;
-
-const ADD: &str = r#"
-insert into category values (?, ?, ?)
-"#;
-
-const UPDATE: &str = r#"
-update category set id=?, name=?, section=? where id=?
-"#;
-
-const UPDATE_MEDIA: &str = r#"
-update medium set category=? where category=?
-"#;
-
-const DELETE: &str = r#"
-delete from category where id=?
-"#;
-
-const REFERENCED: &str = r#"
-select count(id) from medium where category=?
-"#;
+const LIST: &str = "\
+    select id, name, section from category order by section, id \
+";
+const ADD: &str = "\
+    insert into category values (?, ?, ?) \
+";
+const UPDATE: &str = "\
+    update category set id=?, name=?, section=? where id=? \
+";
+const UPDATE_MEDIA: &str = "\
+    update medium set category=? where category=? \
+";
+const DELETE: &str = "\
+    delete from category where id=? \
+";
+const REFERENCED: &str = "\
+    select count(id) from medium where category=? \
+";
 
 #[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
 pub struct Category {

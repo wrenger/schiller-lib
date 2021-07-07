@@ -91,12 +91,18 @@ mod tests {
     fn multiple() {
         let db = sqlite::Connection::open(":memory:").unwrap();
         db.execute(
-            "begin; create table abc (a, b, c); insert into abc values ('d', 'e', 'f'); commit;",
+            "begin; \
+            create table abc (a, b, c); \
+            insert into abc values ('d', 'e', 'f'); \
+            commit;",
         )
         .unwrap();
 
         let result = db
-            .fetch("insert into abc values ('a', 'b', 'c'); select * from abc order by a")
+            .fetch(
+                "insert into abc values ('a', 'b', 'c'); \
+                select * from abc order by a",
+            )
             .unwrap();
         assert_eq!(
             vec![

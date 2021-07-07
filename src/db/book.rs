@@ -5,107 +5,111 @@ use crate::api;
 use super::raw::{DatabaseExt, StatementExt};
 use super::{DBIter, Database, ReadStmt};
 
-const FETCH: &str = r#"
-select
-id,
-isbn,
-title,
-publisher,
-year,
-costs,
-note,
-borrowable,
-category,
-ifnull(group_concat(author.name),'') as authors,
-borrower,
-deadline,
-reservation
-from medium
-left join author on author.medium=id
-where id=?
-group by id
-"#;
+const FETCH: &str = "\
+    select \
+    id, \
+    isbn, \
+    title, \
+    publisher, \
+    year, \
+    costs, \
+    note, \
+    borrowable, \
+    category, \
+    ifnull(group_concat(author.name),'') as authors, \
+    borrower, \
+    deadline, \
+    reservation \
 
-const SEARCH: &str = r#"
-select
-id,
-isbn,
-title,
-publisher,
-year,
-costs,
-note,
-borrowable,
-category,
-ifnull(group_concat(author.name),'') as authors,
-borrower,
-deadline,
-reservation
-from medium
-left join author on author.medium=id
-group by id
-having id like '%'||?1||'%'
-or isbn like '%'||?1||'%'
-or title like '%'||?1||'%'
-or publisher like '%'||?1||'%'
-or note like '%'||?1||'%'
-or authors like '%'||?1||'%'
-"#;
+    from medium \
+    left join author on author.medium=id \
+    where id=? \
+    group by id \
+";
 
-const SEARCH_ADVANCED: &str = r#"
-select
-id,
-isbn,
-title,
-publisher,
-year,
-costs,
-note,
-borrowable,
-category,
-ifnull(group_concat(author.name),'') as authors,
-borrower,
-deadline,
-reservation
-from medium
-left join author on author.medium=id
-group by id
-having id like '%'||?||'%'
-and isbn like '%'||?||'%'
-and title like '%'||?||'%'
-and publisher like '%'||?||'%'
-and authors like '%'||?||'%'
-and year between ? and ?
-and category like ?
-and note like '%'||?||'%'
-and (borrower like '%'||?||'%' or reservation like '%'||?||'%')
-and borrowable like ?
-"#;
+const SEARCH: &str = "\
+    select \
+    id, \
+    isbn, \
+    title, \
+    publisher, \
+    year, \
+    costs, \
+    note, \
+    borrowable, \
+    category, \
+    ifnull(group_concat(author.name),'') as authors, \
+    borrower, \
+    deadline, \
+    reservation \
 
-const ADD: &str = r#"
-insert into medium values (?, ?, ?, ?, ?, ?, ?, ?, ?, '', '', '')
-"#;
+    from medium \
+    left join author on author.medium=id \
+    group by id \
+    having id like '%'||?1||'%' \
+    or isbn like '%'||?1||'%' \
+    or title like '%'||?1||'%' \
+    or publisher like '%'||?1||'%' \
+    or note like '%'||?1||'%' \
+    or authors like '%'||?1||'%' \
+";
 
-const ADD_AUTHOR: &str = r#"
-insert or ignore into author values (?, ?)
-"#;
-const UPDATE: &str = r#"
-update medium set id=?, isbn=?, title=?, publisher=?, year=?, costs=?, note=?, borrowable=?, category=? where id=?
-"#;
-const UPDATE_AUTHORS: &str = r#"
-update author set medium=? where medium=?
-"#;
+const SEARCH_ADVANCED: &str = "\
+    select \
+    id, \
+    isbn, \
+    title, \
+    publisher, \
+    year, \
+    costs, \
+    note, \
+    borrowable, \
+    category, \
+    ifnull(group_concat(author.name),'') as authors, \
+    borrower, \
+    deadline, \
+    reservation \
 
-const DELETE: &str = r#"
-delete from medium where id=?
-"#;
-const DELETE_UNUSED_AUTHORS: &str = r#"
-delete from author where medium not in (select id from medium)
-"#;
+    from medium \
+    left join author on author.medium=id \
+    group by id \
+    having id like '%'||?||'%' \
+    and isbn like '%'||?||'%' \
+    and title like '%'||?||'%' \
+    and publisher like '%'||?||'%' \
+    and authors like '%'||?||'%' \
+    and year between ? and ? \
+    and category like ? \
+    and note like '%'||?||'%' \
+    and (borrower like '%'||?||'%' or reservation like '%'||?||'%') \
+    and borrowable like ? \
+";
 
-const UNUSED_ID: &str = r#"
-select max(substr(id, ? + 2)) from medium where id like ?||'%' order by id
-"#;
+const ADD: &str = "\
+    insert into medium values (?, ?, ?, ?, ?, ?, ?, ?, ?, '', '', '') \
+";
+
+const ADD_AUTHOR: &str = "\
+    insert or ignore into author values (?, ?) \
+";
+const UPDATE: &str = "\
+    update medium \
+    set id=?, isbn=?, title=?, publisher=?, year=?, costs=?, note=?, borrowable=?, category=? \
+    where id=? \
+";
+const UPDATE_AUTHORS: &str = "\
+    update author set medium=? where medium=? \
+";
+const DELETE: &str = "\
+    delete from medium where id=? \
+";
+const DELETE_UNUSED_AUTHORS: &str = "\
+    delete from author where medium not in (select id from medium) \
+";
+const UNUSED_ID: &str = "\
+    select max(substr(id, ? + 2)) from medium \
+    where id like ?||'%' order by id \
+";
 
 /// Data object for book.
 #[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]

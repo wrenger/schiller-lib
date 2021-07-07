@@ -3,15 +3,15 @@ use std::collections::HashMap;
 use super::{Database, ReadStmt, StatementExt};
 use crate::api;
 
-const STATS: &str = r#"
-select
-(select count(*) from medium) as books,
-(select count(distinct name) from author) as authors,
-(select count(*) from user) as users,
-(select count(*) from medium where borrower <> '') as borrows,
-(select count(*) from medium where reservation <> '') as reservations,
-(select count(*) from medium where borrower <> '' and JulianDay(date('now')) > JulianDay(date(deadline))) as overdues
-"#;
+const STATS: &str = "\
+    select \
+    (select count(*) from medium) as books, \
+    (select count(distinct name) from author) as authors, \
+    (select count(*) from user) as users, \
+    (select count(*) from medium where borrower <> '') as borrows, \
+    (select count(*) from medium where reservation <> '') as reservations, \
+    (select count(*) from medium where borrower <> '' and JulianDay(date('now')) > JulianDay(date(deadline))) as  overdues \
+";
 
 /// Data object for book.
 #[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]

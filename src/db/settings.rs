@@ -3,27 +3,27 @@ use std::collections::HashMap;
 
 use super::{DBIter, Database, ReadStmt};
 
-const SETTINGS_FETCH: &str = r#"
-select key, value from sbv_meta
-"#;
+const SETTINGS_FETCH: &str = "\
+    select key, value from sbv_meta \
+";
 
-const SETTINGS_UPDATE: &str = r#"
-replace into sbv_meta values
-('borrowing.duration', ?),
-('user.path', ?),
-('user.delimiter', ?),
-('dnb.token', ?),
-('mail.lastReminder', ?),
-('mail.from', ?),
-('mail.host', ?),
-('mail.password', ?),
-('mail.info.subject', ?),
-('mail.info.content', ?),
-('mail.overdue.subject', ?),
-('mail.overdue.content', ?),
-('mail.overdue2.subject', ?),
-('mail.overdue2.content', ?)
-"#;
+const SETTINGS_UPDATE: &str = "\
+    replace into sbv_meta values \
+    ('borrowing.duration', ?), \
+    ('user.path', ?), \
+    ('user.delimiter', ?), \
+    ('dnb.token', ?), \
+    ('mail.lastReminder', ?), \
+    ('mail.from', ?), \
+    ('mail.host', ?), \
+    ('mail.password', ?), \
+    ('mail.info.subject', ?), \
+    ('mail.info.content', ?), \
+    ('mail.overdue.subject', ?), \
+    ('mail.overdue.content', ?), \
+    ('mail.overdue2.subject', ?), \
+    ('mail.overdue2.content', ?) \
+";
 
 #[derive(Debug, PartialEq, Clone, gdnative::ToVariant, gdnative::FromVariant)]
 pub struct Settings {

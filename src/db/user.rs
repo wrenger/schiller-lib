@@ -6,58 +6,59 @@ use super::raw::{DatabaseExt, StatementExt};
 use super::{DBIter, Database, ReadStmt};
 
 // Query
-const FETCH_USER: &str = r#"
-select
-account,
-forename,
-surname,
-role,
-may_borrow
-from user
-where account=?
-"#;
+const FETCH_USER: &str = "\
+    select \
+    account, \
+    forename, \
+    surname, \
+    role, \
+    may_borrow \
+    from user \
+    where account=? \
+";
 
-const QUERY_USERS: &str = r#"
-select
-account,
-forename,
-surname,
-role,
-may_borrow
-from user
-where account like '%'||?1||'%'
-or forename like '%'||?1||'%'
-or surname like '%'||?1||'%'
-or role like '%'||?1||'%'
-order by account
-"#;
+const QUERY_USERS: &str = "\
+    select \
+    account, \
+    forename, \
+    surname, \
+    role, \
+    may_borrow \
 
-const ADD_USER: &str = r#"
-insert into user values (?, ?, ?, ?, ?)
-"#;
-const UPDATE_USER: &str = r#"
-update user set account=?, forename=?, surname=?, role=?, may_borrow=? where account=?
-"#;
-const UPDATE_USER_BORROWS: &str = r#"
-update medium set borrower=? where borrower=?;
-"#;
-const UPDATE_USER_RESERVATIONS: &str = r#"
-update medium set reservation=? where reservation=?;
-"#;
+    from user \
+    where account like '%'||?1||'%' \
+    or forename like '%'||?1||'%' \
+    or surname like '%'||?1||'%' \
+    or role like '%'||?1||'%' \
+    order by account \
+";
 
-const DELETE_USER: &str = r#"
-delete from user where account=?
-"#;
-const DELETE_UNUSED_USERS: &str = r#"
-update medium set reservation='' where reservation not in (select account from user);
-update medium set borrower='' where borrower not in (select account from user);
-"#;
-const DELETE_USER_ROLES: &str = r#"
-update user set role=''
-"#;
-const UPDATE_USER_ROLE: &str = r#"
-update user set role=? where account=?
-"#;
+const ADD_USER: &str = "\
+    insert into user values (?, ?, ?, ?, ?) \
+";
+const UPDATE_USER: &str = "\
+    update user set account=?, forename=?, surname=?, role=?, may_borrow=? where account=? \
+";
+const UPDATE_USER_BORROWS: &str = "
+    update medium set borrower=? where borrower=? \
+";
+const UPDATE_USER_RESERVATIONS: &str = "\
+    update medium set reservation=? where reservation=? \
+";
+
+const DELETE_USER: &str = "\
+    delete from user where account=? \
+";
+const DELETE_UNUSED_USERS: &str = "\
+    update medium set reservation='' where reservation not in (select account from user); \
+    update medium set borrower='' where borrower not in (select account from user); \
+";
+const DELETE_USER_ROLES: &str = "\
+    update user set role='' \
+";
+const UPDATE_USER_ROLE: &str = "\
+    update user set role=? where account=? \
+";
 
 /// Data object for a user.
 #[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]

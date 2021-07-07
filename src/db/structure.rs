@@ -5,50 +5,49 @@ use crate::api;
 
 use super::{raw::DatabaseExt, settings, settings::Settings, Database};
 
-const CREATE_TABLES: &str = r#"
-create table sbv_meta (
-key text primary key,
-value text not null);
+const CREATE_TABLES: &str = "\
+    create table sbv_meta ( \
+    key text primary key, \
+    value text not null); \
 
-create table author (
-name text not null,
-medium text not null,
-primary key (name, medium));
+    create table author ( \
+    name text not null, \
+    medium text not null, \
+    primary key (name, medium)); \
 
-create table user (
-account text not null primary key,
-forename text not null,
-surname text not null,
-role text not null,
-may_borrow integer not null default 1);
+    create table user ( \
+    account text not null primary key, \
+    forename text not null, \
+    surname text not null, \
+    role text not null, \
+    may_borrow integer not null default 1); \
 
-create table category (
-id text not null primary key,
-name text not null,
-section text not null);
+    create table category ( \
+    id text not null primary key, \
+    name text not null, \
+    section text not null); \
 
-create table medium (
-id text not null primary key,
-isbn text not null,
-title text not null,
-publisher text not null,
-year integer,
-costs real,
-note text not null,
-borrowable integer not null,
-category text not null,
-borrower text not null default '',
-deadline text not null default '',
-reservation text not null default '');
-"#;
+    create table medium ( \
+    id text not null primary key, \
+    isbn text not null, \
+    title text not null, \
+    publisher text not null, \
+    year integer, \
+    costs real, \
+    note text not null, \
+    borrowable integer not null, \
+    category text not null, \
+    borrower text not null default '', \
+    deadline text not null default '', \
+    reservation text not null default ''); \
+";
 
-const FETCH_VERSION: &str = r#"
-select value from sbv_meta where key='version'
-"#;
-
-const UPDATE_VERSION: &str = r#"
-replace into sbv_meta values ('version', ?)
-"#;
+const FETCH_VERSION: &str = "\
+    select value from sbv_meta where key='version' \
+";
+const UPDATE_VERSION: &str = "\
+    replace into sbv_meta values ('version', ?) \
+";
 
 /// Minimum supported version.
 const MIN_VERSION: Version = Version(0, 6, 2);
@@ -200,11 +199,11 @@ fn patch_0_6_3(db: &Database) -> api::Result<()> {
 }
 
 fn patch_0_8_0(db: &Database) -> api::Result<()> {
-    const UPDATE_MAIL_PLACEHOLDERS: &str = r#"
-update sbv_meta set
-value=replace(replace(value, '[mediumtitel]', '{booktitle}'), '[name]', '{username}')
-where key like 'mail.%.subject' or key like 'mail.%.content'
-"#;
+    const UPDATE_MAIL_PLACEHOLDERS: &str = "\
+        update sbv_meta set \
+        value=replace(replace(value, '[mediumtitel]', '{booktitle}'), '[name]', '{username}') \
+        where key like 'mail.%.subject' or key like 'mail.%.content' \
+    ";
     db.db.execute(UPDATE_MAIL_PLACEHOLDERS)?;
     Ok(())
 }
