@@ -48,9 +48,9 @@ func _project_changed():
     var result: Dictionary = Project.settings_get()
     if result.has("Ok"):
         var settings: Dictionary = result["Ok"]
-        var today = Date.new()
-        prints("overdues", settings.mail_last_reminder, today.get_iso())
-        if settings.mail_last_reminder != today.get_iso():
+        var today = Date.new().get_iso()
+        prints("overdues", settings.mail_last_reminder, today)
+        if settings.mail_last_reminder != today:
             result = Project.lending_overdues()
             if not result.has("Ok"): return MessageDialog.error_code(result["Err"])
 
@@ -58,7 +58,7 @@ func _project_changed():
                 var confirmed = yield(ConfirmDialog.open(tr(".alert.mail.overdue")), "response")
                 if confirmed: _overdues(result["Ok"])
             else:
-                settings.mail_last_reminder = Date.new().get_iso()
+                settings.mail_last_reminder = today
                 result = Project.settings_update(settings)
 
 

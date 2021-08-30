@@ -34,7 +34,7 @@ func set_book(m: Dictionary):
         _publisher.text = m.get("publisher", "")
         _costs.value = m.get("costs", 0.0)
         if m.has("year"): _year.value = m.year
-        else: _year.value = Date.new().get_year()
+        else: _year.value = Date.new().year
         _authors.authors = m.get("authors", [])
         _category.select_category(m.get("category", ""))
         _note.text = m.get("note", "")

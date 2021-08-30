@@ -238,7 +238,6 @@ pub fn search<'a>(db: &'a Database, text: &str) -> api::Result<DBIter<'a, Book>>
 
 /// Performs an advanced media search with the given search parameters.
 pub fn search_advanced<'a>(db: &'a Database, params: &BookSearch) -> api::Result<DBIter<'a, Book>> {
-    gdnative::godot_print!("State: {:?}", params.state);
     let mut stmt = db.db.prepare(SEARCH_ADVANCED)?;
     stmt.bind(1, params.id.trim())?;
     stmt.bind(2, params.isbn.trim())?;

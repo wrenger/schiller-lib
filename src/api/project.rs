@@ -49,8 +49,8 @@ impl Project {
             "authors",
             crate::PKG_AUTHORS
                 .split(';')
-                .map(|s| GodotString::from_str(s.trim()))
-                .collect::<TypedArray<GodotString>>(),
+                .map(GodotString::from_str)
+                .collect::<TypedArray<_>>(),
         );
         dict.insert("description", crate::PKG_DESCRIPTION);
         dict.insert("license", crate::PKG_LICENSE);
