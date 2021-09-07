@@ -161,11 +161,34 @@ margin_bottom = 20.0
 size_flags_vertical = 4
 underline = 1
 
-[node name="License" type="Label" parent="Scroll/Box/Panel/About"]
+[node name="Box" type="HBoxContainer" parent="Scroll/Box/Panel/About"]
 margin_top = 98.0
 margin_right = 1178.0
 margin_bottom = 124.0
+
+[node name="License" type="Label" parent="Scroll/Box/Panel/About/Box"]
+margin_right = 126.0
+margin_bottom = 26.0
 text = ".info.about.license"
+
+[node name="Separator" type="Label" parent="Scroll/Box/Panel/About/Box"]
+margin_left = 130.0
+margin_right = 143.0
+margin_bottom = 26.0
+text = "-"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Godot" type="LinkButton" parent="Scroll/Box/Panel/About/Box"]
+margin_left = 147.0
+margin_top = 6.0
+margin_right = 186.0
+margin_bottom = 20.0
+hint_tooltip = "https://github.com/godotengine/godot/blob/master/COPYRIGHT.txt"
+size_flags_vertical = 4
+text = "Godot"
+underline = 1
 
 [node name="HSeparator2" type="HSeparator" parent="Scroll/Box/Panel/About"]
 margin_top = 128.0
@@ -182,4 +205,6 @@ text = ".info.about.devs"
 margin_top = 166.0
 margin_right = 1178.0
 margin_bottom = 192.0
+
 [connection signal="pressed" from="Scroll/Box/Panel/About/Repo/Url" to="Scroll/Box/Panel/About" method="_on_repo_pressed"]
+[connection signal="pressed" from="Scroll/Box/Panel/About/Box/Godot" to="Scroll/Box/Panel/About" method="_on_license_godot_pressed"]

@@ -165,6 +165,7 @@ Project="*res://lib/Project.gdns"
 window/size/width=1200
 window/size/height=800
 window/dpi/allow_hidpi=true
+window/vsync/vsync_via_compositor=true
 
 [gui]
 

@@ -66,25 +66,13 @@ margin_right = 727.0
 margin_bottom = 56.0
 custom_constants/margin_left = 40
 
-[node name="Box" type="HBoxContainer" parent="Scroll/Box/Database/Margin"]
+[node name="Categories" type="Button" parent="Scroll/Box/Database/Margin"]
 margin_left = 40.0
 margin_right = 727.0
-margin_bottom = 26.0
-
-[node name="Categories" type="Button" parent="Scroll/Box/Database/Margin/Box"]
-margin_right = 341.0
 margin_bottom = 26.0
 size_flags_horizontal = 3
 text = ".category.edit"
 script = ExtResource( 2 )
-
-[node name="Database" type="Button" parent="Scroll/Box/Database/Margin/Box"]
-margin_left = 345.0
-margin_right = 687.0
-margin_bottom = 26.0
-size_flags_horizontal = 3
-disabled = true
-text = ".sql.title"
 
 [node name="Borrowing" type="VBoxContainer" parent="Scroll/Box"]
 margin_top = 122.0
