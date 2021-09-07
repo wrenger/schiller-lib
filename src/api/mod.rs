@@ -5,7 +5,6 @@ pub use error::*;
 
 mod project;
 mod date;
-mod debug;
 mod mailer;
 mod marc21;
 
