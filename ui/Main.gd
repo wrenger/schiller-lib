@@ -7,6 +7,8 @@ var _project_path: String = ""
 
 
 func _ready():
+    OS.min_window_size = Vector2(800, 600)
+
     get_tree().set_auto_accept_quit(false)
     if _project_path:
         _on_project_selected(_project_path, false)
