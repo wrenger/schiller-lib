@@ -63,7 +63,7 @@ pub fn list(db: &Database) -> api::Result<DBIter<Category>> {
 /// Adds a new category.
 pub fn add(db: &Database, category: &Category) -> api::Result<()> {
     if !category.is_valid() {
-        return Err(api::Error::InvalidArguments);
+        return Err(api::Error::Arguments);
     }
 
     let mut stmt = db.db.prepare(ADD)?;
@@ -71,7 +71,7 @@ pub fn add(db: &Database, category: &Category) -> api::Result<()> {
     stmt.bind(2, category.name.trim())?;
     stmt.bind(3, category.section.trim())?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
     Ok(())
 }
@@ -79,7 +79,7 @@ pub fn add(db: &Database, category: &Category) -> api::Result<()> {
 /// Updates the category and all references.
 pub fn update(db: &Database, id: &str, category: &Category) -> api::Result<()> {
     if !category.is_valid() {
-        return Err(api::Error::InvalidArguments);
+        return Err(api::Error::Arguments);
     }
 
     let transaction = db.db.transaction()?;
@@ -90,7 +90,7 @@ pub fn update(db: &Database, id: &str, category: &Category) -> api::Result<()> {
     stmt.bind(3, category.section.trim())?;
     stmt.bind(4, id)?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
 
     if id != category.id {
@@ -99,7 +99,7 @@ pub fn update(db: &Database, id: &str, category: &Category) -> api::Result<()> {
         stmt.bind(1, category.id.trim())?;
         stmt.bind(2, id)?;
         if stmt.next()? != sqlite::State::Done {
-            return Err(api::Error::SQLError);
+            return Err(api::Error::SQL);
         }
     }
 
@@ -111,19 +111,19 @@ pub fn update(db: &Database, id: &str, category: &Category) -> api::Result<()> {
 pub fn delete(db: &Database, id: &str) -> api::Result<()> {
     let id = id.trim();
     if id.is_empty() {
-        return Err(api::Error::InvalidArguments);
+        return Err(api::Error::Arguments);
     }
 
     let transaction = db.db.transaction()?;
     // Do not allow the removal of used categories
     if references(db, id)? > 0 {
-        return Err(api::Error::LogicError);
+        return Err(api::Error::Logic);
     }
 
     let mut stmt = db.db.prepare(DELETE)?;
     stmt.bind(1, id)?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
 
     transaction.commit()?;
@@ -134,13 +134,13 @@ pub fn delete(db: &Database, id: &str) -> api::Result<()> {
 pub fn references(db: &Database, id: &str) -> api::Result<i64> {
     let id = id.trim();
     if id.is_empty() {
-        return Err(api::Error::InvalidArguments);
+        return Err(api::Error::Arguments);
     }
 
     let mut stmt = db.db.prepare(REFERENCED)?;
     stmt.bind(1, id)?;
     if stmt.next()? != sqlite::State::Row {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
     Ok(stmt.read(0)?)
 }

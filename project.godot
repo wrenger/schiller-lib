@@ -34,7 +34,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/ConfirmDialog.gd"
 }, {
-"base": "Reference",
+"base": "",
 "class": "Date",
 "language": "NativeScript",
 "path": "res://lib/Date.gdns"
@@ -54,7 +54,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/settings/MailView.gd"
 }, {
-"base": "Reference",
+"base": "",
 "class": "Mailer",
 "language": "NativeScript",
 "path": "res://lib/Mailer.gdns"

@@ -72,7 +72,7 @@ func _on_add() -> void:
         _add_name.clear()
         _add_section.clear()
         _status.text = ""
-    elif result["Err"] == Util.SbvError.InvalidArguments:
+    elif result["Err"] == Util.SbvError.Arguments:
         _status.text = tr(".category.empty-input")
     else:
         _status.text = Util.error_msg(result["Err"])
@@ -86,7 +86,7 @@ func _on_delete() -> void:
             item.deselect(0)
             _list.get_root().remove_child(item)
             _status.text = ""
-        elif result["Err"] == Util.SbvError.LogicError:
+        elif result["Err"] == Util.SbvError.Logic:
             _status.text = tr(".category.not-empty.del")
         else:
             _status.text = Util.error_msg(result["Err"])
@@ -107,7 +107,7 @@ func _on_edited() -> void:
     if result.has("Ok"):
         item.set_meta("category_backup", category)
         _status.text = ""
-    elif result["Err"] == Util.SbvError.InvalidArguments:
+    elif result["Err"] == Util.SbvError.Arguments:
         set_category(item, category_backup)
         _status.text = tr(".category.empty-input")
     else:

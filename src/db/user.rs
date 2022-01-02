@@ -24,7 +24,7 @@ const QUERY_USERS: &str = "\
     surname, \
     role, \
     may_borrow \
-
+    \
     from user \
     where account like '%'||?1||'%' \
     or forename like '%'||?1||'%' \
@@ -100,7 +100,7 @@ pub fn fetch(db: &Database, id: &str) -> api::Result<User> {
     if stmt.next()? == sqlite::State::Row {
         User::read(&stmt, &stmt.columns())
     } else {
-        Err(api::Error::SQLError)
+        Err(api::Error::SQL)
     }
 }
 
@@ -124,7 +124,7 @@ pub fn add(db: &Database, user: &User) -> api::Result<()> {
     stmt.bind(4, user.role.trim())?;
     stmt.bind(5, user.may_borrow as i64)?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
     Ok(())
 }
@@ -145,7 +145,7 @@ pub fn update(db: &Database, previous_account: &str, user: &User) -> api::Result
     stmt.bind(5, user.may_borrow as i64)?;
     stmt.bind(6, previous_account)?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
 
     // update borrows
@@ -153,7 +153,7 @@ pub fn update(db: &Database, previous_account: &str, user: &User) -> api::Result
     stmt.bind(1, user.account.trim())?;
     stmt.bind(2, previous_account)?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
 
     // update reservations
@@ -161,7 +161,7 @@ pub fn update(db: &Database, previous_account: &str, user: &User) -> api::Result
     stmt.bind(1, user.account.trim())?;
     stmt.bind(2, previous_account)?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
     transaction.commit()?;
     Ok(())
@@ -179,7 +179,7 @@ pub fn delete(db: &Database, account: &str) -> api::Result<()> {
     let mut stmt = db.db.prepare(DELETE_USER)?;
     stmt.bind(1, account)?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
 
     // remove borrows & reservations
@@ -202,7 +202,7 @@ pub fn update_roles(db: &Database, users: &[(&str, &str)]) -> api::Result<()> {
             stmt.bind(1, role.trim())?;
             stmt.bind(2, account)?;
             if stmt.next()? != sqlite::State::Done {
-                return Err(api::Error::SQLError);
+                return Err(api::Error::SQL);
             }
             stmt.reset()?;
         }

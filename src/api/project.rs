@@ -217,7 +217,7 @@ impl Project {
         db::category::update(self.get_db()?, &id, &category)
     }
 
-    /// Removes the category or returns a `LogicError` if it is still in use.
+    /// Removes the category or returns a `Error::Logic` if it is still in use.
     #[export]
     fn category_remove(&self, _owner: &Node, id: String) -> api::Result<()> {
         db::category::delete(self.get_db()?, &id)
@@ -295,7 +295,7 @@ impl Project {
         let db = self.get_db()?;
         db::settings::update(db, &settings)?;
         // Reload cached settings
-        self.settings = Some(db::settings::fetch(&db)?);
+        self.settings = Some(db::settings::fetch(db)?);
         Ok(())
     }
 

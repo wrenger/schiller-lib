@@ -8,13 +8,13 @@ use gdnative::prelude::*;
 #[repr(i64)]
 #[derive(Debug, Clone, Copy)]
 pub enum Error {
-    InvalidArguments,
-    LogicError,
+    Arguments,
+    Logic,
     NoProject,
     FileNotFound,
-    FileOpenError,
-    SQLError,
-    NetworkError,
+    FileOpen,
+    SQL,
+    Network,
     InvalidFormat,
     NothingFound,
     // Specific errors
@@ -34,22 +34,22 @@ pub enum Error {
 
 impl From<sqlite::Error> for Error {
     fn from(e: sqlite::Error) -> Error {
-        godot_print!("SQLError: {}", e);
-        Error::SQLError
+        godot_print!("SQL: {}", e);
+        Error::SQL
     }
 }
 
 impl From<std::convert::Infallible> for Error {
     fn from(e: std::convert::Infallible) -> Error {
         godot_print!("convert::Infallible: {}", e);
-        Error::InvalidArguments
+        Error::Arguments
     }
 }
 
 impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Error {
         godot_print!("File Error: {:?}", e);
-        Error::FileOpenError
+        Error::FileOpen
     }
 }
 

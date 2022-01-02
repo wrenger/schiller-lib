@@ -9,24 +9,24 @@ const CREATE_TABLES: &str = "\
     create table sbv_meta ( \
     key text primary key, \
     value text not null); \
-
+    \
     create table author ( \
     name text not null, \
     medium text not null, \
     primary key (name, medium)); \
-
+    \
     create table user ( \
     account text not null primary key, \
     forename text not null, \
     surname text not null, \
     role text not null, \
     may_borrow integer not null default 1); \
-
+    \
     create table category ( \
     id text not null primary key, \
     name text not null, \
     section text not null); \
-
+    \
     create table medium ( \
     id text not null primary key, \
     isbn text not null, \
@@ -87,7 +87,7 @@ pub fn migrate(db: &Database, version: &str) -> api::Result<bool> {
         for (patch_version, patch) in &PATCHES {
             if old_version < *patch_version {
                 gdnative::godot_print!("Applying patch {}", patch_version);
-                patch(&db)?;
+                patch(db)?;
             }
         }
         update_version(&db.db, version)?;
@@ -102,7 +102,7 @@ fn update_version(db: &sqlite::Connection, version: &str) -> api::Result<()> {
     let mut stmt = db.prepare(UPDATE_VERSION)?;
     stmt.bind(1, version)?;
     if stmt.next()? != sqlite::State::Done {
-        Err(api::Error::SQLError)
+        Err(api::Error::SQL)
     } else {
         Ok(())
     }
@@ -191,7 +191,7 @@ fn patch_0_6_3(db: &Database) -> api::Result<()> {
             let settings = Settings::from_iter(data.into_iter().map(|e| update(e, db)));
             settings::update(db, &settings)?;
         } else {
-            return Err(api::Error::FileOpenError);
+            return Err(api::Error::FileOpen);
         }
     }
 

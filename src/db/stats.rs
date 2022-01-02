@@ -45,6 +45,6 @@ pub fn fetch(db: &Database) -> api::Result<Stats> {
     if stmt.next()? == sqlite::State::Row {
         ReadStmt::read(&stmt, &stmt.columns())
     } else {
-        Err(api::Error::SQLError)
+        Err(api::Error::SQL)
     }
 }

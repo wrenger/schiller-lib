@@ -53,10 +53,8 @@ pub trait StatementExt {
 
 impl<'a> StatementExt for sqlite::Statement<'a> {
     fn columns(&self) -> HashMap<String, usize> {
-        self.column_names()
-            .into_iter()
-            .enumerate()
-            .map(|(i, col)| (col.to_string(), i))
+        (0..self.column_count())
+            .map(|i| (self.column_name(i).to_string(), i))
             .collect()
     }
 }

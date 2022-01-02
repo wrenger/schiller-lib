@@ -30,7 +30,7 @@ func request(account: String) -> Dictionary:
         file.close()
         return {"Err": Util.SbvError.NothingFound}
     else:
-        return {"Err": Util.SbvError.FileOpenError}
+        return {"Err": Util.SbvError.FileOpen}
 
 
 func bulk_request(accounts: PoolStringArray) -> Dictionary:
@@ -58,4 +58,4 @@ func bulk_request(accounts: PoolStringArray) -> Dictionary:
         file.close()
         return {"Ok": results}
     else:
-        return {"Err": Util.SbvError.FileOpenError}
+        return {"Err": Util.SbvError.FileOpen}

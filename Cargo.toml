@@ -24,6 +24,6 @@ unicode-normalization = "0.1.19"
 java-properties = "1.4.0"
 
 [dependencies.lettre]
-version = "0.10.0-rc.3"
+version = "0.10.0-rc.4"
 default-features = false
 features = ["builder", "smtp-transport", "native-tls"]

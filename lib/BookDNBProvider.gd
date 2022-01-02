@@ -28,24 +28,24 @@ func request_get(isbn: String) -> Dictionary:
 
     var error := OK
     error = client.connect_to_host(HOST, 80)
-    if error != OK: return {"Err": Util.SbvError.NetworkError}
+    if error != OK: return {"Err": Util.SbvError.Network}
 
     # wait until connected
     while client.get_status() == HTTPClient.STATUS_CONNECTING or client.get_status() == HTTPClient.STATUS_RESOLVING:
         error = client.poll()
         if error != OK or OS.get_ticks_msec() - start > TIMEOUT:
-            return {"Err": Util.SbvError.NetworkError}
+            return {"Err": Util.SbvError.Network}
         OS.delay_msec(100)
 
     var url := URL.format({"token": token, "isbn": isbn})
 
     error = client.request(HTTPClient.METHOD_GET, url, [])
-    if error != OK: return {"Err": Util.SbvError.NetworkError}
+    if error != OK: return {"Err": Util.SbvError.Network}
 
     while client.get_status() == HTTPClient.STATUS_REQUESTING:
         error = client.poll()
         if error != OK or OS.get_ticks_msec() - start > TIMEOUT:
-            return {"Err": Util.SbvError.NetworkError}
+            return {"Err": Util.SbvError.Network}
         OS.delay_msec(100)
 
 
@@ -53,7 +53,7 @@ func request_get(isbn: String) -> Dictionary:
     if client.get_response_code() != HTTPClient.RESPONSE_OK or \
         (client.get_status() != HTTPClient.STATUS_BODY and client.get_status() != HTTPClient.STATUS_CONNECTED) or \
         not client.has_response():
-        return {"Err": Util.SbvError.NetworkError}
+        return {"Err": Util.SbvError.Network}
 
     var buffer = PoolByteArray()
 
@@ -61,7 +61,7 @@ func request_get(isbn: String) -> Dictionary:
         # While there is body left to be read
         error = client.poll()
         if error != OK or OS.get_ticks_msec() - start > TIMEOUT:
-            return {"Err": Util.SbvError.NetworkError}
+            return {"Err": Util.SbvError.Network}
 
         # Get a chunk.
         var chunk = client.read_response_body_chunk()

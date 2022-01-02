@@ -43,13 +43,13 @@ impl Database {
                     &path,
                     sqlite::OpenFlags::new().set_create().set_read_write(),
                 )
-                .map_err(|_| api::Error::FileOpenError)?,
+                .map_err(|_| api::Error::FileOpen)?,
                 path,
             };
             structure::create(&database, PKG_VERSION)?;
             Ok(database)
         } else {
-            Err(api::Error::FileOpenError)
+            Err(api::Error::FileOpen)
         }
     }
 
@@ -62,7 +62,7 @@ impl Database {
                     &path,
                     sqlite::OpenFlags::new().set_read_write(),
                 )
-                .map_err(|_| api::Error::FileOpenError)?,
+                .map_err(|_| api::Error::FileOpen)?,
                 path,
             };
             let updated = structure::migrate(&database, PKG_VERSION)?;
@@ -121,7 +121,7 @@ impl<'a, T: ReadStmt> Iterator for DBIter<'a, T> {
                 match T::read(&self.stmt, &self.columns) {
                     Ok(r) => Some(r),
                     Err(e) => {
-                        gdnative::godot_print!("SQLError! {:?}", e);
+                        gdnative::godot_print!("SQL! {:?}", e);
                         None
                     }
                 }

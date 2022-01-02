@@ -30,15 +30,15 @@ const QUERY_EXPIRED: &str = "\
     borrower, \
     deadline, \
     reservation, \
-
+    \
     account, \
     forename, \
     surname, \
     role, \
     may_borrow, \
-
+    \
     JulianDay(date('now')) - JulianDay(date(deadline)) as days \
-
+    \
     from medium \
     left join author on author.medium=id \
     join user on account=borrower \
@@ -81,7 +81,7 @@ pub fn lend(db: &Database, book: &mut Book, user: &User, days: i64) -> api::Resu
     stmt.bind(2, deadline.as_str())?;
     stmt.bind(3, book.id.as_str())?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
 
     book.borrower = user.account.clone();
@@ -92,13 +92,13 @@ pub fn lend(db: &Database, book: &mut Book, user: &User, days: i64) -> api::Resu
 /// Returns the book.
 pub fn return_back(db: &Database, book: &mut Book) -> api::Result<()> {
     if book.borrower.is_empty() {
-        return Err(api::Error::LogicError);
+        return Err(api::Error::Logic);
     }
 
     let mut stmt = db.db.prepare(UPDATE_REVOKE)?;
     stmt.bind(1, book.id.as_str())?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
     book.borrower = String::new();
     book.deadline = String::new();
@@ -127,7 +127,7 @@ pub fn reserve(db: &Database, book: &mut Book, user: &User) -> api::Result<()> {
     stmt.bind(1, user.account.as_str())?;
     stmt.bind(2, book.id.as_str())?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
     book.reservation = user.account.clone();
     Ok(())
@@ -136,13 +136,13 @@ pub fn reserve(db: &Database, book: &mut Book, user: &User) -> api::Result<()> {
 /// Removes the reservation from the specified book.
 pub fn release(db: &Database, book: &mut Book) -> api::Result<()> {
     if book.reservation.is_empty() {
-        return Err(api::Error::LogicError);
+        return Err(api::Error::Logic);
     }
 
     let mut stmt = db.db.prepare(UPDATE_RELEASE)?;
     stmt.bind(1, book.id.as_str())?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
     book.reservation = String::new();
     Ok(())

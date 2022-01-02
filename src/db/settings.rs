@@ -127,7 +127,7 @@ pub fn update(db: &Database, settings: &Settings) -> api::Result<()> {
     stmt.bind(14, settings.mail_overdue2_content.trim())?;
 
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
     Ok(())
 }

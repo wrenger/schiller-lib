@@ -5,13 +5,6 @@ use gdnative::prelude::*;
 use crate::api;
 use crate::mail;
 
-#[derive(Debug, Clone)]
-struct Message {
-    to: String,
-    subject: String,
-    body: String,
-}
-
 /// The mail class provides method for sending mail messages to users of the
 /// library.
 ///
@@ -72,7 +65,7 @@ impl Mailer {
     ) -> api::Result<()> {
         // Sending is in progress.
         if self.worker.is_some() {
-            return Err(api::Error::LogicError);
+            return Err(api::Error::Logic);
         }
 
         let owner = owner.claim();

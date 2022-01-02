@@ -20,7 +20,7 @@ const FETCH: &str = "\
     borrower, \
     deadline, \
     reservation \
-
+    \
     from medium \
     left join author on author.medium=id \
     where id=? \
@@ -42,7 +42,7 @@ const SEARCH: &str = "\
     borrower, \
     deadline, \
     reservation \
-
+    \
     from medium \
     left join author on author.medium=id \
     group by id \
@@ -69,7 +69,7 @@ const SEARCH_ADVANCED: &str = "\
     borrower, \
     deadline, \
     reservation \
-
+    \
     from medium \
     left join author on author.medium=id \
     group by id \
@@ -224,7 +224,7 @@ pub fn fetch(db: &Database, id: &str) -> api::Result<Book> {
     if stmt.next()? == sqlite::State::Row {
         Book::read(&stmt, &stmt.columns())
     } else {
-        Err(api::Error::SQLError)
+        Err(api::Error::SQL)
     }
 }
 
@@ -298,7 +298,7 @@ pub fn add(db: &Database, book: &Book) -> api::Result<()> {
     stmt.bind(8, book.borrowable as i64)?;
     stmt.bind(9, book.category.trim())?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
     // Add authors
     for author in &book.authors {
@@ -306,7 +306,7 @@ pub fn add(db: &Database, book: &Book) -> api::Result<()> {
         stmt.bind(1, author.trim())?;
         stmt.bind(2, book.id.trim())?;
         if stmt.next()? != sqlite::State::Done {
-            return Err(api::Error::SQLError);
+            return Err(api::Error::SQL);
         }
     }
     transaction.commit()?;
@@ -338,7 +338,7 @@ pub fn update(db: &Database, previous_id: &str, book: &Book) -> api::Result<()> 
     stmt.bind(9, book.category.trim())?;
     stmt.bind(10, previous_id)?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
 
     if previous_id != book.id {
@@ -347,7 +347,7 @@ pub fn update(db: &Database, previous_id: &str, book: &Book) -> api::Result<()> 
         stmt.bind(1, book.id.trim())?;
         stmt.bind(2, previous_id)?;
         if stmt.next()? != sqlite::State::Done {
-            return Err(api::Error::SQLError);
+            return Err(api::Error::SQL);
         }
     }
     transaction.commit()?;
@@ -366,7 +366,7 @@ pub fn delete(db: &Database, id: &str) -> api::Result<()> {
     let mut stmt = db.db.prepare(DELETE)?;
     stmt.bind(1, id)?;
     if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
 
     // delete missing authors
@@ -394,7 +394,7 @@ pub fn generate_id(db: &Database, book: &Book) -> api::Result<String> {
     stmt.bind(1, prefix.len() as i64)?;
     stmt.bind(2, prefix.as_str())?;
     if stmt.next()? != sqlite::State::Row {
-        return Err(api::Error::SQLError);
+        return Err(api::Error::SQL);
     }
     let id = stmt.read::<i64>(0)? + 1;
     Ok(format!("{} {}", prefix, id))

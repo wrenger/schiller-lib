@@ -12,13 +12,13 @@ static func create_shortcut(name: String, key: int) -> ShortCut:
 
 
 enum SbvError {
-    InvalidArguments = 0,
-    LogicError,
+    Arguments = 0,
+    Logic,
     NoProject,
     FileNotFound,
-    FileOpenError,
-    SQLError,
-    NetworkError,
+    FileOpen,
+    SQL,
+    Network,
     InvalidFormat,
     NothingFound,
     # Specific errors
@@ -39,13 +39,13 @@ enum SbvError {
 
 static func error_msg(error: int) -> String:
     match error:
-        SbvError.InvalidArguments: return "Internal: Invalid Arguments Error"
-        SbvError.LogicError: return "Internal: Logic Error"
+        SbvError.Arguments: return "Internal: Invalid Arguments Error"
+        SbvError.Logic: return "Internal: Logic Error"
         SbvError.NoProject: return TranslationServer.tr(".error.no-project")
         SbvError.FileNotFound: return TranslationServer.tr(".error.file-open")
-        SbvError.FileOpenError: return TranslationServer.tr(".error.file-open")
-        SbvError.SQLError: return TranslationServer.tr(".error.sql")
-        SbvError.NetworkError: return TranslationServer.tr(".error.network")
+        SbvError.FileOpen: return TranslationServer.tr(".error.file-open")
+        SbvError.SQL: return TranslationServer.tr(".error.sql")
+        SbvError.Network: return TranslationServer.tr(".error.network")
         SbvError.InvalidFormat: return TranslationServer.tr(".error.format")
         SbvError.NothingFound: return TranslationServer.tr(".error.none")
         SbvError.InvalidBook: return TranslationServer.tr(".book.invalid")
