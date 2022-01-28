@@ -117,7 +117,6 @@ func format_book_state(object: Dictionary) -> String:
 
 # Sort by column
 func sort(column: int):
-    prints("column", column, "selected")
     if get_root():
         var rows := []
         var child := get_root().get_children()

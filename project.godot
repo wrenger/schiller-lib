@@ -34,7 +34,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/ConfirmDialog.gd"
 }, {
-"base": "",
+"base": "Reference",
 "class": "Date",
 "language": "NativeScript",
 "path": "res://lib/Date.gdns"
@@ -54,12 +54,12 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/settings/MailView.gd"
 }, {
-"base": "",
+"base": "Reference",
 "class": "Mailer",
 "language": "NativeScript",
 "path": "res://lib/Mailer.gdns"
 }, {
-"base": "",
+"base": "Reference",
 "class": "Marc21",
 "language": "NativeScript",
 "path": "res://lib/Marc21.gdns"
@@ -84,7 +84,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/util/ProgressIndicator.gd"
 }, {
-"base": "",
+"base": "Node",
 "class": "Project",
 "language": "NativeScript",
 "path": "res://lib/Project.gdns"

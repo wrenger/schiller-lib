@@ -2,7 +2,7 @@
 
 X11.64="res://target/release/libschiller_lib.so"
 OSX.64="res://target/release/libschiller_lib.dylib"
-Windows.64="res://target/debug/schiller_lib.dll"
+Windows.64="res://target/release/schiller_lib.dll"
 
 [dependencies]
 

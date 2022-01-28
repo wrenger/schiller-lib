@@ -19,11 +19,7 @@
 [ext_resource path="res://ui/info/InfoTab.tscn" type="PackedScene" id=19]
 [ext_resource path="res://ui/Menu.gd" type="Script" id=20]
 
-[node name="MainWindow" type="Panel" groups=[
-"CategoryChanger",
-"Persist",
-"ProjectChanger",
-]]
+[node name="MainWindow" type="Panel" groups=["CategoryChanger", "Persist", "ProjectChanger"]]
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme = ExtResource( 12 )
@@ -70,10 +66,7 @@ margin_top = 32.0
 margin_right = -5.0
 margin_bottom = -5.0
 
-[node name="Menu" type="MenuButton" parent="." groups=[
-"Persist",
-"ThemeChanger",
-]]
+[node name="Menu" type="MenuButton" parent="." groups=["Persist", "ThemeChanger"]]
 anchor_left = 1.0
 anchor_right = 1.0
 margin_left = -29.0
@@ -107,9 +100,7 @@ script = ExtResource( 5 )
 margin_bottom = 134.0
 rect_min_size = Vector2( 400, 140 )
 
-[node name="ProjectDialog" type="FileDialog" parent="Dialogs" groups=[
-"ProjectDialog",
-]]
+[node name="ProjectDialog" type="FileDialog" parent="Dialogs" groups=["ProjectDialog"]]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -130,9 +121,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="MessageDialog" type="AcceptDialog" parent="Dialogs" groups=[
-"MessageDialog",
-]]
+[node name="MessageDialog" type="AcceptDialog" parent="Dialogs" groups=["MessageDialog"]]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -151,9 +140,7 @@ __meta__ = {
 
 [node name="CategoryDialog" parent="Dialogs" instance=ExtResource( 8 )]
 
-[node name="ConfirmDialog" type="ConfirmationDialog" parent="Dialogs" groups=[
-"ConfirmDialog",
-]]
+[node name="ConfirmDialog" type="ConfirmationDialog" parent="Dialogs" groups=["ConfirmDialog"]]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -178,9 +165,7 @@ margin_top = -33.5
 margin_right = 137.5
 margin_bottom = 33.5
 
-[node name="SettingsDialog" parent="Dialogs" groups=[
-"SettingsDialog",
-] instance=ExtResource( 18 )]
+[node name="SettingsDialog" parent="Dialogs" groups=["SettingsDialog"] instance=ExtResource( 18 )]
 margin_left = -348.0
 margin_top = -360.5
 margin_right = 348.0
