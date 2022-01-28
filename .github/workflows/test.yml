@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 env:
-  CARGO_TERM_COLOR: always  
+  CARGO_TERM_COLOR: always
 
 jobs:
   test-rust:
@@ -20,10 +20,12 @@ jobs:
 
   test-gd:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v2
     - name: Run gdscript tests
       run: |
-        ./bin/headless/Godot_v3.3-stable_linux_headless.64 -s test/TestUtil.gd
-        ./bin/headless/Godot_v3.3-stable_linux_headless.64 -s test/TestUserProvider.gd
+        wget https://github.com/godotengine/godot/releases/download/3.4.2-stable/Godot_v3.4.2-stable_linux_headless.64.zip
+        unzip Godot_v3.4.2-stable_linux_headless.64.zip
+        ./Godot_v3.4.2-stable_linux_headless.64 -s test/TestUtil.gd
+        ./Godot_v3.4.2-stable_linux_headless.64 -s test/TestUserProvider.gd
