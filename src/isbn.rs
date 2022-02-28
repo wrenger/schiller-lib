@@ -5,7 +5,7 @@ pub fn parse(input: &str) -> Result<String, String> {
     // Collect numeric values
     let isbn: Vec<u8> = input
         .chars()
-        .flat_map(|c| {
+        .filter_map(|c| {
             if c == 'X' || c == 'x' {
                 Some(10)
             } else {

@@ -105,7 +105,9 @@ impl Project {
     #[export]
     fn book_search(&self, _owner: &Node, text: String) -> api::Result<VariantArray> {
         let result = db::book::search(self.get_db()?, &text)?;
-        Ok(VariantArray::from_iter(result).into_shared())
+        Ok(result
+            .collect::<api::Result<VariantArray<Unique>>>()?
+            .into_shared())
     }
 
     /// Performs an advanced media search with the given search parameters.
@@ -116,7 +118,9 @@ impl Project {
         params: db::BookSearch,
     ) -> api::Result<VariantArray> {
         let result = db::book::search_advanced(self.get_db()?, &params)?;
-        Ok(VariantArray::from_iter(result).into_shared())
+        Ok(result
+            .collect::<api::Result<VariantArray<Unique>>>()?
+            .into_shared())
     }
 
     /// Adds a new book.
@@ -156,7 +160,9 @@ impl Project {
     #[export]
     fn user_search(&self, _owner: &Node, text: String) -> api::Result<VariantArray> {
         let result = db::user::search(self.get_db()?, &text)?;
-        Ok(VariantArray::from_iter(result).into_shared())
+        Ok(result
+            .collect::<api::Result<VariantArray<Unique>>>()?
+            .into_shared())
     }
 
     /// Adds a new user.
@@ -197,7 +203,9 @@ impl Project {
     #[export]
     fn category_list(&self, _owner: &Node) -> api::Result<VariantArray> {
         let result = db::category::list(self.get_db()?)?;
-        Ok(VariantArray::from_iter(result).into_shared())
+        Ok(result
+            .collect::<api::Result<VariantArray<Unique>>>()?
+            .into_shared())
     }
 
     /// Adds a new category.
@@ -274,11 +282,17 @@ impl Project {
     #[export]
     fn lending_overdues(&self, _owner: &Node) -> api::Result<VariantArray> {
         let result = db::lending::overdues(self.get_db()?)?;
-        Ok(VariantArray::from_iter(result.map(|(book, user)| {
-            VariantArray::from_iter([book.owned_to_variant(), user.owned_to_variant()].iter())
-                .into_shared()
-        }))
-        .into_shared())
+        Ok(result
+            .map(|e| {
+                e.map(|(book, user)| {
+                    VariantArray::from_iter(
+                        [book.owned_to_variant(), user.owned_to_variant()].iter(),
+                    )
+                    .into_shared()
+                })
+            })
+            .collect::<api::Result<VariantArray<Unique>>>()?
+            .into_shared())
     }
 
     /// Returns the project settings.

@@ -60,21 +60,21 @@ struct Record {
 fn parse_record(record: roxmltree::Node) -> Record {
     let mut r = Record::default();
     let mut persons = Vec::new();
-    for datafield in record
+    for field in record
         .descendants()
         .filter(|x| x.has_tag_name("datafield") && x.has_attribute("tag"))
     {
-        match datafield.attribute("tag").unwrap() {
+        match field.attribute("tag").unwrap() {
             ISBN_COSTS_TAG => {
-                subfield(datafield, ISBN_CODE).map_or((), |t| r.isbns.push(t));
-                subfield(datafield, COSTS_CODE).map_or((), |t| r.data.costs = parse_costs(&t))
+                subfield(field, ISBN_CODE).map_or((), |t| r.isbns.push(t));
+                subfield(field, COSTS_CODE).map_or((), |t| r.data.costs = parse_costs(&t))
             }
-            EAN_TAG => subfield(datafield, EAN_CODE).map_or((), |t| r.isbns.push(t)),
+            EAN_TAG => subfield(field, EAN_CODE).map_or((), |t| r.isbns.push(t)),
             TITLE_TAG => {
-                subfield(datafield, TITLE_CODE).map_or((), |t| r.data.title = t);
+                subfield(field, TITLE_CODE).map_or((), |t| r.data.title = t);
                 // Add subtitle if the title is to short
                 if r.data.title.len() < SHORT_TITLE_LEN {
-                    subfield(datafield, SUBTITLE_CODE).map_or((), |t| {
+                    subfield(field, SUBTITLE_CODE).map_or((), |t| {
                         if !t.is_empty() {
                             r.data.title.push_str(" - ");
                             r.data.title.push_str(&t);
@@ -82,11 +82,9 @@ fn parse_record(record: roxmltree::Node) -> Record {
                     });
                 }
             }
-            AUTHOR_TAG => subfield(datafield, AUTHOR_CODE).map_or((), |t| r.data.authors.push(t)),
-            PERSON_TAG => subfield(datafield, PERSON_CODE).map_or((), |t| persons.push(t)),
-            PUBLISHER_TAG => {
-                subfield(datafield, PUBLISHER_CODE).map_or((), |t| r.data.publisher = t)
-            }
+            AUTHOR_TAG => subfield(field, AUTHOR_CODE).map_or((), |t| r.data.authors.push(t)),
+            PERSON_TAG => subfield(field, PERSON_CODE).map_or((), |t| persons.push(t)),
+            PUBLISHER_TAG => subfield(field, PUBLISHER_CODE).map_or((), |t| r.data.publisher = t),
             _ => {}
         };
     }
@@ -105,43 +103,24 @@ fn parse_record(record: roxmltree::Node) -> Record {
 }
 
 fn subfield(datafield: roxmltree::Node, code: &str) -> Option<String> {
-    if let Some(subfield) = datafield
+    let subfield = datafield
         .children()
-        .find(|n| n.has_tag_name("subfield") && n.attribute("code") == Some(code))
-    {
-        if let Some(mut s) = subfield.text().map(|s| s.nfc().collect::<String>()) {
-            s.retain(|c| !c.is_control()); // remove control characters
-            Some(s)
-        } else {
-            None
-        }
-    } else {
-        None
-    }
+        .find(|n| n.has_tag_name("subfield") && n.attribute("code") == Some(code))?;
+
+    Some(subfield.text()?.nfc().filter(|c| !c.is_control()).collect())
 }
 
 fn parse_costs(costs: &str) -> f64 {
-    if let Some(begin) = costs.find("EUR") {
-        let begin = begin + 4;
-        if begin < costs.len() {
-            let end = costs[begin..]
-                .find(' ')
-                .map(|i| begin + i)
-                .unwrap_or_else(|| costs.len());
-            return costs[begin..end].parse().unwrap_or_default();
-        }
-    } else if let Some(begin) = costs.find("DM") {
-        let begin = begin + 3;
-        if begin < costs.len() {
-            let end = costs[begin..]
-                .find(' ')
-                .map(|i| begin + i)
-                .unwrap_or_else(|| costs.len());
-            let costs: f64 = costs[begin..end].parse().unwrap_or_default();
-            return (costs * DM_TO_EUR * 100.0).round() / 100.0;
-        }
+    if let Some((_, suffix)) = costs.split_once("EUR ") {
+        let num = suffix.split_once(' ').map(|s| s.0).unwrap_or(suffix);
+        num.trim().parse().unwrap_or_default()
+    } else if let Some((_, suffix)) = costs.split_once("DM ") {
+        let num = suffix.split_once(' ').map(|s| s.0).unwrap_or(suffix);
+        let num: f64 = num.trim().parse().unwrap_or_default();
+        (num * DM_TO_EUR * 100.0).round() / 100.0
+    } else {
+        0.0
     }
-    0.0
 }
 
 #[cfg(test)]

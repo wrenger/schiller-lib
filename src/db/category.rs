@@ -40,8 +40,6 @@ impl Category {
 }
 
 impl ReadStmt for Category {
-    type Error = api::Error;
-
     fn read(
         stmt: &sqlite::Statement<'_>,
         columns: &HashMap<String, usize>,
@@ -56,7 +54,7 @@ impl ReadStmt for Category {
 
 /// Returns all categories.
 pub fn list(db: &Database) -> api::Result<DBIter<Category>> {
-    let stmt = db.db.prepare(LIST)?;
+    let stmt = db.con.prepare(LIST)?;
     Ok(DBIter::new(stmt))
 }
 
@@ -66,7 +64,7 @@ pub fn add(db: &Database, category: &Category) -> api::Result<()> {
         return Err(api::Error::Arguments);
     }
 
-    let mut stmt = db.db.prepare(ADD)?;
+    let mut stmt = db.con.prepare(ADD)?;
     stmt.bind(1, category.id.trim())?;
     stmt.bind(2, category.name.trim())?;
     stmt.bind(3, category.section.trim())?;
@@ -82,9 +80,9 @@ pub fn update(db: &Database, id: &str, category: &Category) -> api::Result<()> {
         return Err(api::Error::Arguments);
     }
 
-    let transaction = db.db.transaction()?;
+    let transaction = db.con.transaction()?;
     // Update category
-    let mut stmt = db.db.prepare(UPDATE)?;
+    let mut stmt = db.con.prepare(UPDATE)?;
     stmt.bind(1, category.id.trim())?;
     stmt.bind(2, category.name.trim())?;
     stmt.bind(3, category.section.trim())?;
@@ -95,7 +93,7 @@ pub fn update(db: &Database, id: &str, category: &Category) -> api::Result<()> {
 
     if id != category.id {
         // Update category ids of related media
-        let mut stmt = db.db.prepare(UPDATE_MEDIA)?;
+        let mut stmt = db.con.prepare(UPDATE_MEDIA)?;
         stmt.bind(1, category.id.trim())?;
         stmt.bind(2, id)?;
         if stmt.next()? != sqlite::State::Done {
@@ -114,13 +112,13 @@ pub fn delete(db: &Database, id: &str) -> api::Result<()> {
         return Err(api::Error::Arguments);
     }
 
-    let transaction = db.db.transaction()?;
+    let transaction = db.con.transaction()?;
     // Do not allow the removal of used categories
     if references(db, id)? > 0 {
         return Err(api::Error::Logic);
     }
 
-    let mut stmt = db.db.prepare(DELETE)?;
+    let mut stmt = db.con.prepare(DELETE)?;
     stmt.bind(1, id)?;
     if stmt.next()? != sqlite::State::Done {
         return Err(api::Error::SQL);
@@ -137,7 +135,7 @@ pub fn references(db: &Database, id: &str) -> api::Result<i64> {
         return Err(api::Error::Arguments);
     }
 
-    let mut stmt = db.db.prepare(REFERENCED)?;
+    let mut stmt = db.con.prepare(REFERENCED)?;
     stmt.bind(1, id)?;
     if stmt.next()? != sqlite::State::Row {
         return Err(api::Error::SQL);

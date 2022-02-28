@@ -69,14 +69,8 @@ pub fn lend(db: &Database, book: &mut Book, user: &User, days: i64) -> api::Resu
 
     let deadline = chrono::Utc::today() + chrono::Duration::days(days);
     let deadline = deadline.format("%F").to_string();
-    gdnative::godot_print!(
-        "Lend {} to {} deadline {}",
-        &book.id,
-        &user.account,
-        &deadline
-    );
 
-    let mut stmt = db.db.prepare(UPDATE_LEND)?;
+    let mut stmt = db.con.prepare(UPDATE_LEND)?;
     stmt.bind(1, user.account.as_str())?;
     stmt.bind(2, deadline.as_str())?;
     stmt.bind(3, book.id.as_str())?;
@@ -95,7 +89,7 @@ pub fn return_back(db: &Database, book: &mut Book) -> api::Result<()> {
         return Err(api::Error::Logic);
     }
 
-    let mut stmt = db.db.prepare(UPDATE_REVOKE)?;
+    let mut stmt = db.con.prepare(UPDATE_REVOKE)?;
     stmt.bind(1, book.id.as_str())?;
     if stmt.next()? != sqlite::State::Done {
         return Err(api::Error::SQL);
@@ -123,7 +117,7 @@ pub fn reserve(db: &Database, book: &mut Book, user: &User) -> api::Result<()> {
         return Err(api::Error::LendingBookAlreadyBorrowedByUser);
     }
 
-    let mut stmt = db.db.prepare(UPDATE_RESERVE)?;
+    let mut stmt = db.con.prepare(UPDATE_RESERVE)?;
     stmt.bind(1, user.account.as_str())?;
     stmt.bind(2, book.id.as_str())?;
     if stmt.next()? != sqlite::State::Done {
@@ -139,7 +133,7 @@ pub fn release(db: &Database, book: &mut Book) -> api::Result<()> {
         return Err(api::Error::Logic);
     }
 
-    let mut stmt = db.db.prepare(UPDATE_RELEASE)?;
+    let mut stmt = db.con.prepare(UPDATE_RELEASE)?;
     stmt.bind(1, book.id.as_str())?;
     if stmt.next()? != sqlite::State::Done {
         return Err(api::Error::SQL);
@@ -150,13 +144,11 @@ pub fn release(db: &Database, book: &mut Book) -> api::Result<()> {
 
 /// Return the list of expired loan periods.
 pub fn overdues(db: &Database) -> api::Result<DBIter<(Book, User)>> {
-    let stmt = db.db.prepare(QUERY_EXPIRED)?;
+    let stmt = db.con.prepare(QUERY_EXPIRED)?;
     Ok(DBIter::new(stmt))
 }
 
 impl ReadStmt for (Book, User) {
-    type Error = api::Error;
-
     fn read(
         stmt: &sqlite::Statement<'_>,
         columns: &HashMap<String, usize>,

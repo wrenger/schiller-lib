@@ -24,7 +24,7 @@ use super::PKG_VERSION;
 
 pub struct Database {
     path: PathBuf,
-    db: sqlite::Connection,
+    con: sqlite::Connection,
 }
 
 impl fmt::Debug for Database {
@@ -39,7 +39,7 @@ impl Database {
         let path = PathBuf::from(path);
         if !path.exists() {
             let database = Database {
-                db: sqlite::Connection::open_with_flags(
+                con: sqlite::Connection::open_with_flags(
                     &path,
                     sqlite::OpenFlags::new().set_create().set_read_write(),
                 )
@@ -58,7 +58,7 @@ impl Database {
         let path = PathBuf::from(path);
         if path.exists() {
             let database = Database {
-                db: sqlite::Connection::open_with_flags(
+                con: sqlite::Connection::open_with_flags(
                     &path,
                     sqlite::OpenFlags::new().set_read_write(),
                 )
@@ -82,7 +82,7 @@ impl Database {
     fn memory() -> api::Result<Database> {
         Ok(Database {
             path: PathBuf::new(),
-            db: sqlite::open(":memory:")?,
+            con: sqlite::open(":memory:")?,
         })
     }
 }
@@ -96,40 +96,28 @@ pub struct DBIter<'a, T> {
 
 impl<'a, T> DBIter<'a, T> {
     pub fn new(stmt: sqlite::Statement<'a>) -> Self {
-        DBIter {
-            columns: stmt.columns(),
+        let mut iter = DBIter {
+            columns: HashMap::new(),
             stmt,
             ty: std::marker::PhantomData,
-        }
+        };
+        iter.columns = iter.stmt.columns();
+        iter
     }
 }
 
 /// Conversion from database entries.
 pub trait ReadStmt: Sized {
-    type Error: std::fmt::Debug;
-    fn read(
-        stmt: &sqlite::Statement,
-        columns: &HashMap<String, usize>,
-    ) -> Result<Self, Self::Error>;
+    fn read(stmt: &sqlite::Statement, columns: &HashMap<String, usize>) -> api::Result<Self>;
 }
 
 impl<'a, T: ReadStmt> Iterator for DBIter<'a, T> {
-    type Item = T;
-    fn next(&mut self) -> Option<T> {
-        if let Ok(state) = self.stmt.next() {
-            if state != sqlite::State::Done {
-                match T::read(&self.stmt, &self.columns) {
-                    Ok(r) => Some(r),
-                    Err(e) => {
-                        gdnative::godot_print!("SQL! {:?}", e);
-                        None
-                    }
-                }
-            } else {
-                None
-            }
-        } else {
-            None
+    type Item = api::Result<T>;
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.stmt.next() {
+            Ok(sqlite::State::Row) => Some(T::read(&self.stmt, &self.columns)),
+            Ok(sqlite::State::Done) => None,
+            Err(e) => Some(Err(e.into())),
         }
     }
 }

@@ -88,7 +88,7 @@ impl Mailer {
     fn _send_done(&mut self, owner: TRef<Reference>, result: api::Result<()>) {
         if let Some(thread) = self.worker.take() {
             if let Err(e) = thread.join() {
-                godot_print!("Error dropping mailer worker: {:?}", e);
+                godot_error!("Error dropping mailer worker: {e:?}");
             }
         }
         // emit signal after this method is finished
@@ -103,7 +103,7 @@ impl Drop for Mailer {
     fn drop(&mut self) {
         if let Some(thread) = self.worker.take() {
             if let Err(e) = thread.join() {
-                godot_print!("Error dropping mailer worker: {:?}", e);
+                godot_error!("Error dropping mailer worker: {e:?}");
             }
         }
     }

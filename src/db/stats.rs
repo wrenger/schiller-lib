@@ -26,8 +26,6 @@ pub struct Stats {
 }
 
 impl ReadStmt for Stats {
-    type Error = api::Error;
-
     fn read(stmt: &sqlite::Statement<'_>, columns: &HashMap<String, usize>) -> api::Result<Stats> {
         Ok(Stats {
             books: stmt.read::<i64>(columns["books"])? as _,
@@ -41,7 +39,7 @@ impl ReadStmt for Stats {
 }
 
 pub fn fetch(db: &Database) -> api::Result<Stats> {
-    let mut stmt = db.db.prepare(STATS)?;
+    let mut stmt = db.con.prepare(STATS)?;
     if stmt.next()? == sqlite::State::Row {
         ReadStmt::read(&stmt, &stmt.columns())
     } else {

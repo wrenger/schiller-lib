@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use unicode_normalization::UnicodeNormalization;
+
 use crate::api;
 
 use super::raw::{DatabaseExt, StatementExt};
@@ -137,8 +139,6 @@ impl Book {
 }
 
 impl ReadStmt for Book {
-    type Error = api::Error;
-
     fn read(stmt: &sqlite::Statement<'_>, columns: &HashMap<String, usize>) -> api::Result<Book> {
         Ok(Book {
             id: stmt.read(columns["id"])?,
@@ -219,7 +219,7 @@ impl gdnative::core_types::FromVariant for BookState {
 
 /// Returns the book with the given `id`.
 pub fn fetch(db: &Database, id: &str) -> api::Result<Book> {
-    let mut stmt = db.db.prepare(FETCH)?;
+    let mut stmt = db.con.prepare(FETCH)?;
     stmt.bind(1, id)?;
     if stmt.next()? == sqlite::State::Row {
         Book::read(&stmt, &stmt.columns())
@@ -230,7 +230,7 @@ pub fn fetch(db: &Database, id: &str) -> api::Result<Book> {
 
 /// Performs a simple media search with the given `text`.
 pub fn search<'a>(db: &'a Database, text: &str) -> api::Result<DBIter<'a, Book>> {
-    let mut stmt = db.db.prepare(SEARCH)?;
+    let mut stmt = db.con.prepare(SEARCH)?;
     let text = text.trim();
     stmt.bind(1, text)?;
     Ok(DBIter::new(stmt))
@@ -238,7 +238,7 @@ pub fn search<'a>(db: &'a Database, text: &str) -> api::Result<DBIter<'a, Book>>
 
 /// Performs an advanced media search with the given search parameters.
 pub fn search_advanced<'a>(db: &'a Database, params: &BookSearch) -> api::Result<DBIter<'a, Book>> {
-    let mut stmt = db.db.prepare(SEARCH_ADVANCED)?;
+    let mut stmt = db.con.prepare(SEARCH_ADVANCED)?;
     stmt.bind(1, params.id.trim())?;
     stmt.bind(2, params.isbn.trim())?;
     stmt.bind(3, params.title.trim())?;
@@ -286,8 +286,8 @@ pub fn add(db: &Database, book: &Book) -> api::Result<()> {
     } else {
         String::new()
     };
-    let transaction = db.db.transaction()?;
-    let mut stmt = db.db.prepare(ADD)?;
+    let transaction = db.con.transaction()?;
+    let mut stmt = db.con.prepare(ADD)?;
     stmt.bind(1, book.id.trim())?;
     stmt.bind(2, isbn.trim())?;
     stmt.bind(3, book.title.trim())?;
@@ -302,7 +302,7 @@ pub fn add(db: &Database, book: &Book) -> api::Result<()> {
     }
     // Add authors
     for author in &book.authors {
-        let mut stmt = db.db.prepare(ADD_AUTHOR)?;
+        let mut stmt = db.con.prepare(ADD_AUTHOR)?;
         stmt.bind(1, author.trim())?;
         stmt.bind(2, book.id.trim())?;
         if stmt.next()? != sqlite::State::Done {
@@ -324,9 +324,9 @@ pub fn update(db: &Database, previous_id: &str, book: &Book) -> api::Result<()> 
     } else {
         String::new()
     };
-    let transaction = db.db.transaction()?;
+    let transaction = db.con.transaction()?;
     // update book
-    let mut stmt = db.db.prepare(UPDATE)?;
+    let mut stmt = db.con.prepare(UPDATE)?;
     stmt.bind(1, book.id.trim())?;
     stmt.bind(2, isbn.trim())?;
     stmt.bind(3, book.title.trim())?;
@@ -343,7 +343,7 @@ pub fn update(db: &Database, previous_id: &str, book: &Book) -> api::Result<()> 
 
     if previous_id != book.id {
         // update authors
-        let mut stmt = db.db.prepare(UPDATE_AUTHORS)?;
+        let mut stmt = db.con.prepare(UPDATE_AUTHORS)?;
         stmt.bind(1, book.id.trim())?;
         stmt.bind(2, previous_id)?;
         if stmt.next()? != sqlite::State::Done {
@@ -362,15 +362,15 @@ pub fn delete(db: &Database, id: &str) -> api::Result<()> {
         return Err(api::Error::InvalidBook);
     }
 
-    let transaction = db.db.transaction()?;
-    let mut stmt = db.db.prepare(DELETE)?;
+    let transaction = db.con.transaction()?;
+    let mut stmt = db.con.prepare(DELETE)?;
     stmt.bind(1, id)?;
     if stmt.next()? != sqlite::State::Done {
         return Err(api::Error::SQL);
     }
 
     // delete missing authors
-    db.db.execute(DELETE_UNUSED_AUTHORS)?;
+    db.con.execute(DELETE_UNUSED_AUTHORS)?;
     transaction.commit()?;
     Ok(())
 }
@@ -381,7 +381,6 @@ pub fn generate_id(db: &Database, book: &Book) -> api::Result<String> {
         book.authors.first().map(|s| s.trim()).unwrap_or_default(),
         book.category.trim(),
     );
-    println!("Prefix {}", prefix);
     let id = book.id.trim();
     if id.starts_with(&prefix)
         && id.len() > prefix.len() + 1
@@ -390,24 +389,27 @@ pub fn generate_id(db: &Database, book: &Book) -> api::Result<String> {
         return Ok(id.to_string());
     }
 
-    let mut stmt = db.db.prepare(UNUSED_ID)?;
+    let mut stmt = db.con.prepare(UNUSED_ID)?;
     stmt.bind(1, prefix.len() as i64)?;
     stmt.bind(2, prefix.as_str())?;
     if stmt.next()? != sqlite::State::Row {
         return Err(api::Error::SQL);
     }
     let id = stmt.read::<i64>(0)? + 1;
-    Ok(format!("{} {}", prefix, id))
+    Ok(format!("{prefix} {id}"))
 }
 
 fn id_prefix(author: &str, category: &str) -> String {
-    let mut author_prefix = author[author.rfind(' ').map(|i| i + 1).unwrap_or_default()..]
-        .replace(&['ä', 'Ä'][..], "A")
-        .replace(&['ö', 'Ö'][..], "O")
-        .replace(&['ü', 'Ü'][..], "U")
-        .replace('ß', "S")
-        .replace(|x: char| !x.is_ascii_alphabetic(), "")
-        .to_ascii_uppercase();
+    let mut author_prefix = author
+        .rsplit_once(' ') // surname
+        .map(|s| s.1)
+        .unwrap_or(author)
+        .nfd() // decompose -> split ÄÖÜ
+        .map(|c| (c == 'ß').then(|| 'S').unwrap_or(c))
+        .filter(char::is_ascii_alphabetic)
+        .map(|c| c.to_ascii_uppercase())
+        .collect::<String>();
+
     if author_prefix.is_empty() {
         author_prefix = "XXXX".into();
     }
@@ -419,8 +421,7 @@ fn id_prefix(author: &str, category: &str) -> String {
     };
 
     format!(
-        "{} {}",
-        category,
+        "{category} {}",
         &author_prefix[..author_prefix.len().min(4)],
     )
 }
@@ -437,6 +438,7 @@ mod tests {
         assert_eq!(id_prefix("Isabel Äbedi", "FANT"), "FANT ABED".to_string());
         assert_eq!(id_prefix("", "FANT"), "FANT XXXX".to_string());
         assert_eq!(id_prefix("äÖü", "FANT"), "FANT AOU".to_string());
+        assert_eq!(id_prefix("äÖüß", "FANT"), "FANT AOUS".to_string());
         assert_eq!(
             id_prefix("Remigius Bäumer", "RErk"),
             "RErk BAUM".to_string()
@@ -468,7 +470,7 @@ mod tests {
 
         book::add(&db, &book).unwrap();
 
-        let db_book = book::search(&db, "").unwrap().next().unwrap();
+        let db_book = book::search(&db, "").unwrap().next().unwrap().unwrap();
         assert_eq!(book, db_book);
 
         // Update book
@@ -482,7 +484,7 @@ mod tests {
         )
         .unwrap();
 
-        let db_book = book::search(&db, "").unwrap().next().unwrap();
+        let db_book = book::search(&db, "").unwrap().next().unwrap().unwrap();
         assert_eq!(db_book.title, "Another Title");
 
         // Remove book

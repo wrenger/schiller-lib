@@ -1,3 +1,6 @@
+use std::convert::TryInto;
+
+use gdnative::core_types::FromVariantError;
 use gdnative::prelude::*;
 
 /// The api compatible error type.
@@ -6,7 +9,7 @@ use gdnative::prelude::*;
 /// More specific error messages are removed to be api compatible.
 /// Those messages are logged however.
 #[repr(i64)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, num_enum::TryFromPrimitive)]
 pub enum Error {
     Arguments,
     Logic,
@@ -34,28 +37,28 @@ pub enum Error {
 
 impl From<sqlite::Error> for Error {
     fn from(e: sqlite::Error) -> Error {
-        godot_print!("SQL: {}", e);
+        godot_error!("SQL: {e}");
         Error::SQL
     }
 }
 
 impl From<std::convert::Infallible> for Error {
     fn from(e: std::convert::Infallible) -> Error {
-        godot_print!("convert::Infallible: {}", e);
+        godot_error!("convert::Infallible: {e:?}");
         Error::Arguments
     }
 }
 
 impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Error {
-        godot_print!("File Error: {:?}", e);
+        godot_error!("File Error: {e:?}");
         Error::FileOpen
     }
 }
 
 impl From<roxmltree::Error> for Error {
     fn from(e: roxmltree::Error) -> Error {
-        godot_print!("Invalid XML Format: {:?}", e);
+        godot_error!("Invalid XML Format: {e:?}");
         Error::InvalidFormat
     }
 }
@@ -63,14 +66,10 @@ impl From<roxmltree::Error> for Error {
 impl gdnative::core_types::FromVariant for Error {
     fn from_variant(
         variant: &gdnative::core_types::Variant,
-    ) -> std::result::Result<Self, gdnative::core_types::FromVariantError> {
-        i64::from_variant(variant).and_then(|x| {
-            if 0 < x || x <= Error::UnsupportedProjectVersion as i64 {
-                Ok(unsafe { std::mem::transmute(x) })
-            } else {
-                Err(gdnative::core_types::FromVariantError::Unspecified)
-            }
-        })
+    ) -> std::result::Result<Self, FromVariantError> {
+        i64::from_variant(variant)?
+            .try_into()
+            .map_err(|_| FromVariantError::Unspecified)
     }
 }
 

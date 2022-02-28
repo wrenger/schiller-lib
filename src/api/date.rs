@@ -99,7 +99,7 @@ impl Date {
 
 impl From<chrono::ParseError> for api::Error {
     fn from(e: chrono::ParseError) -> api::Error {
-        godot_print!("chrono::ParseError: {}", e);
+        godot_error!("chrono::ParseError: {e}");
         api::Error::Logic
     }
 }

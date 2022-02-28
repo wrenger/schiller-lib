@@ -1,5 +1,5 @@
 use crate::api;
-use std::collections::HashMap;
+use std::{collections::HashMap, iter::FromIterator};
 
 use super::{DBIter, Database, ReadStmt};
 
@@ -69,8 +69,8 @@ impl Default for Settings {
     }
 }
 
-impl Settings {
-    pub fn from_iter<I: IntoIterator<Item = (String, String)>>(iter: I) -> Settings {
+impl FromIterator<(String, String)> for Settings {
+    fn from_iter<T: IntoIterator<Item = (String, String)>>(iter: T) -> Self {
         let mut settings = Settings::default();
         for (key, value) in iter {
             match key.as_str() {
@@ -92,7 +92,7 @@ impl Settings {
                 "mail.overdue.content" => settings.mail_overdue_content = value,
                 "mail.overdue2.subject" => settings.mail_overdue2_subject = value,
                 "mail.overdue2.content" => settings.mail_overdue2_content = value,
-                _ => gdnative::godot_error!("Unknown option: {} = {}", key, value),
+                _ => gdnative::godot_error!("Unknown option: {key} = {value}"),
             }
         }
         settings
@@ -100,17 +100,16 @@ impl Settings {
 }
 
 impl ReadStmt for (String, String) {
-    type Error = api::Error;
     fn read(
         stmt: &sqlite::Statement,
         _columns: &HashMap<String, usize>,
-    ) -> Result<Self, Self::Error> {
+    ) -> Result<Self, api::Error> {
         Ok((stmt.read(0)?, stmt.read(1)?))
     }
 }
 
 pub fn update(db: &Database, settings: &Settings) -> api::Result<()> {
-    let mut stmt = db.db.prepare(SETTINGS_UPDATE)?;
+    let mut stmt = db.con.prepare(SETTINGS_UPDATE)?;
     stmt.bind(1, settings.borrowing_duration)?;
     stmt.bind(2, settings.user_path.trim())?;
     stmt.bind(3, settings.user_delimiter.trim())?;
@@ -133,6 +132,6 @@ pub fn update(db: &Database, settings: &Settings) -> api::Result<()> {
 }
 
 pub fn fetch(db: &Database) -> api::Result<Settings> {
-    let stmt = db.db.prepare(SETTINGS_FETCH)?;
-    Ok(Settings::from_iter(DBIter::new(stmt)))
+    let stmt = db.con.prepare(SETTINGS_FETCH)?;
+    DBIter::new(stmt).collect()
 }

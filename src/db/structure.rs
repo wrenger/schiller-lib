@@ -61,9 +61,9 @@ const PATCHES: [(Version, MigrationRoutine); 2] = [
 ];
 
 pub fn create(db: &Database, version: &str) -> api::Result<()> {
-    let transaction = db.db.transaction()?;
-    db.db.execute(CREATE_TABLES)?;
-    update_version(&db.db, version)?;
+    let transaction = db.con.transaction()?;
+    db.con.execute(CREATE_TABLES)?;
+    update_version(&db.con, version)?;
     settings::update(db, &Settings::default())?;
     transaction.commit()?;
     Ok(())
@@ -72,25 +72,25 @@ pub fn create(db: &Database, version: &str) -> api::Result<()> {
 /// Applies the related migration routines if the version changed.
 /// Returns true if the database was updated.
 pub fn migrate(db: &Database, version: &str) -> api::Result<bool> {
-    let transaction = db.db.transaction()?;
-    let mut stmt = db.db.prepare(FETCH_VERSION)?;
+    let transaction = db.con.transaction()?;
+    let mut stmt = db.con.prepare(FETCH_VERSION)?;
     let old_version = if stmt.next()? == sqlite::State::Row {
         stmt.read::<String>(0)?
     } else {
         return Err(api::Error::UnsupportedProjectVersion);
     };
-    gdnative::godot_print!("Start migration of {}", old_version);
+    gdnative::godot_print!("Start migration of {old_version}");
 
     let old_version: Version = old_version.parse()?;
     let new_version: Version = version.parse()?;
     if MIN_VERSION <= old_version && old_version <= new_version {
         for (patch_version, patch) in &PATCHES {
             if old_version < *patch_version {
-                gdnative::godot_print!("Applying patch {}", patch_version);
+                gdnative::godot_print!("Applying patch {patch_version}");
                 patch(db)?;
             }
         }
-        update_version(&db.db, version)?;
+        update_version(&db.con, version)?;
         transaction.commit()?;
         Ok(old_version != new_version)
     } else {
@@ -114,18 +114,15 @@ struct Version(u8, u8, u8);
 impl FromStr for Version {
     type Err = api::Error;
     fn from_str(version: &str) -> Result<Self, Self::Err> {
-        let version_parts: Vec<_> = version
+        let version_parts = version
             .splitn(3, '.')
-            .map(|x| x.parse().map_err(|_| api::Error::UnsupportedProjectVersion))
-            .collect();
-        if version_parts.len() == 3 {
-            Ok(Version(
-                version_parts[0]?,
-                version_parts[1]?,
-                version_parts[2]?,
-            ))
-        } else if version_parts.len() == 2 {
-            Ok(Version(0, version_parts[0]?, version_parts[1]?))
+            .map(str::parse)
+            .collect::<Result<Vec<u8>, _>>()
+            .map_err(|_| api::Error::UnsupportedProjectVersion)?;
+        if let [major, minor, patch] = version_parts[..] {
+            Ok(Version(major, minor, patch))
+        } else if let [minor, patch] = version_parts[..] {
+            Ok(Version(0, minor, patch))
         } else {
             Err(api::Error::UnsupportedProjectVersion)
         }
@@ -147,7 +144,7 @@ fn patch_0_6_3(db: &Database) -> api::Result<()> {
     fn regex_search(regex: &str, text: &str) -> String {
         let re = RegEx::new();
         if re.compile(regex).is_err() {
-            gdnative::godot_error!("Malformed regex: {}", regex);
+            gdnative::godot_error!("Malformed regex: {regex}");
             return String::new();
         }
         re.search(text, 0, -1)
@@ -188,7 +185,7 @@ fn patch_0_6_3(db: &Database) -> api::Result<()> {
     if let Some(path) = db.path.parent().map(|p| p.join("sbv.properties")) {
         let f = File::open(&path)?;
         if let Ok(data) = java_properties::read(BufReader::new(f)) {
-            let settings = Settings::from_iter(data.into_iter().map(|e| update(e, db)));
+            let settings = data.into_iter().map(|e| update(e, db)).collect();
             settings::update(db, &settings)?;
         } else {
             return Err(api::Error::FileOpen);
@@ -204,7 +201,7 @@ fn patch_0_8_0(db: &Database) -> api::Result<()> {
         value=replace(replace(value, '[mediumtitel]', '{booktitle}'), '[name]', '{username}') \
         where key like 'mail.%.subject' or key like 'mail.%.content' \
     ";
-    db.db.execute(UPDATE_MAIL_PLACEHOLDERS)?;
+    db.con.execute(UPDATE_MAIL_PLACEHOLDERS)?;
     Ok(())
 }
 
@@ -242,11 +239,20 @@ mod tests {
         let db = Database::memory().unwrap();
         structure::create(&db, PKG_VERSION).unwrap();
 
-        let books: Vec<Book> = book::search(&db, "").unwrap().collect();
+        let books: Vec<Book> = book::search(&db, "")
+            .unwrap()
+            .collect::<api::Result<Vec<_>>>()
+            .unwrap();
         assert!(books.is_empty());
-        let users: Vec<User> = user::search(&db, "").unwrap().collect();
+        let users: Vec<User> = user::search(&db, "")
+            .unwrap()
+            .collect::<api::Result<Vec<_>>>()
+            .unwrap();
         assert!(users.is_empty());
-        let categories: Vec<Category> = category::list(&db).unwrap().collect();
+        let categories: Vec<Category> = category::list(&db)
+            .unwrap()
+            .collect::<api::Result<Vec<_>>>()
+            .unwrap();
         assert!(categories.is_empty());
         let settings: Settings = settings::fetch(&db).unwrap();
         assert!(settings == Settings::default());
