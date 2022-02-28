@@ -1,9 +1,6 @@
-use std::collections::HashMap;
-
 use crate::api;
 
-use super::raw::DatabaseExt;
-use super::{DBIter, Database, ReadStmt};
+use super::{DBIter, Database, FromRow};
 
 const LIST: &str = "\
     select id, name, section from category order by section, id \
@@ -39,23 +36,21 @@ impl Category {
     }
 }
 
-impl ReadStmt for Category {
-    fn read(
-        stmt: &sqlite::Statement<'_>,
-        columns: &HashMap<String, usize>,
-    ) -> api::Result<Category> {
+impl FromRow for Category {
+    fn from_row(rows: &rusqlite::Row) -> rusqlite::Result<Category> {
         Ok(Category {
-            id: stmt.read(columns["id"])?,
-            name: stmt.read(columns["name"])?,
-            section: stmt.read(columns["section"])?,
+            id: rows.get("id")?,
+            name: rows.get("name")?,
+            section: rows.get("section")?,
         })
     }
 }
 
 /// Returns all categories.
-pub fn list(db: &Database) -> api::Result<DBIter<Category>> {
-    let stmt = db.con.prepare(LIST)?;
-    Ok(DBIter::new(stmt))
+pub fn list(db: &Database) -> api::Result<Vec<Category>> {
+    let mut stmt = db.con.prepare(LIST)?;
+    let rows = stmt.query([])?;
+    DBIter::new(rows).collect()
 }
 
 /// Adds a new category.
@@ -64,13 +59,14 @@ pub fn add(db: &Database, category: &Category) -> api::Result<()> {
         return Err(api::Error::Arguments);
     }
 
-    let mut stmt = db.con.prepare(ADD)?;
-    stmt.bind(1, category.id.trim())?;
-    stmt.bind(2, category.name.trim())?;
-    stmt.bind(3, category.section.trim())?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    db.con.execute(
+        ADD,
+        [
+            category.id.trim(),
+            category.name.trim(),
+            category.section.trim(),
+        ],
+    )?;
     Ok(())
 }
 
@@ -80,25 +76,21 @@ pub fn update(db: &Database, id: &str, category: &Category) -> api::Result<()> {
         return Err(api::Error::Arguments);
     }
 
-    let transaction = db.con.transaction()?;
+    let transaction = db.transaction()?;
     // Update category
-    let mut stmt = db.con.prepare(UPDATE)?;
-    stmt.bind(1, category.id.trim())?;
-    stmt.bind(2, category.name.trim())?;
-    stmt.bind(3, category.section.trim())?;
-    stmt.bind(4, id)?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    transaction.execute(
+        UPDATE,
+        [
+            category.id.trim(),
+            category.name.trim(),
+            category.section.trim(),
+            id,
+        ],
+    )?;
 
     if id != category.id {
         // Update category ids of related media
-        let mut stmt = db.con.prepare(UPDATE_MEDIA)?;
-        stmt.bind(1, category.id.trim())?;
-        stmt.bind(2, id)?;
-        if stmt.next()? != sqlite::State::Done {
-            return Err(api::Error::SQL);
-        }
+        transaction.execute(UPDATE_MEDIA, [category.id.trim(), id])?;
     }
 
     transaction.commit()?;
@@ -112,17 +104,13 @@ pub fn delete(db: &Database, id: &str) -> api::Result<()> {
         return Err(api::Error::Arguments);
     }
 
-    let transaction = db.con.transaction()?;
+    let transaction = db.transaction()?;
     // Do not allow the removal of used categories
     if references(db, id)? > 0 {
         return Err(api::Error::Logic);
     }
 
-    let mut stmt = db.con.prepare(DELETE)?;
-    stmt.bind(1, id)?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    transaction.execute(DELETE, [id])?;
 
     transaction.commit()?;
     Ok(())
@@ -135,10 +123,7 @@ pub fn references(db: &Database, id: &str) -> api::Result<i64> {
         return Err(api::Error::Arguments);
     }
 
-    let mut stmt = db.con.prepare(REFERENCED)?;
-    stmt.bind(1, id)?;
-    if stmt.next()? != sqlite::State::Row {
-        return Err(api::Error::SQL);
-    }
-    Ok(stmt.read(0)?)
+    Ok(db
+        .con
+        .query_row(REFERENCED, [id], |row| row.get::<usize, i64>(0))?)
 }

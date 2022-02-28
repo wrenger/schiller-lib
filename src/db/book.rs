@@ -1,11 +1,8 @@
-use std::collections::HashMap;
-
 use unicode_normalization::UnicodeNormalization;
 
 use crate::api;
 
-use super::raw::{DatabaseExt, StatementExt};
-use super::{DBIter, Database, ReadStmt};
+use super::{DBIter, Database, FromRow};
 
 const FETCH: &str = "\
     select \
@@ -138,26 +135,26 @@ impl Book {
     }
 }
 
-impl ReadStmt for Book {
-    fn read(stmt: &sqlite::Statement<'_>, columns: &HashMap<String, usize>) -> api::Result<Book> {
+impl FromRow for Book {
+    fn from_row(row: &rusqlite::Row) -> rusqlite::Result<Book> {
         Ok(Book {
-            id: stmt.read(columns["id"])?,
-            isbn: stmt.read(columns["isbn"])?,
-            title: stmt.read(columns["title"])?,
-            publisher: stmt.read(columns["publisher"])?,
-            year: stmt.read(columns["year"])?,
-            costs: stmt.read(columns["costs"])?,
-            note: stmt.read(columns["note"])?,
-            borrowable: stmt.read::<i64>(columns["borrowable"])? != 0,
-            category: stmt.read(columns["category"])?,
-            authors: stmt
-                .read::<String>(columns["authors"])?
+            id: row.get("id")?,
+            isbn: row.get("isbn")?,
+            title: row.get("title")?,
+            publisher: row.get("publisher")?,
+            year: row.get("year")?,
+            costs: row.get("costs")?,
+            note: row.get("note")?,
+            borrowable: row.get("borrowable")?,
+            category: row.get("category")?,
+            authors: row
+                .get::<&str, String>("authors")?
                 .split(',')
                 .map(|a| a.to_string())
                 .collect(),
-            borrower: stmt.read(columns["borrower"])?,
-            deadline: stmt.read(columns["deadline"])?,
-            reservation: stmt.read(columns["reservation"])?,
+            borrower: row.get("borrower")?,
+            deadline: row.get("deadline")?,
+            reservation: row.get("reservation")?,
         })
     }
 }
@@ -219,61 +216,55 @@ impl gdnative::core_types::FromVariant for BookState {
 
 /// Returns the book with the given `id`.
 pub fn fetch(db: &Database, id: &str) -> api::Result<Book> {
-    let mut stmt = db.con.prepare(FETCH)?;
-    stmt.bind(1, id)?;
-    if stmt.next()? == sqlite::State::Row {
-        Book::read(&stmt, &stmt.columns())
-    } else {
-        Err(api::Error::SQL)
-    }
+    Ok(db.con.query_row(FETCH, [id], Book::from_row)?)
 }
 
 /// Performs a simple media search with the given `text`.
-pub fn search<'a>(db: &'a Database, text: &str) -> api::Result<DBIter<'a, Book>> {
+pub fn search<'a>(db: &'a Database, text: &str) -> api::Result<Vec<Book>> {
     let mut stmt = db.con.prepare(SEARCH)?;
-    let text = text.trim();
-    stmt.bind(1, text)?;
-    Ok(DBIter::new(stmt))
+    let rows = stmt.query(rusqlite::params![text.trim()])?;
+    DBIter::new(rows).collect()
 }
 
 /// Performs an advanced media search with the given search parameters.
-pub fn search_advanced<'a>(db: &'a Database, params: &BookSearch) -> api::Result<DBIter<'a, Book>> {
+pub fn search_advanced<'a>(db: &'a Database, params: &BookSearch) -> api::Result<Vec<Book>> {
     let mut stmt = db.con.prepare(SEARCH_ADVANCED)?;
-    stmt.bind(1, params.id.trim())?;
-    stmt.bind(2, params.isbn.trim())?;
-    stmt.bind(3, params.title.trim())?;
-    stmt.bind(4, params.publisher.trim())?;
-    stmt.bind(5, params.authors.trim())?;
     let year = params.year.trim();
-    if let Some(i) = year.find('-') {
-        stmt.bind(6, year[..i].trim())?;
-        stmt.bind(7, year[i + 1..].trim())?;
-    } else if year.is_empty() {
-        stmt.bind(6, std::i64::MIN)?;
-        stmt.bind(7, std::i64::MAX)?;
+    let year_min = year.split_once('-').map(|s| s.0.trim()).unwrap_or(year);
+    let year_min = if year_min.is_empty() { "0" } else { year_min };
+    let year_max = year.split_once('-').map(|s| s.1.trim()).unwrap_or(year);
+    let year_max = if year_max.is_empty() {
+        "10000"
     } else {
-        stmt.bind(6, year)?;
-        stmt.bind(7, year)?;
-    }
-    stmt.bind(8, params.category.trim())?;
-    stmt.bind(9, params.note.trim())?;
+        year_max
+    };
     let user = params.user.trim();
-    if !user.is_empty() {
-        stmt.bind(10, user)?;
-        stmt.bind(11, user)?;
+    let user = if !user.is_empty() {
+        user
     } else if params.state == BookState::BorrowedOrReserved {
-        stmt.bind(10, "_%")?;
-        stmt.bind(11, "_%")?;
+        "_%"
     } else {
-        stmt.bind(10, "%")?;
-        stmt.bind(11, "%")?;
-    }
-    match params.state {
-        BookState::Borrowable => stmt.bind(12, 1)?,
-        BookState::NotBorrowable => stmt.bind(12, 0)?,
-        _ => stmt.bind(12, "%")?,
-    }
-    Ok(DBIter::new(stmt))
+        "%"
+    };
+    let rows = stmt.query(rusqlite::params![
+        params.id.trim(),
+        params.isbn.trim(),
+        params.title.trim(),
+        params.publisher.trim(),
+        params.authors.trim(),
+        year_min,
+        year_max,
+        params.category.trim(),
+        params.note.trim(),
+        user,
+        user,
+        match params.state {
+            BookState::Borrowable => "1",
+            BookState::NotBorrowable => "0",
+            _ => "%",
+        }
+    ])?;
+    DBIter::new(rows).collect()
 }
 
 /// Adds a new book.
@@ -286,28 +277,25 @@ pub fn add(db: &Database, book: &Book) -> api::Result<()> {
     } else {
         String::new()
     };
-    let transaction = db.con.transaction()?;
-    let mut stmt = db.con.prepare(ADD)?;
-    stmt.bind(1, book.id.trim())?;
-    stmt.bind(2, isbn.trim())?;
-    stmt.bind(3, book.title.trim())?;
-    stmt.bind(4, book.publisher.trim())?;
-    stmt.bind(5, book.year)?;
-    stmt.bind(6, book.costs)?;
-    stmt.bind(7, book.note.trim())?;
-    stmt.bind(8, book.borrowable as i64)?;
-    stmt.bind(9, book.category.trim())?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    let transaction = db.transaction()?;
+    transaction.execute(
+        ADD,
+        rusqlite::params![
+            book.id.trim(),
+            isbn.trim(),
+            book.title.trim(),
+            book.publisher.trim(),
+            book.year,
+            book.costs,
+            book.note.trim(),
+            book.borrowable,
+            book.category.trim(),
+        ],
+    )?;
+
     // Add authors
     for author in &book.authors {
-        let mut stmt = db.con.prepare(ADD_AUTHOR)?;
-        stmt.bind(1, author.trim())?;
-        stmt.bind(2, book.id.trim())?;
-        if stmt.next()? != sqlite::State::Done {
-            return Err(api::Error::SQL);
-        }
+        transaction.execute(ADD_AUTHOR, [author.trim(), book.id.trim()])?;
     }
     transaction.commit()?;
     Ok(())
@@ -324,31 +312,27 @@ pub fn update(db: &Database, previous_id: &str, book: &Book) -> api::Result<()> 
     } else {
         String::new()
     };
-    let transaction = db.con.transaction()?;
+    let transaction = db.transaction()?;
     // update book
-    let mut stmt = db.con.prepare(UPDATE)?;
-    stmt.bind(1, book.id.trim())?;
-    stmt.bind(2, isbn.trim())?;
-    stmt.bind(3, book.title.trim())?;
-    stmt.bind(4, book.publisher.trim())?;
-    stmt.bind(5, book.year)?;
-    stmt.bind(6, book.costs)?;
-    stmt.bind(7, book.note.trim())?;
-    stmt.bind(8, book.borrowable as i64)?;
-    stmt.bind(9, book.category.trim())?;
-    stmt.bind(10, previous_id)?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    transaction.execute(
+        UPDATE,
+        rusqlite::params![
+            book.id.trim(),
+            isbn.trim(),
+            book.title.trim(),
+            book.publisher.trim(),
+            book.year,
+            book.costs,
+            book.note.trim(),
+            book.borrowable,
+            book.category.trim(),
+            previous_id
+        ],
+    )?;
 
     if previous_id != book.id {
         // update authors
-        let mut stmt = db.con.prepare(UPDATE_AUTHORS)?;
-        stmt.bind(1, book.id.trim())?;
-        stmt.bind(2, previous_id)?;
-        if stmt.next()? != sqlite::State::Done {
-            return Err(api::Error::SQL);
-        }
+        transaction.execute(UPDATE_AUTHORS, [book.id.trim(), previous_id])?;
     }
     transaction.commit()?;
     Ok(())
@@ -362,15 +346,11 @@ pub fn delete(db: &Database, id: &str) -> api::Result<()> {
         return Err(api::Error::InvalidBook);
     }
 
-    let transaction = db.con.transaction()?;
-    let mut stmt = db.con.prepare(DELETE)?;
-    stmt.bind(1, id)?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    let transaction = db.transaction()?;
+    transaction.execute(DELETE, [id])?;
 
     // delete missing authors
-    db.con.execute(DELETE_UNUSED_AUTHORS)?;
+    transaction.execute(DELETE_UNUSED_AUTHORS, [])?;
     transaction.commit()?;
     Ok(())
 }
@@ -389,13 +369,11 @@ pub fn generate_id(db: &Database, book: &Book) -> api::Result<String> {
         return Ok(id.to_string());
     }
 
-    let mut stmt = db.con.prepare(UNUSED_ID)?;
-    stmt.bind(1, prefix.len() as i64)?;
-    stmt.bind(2, prefix.as_str())?;
-    if stmt.next()? != sqlite::State::Row {
-        return Err(api::Error::SQL);
-    }
-    let id = stmt.read::<i64>(0)? + 1;
+    let id = db.con.query_row(
+        UNUSED_ID,
+        rusqlite::params![prefix.len(), prefix.as_str()],
+        |v| v.get::<usize, usize>(1).map(|v| v + 1),
+    )?;
     Ok(format!("{prefix} {id}"))
 }
 
@@ -451,7 +429,7 @@ mod tests {
         let db = Database::memory().unwrap();
         structure::create(&db, PKG_VERSION).unwrap();
 
-        assert_eq!(book::search(&db, "").unwrap().count(), 0);
+        assert_eq!(book::search(&db, "").unwrap().len(), 0);
 
         // New book
         let book = Book {
@@ -470,8 +448,8 @@ mod tests {
 
         book::add(&db, &book).unwrap();
 
-        let db_book = book::search(&db, "").unwrap().next().unwrap().unwrap();
-        assert_eq!(book, db_book);
+        let db_book = &book::search(&db, "").unwrap()[0];
+        assert_eq!(&book, db_book);
 
         // Update book
         book::update(
@@ -484,12 +462,12 @@ mod tests {
         )
         .unwrap();
 
-        let db_book = book::search(&db, "").unwrap().next().unwrap().unwrap();
+        let db_book = &book::search(&db, "").unwrap()[0];
         assert_eq!(db_book.title, "Another Title");
 
         // Remove book
         book::delete(&db, &book.id).unwrap();
 
-        assert_eq!(book::search(&db, "").unwrap().count(), 0);
+        assert_eq!(book::search(&db, "").unwrap().len(), 0);
     }
 }

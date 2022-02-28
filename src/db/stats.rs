@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use super::{Database, ReadStmt, StatementExt};
+use super::{Database, FromRow};
 use crate::api;
 
 const STATS: &str = "\
@@ -25,24 +23,19 @@ pub struct Stats {
     pub overdues: usize,
 }
 
-impl ReadStmt for Stats {
-    fn read(stmt: &sqlite::Statement<'_>, columns: &HashMap<String, usize>) -> api::Result<Stats> {
+impl FromRow for Stats {
+    fn from_row(row: &rusqlite::Row) -> rusqlite::Result<Stats> {
         Ok(Stats {
-            books: stmt.read::<i64>(columns["books"])? as _,
-            authors: stmt.read::<i64>(columns["authors"])? as _,
-            users: stmt.read::<i64>(columns["users"])? as _,
-            borrows: stmt.read::<i64>(columns["borrows"])? as _,
-            reservations: stmt.read::<i64>(columns["reservations"])? as _,
-            overdues: stmt.read::<i64>(columns["overdues"])? as _,
+            books: row.get("books")?,
+            authors: row.get("authors")?,
+            users: row.get("users")?,
+            borrows: row.get("borrows")?,
+            reservations: row.get("reservations")?,
+            overdues: row.get("overdues")?,
         })
     }
 }
 
 pub fn fetch(db: &Database) -> api::Result<Stats> {
-    let mut stmt = db.con.prepare(STATS)?;
-    if stmt.next()? == sqlite::State::Row {
-        ReadStmt::read(&stmt, &stmt.columns())
-    } else {
-        Err(api::Error::SQL)
-    }
+    Ok(db.con.query_row(STATS, [], Stats::from_row)?)
 }

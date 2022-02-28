@@ -1,60 +1,28 @@
-use std::collections::HashMap;
+use super::FromRow;
 
 /// Additional database functions
 pub trait DatabaseExt {
-    fn fetch(&self, statement: &str) -> Result<Vec<Vec<String>>, sqlite::Error>;
-    fn transaction(&self) -> Result<Transaction, sqlite::Error>;
+    fn fetch(&self, statement: &str) -> Result<Vec<Vec<String>>, rusqlite::Error>;
 }
 
-impl DatabaseExt for sqlite::Connection {
+impl DatabaseExt for rusqlite::Connection {
     /// Helper Function that collects the sql result.
-    fn fetch(&self, statement: &str) -> Result<Vec<Vec<String>>, sqlite::Error> {
-        let mut result = vec![];
-
-        self.iterate(statement, |pairs| {
-            result.push(
-                pairs
-                    .iter()
-                    .map(|&(_, value)| value.unwrap_or_default().into())
-                    .collect(),
-            );
-            true
-        })?;
+    fn fetch(&self, statement: &str) -> Result<Vec<Vec<String>>, rusqlite::Error> {
+        let mut stmt = self.prepare(statement)?;
+        let mut rows = stmt.query([])?;
+        let mut result = Vec::new();
+        while let Some(row) = rows.next()? {
+            result.push(Vec::<String>::from_row(row)?)
+        }
         Ok(result)
     }
-
-    fn transaction(&self) -> Result<Transaction, sqlite::Error> {
-        self.execute("begin")?;
-        Ok(Transaction { db: self })
-    }
 }
 
-pub struct Transaction<'a> {
-    db: &'a sqlite::Connection,
-}
-
-impl<'a> Transaction<'a> {
-    pub fn commit(self) -> Result<(), sqlite::Error> {
-        self.db.execute("commit")?;
-        std::mem::forget(self);
-        Ok(())
-    }
-}
-
-impl<'a> Drop for Transaction<'a> {
-    fn drop(&mut self) {
-        self.db.execute("rollback").ok();
-    }
-}
-
-pub trait StatementExt {
-    fn columns(&self) -> HashMap<String, usize>;
-}
-
-impl<'a> StatementExt for sqlite::Statement<'a> {
-    fn columns(&self) -> HashMap<String, usize> {
-        (0..self.column_count())
-            .map(|i| (self.column_name(i).to_string(), i))
+impl FromRow for Vec<String> {
+    fn from_row(row: &rusqlite::Row) -> rusqlite::Result<Self> {
+        (0..row.as_ref().column_count())
+            .into_iter()
+            .map(|i| row.get(i))
             .collect()
     }
 }
@@ -65,14 +33,14 @@ mod tests {
 
     #[test]
     fn connection() {
-        sqlite::Connection::open(":memory:").unwrap();
+        rusqlite::Connection::open_in_memory().unwrap();
     }
 
     #[test]
     fn fetch() {
-        let db = sqlite::Connection::open(":memory:").unwrap();
-        db.execute("create table abc (a, b, c)").unwrap();
-        db.execute("insert into abc values ('a', 'b', 'c')")
+        let db = rusqlite::Connection::open_in_memory().unwrap();
+        db.execute("create table abc (a, b, c)", []).unwrap();
+        db.execute("insert into abc values ('a', 'b', 'c')", [])
             .unwrap();
         let result = db.fetch("select * from abc").unwrap();
         assert_eq!(
@@ -87,21 +55,17 @@ mod tests {
 
     #[test]
     fn multiple() {
-        let db = sqlite::Connection::open(":memory:").unwrap();
-        db.execute(
+        let db = rusqlite::Connection::open_in_memory().unwrap();
+        db.execute_batch(
             "begin; \
             create table abc (a, b, c); \
             insert into abc values ('d', 'e', 'f'); \
+            insert into abc values ('a', 'b', 'c'); \
             commit;",
         )
         .unwrap();
 
-        let result = db
-            .fetch(
-                "insert into abc values ('a', 'b', 'c'); \
-                select * from abc order by a",
-            )
-            .unwrap();
+        let result = db.fetch("select * from abc order by a").unwrap();
         assert_eq!(
             vec![
                 vec![String::from("a"), String::from("b"), String::from("c")],
@@ -113,21 +77,15 @@ mod tests {
 
     #[test]
     fn prepare() {
-        let db = sqlite::Connection::open(":memory:").unwrap();
-        db.execute("create table abc (a, b, c)").unwrap();
+        let db = rusqlite::Connection::open_in_memory().unwrap();
+        db.execute("create table abc (a, b, c)", []).unwrap();
 
-        let mut stmt = db.prepare("insert into abc values (?, ?, ?)").unwrap();
-        stmt.bind(1, "1").unwrap();
-        stmt.bind(2, "2").unwrap();
-        stmt.bind(3, "3").unwrap();
-        assert_eq!(stmt.next().unwrap(), sqlite::State::Done);
+        db.execute("insert into abc values (?, ?, ?)", ["1", "2", "3"])
+            .unwrap();
 
         // Explicit binding ids
-        let mut stmt = db.prepare("insert into abc values (?3, ?2, ?1)").unwrap();
-        stmt.bind(1, "4").unwrap();
-        stmt.bind(2, "5").unwrap();
-        stmt.bind(3, "6").unwrap();
-        assert_eq!(stmt.next().unwrap(), sqlite::State::Done);
+        db.execute("insert into abc values (?3, ?2, ?1)", ["4", "5", "6"])
+            .unwrap();
 
         assert_eq!(
             vec![
@@ -137,37 +95,24 @@ mod tests {
             db.fetch("select * from abc").unwrap()
         );
 
-        let mut stmt = db.prepare("select a from abc where a='1'").unwrap();
-        assert_eq!(stmt.next().unwrap(), sqlite::State::Row);
-        assert_eq!(stmt.read::<i64>(0).unwrap(), 1);
-        assert_eq!(stmt.next().unwrap(), sqlite::State::Done);
+        let num: String = db
+            .query_row("select a from abc where a=\"1\"", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(num, "1");
     }
 
     #[test]
     fn transaction() {
-        let db = sqlite::Connection::open(":memory:").unwrap();
-        db.execute("create table abc (a not null, b, c)").unwrap();
+        let mut db = rusqlite::Connection::open_in_memory().unwrap();
+        db.execute("create table abc (a not null, b, c)", [])
+            .unwrap();
 
         {
-            let _transaction = db.transaction().unwrap();
+            let transaction = db.transaction().unwrap();
 
-            let mut stmt = db.prepare("insert into abc values (?, ?, ?)").unwrap();
-            stmt.bind(1, "4").unwrap();
-            stmt.bind(2, "5").unwrap();
-            stmt.bind(3, "6").unwrap();
-            assert_eq!(stmt.next().unwrap(), sqlite::State::Done);
-
-            // no commit -> rollback
-        };
-        assert!(db.fetch("select * from abc").unwrap().is_empty());
-
-        {
-            let _transaction = db.transaction().unwrap();
-
-            let mut stmt = db.prepare("insert into abc values (?, ?, ?)").unwrap();
-            stmt.bind(2, "5").unwrap();
-            stmt.bind(3, "6").unwrap();
-            stmt.next().expect_err("Null violation!");
+            transaction
+                .execute("insert into abc values (?, ?, ?)", ["4", "5", "6"])
+                .unwrap();
             // no commit -> rollback
         };
         assert!(db.fetch("select * from abc").unwrap().is_empty());
@@ -175,12 +120,19 @@ mod tests {
         {
             let transaction = db.transaction().unwrap();
 
-            let mut stmt = db.prepare("insert into abc values (?, ?, ?)").unwrap();
-            stmt.bind(1, "1").unwrap();
-            stmt.bind(2, "2").unwrap();
-            stmt.bind(3, "3").unwrap();
-            assert_eq!(stmt.next().unwrap(), sqlite::State::Done);
+            transaction
+                .execute("insert into abc values (?, ?, ?)", ["5", "6"])
+                .expect_err("Null violation!");
+            // no commit -> rollback
+        };
+        assert!(db.fetch("select * from abc").unwrap().is_empty());
 
+        {
+            let transaction = db.transaction().unwrap();
+
+            transaction
+                .execute("insert into abc values (?, ?, ?)", ["1", "2", "3"])
+                .unwrap();
             println!("finish -> commit");
             transaction.commit().unwrap();
         };

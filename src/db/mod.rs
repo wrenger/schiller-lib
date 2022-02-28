@@ -1,4 +1,3 @@
-use std::collections::hash_map::HashMap;
 use std::fmt;
 use std::path::{Path, PathBuf};
 
@@ -18,13 +17,13 @@ pub mod structure;
 pub mod user;
 pub use user::User;
 
-use raw::StatementExt;
-
 use super::PKG_VERSION;
+
+use rusqlite::Connection;
 
 pub struct Database {
     path: PathBuf,
-    con: sqlite::Connection,
+    con: rusqlite::Connection,
 }
 
 impl fmt::Debug for Database {
@@ -38,15 +37,16 @@ impl Database {
     pub fn create(path: &str) -> api::Result<Database> {
         let path = PathBuf::from(path);
         if !path.exists() {
-            let database = Database {
-                con: sqlite::Connection::open_with_flags(
+            let mut database = Database {
+                con: rusqlite::Connection::open_with_flags(
                     &path,
-                    sqlite::OpenFlags::new().set_create().set_read_write(),
+                    rusqlite::OpenFlags::SQLITE_OPEN_CREATE
+                        | rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
                 )
                 .map_err(|_| api::Error::FileOpen)?,
                 path,
             };
-            structure::create(&database, PKG_VERSION)?;
+            structure::create(&mut database, PKG_VERSION)?;
             Ok(database)
         } else {
             Err(api::Error::FileOpen)
@@ -57,15 +57,15 @@ impl Database {
     pub fn open(path: &str) -> api::Result<(Database, bool)> {
         let path = PathBuf::from(path);
         if path.exists() {
-            let database = Database {
-                con: sqlite::Connection::open_with_flags(
+            let mut database = Database {
+                con: rusqlite::Connection::open_with_flags(
                     &path,
-                    sqlite::OpenFlags::new().set_read_write(),
+                    rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
                 )
                 .map_err(|_| api::Error::FileOpen)?,
                 path,
             };
-            let updated = structure::migrate(&database, PKG_VERSION)?;
+            let updated = structure::migrate(&mut database, PKG_VERSION)?;
             Ok((database, updated))
         } else {
             Err(api::Error::FileNotFound)
@@ -82,41 +82,41 @@ impl Database {
     fn memory() -> api::Result<Database> {
         Ok(Database {
             path: PathBuf::new(),
-            con: sqlite::open(":memory:")?,
+            con: rusqlite::Connection::open_in_memory()?,
         })
+    }
+
+    fn transaction(&self) -> rusqlite::Result<rusqlite::Transaction> {
+        let con = unsafe { &mut *(&self.con as *const _ as *mut Connection) };
+        con.transaction()
     }
 }
 
 /// Iterator over database results.
 pub struct DBIter<'a, T> {
-    stmt: sqlite::Statement<'a>,
-    columns: HashMap<String, usize>,
+    rows: rusqlite::Rows<'a>,
     ty: std::marker::PhantomData<T>,
 }
 
 impl<'a, T> DBIter<'a, T> {
-    pub fn new(stmt: sqlite::Statement<'a>) -> Self {
-        let mut iter = DBIter {
-            columns: HashMap::new(),
-            stmt,
+    pub fn new(rows: rusqlite::Rows<'a>) -> Self {
+        DBIter {
+            rows,
             ty: std::marker::PhantomData,
-        };
-        iter.columns = iter.stmt.columns();
-        iter
+        }
     }
 }
 
 /// Conversion from database entries.
-pub trait ReadStmt: Sized {
-    fn read(stmt: &sqlite::Statement, columns: &HashMap<String, usize>) -> api::Result<Self>;
+pub trait FromRow: Sized {
+    fn from_row(stmt: &rusqlite::Row) -> rusqlite::Result<Self>;
 }
 
-impl<'a, T: ReadStmt> Iterator for DBIter<'a, T> {
+impl<'a, T: FromRow> Iterator for DBIter<'a, T> {
     type Item = api::Result<T>;
     fn next(&mut self) -> Option<Self::Item> {
-        match self.stmt.next() {
-            Ok(sqlite::State::Row) => Some(T::read(&self.stmt, &self.columns)),
-            Ok(sqlite::State::Done) => None,
+        match self.rows.next() {
+            Ok(row) => Some(T::from_row(row?).map_err(Into::into)),
             Err(e) => Some(Err(e.into())),
         }
     }

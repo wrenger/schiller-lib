@@ -35,30 +35,30 @@ pub enum Error {
     UnsupportedProjectVersion,
 }
 
-impl From<sqlite::Error> for Error {
-    fn from(e: sqlite::Error) -> Error {
-        godot_error!("SQL: {e}");
+impl From<rusqlite::Error> for Error {
+    fn from(e: rusqlite::Error) -> Error {
+        error!("SQL: {e}");
         Error::SQL
     }
 }
 
 impl From<std::convert::Infallible> for Error {
     fn from(e: std::convert::Infallible) -> Error {
-        godot_error!("convert::Infallible: {e:?}");
+        error!("convert::Infallible: {e:?}");
         Error::Arguments
     }
 }
 
 impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Error {
-        godot_error!("File Error: {e:?}");
+        error!("File Error: {e:?}");
         Error::FileOpen
     }
 }
 
 impl From<roxmltree::Error> for Error {
     fn from(e: roxmltree::Error) -> Error {
-        godot_error!("Invalid XML Format: {e:?}");
+        error!("Invalid XML Format: {e:?}");
         Error::InvalidFormat
     }
 }

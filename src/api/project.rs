@@ -1,5 +1,3 @@
-use std::iter::FromIterator;
-
 use gdnative::prelude::*;
 
 use crate::api::{self, Error};
@@ -18,7 +16,7 @@ impl Project {
     /// Creates a new Project object.
     /// This functions should not be called directly as this class is a singleton.
     fn new(_owner: &Node) -> Self {
-        godot_print!("sqlite version: {}", sqlite::version());
+        info!("sqlite version: {}", rusqlite::version());
         Project {
             db: None,
             settings: None,
@@ -103,11 +101,8 @@ impl Project {
 
     /// Preforms a simple media search with the given `text`.
     #[export]
-    fn book_search(&self, _owner: &Node, text: String) -> api::Result<VariantArray> {
-        let result = db::book::search(self.get_db()?, &text)?;
-        Ok(result
-            .collect::<api::Result<VariantArray<Unique>>>()?
-            .into_shared())
+    fn book_search(&self, _owner: &Node, text: String) -> api::Result<Vec<db::book::Book>> {
+        db::book::search(self.get_db()?, &text)
     }
 
     /// Performs an advanced media search with the given search parameters.
@@ -116,11 +111,8 @@ impl Project {
         &self,
         _owner: &Node,
         params: db::BookSearch,
-    ) -> api::Result<VariantArray> {
-        let result = db::book::search_advanced(self.get_db()?, &params)?;
-        Ok(result
-            .collect::<api::Result<VariantArray<Unique>>>()?
-            .into_shared())
+    ) -> api::Result<Vec<db::book::Book>> {
+        db::book::search_advanced(self.get_db()?, &params)
     }
 
     /// Adds a new book.
@@ -158,11 +150,8 @@ impl Project {
 
     /// Performs a simple user search with the given `text`.
     #[export]
-    fn user_search(&self, _owner: &Node, text: String) -> api::Result<VariantArray> {
-        let result = db::user::search(self.get_db()?, &text)?;
-        Ok(result
-            .collect::<api::Result<VariantArray<Unique>>>()?
-            .into_shared())
+    fn user_search(&self, _owner: &Node, text: String) -> api::Result<Vec<db::user::User>> {
+        db::user::search(self.get_db()?, &text)
     }
 
     /// Adds a new user.
@@ -201,11 +190,8 @@ impl Project {
 
     /// Fetches and returns all categories.
     #[export]
-    fn category_list(&self, _owner: &Node) -> api::Result<VariantArray> {
-        let result = db::category::list(self.get_db()?)?;
-        Ok(result
-            .collect::<api::Result<VariantArray<Unique>>>()?
-            .into_shared())
+    fn category_list(&self, _owner: &Node) -> api::Result<Vec<db::category::Category>> {
+        db::category::list(self.get_db()?)
     }
 
     /// Adds a new category.
@@ -280,19 +266,8 @@ impl Project {
 
     /// Returns the list of expired borrowing periods.
     #[export]
-    fn lending_overdues(&self, _owner: &Node) -> api::Result<VariantArray> {
-        let result = db::lending::overdues(self.get_db()?)?;
-        Ok(result
-            .map(|e| {
-                e.map(|(book, user)| {
-                    VariantArray::from_iter(
-                        [book.owned_to_variant(), user.owned_to_variant()].iter(),
-                    )
-                    .into_shared()
-                })
-            })
-            .collect::<api::Result<VariantArray<Unique>>>()?
-            .into_shared())
+    fn lending_overdues(&self, _owner: &Node) -> api::Result<Vec<(db::book::Book, db::user::User)>> {
+        db::lending::overdues(self.get_db()?)
     }
 
     /// Returns the project settings.

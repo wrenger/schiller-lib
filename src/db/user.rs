@@ -1,9 +1,6 @@
-use std::collections::HashMap;
-
 use crate::api;
 
-use super::raw::{DatabaseExt, StatementExt};
-use super::{DBIter, Database, ReadStmt};
+use super::{DBIter, Database, FromRow};
 
 // Query
 const FETCH_USER: &str = "\
@@ -79,35 +76,28 @@ impl User {
     }
 }
 
-impl ReadStmt for User {
-    fn read(stmt: &sqlite::Statement<'_>, columns: &HashMap<String, usize>) -> api::Result<User> {
+impl FromRow for User {
+    fn from_row(row: &rusqlite::Row) -> rusqlite::Result<User> {
         Ok(User {
-            account: stmt.read(columns["account"])?,
-            forename: stmt.read(columns["forename"])?,
-            surname: stmt.read(columns["surname"])?,
-            role: stmt.read(columns["role"])?,
-            may_borrow: stmt.read::<i64>(columns["may_borrow"])? != 0,
+            account: row.get("account")?,
+            forename: row.get("forename")?,
+            surname: row.get("surname")?,
+            role: row.get("role")?,
+            may_borrow: row.get("may_borrow")?,
         })
     }
 }
 
 /// Returns the user with the given `id`.
 pub fn fetch(db: &Database, id: &str) -> api::Result<User> {
-    let mut stmt = db.con.prepare(FETCH_USER)?;
-    stmt.bind(1, id)?;
-    if stmt.next()? == sqlite::State::Row {
-        User::read(&stmt, &stmt.columns())
-    } else {
-        Err(api::Error::SQL)
-    }
+    Ok(db.con.query_row(FETCH_USER, [id], User::from_row)?)
 }
 
 /// Performes a simple user search with the given `text`.
-pub fn search<'a>(db: &'a Database, text: &str) -> api::Result<DBIter<'a, User>> {
+pub fn search<'a>(db: &'a Database, text: &str) -> api::Result<Vec<User>> {
     let mut stmt = db.con.prepare(QUERY_USERS)?;
-    let text = text.trim();
-    stmt.bind(1, text)?;
-    Ok(DBIter::new(stmt))
+    let rows = stmt.query([text.trim()])?;
+    DBIter::new(rows).collect()
 }
 
 /// Adds a new user.
@@ -115,15 +105,16 @@ pub fn add(db: &Database, user: &User) -> api::Result<()> {
     if !user.is_valid() {
         return Err(api::Error::InvalidUser);
     }
-    let mut stmt = db.con.prepare(ADD_USER)?;
-    stmt.bind(1, user.account.trim())?;
-    stmt.bind(2, user.forename.trim())?;
-    stmt.bind(3, user.surname.trim())?;
-    stmt.bind(4, user.role.trim())?;
-    stmt.bind(5, user.may_borrow as i64)?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    db.con.execute(
+        ADD_USER,
+        rusqlite::params![
+            user.account.trim(),
+            user.forename.trim(),
+            user.surname.trim(),
+            user.role.trim(),
+            user.may_borrow as i64,
+        ],
+    )?;
     Ok(())
 }
 
@@ -133,34 +124,28 @@ pub fn update(db: &Database, previous_account: &str, user: &User) -> api::Result
     if previous_account.is_empty() || !user.is_valid() {
         return Err(api::Error::InvalidUser);
     }
-    let transaction = db.con.transaction()?;
+    let transaction = db.transaction()?;
     // update user
-    let mut stmt = db.con.prepare(UPDATE_USER)?;
-    stmt.bind(1, user.account.trim())?;
-    stmt.bind(2, user.forename.trim())?;
-    stmt.bind(3, user.surname.trim())?;
-    stmt.bind(4, user.role.trim())?;
-    stmt.bind(5, user.may_borrow as i64)?;
-    stmt.bind(6, previous_account)?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    transaction.execute(
+        UPDATE_USER,
+        rusqlite::params![
+            user.account.trim(),
+            user.forename.trim(),
+            user.surname.trim(),
+            user.role.trim(),
+            user.may_borrow as i64,
+            previous_account,
+        ],
+    )?;
 
     // update borrows
-    let mut stmt = db.con.prepare(UPDATE_USER_BORROWS)?;
-    stmt.bind(1, user.account.trim())?;
-    stmt.bind(2, previous_account)?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    transaction.execute(UPDATE_USER_BORROWS, [user.account.trim(), previous_account])?;
 
     // update reservations
-    let mut stmt = db.con.prepare(UPDATE_USER_RESERVATIONS)?;
-    stmt.bind(1, user.account.trim())?;
-    stmt.bind(2, previous_account)?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    transaction.execute(
+        UPDATE_USER_RESERVATIONS,
+        [user.account.trim(), previous_account],
+    )?;
     transaction.commit()?;
     Ok(())
 }
@@ -172,16 +157,12 @@ pub fn delete(db: &Database, account: &str) -> api::Result<()> {
     if account.is_empty() {
         return Err(api::Error::InvalidUser);
     }
-    let transaction = db.con.transaction()?;
+    let transaction = db.transaction()?;
     // remove user
-    let mut stmt = db.con.prepare(DELETE_USER)?;
-    stmt.bind(1, account)?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    transaction.execute(DELETE_USER, [account])?;
 
     // remove borrows & reservations
-    db.con.execute(DELETE_UNUSED_USERS)?;
+    transaction.execute(DELETE_UNUSED_USERS, [])?;
     transaction.commit()?;
     Ok(())
 }
@@ -190,21 +171,17 @@ pub fn delete(db: &Database, account: &str) -> api::Result<()> {
 ///
 /// The roles of all users not contained in the given list are cleared.
 pub fn update_roles(db: &Database, users: &[(&str, &str)]) -> api::Result<()> {
-    let transaction = db.con.transaction()?;
-    db.con.execute(DELETE_USER_ROLES)?;
+    let transaction = db.transaction()?;
+    transaction.execute(DELETE_USER_ROLES, [])?;
 
-    let mut stmt = db.con.prepare(UPDATE_USER_ROLE)?;
+    let mut stmt = transaction.prepare(UPDATE_USER_ROLE)?;
     for &(account, role) in users {
         let account = account.trim();
         if !account.is_empty() {
-            stmt.bind(1, role.trim())?;
-            stmt.bind(2, account)?;
-            if stmt.next()? != sqlite::State::Done {
-                return Err(api::Error::SQL);
-            }
-            stmt.reset()?;
+            stmt.execute([role.trim(), account])?;
         }
     }
+    drop(stmt);
     transaction.commit()?;
     Ok(())
 }
@@ -228,10 +205,7 @@ mod tests {
         };
         user::add(&db, &user).unwrap();
 
-        let result: Vec<User> = user::search(&db, "")
-            .unwrap()
-            .collect::<api::Result<Vec<_>>>()
-            .unwrap();
+        let result = user::search(&db, "").unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0], user);
 
@@ -244,18 +218,12 @@ mod tests {
             },
         )
         .unwrap();
-        let result: Vec<User> = user::search(&db, "")
-            .unwrap()
-            .collect::<api::Result<Vec<_>>>()
-            .unwrap();
+        let result = user::search(&db, "").unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].role, "Teacher");
 
         user::delete(&db, &user.account).unwrap();
-        let result: Vec<User> = user::search(&db, "")
-            .unwrap()
-            .collect::<api::Result<Vec<_>>>()
-            .unwrap();
+        let result = user::search(&db, "").unwrap();
         assert_eq!(result.len(), 0);
     }
 
@@ -281,10 +249,7 @@ mod tests {
         user::add(&db, &user1).unwrap();
         user::add(&db, &user2).unwrap();
 
-        let result: Vec<User> = user::search(&db, "")
-            .unwrap()
-            .collect::<api::Result<Vec<_>>>()
-            .unwrap();
+        let result = user::search(&db, "").unwrap();
         assert_eq!(result.len(), 2);
         assert_eq!(result[0], user2);
         assert_eq!(result[1], user1);
@@ -294,10 +259,7 @@ mod tests {
         user1.role = "Teacher".into();
         user2.role = "".into();
 
-        let result: Vec<User> = user::search(&db, "")
-            .unwrap()
-            .collect::<api::Result<Vec<_>>>()
-            .unwrap();
+        let result = user::search(&db, "").unwrap();
         assert_eq!(result.len(), 2);
         assert_eq!(result[0], user2);
         assert_eq!(result[1], user1);

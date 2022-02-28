@@ -1,7 +1,7 @@
 use crate::api;
-use std::{collections::HashMap, iter::FromIterator};
+use std::iter::FromIterator;
 
-use super::{DBIter, Database, ReadStmt};
+use super::{DBIter, Database, FromRow};
 
 const SETTINGS_FETCH: &str = "\
     select key, value from sbv_meta \
@@ -92,46 +92,44 @@ impl FromIterator<(String, String)> for Settings {
                 "mail.overdue.content" => settings.mail_overdue_content = value,
                 "mail.overdue2.subject" => settings.mail_overdue2_subject = value,
                 "mail.overdue2.content" => settings.mail_overdue2_content = value,
-                _ => gdnative::godot_error!("Unknown option: {key} = {value}"),
+                _ => error!("Unknown option: {key} = {value}"),
             }
         }
         settings
     }
 }
 
-impl ReadStmt for (String, String) {
-    fn read(
-        stmt: &sqlite::Statement,
-        _columns: &HashMap<String, usize>,
-    ) -> Result<Self, api::Error> {
-        Ok((stmt.read(0)?, stmt.read(1)?))
+impl FromRow for (String, String) {
+    fn from_row(row: &rusqlite::Row) -> rusqlite::Result<Self> {
+        Ok((row.get(0)?, row.get(1)?))
     }
 }
 
 pub fn update(db: &Database, settings: &Settings) -> api::Result<()> {
-    let mut stmt = db.con.prepare(SETTINGS_UPDATE)?;
-    stmt.bind(1, settings.borrowing_duration)?;
-    stmt.bind(2, settings.user_path.trim())?;
-    stmt.bind(3, settings.user_delimiter.trim())?;
-    stmt.bind(4, settings.dnb_token.trim())?;
-    stmt.bind(5, settings.mail_last_reminder.trim())?;
-    stmt.bind(6, settings.mail_from.trim())?;
-    stmt.bind(7, settings.mail_host.trim())?;
-    stmt.bind(8, settings.mail_password.trim())?;
-    stmt.bind(9, settings.mail_info_subject.trim())?;
-    stmt.bind(10, settings.mail_info_content.trim())?;
-    stmt.bind(11, settings.mail_overdue_subject.trim())?;
-    stmt.bind(12, settings.mail_overdue_content.trim())?;
-    stmt.bind(13, settings.mail_overdue2_subject.trim())?;
-    stmt.bind(14, settings.mail_overdue2_content.trim())?;
-
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    db.con.execute(
+        SETTINGS_UPDATE,
+        rusqlite::params![
+            settings.borrowing_duration,
+            settings.user_path.trim(),
+            settings.user_delimiter.trim(),
+            settings.dnb_token.trim(),
+            settings.mail_last_reminder.trim(),
+            settings.mail_from.trim(),
+            settings.mail_host.trim(),
+            settings.mail_password.trim(),
+            settings.mail_info_subject.trim(),
+            settings.mail_info_content.trim(),
+            settings.mail_overdue_subject.trim(),
+            settings.mail_overdue_content.trim(),
+            settings.mail_overdue2_subject.trim(),
+            settings.mail_overdue2_content.trim(),
+        ],
+    )?;
     Ok(())
 }
 
 pub fn fetch(db: &Database) -> api::Result<Settings> {
-    let stmt = db.con.prepare(SETTINGS_FETCH)?;
-    DBIter::new(stmt).collect()
+    let mut stmt = db.con.prepare(SETTINGS_FETCH)?;
+    let rows = stmt.query([])?;
+    DBIter::new(rows).collect()
 }

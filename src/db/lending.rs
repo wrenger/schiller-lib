@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use super::{Book, DBIter, Database, ReadStmt, User};
+use super::{Book, DBIter, Database, FromRow, User};
 use crate::api;
 
 const UPDATE_LEND: &str = "\
@@ -70,13 +68,10 @@ pub fn lend(db: &Database, book: &mut Book, user: &User, days: i64) -> api::Resu
     let deadline = chrono::Utc::today() + chrono::Duration::days(days);
     let deadline = deadline.format("%F").to_string();
 
-    let mut stmt = db.con.prepare(UPDATE_LEND)?;
-    stmt.bind(1, user.account.as_str())?;
-    stmt.bind(2, deadline.as_str())?;
-    stmt.bind(3, book.id.as_str())?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    db.con.execute(
+        UPDATE_LEND,
+        [user.account.trim(), deadline.trim(), book.id.trim()],
+    )?;
 
     book.borrower = user.account.clone();
     book.deadline = deadline;
@@ -89,11 +84,7 @@ pub fn return_back(db: &Database, book: &mut Book) -> api::Result<()> {
         return Err(api::Error::Logic);
     }
 
-    let mut stmt = db.con.prepare(UPDATE_REVOKE)?;
-    stmt.bind(1, book.id.as_str())?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    db.con.execute(UPDATE_REVOKE, [book.id.trim()])?;
     book.borrower = String::new();
     book.deadline = String::new();
     Ok(())
@@ -117,12 +108,8 @@ pub fn reserve(db: &Database, book: &mut Book, user: &User) -> api::Result<()> {
         return Err(api::Error::LendingBookAlreadyBorrowedByUser);
     }
 
-    let mut stmt = db.con.prepare(UPDATE_RESERVE)?;
-    stmt.bind(1, user.account.as_str())?;
-    stmt.bind(2, book.id.as_str())?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    db.con
+        .execute(UPDATE_RESERVE, [user.account.trim(), book.id.trim()])?;
     book.reservation = user.account.clone();
     Ok(())
 }
@@ -133,26 +120,20 @@ pub fn release(db: &Database, book: &mut Book) -> api::Result<()> {
         return Err(api::Error::Logic);
     }
 
-    let mut stmt = db.con.prepare(UPDATE_RELEASE)?;
-    stmt.bind(1, book.id.as_str())?;
-    if stmt.next()? != sqlite::State::Done {
-        return Err(api::Error::SQL);
-    }
+    db.con.execute(UPDATE_RELEASE, [book.id.trim()])?;
     book.reservation = String::new();
     Ok(())
 }
 
 /// Return the list of expired loan periods.
-pub fn overdues(db: &Database) -> api::Result<DBIter<(Book, User)>> {
-    let stmt = db.con.prepare(QUERY_EXPIRED)?;
-    Ok(DBIter::new(stmt))
+pub fn overdues(db: &Database) -> api::Result<Vec<(Book, User)>> {
+    let mut stmt = db.con.prepare(QUERY_EXPIRED)?;
+    let rows = stmt.query([])?;
+    DBIter::new(rows).collect()
 }
 
-impl ReadStmt for (Book, User) {
-    fn read(
-        stmt: &sqlite::Statement<'_>,
-        columns: &HashMap<String, usize>,
-    ) -> api::Result<(Book, User)> {
-        Ok((Book::read(stmt, columns)?, User::read(stmt, columns)?))
+impl FromRow for (Book, User) {
+    fn from_row(row: &rusqlite::Row) -> rusqlite::Result<(Book, User)> {
+        Ok((Book::from_row(row)?, User::from_row(row)?))
     }
 }

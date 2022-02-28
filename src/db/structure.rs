@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use crate::api;
 
-use super::{raw::DatabaseExt, settings, settings::Settings, Database};
+use super::{settings, settings::Settings, Database};
 
 const CREATE_TABLES: &str = "\
     create table sbv_meta ( \
@@ -61,9 +61,9 @@ const PATCHES: [(Version, MigrationRoutine); 2] = [
 ];
 
 pub fn create(db: &Database, version: &str) -> api::Result<()> {
-    let transaction = db.con.transaction()?;
-    db.con.execute(CREATE_TABLES)?;
-    update_version(&db.con, version)?;
+    let transaction = db.transaction()?;
+    transaction.execute_batch(CREATE_TABLES)?;
+    update_version(&transaction, version)?;
     settings::update(db, &Settings::default())?;
     transaction.commit()?;
     Ok(())
@@ -72,25 +72,22 @@ pub fn create(db: &Database, version: &str) -> api::Result<()> {
 /// Applies the related migration routines if the version changed.
 /// Returns true if the database was updated.
 pub fn migrate(db: &Database, version: &str) -> api::Result<bool> {
-    let transaction = db.con.transaction()?;
-    let mut stmt = db.con.prepare(FETCH_VERSION)?;
-    let old_version = if stmt.next()? == sqlite::State::Row {
-        stmt.read::<String>(0)?
-    } else {
-        return Err(api::Error::UnsupportedProjectVersion);
-    };
-    gdnative::godot_print!("Start migration of {old_version}");
+    let transaction = db.transaction()?;
+    let old_version: String = transaction
+        .query_row(FETCH_VERSION, [], |row| row.get(0))
+        .map_err(|_| api::Error::UnsupportedProjectVersion)?;
+    info!("Start migration of {old_version}");
 
     let old_version: Version = old_version.parse()?;
     let new_version: Version = version.parse()?;
     if MIN_VERSION <= old_version && old_version <= new_version {
         for (patch_version, patch) in &PATCHES {
             if old_version < *patch_version {
-                gdnative::godot_print!("Applying patch {patch_version}");
+                info!("Applying patch {patch_version}");
                 patch(db)?;
             }
         }
-        update_version(&db.con, version)?;
+        update_version(&transaction, version)?;
         transaction.commit()?;
         Ok(old_version != new_version)
     } else {
@@ -98,14 +95,9 @@ pub fn migrate(db: &Database, version: &str) -> api::Result<bool> {
     }
 }
 
-fn update_version(db: &sqlite::Connection, version: &str) -> api::Result<()> {
-    let mut stmt = db.prepare(UPDATE_VERSION)?;
-    stmt.bind(1, version)?;
-    if stmt.next()? != sqlite::State::Done {
-        Err(api::Error::SQL)
-    } else {
-        Ok(())
-    }
+fn update_version(db: &rusqlite::Connection, version: &str) -> api::Result<()> {
+    db.execute(UPDATE_VERSION, [version])?;
+    Ok(())
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -144,7 +136,7 @@ fn patch_0_6_3(db: &Database) -> api::Result<()> {
     fn regex_search(regex: &str, text: &str) -> String {
         let re = RegEx::new();
         if re.compile(regex).is_err() {
-            gdnative::godot_error!("Malformed regex: {regex}");
+            error!("Malformed regex: {regex}");
             return String::new();
         }
         re.search(text, 0, -1)
@@ -201,7 +193,7 @@ fn patch_0_8_0(db: &Database) -> api::Result<()> {
         value=replace(replace(value, '[mediumtitel]', '{booktitle}'), '[name]', '{username}') \
         where key like 'mail.%.subject' or key like 'mail.%.content' \
     ";
-    db.con.execute(UPDATE_MAIL_PLACEHOLDERS)?;
+    db.con.execute(UPDATE_MAIL_PLACEHOLDERS, [])?;
     Ok(())
 }
 
@@ -232,27 +224,14 @@ mod tests {
 
     #[test]
     fn create_tables() {
-        use book::Book;
-        use category::Category;
-        use user::User;
-
         let db = Database::memory().unwrap();
         structure::create(&db, PKG_VERSION).unwrap();
 
-        let books: Vec<Book> = book::search(&db, "")
-            .unwrap()
-            .collect::<api::Result<Vec<_>>>()
-            .unwrap();
+        let books = book::search(&db, "").unwrap();
         assert!(books.is_empty());
-        let users: Vec<User> = user::search(&db, "")
-            .unwrap()
-            .collect::<api::Result<Vec<_>>>()
-            .unwrap();
+        let users = user::search(&db, "").unwrap();
         assert!(users.is_empty());
-        let categories: Vec<Category> = category::list(&db)
-            .unwrap()
-            .collect::<api::Result<Vec<_>>>()
-            .unwrap();
+        let categories = category::list(&db).unwrap();
         assert!(categories.is_empty());
         let settings: Settings = settings::fetch(&db).unwrap();
         assert!(settings == Settings::default());
