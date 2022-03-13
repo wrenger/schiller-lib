@@ -1,3 +1,4 @@
+use gdnative::core_types::{FromVariant, FromVariantError};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::api;
@@ -105,9 +106,11 @@ const DELETE: &str = "\
 const DELETE_UNUSED_AUTHORS: &str = "\
     delete from author where medium not in (select id from medium) \
 ";
+// CAST returns 0 on failure, MAX returns NULL if empty
 const UNUSED_ID: &str = "\
-    select max(substr(id, ? + 2)) from medium \
-    where id like ?||'%' order by id \
+    select ifnull(max(cast(substr(id, length(?1) + 1) as integer)), 0) \
+    from medium where id like ?1||'%' \
+    order by id \
 ";
 
 /// Data object for book.
@@ -160,18 +163,44 @@ impl FromRow for Book {
 }
 
 /// Book search parameters
-#[derive(Debug, Clone, Default, gdnative::ToVariant, gdnative::FromVariant)]
+#[derive(Debug, Clone, Default, gdnative::FromVariant)]
 pub struct BookSearch {
     id: String,
     isbn: String,
     title: String,
     publisher: String,
     authors: String,
-    year: String,
+    year: YearRange,
     category: String,
     note: String,
     user: String,
     state: BookState,
+}
+
+#[derive(Debug, Clone)]
+struct YearRange(u16, u16);
+
+impl Default for YearRange {
+    fn default() -> Self {
+        Self(0, u16::MAX)
+    }
+}
+
+impl FromVariant for YearRange {
+    fn from_variant(variant: &gdnative::core_types::Variant) -> Result<Self, FromVariantError> {
+        let str = String::from_variant(variant)?;
+        let str = str.trim();
+        if str.is_empty() {
+            Ok(Self::default())
+        } else if let Some((start, end)) = str.split_once('-') {
+            let start = start.trim().parse().unwrap_or_default();
+            let end = end.trim().parse().unwrap_or(u16::MAX);
+            Ok(Self(start, end))
+        } else {
+            let year = str.trim().parse().unwrap_or_default();
+            Ok(Self(year, year))
+        }
+    }
 }
 
 #[repr(i64)]
@@ -207,9 +236,7 @@ impl gdnative::core_types::ToVariant for BookState {
 }
 
 impl gdnative::core_types::FromVariant for BookState {
-    fn from_variant(
-        variant: &gdnative::core_types::Variant,
-    ) -> Result<Self, gdnative::core_types::FromVariantError> {
+    fn from_variant(variant: &gdnative::core_types::Variant) -> Result<Self, FromVariantError> {
         i64::from_variant(variant).map(|x| x.into())
     }
 }
@@ -229,15 +256,6 @@ pub fn search<'a>(db: &'a Database, text: &str) -> api::Result<Vec<Book>> {
 /// Performs an advanced media search with the given search parameters.
 pub fn search_advanced<'a>(db: &'a Database, params: &BookSearch) -> api::Result<Vec<Book>> {
     let mut stmt = db.con.prepare(SEARCH_ADVANCED)?;
-    let year = params.year.trim();
-    let year_min = year.split_once('-').map(|s| s.0.trim()).unwrap_or(year);
-    let year_min = if year_min.is_empty() { "0" } else { year_min };
-    let year_max = year.split_once('-').map(|s| s.1.trim()).unwrap_or(year);
-    let year_max = if year_max.is_empty() {
-        "10000"
-    } else {
-        year_max
-    };
     let user = params.user.trim();
     let user = if !user.is_empty() {
         user
@@ -252,8 +270,8 @@ pub fn search_advanced<'a>(db: &'a Database, params: &BookSearch) -> api::Result
         params.title.trim(),
         params.publisher.trim(),
         params.authors.trim(),
-        year_min,
-        year_max,
+        params.year.0,
+        params.year.1,
         params.category.trim(),
         params.note.trim(),
         user,
@@ -369,11 +387,11 @@ pub fn generate_id(db: &Database, book: &Book) -> api::Result<String> {
         return Ok(id.to_string());
     }
 
-    let id = db.con.query_row(
-        UNUSED_ID,
-        rusqlite::params![prefix.len(), prefix.as_str()],
-        |v| v.get::<usize, usize>(1).map(|v| v + 1),
-    )?;
+    let id = db
+        .con
+        .query_row(UNUSED_ID, rusqlite::params![prefix.as_str()], |v| {
+            v.get::<usize, usize>(0).map(|v| v + 1)
+        })?;
     Ok(format!("{prefix} {id}"))
 }
 
