@@ -5,6 +5,8 @@ use crate::api;
 
 use super::{DBIter, Database, FromRow};
 
+use gdnative::derive::{FromVariant, ToVariant};
+
 const FETCH: &str = "\
     select \
     id, \
@@ -114,7 +116,7 @@ const UNUSED_ID: &str = "\
 ";
 
 /// Data object for book.
-#[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
+#[derive(Debug, Clone, ToVariant, FromVariant)]
 #[cfg_attr(test, derive(PartialEq, Default))]
 pub struct Book {
     pub id: String,
@@ -163,7 +165,7 @@ impl FromRow for Book {
 }
 
 /// Book search parameters
-#[derive(Debug, Clone, Default, gdnative::FromVariant)]
+#[derive(Debug, Clone, Default, FromVariant)]
 pub struct BookSearch {
     id: String,
     isbn: String,
@@ -247,14 +249,14 @@ pub fn fetch(db: &Database, id: &str) -> api::Result<Book> {
 }
 
 /// Performs a simple media search with the given `text`.
-pub fn search<'a>(db: &'a Database, text: &str) -> api::Result<Vec<Book>> {
+pub fn search(db: &Database, text: &str) -> api::Result<Vec<Book>> {
     let mut stmt = db.con.prepare(SEARCH)?;
     let rows = stmt.query(rusqlite::params![text.trim()])?;
     DBIter::new(rows).collect()
 }
 
 /// Performs an advanced media search with the given search parameters.
-pub fn search_advanced<'a>(db: &'a Database, params: &BookSearch) -> api::Result<Vec<Book>> {
+pub fn search_advanced(db: &Database, params: &BookSearch) -> api::Result<Vec<Book>> {
     let mut stmt = db.con.prepare(SEARCH_ADVANCED)?;
     let user = params.user.trim();
     let user = if !user.is_empty() {

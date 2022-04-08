@@ -9,7 +9,7 @@ const PKG_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 #[cfg(not(test))]
 macro_rules! error {
     ($($args:tt)*) => {
-        gdnative::godot_error!($($args)*)
+        gdnative::log::godot_error!($($args)*)
     };
 }
 #[cfg(test)]
@@ -22,7 +22,7 @@ macro_rules! error {
 #[cfg(not(test))]
 macro_rules! info {
     ($($args:tt)*) => {
-        gdnative::godot_print!($($args)*)
+        gdnative::log::godot_print!($($args)*)
     };
 }
 #[cfg(test)]

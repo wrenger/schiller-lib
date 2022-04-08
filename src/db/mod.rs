@@ -28,7 +28,9 @@ pub struct Database {
 
 impl fmt::Debug for Database {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Database {{ {:?} }}", self.path)
+        f.debug_struct("Database")
+            .field("path", &self.path)
+            .finish()
     }
 }
 
@@ -37,7 +39,7 @@ impl Database {
     pub fn create(path: &str) -> api::Result<Database> {
         let path = PathBuf::from(path);
         if !path.exists() {
-            let mut database = Database {
+            let database = Database {
                 con: rusqlite::Connection::open_with_flags(
                     &path,
                     rusqlite::OpenFlags::SQLITE_OPEN_CREATE
@@ -46,7 +48,7 @@ impl Database {
                 .map_err(|_| api::Error::FileOpen)?,
                 path,
             };
-            structure::create(&mut database, PKG_VERSION)?;
+            structure::create(&database, PKG_VERSION)?;
             Ok(database)
         } else {
             Err(api::Error::FileOpen)
@@ -57,7 +59,7 @@ impl Database {
     pub fn open(path: &str) -> api::Result<(Database, bool)> {
         let path = PathBuf::from(path);
         if path.exists() {
-            let mut database = Database {
+            let database = Database {
                 con: rusqlite::Connection::open_with_flags(
                     &path,
                     rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
@@ -65,7 +67,7 @@ impl Database {
                 .map_err(|_| api::Error::FileOpen)?,
                 path,
             };
-            let updated = structure::migrate(&mut database, PKG_VERSION)?;
+            let updated = structure::migrate(&database, PKG_VERSION)?;
             Ok((database, updated))
         } else {
             Err(api::Error::FileNotFound)
@@ -86,7 +88,15 @@ impl Database {
         })
     }
 
+    /// Creates a rollback point.
+    /// If any statement on a transaction fails, all changes are rolled back
+    /// to the point before this function is called.
+    ///
+    /// ## Safety
+    /// This operation is only safe if called once.
+    /// Stacking transactions on top of each other is not allowed!
     fn transaction(&self) -> rusqlite::Result<rusqlite::Transaction> {
+        #[allow(clippy::cast_ref_to_mut)]
         let con = unsafe { &mut *(&self.con as *const _ as *mut Connection) };
         con.transaction()
     }

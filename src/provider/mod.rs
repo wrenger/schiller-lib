@@ -1,6 +1,8 @@
 pub mod marc21;
 
-#[derive(Debug, Default, PartialEq, gdnative::ToVariant, gdnative::FromVariant)]
+use gdnative::derive::{FromVariant, ToVariant};
+
+#[derive(Debug, Default, PartialEq, ToVariant, FromVariant)]
 pub struct BookData {
     title: String,
     authors: Vec<String>,

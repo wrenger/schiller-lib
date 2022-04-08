@@ -40,15 +40,10 @@ impl Mailer {
     }
 
     fn register(builder: &ClassBuilder<Self>) {
-        builder.add_signal(Signal {
-            name: "done",
-            args: &[SignalArgument {
-                name: "result",
-                default: Dictionary::default().to_variant(),
-                export_info: ExportInfo::new(VariantType::Dictionary),
-                usage: PropertyUsage::DEFAULT,
-            }],
-        });
+        builder
+            .signal("done")
+            .with_param_default("result", Dictionary::default().to_variant())
+            .done();
     }
 
     /// Asynchronously sends a mail to the given user with the specified `title` and `body`.

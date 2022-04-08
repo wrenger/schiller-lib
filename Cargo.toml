@@ -17,7 +17,7 @@ lto = true
 strip = "debuginfo"
 
 [dependencies]
-gdnative = "0.9.3"
+gdnative = "0.10.0"
 rusqlite = { version = "0.27", features = ["bundled"] }
 chrono = "0.4.19"
 roxmltree = "0.14.1"
@@ -26,6 +26,6 @@ java-properties = "1.4.0"
 num_enum = "0.5"
 
 [dependencies.lettre]
-version = "0.10.0-rc.4"
+version = "0.10.0-rc.5"
 default-features = false
 features = ["builder", "smtp-transport", "native-tls"]

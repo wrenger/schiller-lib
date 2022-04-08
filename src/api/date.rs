@@ -25,17 +25,17 @@ impl Date {
 
     fn register(builder: &ClassBuilder<Self>) {
         builder
-            .add_property("year")
+            .property("year")
             .with_getter(Date::get_year)
             .with_setter(Date::set_year)
             .done();
         builder
-            .add_property("month")
+            .property("month")
             .with_getter(Date::get_month)
             .with_setter(Date::set_month)
             .done();
         builder
-            .add_property("day")
+            .property("day")
             .with_getter(Date::get_day)
             .with_setter(Date::set_day)
             .done();

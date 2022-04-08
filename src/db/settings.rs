@@ -3,6 +3,8 @@ use std::iter::FromIterator;
 
 use super::{DBIter, Database, FromRow};
 
+use gdnative::derive::{FromVariant, ToVariant};
+
 const SETTINGS_FETCH: &str = "\
     select key, value from sbv_meta \
 ";
@@ -25,7 +27,7 @@ const SETTINGS_UPDATE: &str = "\
     ('mail.overdue2.content', ?) \
 ";
 
-#[derive(Debug, PartialEq, Clone, gdnative::ToVariant, gdnative::FromVariant)]
+#[derive(Debug, PartialEq, Clone, ToVariant, FromVariant)]
 pub struct Settings {
     // Borrowing
     pub borrowing_duration: i64,

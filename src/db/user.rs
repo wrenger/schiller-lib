@@ -2,6 +2,8 @@ use crate::api;
 
 use super::{DBIter, Database, FromRow};
 
+use gdnative::derive::{FromVariant, ToVariant};
+
 // Query
 const FETCH_USER: &str = "\
     select \
@@ -58,7 +60,7 @@ const UPDATE_USER_ROLE: &str = "\
 ";
 
 /// Data object for a user.
-#[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
+#[derive(Debug, Clone, ToVariant, FromVariant)]
 #[cfg_attr(test, derive(PartialEq, Default))]
 pub struct User {
     pub account: String,
@@ -94,7 +96,7 @@ pub fn fetch(db: &Database, id: &str) -> api::Result<User> {
 }
 
 /// Performes a simple user search with the given `text`.
-pub fn search<'a>(db: &'a Database, text: &str) -> api::Result<Vec<User>> {
+pub fn search(db: &Database, text: &str) -> api::Result<Vec<User>> {
     let mut stmt = db.con.prepare(QUERY_USERS)?;
     let rows = stmt.query([text.trim()])?;
     DBIter::new(rows).collect()

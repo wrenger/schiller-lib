@@ -47,7 +47,7 @@ impl Project {
             crate::PKG_AUTHORS
                 .split(';')
                 .map(GodotString::from_str)
-                .collect::<TypedArray<_>>(),
+                .collect::<PoolArray<_>>(),
         );
         dict.insert("description", crate::PKG_DESCRIPTION);
         dict.insert("license", crate::PKG_LICENSE);
@@ -266,7 +266,10 @@ impl Project {
 
     /// Returns the list of expired borrowing periods.
     #[export]
-    fn lending_overdues(&self, _owner: &Node) -> api::Result<Vec<(db::book::Book, db::user::User)>> {
+    fn lending_overdues(
+        &self,
+        _owner: &Node,
+    ) -> api::Result<Vec<(db::book::Book, db::user::User)>> {
         db::lending::overdues(self.get_db()?)
     }
 

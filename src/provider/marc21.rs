@@ -37,8 +37,7 @@ pub fn parse(response: &str, isbn: &str) -> api::Result<BookData> {
         .descendants()
         .find(|n| n.tag_name().name() == "records")
     {
-        for record in records.children() {
-            let record = parse_record(record);
+        for record in records.children().map(Record::parse) {
             if record.isbns.iter().any(|e| e == isbn) {
                 return Ok(record.data);
             }
@@ -57,49 +56,51 @@ struct Record {
     data: BookData,
 }
 
-fn parse_record(record: roxmltree::Node) -> Record {
-    let mut r = Record::default();
-    let mut persons = Vec::new();
-    for field in record
-        .descendants()
-        .filter(|x| x.has_tag_name("datafield") && x.has_attribute("tag"))
-    {
-        match field.attribute("tag").unwrap() {
-            ISBN_COSTS_TAG => {
-                subfield(field, ISBN_CODE).map_or((), |t| r.isbns.push(t));
-                subfield(field, COSTS_CODE).map_or((), |t| r.data.costs = parse_costs(&t))
-            }
-            EAN_TAG => subfield(field, EAN_CODE).map_or((), |t| r.isbns.push(t)),
-            TITLE_TAG => {
-                subfield(field, TITLE_CODE).map_or((), |t| r.data.title = t);
-                // Add subtitle if the title is to short
-                if r.data.title.len() < SHORT_TITLE_LEN {
-                    subfield(field, SUBTITLE_CODE).map_or((), |t| {
-                        if !t.is_empty() {
-                            r.data.title.push_str(" - ");
-                            r.data.title.push_str(&t);
-                        }
-                    });
+impl Record {
+    fn parse(record: roxmltree::Node) -> Self {
+        let mut data = BookData::default();
+        let mut persons = Vec::new();
+        let mut isbns = Vec::new();
+        for field in record.descendants().filter(|x| x.has_tag_name("datafield")) {
+            match field.attribute("tag") {
+                Some(ISBN_COSTS_TAG) => {
+                    subfield(field, ISBN_CODE).map_or((), |t| isbns.push(t));
+                    subfield(field, COSTS_CODE).map_or((), |t| data.costs = parse_costs(&t))
                 }
+                Some(EAN_TAG) => subfield(field, EAN_CODE).map_or((), |t| isbns.push(t)),
+                Some(TITLE_TAG) => {
+                    subfield(field, TITLE_CODE).map_or((), |t| data.title = t);
+                    // Add subtitle if the title is to short
+                    if data.title.len() < SHORT_TITLE_LEN {
+                        subfield(field, SUBTITLE_CODE).map_or((), |t| {
+                            if !t.is_empty() {
+                                data.title.push_str(" - ");
+                                data.title.push_str(&t);
+                            }
+                        });
+                    }
+                }
+                Some(AUTHOR_TAG) => {
+                    subfield(field, AUTHOR_CODE).map_or((), |t| data.authors.push(t))
+                }
+                Some(PERSON_TAG) => subfield(field, PERSON_CODE).map_or((), |t| persons.push(t)),
+                Some(PUBLISHER_TAG) => {
+                    subfield(field, PUBLISHER_CODE).map_or((), |t| data.publisher = t)
+                }
+                _ => {}
+            };
+        }
+        if data.authors.is_empty() {
+            data.authors = persons;
+        }
+        // Reformat author names ("<surname>, <forename>" -> "<forename> <surname>")
+        for author in &mut data.authors {
+            if let Some((s, f)) = author.split_once(',') {
+                *author = [f.trim(), s.trim()].join(" ");
             }
-            AUTHOR_TAG => subfield(field, AUTHOR_CODE).map_or((), |t| r.data.authors.push(t)),
-            PERSON_TAG => subfield(field, PERSON_CODE).map_or((), |t| persons.push(t)),
-            PUBLISHER_TAG => subfield(field, PUBLISHER_CODE).map_or((), |t| r.data.publisher = t),
-            _ => {}
-        };
+        }
+        Self { data, isbns }
     }
-    if r.data.authors.is_empty() {
-        r.data.authors = persons;
-    }
-    // Reformat author names ('<forename> <surname>')
-    for author in &mut r.data.authors {
-        *author = author
-            .rsplit(',')
-            .map(|s| s.trim())
-            .collect::<Vec<_>>()
-            .join(" ");
-    }
-    r
 }
 
 fn subfield(datafield: roxmltree::Node, code: &str) -> Option<String> {

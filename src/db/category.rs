@@ -2,6 +2,8 @@ use crate::api;
 
 use super::{DBIter, Database, FromRow};
 
+use gdnative::derive::{FromVariant, ToVariant};
+
 const LIST: &str = "\
     select id, name, section from category order by section, id \
 ";
@@ -21,7 +23,7 @@ const REFERENCED: &str = "\
     select count(id) from medium where category=? \
 ";
 
-#[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
+#[derive(Debug, Clone, ToVariant, FromVariant)]
 pub struct Category {
     pub id: String,
     pub name: String,

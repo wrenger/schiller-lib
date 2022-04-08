@@ -1,6 +1,8 @@
 use super::{Database, FromRow};
 use crate::api;
 
+use gdnative::derive::{FromVariant, ToVariant};
+
 const STATS: &str = "\
     select \
     (select count(*) from medium) as books, \
@@ -12,7 +14,7 @@ const STATS: &str = "\
 ";
 
 /// Data object for book.
-#[derive(Debug, Clone, gdnative::ToVariant, gdnative::FromVariant)]
+#[derive(Debug, Clone, ToVariant, FromVariant)]
 #[cfg_attr(test, derive(PartialEq, Default))]
 pub struct Stats {
     pub books: usize,

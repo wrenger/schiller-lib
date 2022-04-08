@@ -43,19 +43,19 @@ pub fn send(
 
 impl From<lettre::address::AddressError> for api::Error {
     fn from(e: lettre::address::AddressError) -> Self {
-        error!("Invalid Mail Address {:?}", e);
+        error!("Invalid Mail Address {e:?}");
         api::Error::Arguments
     }
 }
 impl From<lettre::error::Error> for api::Error {
     fn from(e: lettre::error::Error) -> Self {
-        error!("Invalid Mail Format {:?}", e);
+        error!("Invalid Mail Format {e:?}");
         api::Error::Arguments
     }
 }
 impl From<lettre::transport::smtp::Error> for api::Error {
     fn from(e: lettre::transport::smtp::Error) -> Self {
-        error!("Mail SMTP Error {:?}", e);
+        error!("Mail SMTP Error {e:?}");
         api::Error::Network
     }
 }
