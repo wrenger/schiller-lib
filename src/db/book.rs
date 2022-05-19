@@ -155,7 +155,7 @@ impl FromRow for Book {
             authors: row
                 .get::<&str, String>("authors")?
                 .split(',')
-                .map(|a| a.to_string())
+                .map(ToString::to_string)
                 .collect(),
             borrower: row.get("borrower")?,
             deadline: row.get("deadline")?,
@@ -239,7 +239,7 @@ impl gdnative::core_types::ToVariant for BookState {
 
 impl gdnative::core_types::FromVariant for BookState {
     fn from_variant(variant: &gdnative::core_types::Variant) -> Result<Self, FromVariantError> {
-        i64::from_variant(variant).map(|x| x.into())
+        i64::from_variant(variant).map(Into::into)
     }
 }
 
@@ -384,7 +384,7 @@ pub fn generate_id(db: &Database, book: &Book) -> api::Result<String> {
     let id = book.id.trim();
     if id.starts_with(&prefix)
         && id.len() > prefix.len() + 1
-        && &id[prefix.len()..prefix.len() + 1] == " "
+        && &id[prefix.len()..=prefix.len()] == " "
     {
         return Ok(id.to_string());
     }
@@ -400,8 +400,7 @@ pub fn generate_id(db: &Database, book: &Book) -> api::Result<String> {
 fn id_prefix(author: &str, category: &str) -> String {
     let mut author_prefix = author
         .rsplit_once(' ') // surname
-        .map(|s| s.1)
-        .unwrap_or(author)
+        .map_or(author, |s| s.1)
         .nfd() // decompose -> split ÄÖÜ
         .map(|c| (c == 'ß').then(|| 'S').unwrap_or(c))
         .filter(char::is_ascii_alphabetic)

@@ -65,7 +65,7 @@ impl Record {
             match field.attribute("tag") {
                 Some(ISBN_COSTS_TAG) => {
                     subfield(field, ISBN_CODE).map_or((), |t| isbns.push(t));
-                    subfield(field, COSTS_CODE).map_or((), |t| data.costs = parse_costs(&t))
+                    subfield(field, COSTS_CODE).map_or((), |t| data.costs = parse_costs(&t));
                 }
                 Some(EAN_TAG) => subfield(field, EAN_CODE).map_or((), |t| isbns.push(t)),
                 Some(TITLE_TAG) => {
@@ -99,7 +99,7 @@ impl Record {
                 *author = [f.trim(), s.trim()].join(" ");
             }
         }
-        Self { data, isbns }
+        Self { isbns, data }
     }
 }
 
@@ -113,10 +113,10 @@ fn subfield(datafield: roxmltree::Node, code: &str) -> Option<String> {
 
 fn parse_costs(costs: &str) -> f64 {
     if let Some((_, suffix)) = costs.split_once("EUR ") {
-        let num = suffix.split_once(' ').map(|s| s.0).unwrap_or(suffix);
+        let num = suffix.split_once(' ').map_or(suffix, |s| s.0);
         num.trim().parse().unwrap_or_default()
     } else if let Some((_, suffix)) = costs.split_once("DM ") {
-        let num = suffix.split_once(' ').map(|s| s.0).unwrap_or(suffix);
+        let num = suffix.split_once(' ').map_or(suffix, |s| s.0);
         let num: f64 = num.trim().parse().unwrap_or_default();
         (num * DM_TO_EUR * 100.0).round() / 100.0
     } else {

@@ -79,7 +79,7 @@ impl FromIterator<(String, String)> for Settings {
                 "version" => {}
                 "borrowing.duration" => {
                     settings.borrowing_duration =
-                        value.parse().unwrap_or(settings.borrowing_duration)
+                        value.parse().unwrap_or(settings.borrowing_duration);
                 }
                 "user.path" => settings.user_path = value,
                 "user.delimiter" => settings.user_delimiter = value,

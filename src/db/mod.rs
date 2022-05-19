@@ -1,5 +1,6 @@
 use std::fmt;
 use std::path::{Path, PathBuf};
+use std::ptr::addr_of;
 
 use crate::api;
 
@@ -97,7 +98,7 @@ impl Database {
     /// Stacking transactions on top of each other is not allowed!
     fn transaction(&self) -> rusqlite::Result<rusqlite::Transaction> {
         #[allow(clippy::cast_ref_to_mut)]
-        let con = unsafe { &mut *(&self.con as *const _ as *mut Connection) };
+        let con = unsafe { &mut *(addr_of!(self.con) as *mut Connection) };
         con.transaction()
     }
 }

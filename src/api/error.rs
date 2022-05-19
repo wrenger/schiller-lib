@@ -1,5 +1,3 @@
-use std::convert::TryInto;
-
 use gdnative::core_types::FromVariantError;
 use gdnative::prelude::*;
 
@@ -9,7 +7,7 @@ use gdnative::prelude::*;
 /// More specific error messages are removed to be api compatible.
 /// Those messages are logged however.
 #[repr(i64)]
-#[derive(Debug, Clone, Copy, num_enum::TryFromPrimitive)]
+#[derive(Debug, Clone, Copy)]
 pub enum Error {
     Arguments,
     Logic,
@@ -36,30 +34,30 @@ pub enum Error {
 }
 
 impl From<rusqlite::Error> for Error {
-    fn from(e: rusqlite::Error) -> Error {
+    fn from(e: rusqlite::Error) -> Self {
         error!("SQL: {e}");
-        Error::SQL
+        Self::SQL
     }
 }
 
 impl From<std::convert::Infallible> for Error {
-    fn from(e: std::convert::Infallible) -> Error {
+    fn from(e: std::convert::Infallible) -> Self {
         error!("convert::Infallible: {e:?}");
-        Error::Arguments
+        Self::Arguments
     }
 }
 
 impl From<std::io::Error> for Error {
-    fn from(e: std::io::Error) -> Error {
+    fn from(e: std::io::Error) -> Self {
         error!("File Error: {e:?}");
-        Error::FileOpen
+        Self::FileOpen
     }
 }
 
 impl From<roxmltree::Error> for Error {
-    fn from(e: roxmltree::Error) -> Error {
+    fn from(e: roxmltree::Error) -> Self {
         error!("Invalid XML Format: {e:?}");
-        Error::InvalidFormat
+        Self::InvalidFormat
     }
 }
 
@@ -67,9 +65,12 @@ impl gdnative::core_types::FromVariant for Error {
     fn from_variant(
         variant: &gdnative::core_types::Variant,
     ) -> std::result::Result<Self, FromVariantError> {
-        i64::from_variant(variant)?
-            .try_into()
-            .map_err(|_| FromVariantError::Unspecified)
+        let val = i64::from_variant(variant)?;
+        if 0 <= val && val <= Error::UnsupportedProjectVersion as i64 {
+            Ok(unsafe { std::mem::transmute(val) })
+        } else {
+            Err(FromVariantError::Unspecified)
+        }
     }
 }
 

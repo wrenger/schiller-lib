@@ -12,7 +12,7 @@ impl DatabaseExt for rusqlite::Connection {
         let mut rows = stmt.query([])?;
         let mut result = Vec::new();
         while let Some(row) = rows.next()? {
-            result.push(Vec::<String>::from_row(row)?)
+            result.push(Vec::<String>::from_row(row)?);
         }
         Ok(result)
     }
