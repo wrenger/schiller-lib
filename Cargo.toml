@@ -3,7 +3,7 @@ name = "schiller-lib"
 description = "Schiller library software"
 version = "0.8.0"
 authors = ["Lars Wrenger <lars@wrenger.net>"]
-edition = "2018"
+edition = "2021"
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/wrenger/schiller-lib"
@@ -17,14 +17,14 @@ lto = true
 strip = "debuginfo"
 
 [dependencies]
-gdnative = "0.10.0"
-rusqlite = { version = "0.27", features = ["bundled"] }
-chrono = "0.4.19"
-roxmltree = "0.14.1"
-unicode-normalization = "0.1.19"
-java-properties = "1.4.1"
+gdnative = "0.10"
+rusqlite = { version = "0.28", features = ["bundled"] }
+chrono = "0.4"
+roxmltree = "0.15"
+unicode-normalization = "0.1"
+java-properties = "1.4"
 
 [dependencies.lettre]
-version = "0.10.0-rc.5"
+version = "0.10"
 default-features = false
 features = ["builder", "smtp-transport", "native-tls"]

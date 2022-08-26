@@ -27,7 +27,7 @@ const SETTINGS_UPDATE: &str = "\
     ('mail.overdue2.content', ?) \
 ";
 
-#[derive(Debug, PartialEq, Clone, ToVariant, FromVariant)]
+#[derive(Debug, PartialEq, Eq, Clone, ToVariant, FromVariant)]
 pub struct Settings {
     // Borrowing
     pub borrowing_duration: i64,
