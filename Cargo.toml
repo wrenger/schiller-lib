@@ -1,8 +1,8 @@
 [package]
 name = "schiller-lib"
 description = "Schiller library software"
-version = "0.8.0"
-authors = ["Lars Wrenger <lars@wrenger.net>"]
+version = "0.8.1"
+authors = ["Lars Wrenger <lars@wrenger.net>", "Nils Wrenger <nils@wrenger.net>"]
 edition = "2021"
 readme = "README.md"
 license = "MIT"
