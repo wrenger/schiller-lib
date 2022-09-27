@@ -70,12 +70,14 @@ jobs:
     - name: Upload
       uses: actions/upload-artifact@v2
       with:
-        name: schiller-lib-${{ matrix.platform }}.zip
+        name: schiller-lib-${{ matrix.platform }}
         path: ${{ github.workspace }}/${{ steps.package.outputs.build }}
+    - name: Package
+      run: zip -r schiller-lib-${{ matrix.platform }}.zip ${{ github.workspace }}/${{ steps.package.outputs.build }}
     - name: Upload Release Asset
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: ${{ github.workspace }}/${{ steps.package.outputs.build }}
+        files: schiller-lib-${{ matrix.platform }}.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
