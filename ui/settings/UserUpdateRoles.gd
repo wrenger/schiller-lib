@@ -1,10 +1,11 @@
 extends Button
 
+export var settings_dialog: NodePath
+
 
 func _pressed():
-    var result: Dictionary = Project.settings_get()
-    if result.has("Err"): return MessageDialog.error_code(result["Err"])
-    var settings: Dictionary = result["Ok"]
+    var result: Dictionary
+    var settings: Dictionary = get_node(settings_dialog).get_settings()
 
     # provider selection & configuration
     var provider_plugin = load("res://plugins/UserProvider.gd")

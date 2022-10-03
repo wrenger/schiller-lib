@@ -169,6 +169,7 @@ margin_bottom = 26.0
 size_flags_horizontal = 3
 text = ".pref.user.update"
 script = ExtResource( 6 )
+settings_dialog = NodePath("../../../../../../..")
 
 [node name="Request" type="VBoxContainer" parent="Scroll/Box"]
 margin_top = 304.0

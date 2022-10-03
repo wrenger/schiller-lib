@@ -23,6 +23,7 @@ chrono = "0.4"
 roxmltree = "0.15"
 unicode-normalization = "0.1"
 java-properties = "1.4"
+unescape = "0.1"
 
 [dependencies.lettre]
 version = "0.10"
