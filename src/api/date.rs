@@ -42,23 +42,23 @@ impl Date {
     }
 
     /// The iso date: %Y-%m-%d like 2001-07-08
-    #[export]
-    fn get_iso(&self, _owner: &Reference) -> GodotString {
+    #[method]
+    fn get_iso(&self, #[base] _owner: &Reference) -> GodotString {
         self.date.format("%F").to_string().into()
     }
-    #[export]
-    fn set_iso(&mut self, _owner: &Reference, date: GodotString) -> api::Result<()> {
+    #[method]
+    fn set_iso(&mut self, #[base] _owner: &Reference, date: GodotString) -> api::Result<()> {
         self.date = chrono::NaiveDate::parse_from_str(&date.to_string(), "%F")?;
         Ok(())
     }
 
     /// The locale date, which is based on the language of the OS (en: %m/%d/%y)
-    #[export]
-    fn get_local(&self, _owner: &Reference) -> GodotString {
+    #[method]
+    fn get_local(&self, #[base] _owner: &Reference) -> GodotString {
         self.date.format("%x").to_string().into()
     }
-    #[export]
-    fn set_local(&mut self, _owner: &Reference, date: GodotString) -> api::Result<()> {
+    #[method]
+    fn set_local(&mut self, #[base] _owner: &Reference, date: GodotString) -> api::Result<()> {
         self.date = chrono::NaiveDate::parse_from_str(&date.to_string(), "%x")?;
         Ok(())
     }
@@ -91,8 +91,8 @@ impl Date {
     }
 
     /// Return the number of days until today.
-    #[export]
-    fn days_until_today(&self, _owner: &Reference) -> i64 {
+    #[method]
+    fn days_until_today(&self) -> i64 {
         (chrono::Local::today().naive_local() - self.date).num_days()
     }
 }

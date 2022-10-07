@@ -50,10 +50,10 @@ impl Mailer {
     /// The `done` signal is emitted when the sending has been completed.
     ///
     /// The method cannot be called again before the `done` signal has been emitted!
-    #[export]
+    #[method]
     fn send(
         &mut self,
-        owner: TRef<Reference>,
+        #[base] owner: TRef<Reference>,
         to: String,
         title: String,
         body: String,
@@ -79,8 +79,8 @@ impl Mailer {
         Ok(())
     }
 
-    #[export]
-    fn _send_done(&mut self, owner: TRef<Reference>, result: api::Result<()>) {
+    #[method]
+    fn _send_done(&mut self, #[base] owner: TRef<Reference>, result: api::Result<()>) {
         if let Some(thread) = self.worker.take() {
             if let Err(e) = thread.join() {
                 error!("Error dropping mailer worker: {e:?}");

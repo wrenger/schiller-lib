@@ -15,8 +15,8 @@ impl Marc21 {
     }
 
     /// Perform a request to the DNB and fetch the metadata for the given isbn.
-    #[export]
-    fn parse(&self, _owner: &Reference, isbn: String, response: String) -> api::Result<BookData> {
+    #[method]
+    fn parse(&self, isbn: String, response: String) -> api::Result<BookData> {
         if let Ok(isbn) = crate::isbn::parse(&isbn) {
             marc21::parse(&response, &isbn)
         } else {
