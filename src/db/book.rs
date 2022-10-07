@@ -402,7 +402,7 @@ fn id_prefix(author: &str, category: &str) -> String {
         .rsplit_once(' ') // surname
         .map_or(author, |s| s.1)
         .nfd() // decompose -> split ÄÖÜ
-        .map(|c| (c == 'ß').then(|| 'S').unwrap_or(c))
+        .map(|c| if c == 'ß' { 'S' } else { c })
         .filter(char::is_ascii_alphabetic)
         .map(|c| c.to_ascii_uppercase())
         .collect::<String>();
