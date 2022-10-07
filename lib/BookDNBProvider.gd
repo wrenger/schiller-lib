@@ -27,7 +27,7 @@ func request_get(isbn: String) -> Dictionary:
     var client := HTTPClient.new()
 
     var error := OK
-    error = client.connect_to_host(HOST, 80)
+    error = client.connect_to_host(HOST, 443, true)
     if error != OK: return {"Err": Util.SbvError.Network}
 
     # wait until connected
