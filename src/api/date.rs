@@ -1,4 +1,5 @@
-use chrono::Datelike;
+use chrono::{Datelike, TimeZone};
+use gdnative::api::OS;
 use gdnative::prelude::*;
 
 use crate::api;
@@ -43,8 +44,8 @@ impl Date {
 
     /// The iso date: %Y-%m-%d like 2001-07-08
     #[method]
-    fn get_iso(&self, #[base] _owner: &Reference) -> GodotString {
-        self.date.format("%F").to_string().into()
+    fn get_iso(&self, #[base] _owner: &Reference) -> String {
+        self.date.format("%F").to_string()
     }
     #[method]
     fn set_iso(&mut self, #[base] _owner: &Reference, date: GodotString) -> api::Result<()> {
@@ -54,8 +55,16 @@ impl Date {
 
     /// The locale date, which is based on the language of the OS (en: %m/%d/%y)
     #[method]
-    fn get_local(&self, #[base] _owner: &Reference) -> GodotString {
-        self.date.format("%x").to_string().into()
+    fn get_local(&self, #[base] owner: &Reference) -> String {
+        if let Some(date) = chrono::Local.from_local_date(&self.date).latest() {
+            let locale = OS::godot_singleton().get_locale();
+            if let Ok(locale) = chrono::Locale::try_from(locale.to_string().as_str()) {
+                return date.format_localized("%x", locale).to_string();
+            } else {
+                error!("Unknown locale {locale:?}");
+            }
+        }
+        self.get_iso(owner)
     }
     #[method]
     fn set_local(&mut self, #[base] _owner: &Reference, date: GodotString) -> api::Result<()> {

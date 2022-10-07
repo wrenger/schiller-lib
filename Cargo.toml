@@ -19,7 +19,7 @@ strip = "debuginfo"
 [dependencies]
 gdnative = "0.11"
 rusqlite = { version = "0.28", features = ["bundled"] }
-chrono = "0.4"
+chrono = { version = "0.4", features = ["unstable-locales"] }
 roxmltree = "0.15"
 unicode-normalization = "0.1"
 java-properties = "1.4"
