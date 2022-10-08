@@ -3,13 +3,23 @@ extends Panel
 signal categories_changed(categories)
 signal project_changed()
 
-var _project_path: String = ""
+var _project_path := ""
+
+# Default database path relative to the godot executable
+const DEFAULT_DB_PATH := "data/schillerbib.db"
 
 
 func _ready():
     OS.min_window_size = Vector2(800, 600)
 
     get_tree().set_auto_accept_quit(false)
+
+    # Fallback to a default location
+    if not _project_path:
+        var default := OS.get_executable_path().plus_file(DEFAULT_DB_PATH)
+        if File.new().file_exists(default):
+            _project_path = default
+
     if _project_path:
         _on_project_selected(_project_path, false)
     else:
@@ -80,8 +90,8 @@ func persist_save() -> Dictionary:
 
 func persist_load(data: Dictionary):
     _project_path = data.get("path", "")
-    OS.window_size = Vector2(data.get("width", OS.window_size.x), data.get("height", OS.window_size.y))
     OS.window_position = Vector2(data.get("x", OS.window_position.x), data.get("y", OS.window_position.y))
+    OS.window_size = Vector2(data.get("width", OS.window_size.x), data.get("height", OS.window_size.y))
 
 
 func _on_theme_changed(theme):
