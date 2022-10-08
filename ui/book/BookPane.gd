@@ -35,7 +35,7 @@ func set_book(book: Dictionary):
         if borrowed:
             var date := Date.new()
             date.set_iso(book.deadline)
-            _book_state.text = Util.trf(".book.borrowed.by", [book.borrower, date.get_local()])
+            _book_state.text = Util.trf(".book.borrowed.by", [book.borrower, date.get_locale()])
         if reserved:
             if book.borrower:
                 _book_state.text += "\n"

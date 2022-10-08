@@ -33,7 +33,7 @@ func reload():
             var item := create_item(role)
             item.set_text(0, user.forename + " " + user.surname)
             item.set_text(1, book.title + " (" + book.id + ")")
-            item.set_text(2, Util.trf(".book.period", [date.get_local(), date.days_until_today()]))
+            item.set_text(2, Util.trf(".book.period", [date.get_locale(), date.days_until_today()]))
             item.set_meta("book_id", book.id)
 
     elif is_visible_in_tree():
