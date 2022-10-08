@@ -3,16 +3,6 @@ use crate::api;
 
 use gdnative::derive::{FromVariant, ToVariant};
 
-const STATS: &str = "\
-    select \
-    (select count(*) from medium) as books, \
-    (select count(distinct name) from author) as authors, \
-    (select count(*) from user) as users, \
-    (select count(*) from medium where borrower <> '') as borrows, \
-    (select count(*) from medium where reservation <> '') as reservations, \
-    (select count(*) from medium where borrower <> '' and JulianDay(date('now')) > JulianDay(date(deadline))) as  overdues \
-";
-
 /// Data object for book.
 #[derive(Debug, Clone, ToVariant, FromVariant)]
 #[cfg_attr(test, derive(PartialEq, Default))]
@@ -39,5 +29,14 @@ impl FromRow for Stats {
 }
 
 pub fn fetch(db: &Database) -> api::Result<Stats> {
+    const STATS: &str = "\
+        select \
+        (select count(*) from medium) as books, \
+        (select count(distinct name) from author) as authors, \
+        (select count(*) from user) as users, \
+        (select count(*) from medium where borrower <> '') as borrows, \
+        (select count(*) from medium where reservation <> '') as reservations, \
+        (select count(*) from medium where borrower <> '' and JulianDay(date('now')) > JulianDay(date(deadline))) as  overdues \
+    ";
     Ok(db.con.query_row(STATS, [], Stats::from_row)?)
 }

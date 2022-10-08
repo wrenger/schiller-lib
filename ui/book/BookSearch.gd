@@ -21,7 +21,6 @@ onready var _state: OptionButton = $Tabs/Advanced/Grid/State
 func _on_search(_t = null):
     var result: Dictionary = Project.book_search(_search.text)
     if result.has("Ok"):
-        print("search results: ", len(result["Ok"]))
         emit_signal("search_results", result["Ok"])
     else:
         MessageDialog.error_code(result["Err"])
@@ -42,7 +41,6 @@ func _on_advanced_search(_t = null):
     })
 
     if result.has("Ok"):
-        print("search results: ", len(result["Ok"]))
         emit_signal("search_results", result["Ok"])
     else:
         MessageDialog.error_code(result["Err"])

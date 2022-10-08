@@ -4,61 +4,6 @@ use super::{DBIter, Database, FromRow};
 
 use gdnative::derive::{FromVariant, ToVariant};
 
-// Query
-const FETCH_USER: &str = "\
-    select \
-    account, \
-    forename, \
-    surname, \
-    role, \
-    may_borrow \
-    from user \
-    where account=? \
-";
-
-const QUERY_USERS: &str = "\
-    select \
-    account, \
-    forename, \
-    surname, \
-    role, \
-    may_borrow \
-    \
-    from user \
-    where account like '%'||?1||'%' \
-    or forename like '%'||?1||'%' \
-    or surname like '%'||?1||'%' \
-    or role like '%'||?1||'%' \
-    order by account \
-";
-
-const ADD_USER: &str = "\
-    insert into user values (?, ?, ?, ?, ?) \
-";
-const UPDATE_USER: &str = "\
-    update user set account=?, forename=?, surname=?, role=?, may_borrow=? where account=? \
-";
-const UPDATE_USER_BORROWS: &str = "
-    update medium set borrower=? where borrower=? \
-";
-const UPDATE_USER_RESERVATIONS: &str = "\
-    update medium set reservation=? where reservation=? \
-";
-
-const DELETE_USER: &str = "\
-    delete from user where account=? \
-";
-const DELETE_UNUSED_USERS: &str = "\
-    update medium set reservation='' where reservation not in (select account from user); \
-    update medium set borrower='' where borrower not in (select account from user); \
-";
-const DELETE_USER_ROLES: &str = "\
-    update user set role='' \
-";
-const UPDATE_USER_ROLE: &str = "\
-    update user set role=? where account=? \
-";
-
 /// Data object for a user.
 #[derive(Debug, Clone, ToVariant, FromVariant)]
 #[cfg_attr(test, derive(PartialEq, Default))]
@@ -92,12 +37,37 @@ impl FromRow for User {
 
 /// Returns the user with the given `id`.
 pub fn fetch(db: &Database, id: &str) -> api::Result<User> {
-    Ok(db.con.query_row(FETCH_USER, [id], User::from_row)?)
+    Ok(db.con.query_row(
+        "select \
+        account, \
+        forename, \
+        surname, \
+        role, \
+        may_borrow \
+        from user \
+        where account=?",
+        [id],
+        User::from_row,
+    )?)
 }
 
 /// Performes a simple user search with the given `text`.
 pub fn search(db: &Database, text: &str) -> api::Result<Vec<User>> {
-    let mut stmt = db.con.prepare(QUERY_USERS)?;
+    let mut stmt = db.con.prepare(
+        "select \
+        account, \
+        forename, \
+        surname, \
+        role, \
+        may_borrow \
+        \
+        from user \
+        where account like '%'||?1||'%' \
+        or forename like '%'||?1||'%' \
+        or surname like '%'||?1||'%' \
+        or role like '%'||?1||'%' \
+        order by account",
+    )?;
     let rows = stmt.query([text.trim()])?;
     DBIter::new(rows).collect()
 }
@@ -108,7 +78,7 @@ pub fn add(db: &Database, user: &User) -> api::Result<()> {
         return Err(api::Error::InvalidUser);
     }
     db.con.execute(
-        ADD_USER,
+        "insert into user values (?, ?, ?, ?, ?)",
         rusqlite::params![
             user.account.trim(),
             user.forename.trim(),
@@ -129,7 +99,7 @@ pub fn update(db: &Database, previous_account: &str, user: &User) -> api::Result
     let transaction = db.transaction()?;
     // update user
     transaction.execute(
-        UPDATE_USER,
+        "update user set account=?, forename=?, surname=?, role=?, may_borrow=? where account=?",
         rusqlite::params![
             user.account.trim(),
             user.forename.trim(),
@@ -141,11 +111,14 @@ pub fn update(db: &Database, previous_account: &str, user: &User) -> api::Result
     )?;
 
     // update borrows
-    transaction.execute(UPDATE_USER_BORROWS, [user.account.trim(), previous_account])?;
+    transaction.execute(
+        "update medium set borrower=? where borrower=?",
+        [user.account.trim(), previous_account],
+    )?;
 
     // update reservations
     transaction.execute(
-        UPDATE_USER_RESERVATIONS,
+        "update medium set reservation=? where reservation=?",
         [user.account.trim(), previous_account],
     )?;
     transaction.commit()?;
@@ -161,10 +134,16 @@ pub fn delete(db: &Database, account: &str) -> api::Result<()> {
     }
     let transaction = db.transaction()?;
     // remove user
-    transaction.execute(DELETE_USER, [account])?;
+    transaction.execute("delete from user where account=?", [account])?;
 
     // remove borrows & reservations
-    transaction.execute(DELETE_UNUSED_USERS, [])?;
+    transaction.execute(
+        "update medium set reservation='' \
+        where reservation not in (select account from user); \
+        update medium set borrower='' \
+        where borrower not in (select account from user);",
+        [],
+    )?;
     transaction.commit()?;
     Ok(())
 }
@@ -174,9 +153,9 @@ pub fn delete(db: &Database, account: &str) -> api::Result<()> {
 /// The roles of all users not contained in the given list are cleared.
 pub fn update_roles(db: &Database, users: &[(&str, &str)]) -> api::Result<()> {
     let transaction = db.transaction()?;
-    transaction.execute(DELETE_USER_ROLES, [])?;
+    transaction.execute("update user set role=''", [])?;
 
-    let mut stmt = transaction.prepare(UPDATE_USER_ROLE)?;
+    let mut stmt = transaction.prepare("update user set role=? where account=?")?;
     for &(account, role) in users {
         let account = account.trim();
         if !account.is_empty() {

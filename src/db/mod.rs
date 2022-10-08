@@ -9,7 +9,6 @@ pub use book::{Book, BookSearch, BookState};
 pub mod category;
 pub use category::Category;
 pub mod lending;
-pub mod raw;
 pub mod settings;
 pub use settings::Settings;
 pub mod stats;

@@ -4,25 +4,6 @@ use super::{DBIter, Database, FromRow};
 
 use gdnative::derive::{FromVariant, ToVariant};
 
-const LIST: &str = "\
-    select id, name, section from category order by section, id \
-";
-const ADD: &str = "\
-    insert into category values (?, ?, ?) \
-";
-const UPDATE: &str = "\
-    update category set id=?, name=?, section=? where id=? \
-";
-const UPDATE_MEDIA: &str = "\
-    update medium set category=? where category=? \
-";
-const DELETE: &str = "\
-    delete from category where id=? \
-";
-const REFERENCED: &str = "\
-    select count(id) from medium where category=? \
-";
-
 #[derive(Debug, Clone, ToVariant, FromVariant)]
 pub struct Category {
     pub id: String,
@@ -50,7 +31,9 @@ impl FromRow for Category {
 
 /// Returns all categories.
 pub fn list(db: &Database) -> api::Result<Vec<Category>> {
-    let mut stmt = db.con.prepare(LIST)?;
+    let mut stmt = db
+        .con
+        .prepare("select id, name, section from category order by section, id")?;
     let rows = stmt.query([])?;
     DBIter::new(rows).collect()
 }
@@ -62,7 +45,7 @@ pub fn add(db: &Database, category: &Category) -> api::Result<()> {
     }
 
     db.con.execute(
-        ADD,
+        "insert into category values (?, ?, ?)",
         [
             category.id.trim(),
             category.name.trim(),
@@ -81,7 +64,7 @@ pub fn update(db: &Database, id: &str, category: &Category) -> api::Result<()> {
     let transaction = db.transaction()?;
     // Update category
     transaction.execute(
-        UPDATE,
+        "update category set id=?, name=?, section=? where id=?",
         [
             category.id.trim(),
             category.name.trim(),
@@ -92,7 +75,10 @@ pub fn update(db: &Database, id: &str, category: &Category) -> api::Result<()> {
 
     if id != category.id {
         // Update category ids of related media
-        transaction.execute(UPDATE_MEDIA, [category.id.trim(), id])?;
+        transaction.execute(
+            "update medium set category=? where category=?",
+            [category.id.trim(), id],
+        )?;
     }
 
     transaction.commit()?;
@@ -112,7 +98,7 @@ pub fn delete(db: &Database, id: &str) -> api::Result<()> {
         return Err(api::Error::Logic);
     }
 
-    transaction.execute(DELETE, [id])?;
+    transaction.execute("delete from category where id=?", [id])?;
 
     transaction.commit()?;
     Ok(())
@@ -125,7 +111,9 @@ pub fn references(db: &Database, id: &str) -> api::Result<i64> {
         return Err(api::Error::Arguments);
     }
 
-    Ok(db
-        .con
-        .query_row(REFERENCED, [id], |row| row.get::<usize, i64>(0))?)
+    Ok(db.con.query_row(
+        "select count(id) from medium where category=?",
+        [id],
+        |row| row.get::<usize, i64>(0),
+    )?)
 }

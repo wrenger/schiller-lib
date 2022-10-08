@@ -1,50 +1,6 @@
 use super::{Book, DBIter, Database, FromRow, User};
 use crate::api;
 
-const UPDATE_LEND: &str = "\
-    update medium set borrower=?, deadline=? where id=? \
-";
-const UPDATE_REVOKE: &str = "\
-    update medium set borrower='', deadline='' where id=? \
-";
-const UPDATE_RESERVE: &str = "\
-    update medium set reservation=? where id=? \
-";
-const UPDATE_RELEASE: &str = "\
-    update medium set reservation='' where id=? \
-";
-const QUERY_EXPIRED: &str = "\
-    select \
-    id, \
-    isbn, \
-    title, \
-    publisher, \
-    year, \
-    costs, \
-    note, \
-    borrowable, \
-    category, \
-    ifnull(group_concat(author.name),'') as authors, \
-    borrower, \
-    deadline, \
-    reservation, \
-    \
-    account, \
-    forename, \
-    surname, \
-    role, \
-    may_borrow, \
-    \
-    JulianDay(date('now')) - JulianDay(date(deadline)) as days \
-    \
-    from medium \
-    left join author on author.medium=id \
-    join user on account=borrower \
-    where days > 0 \
-    group by id \
-    order by role, account \
-";
-
 /// Lends the book to the specified user.
 pub fn lend(db: &Database, book: &mut Book, user: &User, days: i64) -> api::Result<()> {
     if !user.may_borrow {
@@ -69,7 +25,7 @@ pub fn lend(db: &Database, book: &mut Book, user: &User, days: i64) -> api::Resu
     let deadline = deadline.format("%F").to_string();
 
     db.con.execute(
-        UPDATE_LEND,
+        "update medium set borrower=?, deadline=? where id=?",
         [user.account.trim(), deadline.trim(), book.id.trim()],
     )?;
 
@@ -84,7 +40,10 @@ pub fn return_back(db: &Database, book: &mut Book) -> api::Result<()> {
         return Err(api::Error::Logic);
     }
 
-    db.con.execute(UPDATE_REVOKE, [book.id.trim()])?;
+    db.con.execute(
+        "update medium set borrower='', deadline='' where id=?",
+        [book.id.trim()],
+    )?;
     book.borrower = String::new();
     book.deadline = String::new();
     Ok(())
@@ -108,8 +67,10 @@ pub fn reserve(db: &Database, book: &mut Book, user: &User) -> api::Result<()> {
         return Err(api::Error::LendingBookAlreadyBorrowedByUser);
     }
 
-    db.con
-        .execute(UPDATE_RESERVE, [user.account.trim(), book.id.trim()])?;
+    db.con.execute(
+        "update medium set reservation=? where id=?",
+        [user.account.trim(), book.id.trim()],
+    )?;
     book.reservation = user.account.clone();
     Ok(())
 }
@@ -120,13 +81,47 @@ pub fn release(db: &Database, book: &mut Book) -> api::Result<()> {
         return Err(api::Error::Logic);
     }
 
-    db.con.execute(UPDATE_RELEASE, [book.id.trim()])?;
+    db.con.execute(
+        "update medium set reservation='' where id=?",
+        [book.id.trim()],
+    )?;
     book.reservation = String::new();
     Ok(())
 }
 
 /// Return the list of expired loan periods.
 pub fn overdues(db: &Database) -> api::Result<Vec<(Book, User)>> {
+    const QUERY_EXPIRED: &str = "\
+        select \
+        id, \
+        isbn, \
+        title, \
+        publisher, \
+        year, \
+        costs, \
+        note, \
+        borrowable, \
+        category, \
+        ifnull(group_concat(author.name),'') as authors, \
+        borrower, \
+        deadline, \
+        reservation, \
+        \
+        account, \
+        forename, \
+        surname, \
+        role, \
+        may_borrow, \
+        \
+        JulianDay(date('now')) - JulianDay(date(deadline)) as days \
+        \
+        from medium \
+        left join author on author.medium=id \
+        join user on account=borrower \
+        where days > 0 \
+        group by id \
+        order by role, account \
+    ";
     let mut stmt = db.con.prepare(QUERY_EXPIRED)?;
     let rows = stmt.query([])?;
     DBIter::new(rows).collect()

@@ -5,28 +5,6 @@ use super::{DBIter, Database, FromRow};
 
 use gdnative::derive::{FromVariant, ToVariant};
 
-const SETTINGS_FETCH: &str = "\
-    select key, value from sbv_meta \
-";
-
-const SETTINGS_UPDATE: &str = "\
-    replace into sbv_meta values \
-    ('borrowing.duration', ?), \
-    ('user.path', ?), \
-    ('user.delimiter', ?), \
-    ('dnb.token', ?), \
-    ('mail.lastReminder', ?), \
-    ('mail.from', ?), \
-    ('mail.host', ?), \
-    ('mail.password', ?), \
-    ('mail.info.subject', ?), \
-    ('mail.info.content', ?), \
-    ('mail.overdue.subject', ?), \
-    ('mail.overdue.content', ?), \
-    ('mail.overdue2.subject', ?), \
-    ('mail.overdue2.content', ?) \
-";
-
 #[derive(Debug, PartialEq, Eq, Clone, ToVariant, FromVariant)]
 pub struct Settings {
     // Borrowing
@@ -109,7 +87,21 @@ impl FromRow for (String, String) {
 
 pub fn update(db: &Database, settings: &Settings) -> api::Result<()> {
     db.con.execute(
-        SETTINGS_UPDATE,
+        "replace into sbv_meta values \
+        ('borrowing.duration', ?), \
+        ('user.path', ?), \
+        ('user.delimiter', ?), \
+        ('dnb.token', ?), \
+        ('mail.lastReminder', ?), \
+        ('mail.from', ?), \
+        ('mail.host', ?), \
+        ('mail.password', ?), \
+        ('mail.info.subject', ?), \
+        ('mail.info.content', ?), \
+        ('mail.overdue.subject', ?), \
+        ('mail.overdue.content', ?), \
+        ('mail.overdue2.subject', ?), \
+        ('mail.overdue2.content', ?)",
         rusqlite::params![
             settings.borrowing_duration,
             settings.user_path.trim(),
@@ -131,7 +123,7 @@ pub fn update(db: &Database, settings: &Settings) -> api::Result<()> {
 }
 
 pub fn fetch(db: &Database) -> api::Result<Settings> {
-    let mut stmt = db.con.prepare(SETTINGS_FETCH)?;
+    let mut stmt = db.con.prepare("select key, value from sbv_meta")?;
     let rows = stmt.query([])?;
     DBIter::new(rows).collect()
 }

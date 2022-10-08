@@ -7,114 +7,6 @@ use super::{DBIter, Database, FromRow};
 
 use gdnative::derive::{FromVariant, ToVariant};
 
-const FETCH: &str = "\
-    select \
-    id, \
-    isbn, \
-    title, \
-    publisher, \
-    year, \
-    costs, \
-    note, \
-    borrowable, \
-    category, \
-    ifnull(group_concat(author.name),'') as authors, \
-    borrower, \
-    deadline, \
-    reservation \
-    \
-    from medium \
-    left join author on author.medium=id \
-    where id=? \
-    group by id \
-";
-
-const SEARCH: &str = "\
-    select \
-    id, \
-    isbn, \
-    title, \
-    publisher, \
-    year, \
-    costs, \
-    note, \
-    borrowable, \
-    category, \
-    ifnull(group_concat(author.name),'') as authors, \
-    borrower, \
-    deadline, \
-    reservation \
-    \
-    from medium \
-    left join author on author.medium=id \
-    group by id \
-    having id like '%'||?1||'%' \
-    or isbn like '%'||?1||'%' \
-    or title like '%'||?1||'%' \
-    or publisher like '%'||?1||'%' \
-    or note like '%'||?1||'%' \
-    or authors like '%'||?1||'%' \
-";
-
-const SEARCH_ADVANCED: &str = "\
-    select \
-    id, \
-    isbn, \
-    title, \
-    publisher, \
-    year, \
-    costs, \
-    note, \
-    borrowable, \
-    category, \
-    ifnull(group_concat(author.name),'') as authors, \
-    borrower, \
-    deadline, \
-    reservation \
-    \
-    from medium \
-    left join author on author.medium=id \
-    group by id \
-    having id like '%'||?||'%' \
-    and isbn like '%'||?||'%' \
-    and title like '%'||?||'%' \
-    and publisher like '%'||?||'%' \
-    and authors like '%'||?||'%' \
-    and year between ? and ? \
-    and category like ? \
-    and note like '%'||?||'%' \
-    and (borrower like '%'||?||'%' or reservation like '%'||?||'%') \
-    and borrowable like ? \
-";
-
-const ADD: &str = "\
-    insert into medium values (?, ?, ?, ?, ?, ?, ?, ?, ?, '', '', '') \
-";
-
-const ADD_AUTHOR: &str = "\
-    insert or ignore into author values (?, ?) \
-";
-const UPDATE: &str = "\
-    update medium \
-    set id=?, isbn=?, title=?, publisher=?, year=?, costs=?, note=?, borrowable=?, category=? \
-    where id=? \
-";
-const UPDATE_AUTHORS: &str = "\
-    update author set medium=? where medium=? \
-";
-const DELETE: &str = "\
-    delete from medium where id=? \
-";
-const DELETE_UNUSED_AUTHORS: &str = "\
-    delete from author where medium not in (select id from medium) \
-";
-// CAST returns 0 on failure, MAX returns NULL if empty
-const UNUSED_ID: &str = "\
-    select ifnull(max(cast(substr(id, length(?1) + 1) as integer)), 0) \
-    from medium where id like ?1||'%' \
-    order by id \
-";
-
 /// Data object for book.
 #[derive(Debug, Clone, ToVariant, FromVariant)]
 #[cfg_attr(test, derive(PartialEq, Default))]
@@ -245,19 +137,95 @@ impl gdnative::core_types::FromVariant for BookState {
 
 /// Returns the book with the given `id`.
 pub fn fetch(db: &Database, id: &str) -> api::Result<Book> {
-    Ok(db.con.query_row(FETCH, [id], Book::from_row)?)
+    Ok(db.con.query_row(
+        "select \
+        id, \
+        isbn, \
+        title, \
+        publisher, \
+        year, \
+        costs, \
+        note, \
+        borrowable, \
+        category, \
+        ifnull(group_concat(author.name),'') as authors, \
+        borrower, \
+        deadline, \
+        reservation \
+        \
+        from medium \
+        left join author on author.medium=id \
+        where id=? \
+        group by id",
+        [id],
+        Book::from_row,
+    )?)
 }
 
 /// Performs a simple media search with the given `text`.
 pub fn search(db: &Database, text: &str) -> api::Result<Vec<Book>> {
-    let mut stmt = db.con.prepare(SEARCH)?;
+    let mut stmt = db.con.prepare(
+        "select \
+        id, \
+        isbn, \
+        title, \
+        publisher, \
+        year, \
+        costs, \
+        note, \
+        borrowable, \
+        category, \
+        ifnull(group_concat(author.name),'') as authors, \
+        borrower, \
+        deadline, \
+        reservation \
+        \
+        from medium \
+        left join author on author.medium=id \
+        group by id \
+        having id like '%'||?1||'%' \
+        or isbn like '%'||?1||'%' \
+        or title like '%'||?1||'%' \
+        or publisher like '%'||?1||'%' \
+        or note like '%'||?1||'%' \
+        or authors like '%'||?1||'%'",
+    )?;
     let rows = stmt.query(rusqlite::params![text.trim()])?;
     DBIter::new(rows).collect()
 }
 
 /// Performs an advanced media search with the given search parameters.
 pub fn search_advanced(db: &Database, params: &BookSearch) -> api::Result<Vec<Book>> {
-    let mut stmt = db.con.prepare(SEARCH_ADVANCED)?;
+    let mut stmt = db.con.prepare(
+        "select \
+        id, \
+        isbn, \
+        title, \
+        publisher, \
+        year, \
+        costs, \
+        note, \
+        borrowable, \
+        category, \
+        ifnull(group_concat(author.name),'') as authors, \
+        borrower, \
+        deadline, \
+        reservation \
+        \
+        from medium \
+        left join author on author.medium=id \
+        group by id \
+        having id like '%'||?||'%' \
+        and isbn like '%'||?||'%' \
+        and title like '%'||?||'%' \
+        and publisher like '%'||?||'%' \
+        and authors like '%'||?||'%' \
+        and year between ? and ? \
+        and category like ? \
+        and note like '%'||?||'%' \
+        and (borrower like '%'||?||'%' or reservation like '%'||?||'%') \
+        and borrowable like ?",
+    )?;
     let user = params.user.trim();
     let user = if !user.is_empty() {
         user
@@ -299,7 +267,7 @@ pub fn add(db: &Database, book: &Book) -> api::Result<()> {
     };
     let transaction = db.transaction()?;
     transaction.execute(
-        ADD,
+        "insert into medium values (?, ?, ?, ?, ?, ?, ?, ?, ?, '', '', '')",
         rusqlite::params![
             book.id.trim(),
             isbn.trim(),
@@ -315,7 +283,10 @@ pub fn add(db: &Database, book: &Book) -> api::Result<()> {
 
     // Add authors
     for author in &book.authors {
-        transaction.execute(ADD_AUTHOR, [author.trim(), book.id.trim()])?;
+        transaction.execute(
+            "insert or ignore into author values (?, ?)",
+            [author.trim(), book.id.trim()],
+        )?;
     }
     transaction.commit()?;
     Ok(())
@@ -335,7 +306,9 @@ pub fn update(db: &Database, previous_id: &str, book: &Book) -> api::Result<()> 
     let transaction = db.transaction()?;
     // update book
     transaction.execute(
-        UPDATE,
+        "update medium \
+        set id=?, isbn=?, title=?, publisher=?, year=?, costs=?, note=?, borrowable=?, category=? \
+        where id=?",
         rusqlite::params![
             book.id.trim(),
             isbn.trim(),
@@ -352,7 +325,10 @@ pub fn update(db: &Database, previous_id: &str, book: &Book) -> api::Result<()> 
 
     if previous_id != book.id {
         // update authors
-        transaction.execute(UPDATE_AUTHORS, [book.id.trim(), previous_id])?;
+        transaction.execute(
+            "update author set medium=? where medium=?",
+            [book.id.trim(), previous_id],
+        )?;
     }
     transaction.commit()?;
     Ok(())
@@ -367,10 +343,13 @@ pub fn delete(db: &Database, id: &str) -> api::Result<()> {
     }
 
     let transaction = db.transaction()?;
-    transaction.execute(DELETE, [id])?;
+    transaction.execute("delete from medium where id=?", [id])?;
 
     // delete missing authors
-    transaction.execute(DELETE_UNUSED_AUTHORS, [])?;
+    transaction.execute(
+        "delete from author where medium not in (select id from medium)",
+        [],
+    )?;
     transaction.commit()?;
     Ok(())
 }
@@ -389,11 +368,14 @@ pub fn generate_id(db: &Database, book: &Book) -> api::Result<String> {
         return Ok(id.to_string());
     }
 
-    let id = db
-        .con
-        .query_row(UNUSED_ID, rusqlite::params![prefix.as_str()], |v| {
-            v.get::<usize, usize>(0).map(|v| v + 1)
-        })?;
+    // query smallest unused id
+    let id = db.con.query_row(
+        "select ifnull(max(cast(substr(id, length(?1) + 1) as integer)), 0) \
+        from medium where id like ?1||'%' \
+        order by id",
+        rusqlite::params![prefix.as_str()],
+        |v| v.get::<usize, usize>(0).map(|v| v + 1),
+    )?;
     Ok(format!("{prefix} {id}"))
 }
 
