@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use gdnative::prelude::*;
 
 use crate::api::{self, Error};
@@ -58,7 +60,7 @@ impl Project {
     #[method]
     fn open(&mut self, file: String) -> api::Result<bool> {
         self.close();
-        let (db, updated) = db::Database::open(&file)?;
+        let (db, updated) = db::Database::open(PathBuf::from(file).into())?;
         self.settings = Some(db::settings::fetch(&db)?);
         self.db = Some(db);
         Ok(updated)
@@ -68,7 +70,7 @@ impl Project {
     #[method]
     fn create(&mut self, file: String) -> api::Result<()> {
         self.close();
-        let db = db::Database::create(&file)?;
+        let db = db::Database::create(PathBuf::from(file).into())?;
         self.settings = Some(db::settings::fetch(&db)?);
         self.db = Some(db);
         Ok(())

@@ -6,12 +6,12 @@ use crate::provider::{marc21, BookData};
 /// The Marc21Parser wrapper "class"
 #[derive(NativeClass)]
 #[inherit(Reference)]
-pub struct Marc21 {}
+pub struct Marc21;
 
 #[methods]
 impl Marc21 {
     fn new(_owner: &Reference) -> Self {
-        Marc21 {}
+        Marc21
     }
 
     /// Perform a request to the DNB and fetch the metadata for the given isbn.

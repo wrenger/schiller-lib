@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::fmt;
 use std::path::{Path, PathBuf};
 use std::ptr::addr_of;
@@ -36,8 +37,7 @@ impl fmt::Debug for Database {
 
 impl Database {
     /// Creates a new database at the given path.
-    pub fn create(path: &str) -> api::Result<Database> {
-        let path = PathBuf::from(path);
+    pub fn create(path: Cow<'_, Path>) -> api::Result<Database> {
         if !path.exists() {
             let database = Database {
                 con: rusqlite::Connection::open_with_flags(
@@ -46,7 +46,7 @@ impl Database {
                         | rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
                 )
                 .map_err(|_| api::Error::FileOpen)?,
-                path,
+                path: path.into_owned(),
             };
             structure::create(&database, PKG_VERSION)?;
             Ok(database)
@@ -56,8 +56,7 @@ impl Database {
     }
 
     /// Opens a database connection to the given project database.
-    pub fn open(path: &str) -> api::Result<(Database, bool)> {
-        let path = PathBuf::from(path);
+    pub fn open(path: Cow<'_, Path>) -> api::Result<(Database, bool)> {
         if path.exists() {
             let database = Database {
                 con: rusqlite::Connection::open_with_flags(
@@ -65,7 +64,7 @@ impl Database {
                     rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
                 )
                 .map_err(|_| api::Error::FileOpen)?,
-                path,
+                path: path.into_owned(),
             };
             let updated = structure::migrate(&database, PKG_VERSION)?;
             Ok((database, updated))

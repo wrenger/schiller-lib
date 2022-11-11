@@ -28,6 +28,31 @@ pub struct Settings {
     pub mail_overdue2_content: String,
 }
 
+impl Settings {
+    pub fn set(&mut self, key: String, value: String) {
+        match key.as_str() {
+            "version" => {}
+            "borrowing.duration" => {
+                self.borrowing_duration = value.parse().unwrap_or(self.borrowing_duration);
+            }
+            "user.path" => self.user_path = value,
+            "user.delimiter" => self.user_delimiter = value,
+            "dnb.token" => self.dnb_token = value,
+            "mail.lastReminder" => self.mail_last_reminder = value,
+            "mail.from" => self.mail_from = value,
+            "mail.host" => self.mail_host = value,
+            "mail.password" => self.mail_password = value,
+            "mail.info.subject" => self.mail_info_subject = value,
+            "mail.info.content" => self.mail_info_content = value,
+            "mail.overdue.subject" => self.mail_overdue_subject = value,
+            "mail.overdue.content" => self.mail_overdue_content = value,
+            "mail.overdue2.subject" => self.mail_overdue2_subject = value,
+            "mail.overdue2.content" => self.mail_overdue2_content = value,
+            _ => error!("Unknown option: {key} = {value}"),
+        };
+    }
+}
+
 impl Default for Settings {
     fn default() -> Settings {
         Settings {
@@ -53,27 +78,7 @@ impl FromIterator<(String, String)> for Settings {
     fn from_iter<T: IntoIterator<Item = (String, String)>>(iter: T) -> Self {
         let mut settings = Settings::default();
         for (key, value) in iter {
-            match key.as_str() {
-                "version" => {}
-                "borrowing.duration" => {
-                    settings.borrowing_duration =
-                        value.parse().unwrap_or(settings.borrowing_duration);
-                }
-                "user.path" => settings.user_path = value,
-                "user.delimiter" => settings.user_delimiter = value,
-                "dnb.token" => settings.dnb_token = value,
-                "mail.lastReminder" => settings.mail_last_reminder = value,
-                "mail.from" => settings.mail_from = value,
-                "mail.host" => settings.mail_host = value,
-                "mail.password" => settings.mail_password = value,
-                "mail.info.subject" => settings.mail_info_subject = value,
-                "mail.info.content" => settings.mail_info_content = value,
-                "mail.overdue.subject" => settings.mail_overdue_subject = value,
-                "mail.overdue.content" => settings.mail_overdue_content = value,
-                "mail.overdue2.subject" => settings.mail_overdue2_subject = value,
-                "mail.overdue2.content" => settings.mail_overdue2_content = value,
-                _ => error!("Unknown option: {key} = {value}"),
-            }
+            settings.set(key, value);
         }
         settings
     }

@@ -59,9 +59,8 @@ impl Date {
             let locale = OS::godot_singleton().get_locale().to_string();
             if let Ok(locale) = chrono::Locale::try_from(locale.as_str()) {
                 return date.format_localized("%x", locale).to_string();
-            } else {
-                error!("Unknown locale {locale:?}");
             }
+            error!("Unknown locale {locale:?}");
         }
         self.get_iso()
     }

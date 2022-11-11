@@ -172,21 +172,22 @@ fn patch_0_6_3_settings(item: (String, String), db: &Path) -> (String, String) {
 }
 
 fn patch_0_6_3(db: &Database) -> api::Result<()> {
+    use java_properties::PropertiesIter;
     use std::fs::File;
 
-    if let Some(path) = db.path.parent().map(|p| p.join("sbv.properties")) {
-        let f = File::open(&path)?;
-        if let Ok(data) = java_properties::read(f) {
-            let settings = data
-                .into_iter()
-                .map(|e| patch_0_6_3_settings(e, db.path()))
-                .collect();
-            settings::update(db, &settings)?;
-        } else {
-            return Err(api::Error::FileOpen);
-        }
-    }
+    let path = db
+        .path
+        .parent()
+        .unwrap_or(Path::new("."))
+        .join("sbv.properties");
+    let f = File::open(&path)?;
 
+    let mut settings = Settings::default();
+    PropertiesIter::new(f).read_into(|k, v| {
+        let (k, v) = patch_0_6_3_settings((k, v), db.path());
+        settings.set(k, v);
+    })?;
+    settings::update(db, &settings)?;
     Ok(())
 }
 
@@ -202,6 +203,8 @@ fn patch_0_8_0(db: &Database) -> api::Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use crate::PKG_VERSION;
+
     use super::super::*;
     use super::*;
 
