@@ -180,7 +180,7 @@ fn patch_0_6_3(db: &Database) -> api::Result<()> {
         .parent()
         .unwrap_or(Path::new("."))
         .join("sbv.properties");
-    let f = File::open(&path)?;
+    let f = File::open(path)?;
 
     let mut settings = Settings::default();
     PropertiesIter::new(f).read_into(|k, v| {

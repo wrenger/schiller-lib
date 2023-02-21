@@ -1,4 +1,5 @@
-use chrono::{Datelike, TimeZone};
+use chrono::format::{DelayedFormat, StrftimeItems};
+use chrono::{Datelike, NaiveDate};
 use gdnative::api::OS;
 use gdnative::prelude::*;
 
@@ -33,7 +34,7 @@ pub struct Date {
 impl Date {
     fn new(_owner: &Reference) -> Self {
         Date {
-            date: chrono::Local::today().naive_local(),
+            date: chrono::Local::now().date_naive(),
             year: Property::default(),
             month: Property::default(),
             day: Property::default(),
@@ -52,17 +53,16 @@ impl Date {
         Ok(())
     }
 
-    /// The locale date, which is based on the language of the OS (en: %m/%d/%y)
+    /// The locale date, which is based on the language of the system (en: %m/%d/%y)
     #[method]
     fn get_locale(&self) -> String {
-        if let Some(date) = chrono::Local.from_local_date(&self.date).latest() {
-            let locale = OS::godot_singleton().get_locale().to_string();
-            if let Ok(locale) = chrono::Locale::try_from(locale.as_str()) {
-                return date.format_localized("%x", locale).to_string();
-            }
+        let locale = OS::godot_singleton().get_locale().to_string();
+        if let Some(res) = format_localized(self.date, "%x", &locale) {
+            res
+        } else {
             error!("Unknown locale {locale:?}");
+            self.get_iso()
         }
-        self.get_iso()
     }
 
     fn get_year(&self, _owner: TRef<Reference>) -> i64 {
@@ -95,7 +95,18 @@ impl Date {
     /// Return the number of days until today.
     #[method]
     fn days_until_today(&self) -> i64 {
-        (chrono::Local::today().naive_local() - self.date).num_days()
+        (chrono::Local::now().date_naive() - self.date).num_days()
+    }
+}
+
+/// Format a date according to the systems language (`locale`)
+fn format_localized(date: NaiveDate, fmt: &str, locale: &str) -> Option<String> {
+    if let Ok(locale) = chrono::Locale::try_from(locale) {
+        let items = StrftimeItems::new_with_locale(fmt, locale);
+        let res = DelayedFormat::new_with_locale(Some(date), None, items, locale);
+        Some(res.to_string())
+    } else {
+        None
     }
 }
 
@@ -103,5 +114,23 @@ impl From<chrono::ParseError> for api::Error {
     fn from(e: chrono::ParseError) -> api::Error {
         error!("chrono::ParseError: {e}");
         api::Error::Logic
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use chrono::NaiveDate;
+
+    #[test]
+    fn dates() {
+        let date = NaiveDate::from_ymd_opt(2022, 10, 20).unwrap();
+        assert_eq!(
+            "10/20/2022",
+            super::format_localized(date, "%x", "en_US").unwrap()
+        );
+        assert_eq!(
+            "20.10.2022",
+            super::format_localized(date, "%x", "de_DE").unwrap()
+        );
     }
 }

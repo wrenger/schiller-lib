@@ -47,7 +47,7 @@ impl Project {
         dict.insert(
             "authors",
             crate::PKG_AUTHORS
-                .split(';')
+                .split(':')
                 .map(GodotString::from_str)
                 .collect::<PoolArray<_>>(),
         );

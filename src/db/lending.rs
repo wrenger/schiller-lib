@@ -21,7 +21,7 @@ pub fn lend(db: &Database, book: &mut Book, user: &User, days: i64) -> api::Resu
         return Err(api::Error::LendingBookAlreadyBorrowed);
     }
 
-    let deadline = chrono::Utc::today() + chrono::Duration::days(days);
+    let deadline = chrono::Utc::now().date_naive() + chrono::Duration::days(days);
     let deadline = deadline.format("%F").to_string();
 
     db.con.execute(
