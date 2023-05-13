@@ -281,7 +281,7 @@ mod tests {
         user::update_roles(&db, &[("foo.bar", "Teacher")]).unwrap();
 
         user1.role = "Teacher".into();
-        user2.role = "".into();
+        user2.role = "-".into();
 
         let result = user::search(&db, "").unwrap();
         assert_eq!(result.len(), 2);
