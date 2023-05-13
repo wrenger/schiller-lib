@@ -1,5 +1,4 @@
 use std::fmt::{self, Display};
-use std::path::Path;
 use std::str::FromStr;
 
 use crate::api;
@@ -7,14 +6,14 @@ use crate::api;
 use super::{settings, settings::Settings, Database};
 
 /// Minimum supported version.
-const MIN_VERSION: Version = Version(0, 6, 2);
+const MIN_VERSION: Version = Version(0, 7, 0);
 
-type MigrationRoutine = fn(&Database) -> api::Result<()>;
+type Migration = fn(&Database) -> api::Result<()>;
 
 /// Database migration routines
-const PATCHES: [(Version, MigrationRoutine); 2] = [
-    (Version(0, 6, 3), patch_0_6_3),
+const PATCHES: [(Version, Migration); 2] = [
     (Version(0, 8, 0), patch_0_8_0),
+    (Version(0, 8, 3), patch_0_8_3),
 ];
 
 pub fn create(db: &Database, version: &str) -> api::Result<()> {
@@ -125,72 +124,6 @@ impl Display for Version {
     }
 }
 
-// apply new key setting names
-fn patch_0_6_3_settings(item: (String, String), db: &Path) -> (String, String) {
-    use gdnative::api::RegEx;
-
-    fn regex_search(regex: &str, text: &str) -> String {
-        let re = RegEx::new();
-        if re.compile(regex).is_err() {
-            error!("Malformed regex: {regex}");
-            return String::new();
-        }
-        re.search(text, 0, -1)
-            .map(|s| unsafe { s.assume_safe().get_string(1).to_string() })
-            .unwrap_or_default()
-    }
-
-    let (key, val) = item;
-    match key.as_str() {
-        "data.ausleihdauer" => ("borrowing.duration".into(), val),
-        "letzteMahnung" => ("mail.lastReminder".into(), val),
-        "email.absender" => ("mail.from".into(), val),
-        "email.host" => ("mail.host".into(), val),
-        "email.passwort" => ("mail.password".into(), val),
-        "email.infoTitel" => ("mail.info.subject".into(), val),
-        "email.info" => ("mail.info.content".into(), val),
-        "email.mahnungTitel" => ("mail.overdue.subject".into(), val),
-        "email.mahnung" => ("mail.overdue.content".into(), val),
-        "email.mahnung2Titel" => ("mail.overdue2.subject".into(), val),
-        "email.mahnung2" => ("mail.overdue2.content".into(), val),
-        "data.benutzer.regex" => (
-            "user.delimiter".into(),
-            unescape::unescape(&val).unwrap_or(val),
-        ),
-        "data.benutzer" => (
-            "user.path".into(),
-            db.parent()
-                .and_then(|p| p.join(&val).to_str().map(String::from))
-                .unwrap_or(val),
-        ),
-        "dnb.url.medien" => (
-            "dnb.token".into(),
-            regex_search("accessToken~(\\w+)/", &val),
-        ),
-        _ => (key, val),
-    }
-}
-
-fn patch_0_6_3(db: &Database) -> api::Result<()> {
-    use java_properties::PropertiesIter;
-    use std::fs::File;
-
-    let path = db
-        .path
-        .parent()
-        .unwrap_or(Path::new("."))
-        .join("sbv.properties");
-    let f = File::open(path)?;
-
-    let mut settings = Settings::default();
-    PropertiesIter::new(f).read_into(|k, v| {
-        let (k, v) = patch_0_6_3_settings((k, v), db.path());
-        settings.set(k, v);
-    })?;
-    settings::update(db, &settings)?;
-    Ok(())
-}
-
 fn patch_0_8_0(db: &Database) -> api::Result<()> {
     const UPDATE_MAIL_PLACEHOLDERS: &str = "\
         update sbv_meta set \
@@ -198,6 +131,16 @@ fn patch_0_8_0(db: &Database) -> api::Result<()> {
         where key like 'mail.%.subject' or key like 'mail.%.content' \
     ";
     db.con.execute(UPDATE_MAIL_PLACEHOLDERS, [])?;
+    Ok(())
+}
+
+fn patch_0_8_3(db: &Database) -> api::Result<()> {
+    const UPDATE_USER_ROLES: &str = "\
+        update user set \
+        role=? \
+        where role='' \
+    ";
+    db.con.execute(UPDATE_USER_ROLES, ["-"])?;
     Ok(())
 }
 
@@ -244,22 +187,6 @@ mod tests {
     }
 
     #[test]
-    fn patch_0_6_3_settings() {
-        let tmp = Path::new("/tmp/bla");
-        let (_, val) =
-            super::patch_0_6_3_settings(("data.benutzer.regex".into(), "|".into()), &tmp);
-        assert_eq!(val.as_str(), "|");
-
-        let (_, val) =
-            super::patch_0_6_3_settings(("data.benutzer.regex".into(), "\u{007C}".into()), &tmp);
-        assert_eq!(val.as_str(), "|");
-
-        let (_, val) =
-            super::patch_0_6_3_settings(("data.benutzer.regex".into(), "\\u007C".into()), &tmp);
-        assert_eq!(val.as_str(), "|");
-    }
-
-    #[test]
     fn migrate_0_8_0() {
         let db = Database::memory().unwrap();
         structure::create(&db, "7.0").unwrap();
@@ -293,5 +220,39 @@ mod tests {
             settings.mail_overdue2_content
                 == "Hello {username},\nThe borrowing period for the book '{booktitle}' has expired two weeks ago.");
         assert!(settings.mail_host == "[mediumtitel] [name]");
+    }
+
+    #[test]
+    fn migrate_0_8_3() {
+        let db = Database::memory().unwrap();
+        structure::create(&db, "0.8.2").unwrap();
+
+        let u1 = User {
+            account: "max.mueller".into(),
+            forename: "Max".into(),
+            surname: "Mueller".into(),
+            role: "".into(),
+            may_borrow: true,
+        };
+        let u2 = User {
+            account: "john.doe".into(),
+            forename: "John".into(),
+            surname: "Doe".into(),
+            role: "VIP".into(),
+            may_borrow: true,
+        };
+
+        user::add(&db, &u1).unwrap();
+        user::add(&db, &u2).unwrap();
+
+        patch_0_8_3(&db).unwrap();
+
+        let mut new_u1 = user::fetch(&db, "max.mueller").unwrap();
+        assert_eq!(&new_u1.role, "-");
+        new_u1.role.clear();
+        assert_eq!(u1, new_u1);
+
+        let new_u2 = user::fetch(&db, "john.doe").unwrap();
+        assert_eq!(u2, new_u2);
     }
 }

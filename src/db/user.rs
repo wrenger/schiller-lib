@@ -20,6 +20,7 @@ impl User {
         !self.account.trim().is_empty()
             && !self.forename.trim().is_empty()
             && !self.surname.trim().is_empty()
+            && !self.role.trim().is_empty()
     }
 }
 
@@ -69,6 +70,48 @@ pub fn search(db: &Database, text: &str) -> api::Result<Vec<User>> {
         order by account",
     )?;
     let rows = stmt.query([text.trim()])?;
+    DBIter::new(rows).collect()
+}
+
+/// Parameters for the advanced search
+#[derive(Debug, Clone, Default, FromVariant)]
+pub struct UserSearch {
+    pub account: String,
+    pub forename: String,
+    pub surname: String,
+    pub role: String,
+    pub may_borrow: Option<bool>,
+}
+
+/// Performes a simple user search with the given `text`.
+pub fn search_advanced(db: &Database, params: &UserSearch) -> api::Result<Vec<User>> {
+    let mut stmt = db.con.prepare(
+        "select \
+        account, \
+        forename, \
+        surname, \
+        role, \
+        may_borrow \
+        \
+        from user \
+        where account like '%'||?1||'%' \
+        and forename like '%'||?2||'%' \
+        and surname like '%'||?3||'%' \
+        and role like '%'||?4||'%' \
+        and may_borrow like '%'||?5||'%' \
+        order by account",
+    )?;
+    let rows = stmt.query([
+        params.account.trim(),
+        params.forename.trim(),
+        params.surname.trim(),
+        params.role.trim(),
+        match params.may_borrow {
+            Some(true) => "1",
+            Some(false) => "0",
+            None => "%",
+        },
+    ])?;
     DBIter::new(rows).collect()
 }
 
@@ -153,7 +196,7 @@ pub fn delete(db: &Database, account: &str) -> api::Result<()> {
 /// The roles of all users not contained in the given list are cleared.
 pub fn update_roles(db: &Database, users: &[(&str, &str)]) -> api::Result<()> {
     let transaction = db.transaction()?;
-    transaction.execute("update user set role=''", [])?;
+    transaction.execute("update user set role='-'", [])?;
 
     let mut stmt = transaction.prepare("update user set role=? where account=?")?;
     for &(account, role) in users {

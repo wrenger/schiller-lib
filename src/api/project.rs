@@ -152,6 +152,12 @@ impl Project {
         db::user::search(self.get_db()?, &text)
     }
 
+    /// Performs a simple user search with the given `text`.
+    #[method]
+    fn user_search_advanced(&self, params: db::UserSearch) -> api::Result<Vec<db::user::User>> {
+        db::user::search_advanced(self.get_db()?, &params)
+    }
+
     /// Adds a new user.
     #[method]
     fn user_add(&self, user: db::User) -> api::Result<()> {

@@ -166,6 +166,7 @@ margin_right = 137.5
 margin_bottom = 33.5
 
 [node name="SettingsDialog" parent="Dialogs" groups=["SettingsDialog"] instance=ExtResource( 18 )]
+visible = false
 margin_left = -348.0
 margin_top = -360.5
 margin_right = 348.0

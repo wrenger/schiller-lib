@@ -16,7 +16,7 @@ pub mod stats;
 pub use stats::Stats;
 pub mod structure;
 pub mod user;
-pub use user::User;
+pub use user::{User, UserSearch};
 
 use super::PKG_VERSION;
 

@@ -5,9 +5,7 @@
 [ext_resource path="res://ui/util/ThemeProperty.gd" type="Script" id=3]
 [ext_resource path="res://ui/user/UserView.gd" type="Script" id=4]
 
-[node name="LendDialog" type="ConfirmationDialog" groups=[
-"LendDialog",
-]]
+[node name="LendDialog" type="ConfirmationDialog" groups=["LendDialog"]]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -85,32 +83,30 @@ margin_bottom = 86.0
 text = "-"
 
 [node name="AddUser" type="VBoxContainer" parent="Box"]
-visible = false
-margin_top = 84.0
+margin_top = 96.0
 margin_right = 458.0
-margin_bottom = 158.0
+margin_bottom = 152.0
 script = ExtResource( 4 )
 editable = true
 account_path = NodePath("Account/Account")
 forename_path = NodePath("Name/Forename")
 surname_path = NodePath("Name/Surname")
-role_path = NodePath("Role")
 user_request = NodePath("Account/Request")
 
 [node name="Account" type="HBoxContainer" parent="Box/AddUser"]
 margin_right = 458.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 
 [node name="Account" type="LineEdit" parent="Box/AddUser/Account"]
 margin_right = 442.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 size_flags_horizontal = 3
 placeholder_text = ".user.account"
 
 [node name="Request" type="Button" parent="Box/AddUser/Account"]
 margin_left = 446.0
 margin_right = 458.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 script = ExtResource( 3 )
 theme_class = "EditorIcons"
 theme_name = "AssetLib"
@@ -118,33 +114,27 @@ theme_type = 2
 target_property = "icon"
 
 [node name="Name" type="HBoxContainer" parent="Box/AddUser"]
-margin_top = 26.0
+margin_top = 30.0
 margin_right = 458.0
-margin_bottom = 48.0
+margin_bottom = 56.0
 
 [node name="Forename" type="LineEdit" parent="Box/AddUser/Name"]
 margin_right = 227.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 size_flags_horizontal = 3
 placeholder_text = ".user.forename"
 
 [node name="Surname" type="LineEdit" parent="Box/AddUser/Name"]
 margin_left = 231.0
 margin_right = 458.0
-margin_bottom = 22.0
+margin_bottom = 26.0
 size_flags_horizontal = 3
 placeholder_text = ".user.surname"
 
-[node name="Role" type="LineEdit" parent="Box/AddUser"]
-margin_top = 52.0
-margin_right = 458.0
-margin_bottom = 74.0
-placeholder_text = ".user.role"
-
 [node name="Period" type="VBoxContainer" parent="Box"]
-margin_top = 96.0
+margin_top = 162.0
 margin_right = 458.0
-margin_bottom = 152.0
+margin_bottom = 218.0
 
 [node name="Label" type="Label" parent="Box/Period"]
 margin_right = 458.0
@@ -165,9 +155,9 @@ suffix = ".book.period.days"
 script = ExtResource( 2 )
 
 [node name="State" type="Label" parent="Box"]
-margin_top = 162.0
+margin_top = 228.0
 margin_right = 458.0
-margin_bottom = 188.0
+margin_bottom = 254.0
 script = ExtResource( 3 )
 __meta__ = {
 "_edit_use_anchors_": false
@@ -175,6 +165,7 @@ __meta__ = {
 theme_class = "Editor"
 theme_name = "error_color"
 target_property = "custom_colors/font_color"
+
 [connection signal="text_entered" from="Box/User/Search" to="." method="_on_user_input_entered"]
 [connection signal="index_pressed" from="Box/User/Search/Popup" to="." method="_on_user_selected"]
 [connection signal="pressed" from="Box/User/Search/ToolButton" to="." method="_on_user_input_entered" binds= [ "" ]]

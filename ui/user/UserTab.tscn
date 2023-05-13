@@ -1,10 +1,12 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://ui/util/ThemeProperty.gd" type="Script" id=1]
 [ext_resource path="res://ui/user/UserSearch.gd" type="Script" id=2]
 [ext_resource path="res://ui/util/ObjectList.gd" type="Script" id=3]
+[ext_resource path="res://ui/util/NamedTabs.gd" type="Script" id=4]
 [ext_resource path="res://ui/user/UserView.tscn" type="PackedScene" id=5]
 [ext_resource path="res://ui/user/UserPane.gd" type="Script" id=6]
+[ext_resource path="res://ui/book/SearchStatus.gd" type="Script" id=7]
 [ext_resource path="res://ui/user/UserTab.gd" type="Script" id=8]
 
 [node name="Users" type="MarginContainer"]
@@ -19,9 +21,6 @@ custom_constants/margin_top = 10
 custom_constants/margin_left = 5
 custom_constants/margin_bottom = 5
 script = ExtResource( 8 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="Split" type="HSplitContainer" parent="."]
 margin_left = 5.0
@@ -38,21 +37,31 @@ margin_right = 600.0
 margin_bottom = 749.0
 rect_min_size = Vector2( 200, 0 )
 
-[node name="Box" type="VBoxContainer" parent="Split/Left"]
+[node name="Search" type="VBoxContainer" parent="Split/Left"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 custom_constants/separation = 5
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Search" type="LineEdit" parent="Split/Left/Box"]
-margin_right = 600.0
-margin_bottom = 26.0
-placeholder_text = ".search.user.entry"
 script = ExtResource( 2 )
 
-[node name="ToolButton" type="ToolButton" parent="Split/Left/Box/Search"]
+[node name="Tabs" type="TabContainer" parent="Split/Left/Search"]
+margin_right = 600.0
+margin_bottom = 153.0
+tab_align = 0
+script = ExtResource( 4 )
+editor_icons = [ "Search", "Zoom" ]
+labels = [ ".search.base", ".search.advanced" ]
+
+[node name="Basic" type="LineEdit" parent="Split/Left/Search/Tabs"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 5.0
+margin_top = 32.0
+margin_right = -5.0
+margin_bottom = -5.0
+placeholder_text = ".search.user.entry"
+
+[node name="ToolButton" type="ToolButton" parent="Split/Left/Search/Tabs/Basic"]
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -67,8 +76,65 @@ theme_name = "Search"
 theme_type = 2
 target_property = "icon"
 
-[node name="UserList" type="Tree" parent="Split/Left/Box"]
-margin_top = 31.0
+[node name="Advanced" type="VBoxContainer" parent="Split/Left/Search/Tabs"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 5.0
+margin_top = 32.0
+margin_right = -5.0
+margin_bottom = -5.0
+
+[node name="Account" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced"]
+margin_right = 590.0
+margin_bottom = 26.0
+size_flags_horizontal = 3
+placeholder_text = ".user.account"
+
+[node name="Grid" type="GridContainer" parent="Split/Left/Search/Tabs/Advanced"]
+margin_top = 30.0
+margin_right = 590.0
+margin_bottom = 86.0
+columns = 2
+
+[node name="Forename" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
+margin_right = 293.0
+margin_bottom = 26.0
+size_flags_horizontal = 3
+placeholder_text = ".user.forename"
+
+[node name="Surname" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
+margin_left = 297.0
+margin_right = 590.0
+margin_bottom = 26.0
+size_flags_horizontal = 3
+placeholder_text = ".user.surname"
+
+[node name="Role" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
+margin_top = 30.0
+margin_right = 293.0
+margin_bottom = 56.0
+size_flags_horizontal = 3
+placeholder_text = ".user.role"
+
+[node name="MayBorrow" type="OptionButton" parent="Split/Left/Search/Tabs/Advanced/Grid"]
+margin_left = 297.0
+margin_top = 30.0
+margin_right = 590.0
+margin_bottom = 56.0
+size_flags_horizontal = 3
+text = ".user.permission"
+items = [ ".user.permission", null, false, 2, null, ".user.may-borrow", null, false, 1, null, ".user.may-not-borrow", null, false, 0, null ]
+selected = 0
+
+[node name="Search" type="Button" parent="Split/Left/Search/Tabs/Advanced"]
+margin_top = 90.0
+margin_right = 590.0
+margin_bottom = 116.0
+size_flags_horizontal = 3
+text = ".search.action"
+
+[node name="UserList" type="Tree" parent="Split/Left/Search"]
+margin_top = 158.0
 margin_right = 600.0
 margin_bottom = 718.0
 size_flags_horizontal = 3
@@ -83,10 +149,22 @@ column_sizes = PoolIntArray( 150, 100, 100, 100 )
 column_expand = PoolByteArray( 1, 1, 1, 1 )
 column_selectors = PoolStringArray( "account", "forename", "surname", "role" )
 
-[node name="Add" type="Button" parent="Split/Left/Box"]
+[node name="Footer" type="HBoxContainer" parent="Split/Left/Search"]
 margin_top = 723.0
 margin_right = 600.0
 margin_bottom = 749.0
+
+[node name="Status" type="Label" parent="Split/Left/Search/Footer"]
+margin_right = 298.0
+margin_bottom = 26.0
+size_flags_horizontal = 3
+script = ExtResource( 7 )
+
+[node name="Add" type="Button" parent="Split/Left/Search/Footer"]
+margin_left = 302.0
+margin_right = 600.0
+margin_bottom = 26.0
+size_flags_horizontal = 3
 text = ".user.new"
 script = ExtResource( 1 )
 theme_class = "EditorIcons"
@@ -103,10 +181,8 @@ rect_min_size = Vector2( 200, 0 )
 [node name="Box" type="VBoxContainer" parent="Split/Rigth"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+margin_top = 32.0
 script = ExtResource( 6 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="User" parent="Split/Rigth/Box" instance=ExtResource( 5 )]
 margin_right = 574.0
@@ -178,14 +254,22 @@ margin_right = 570.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 text = ".action.apply"
-[connection signal="search_results" from="Split/Left/Box/Search" to="Split/Left/Box/UserList" method="fill"]
-[connection signal="text_entered" from="Split/Left/Box/Search" to="Split/Left/Box/Search" method="_on_search"]
-[connection signal="pressed" from="Split/Left/Box/Search/ToolButton" to="Split/Left/Box/Search" method="_on_search"]
-[connection signal="object_selected" from="Split/Left/Box/UserList" to="Split/Rigth/Box" method="_on_user_selected"]
-[connection signal="pressed" from="Split/Left/Box/Add" to="Split/Rigth/Box" method="_on_add"]
-[connection signal="add_user" from="Split/Rigth/Box" to="Split/Left/Box/UserList" method="add_and_select_object"]
+
+[connection signal="search_results" from="Split/Left/Search" to="Split/Left/Search/UserList" method="fill"]
+[connection signal="search_results" from="Split/Left/Search" to="Split/Left/Search/Footer/Status" method="_on_search_results"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Basic" to="Split/Left/Search" method="_on_search"]
+[connection signal="pressed" from="Split/Left/Search/Tabs/Basic/ToolButton" to="Split/Left/Search" method="_on_search"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Account" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/Forename" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/Surname" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/Role" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="item_selected" from="Split/Left/Search/Tabs/Advanced/Grid/MayBorrow" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="pressed" from="Split/Left/Search/Tabs/Advanced/Search" to="Split/Left/Search" method="_on_advanced_search"]
+[connection signal="object_selected" from="Split/Left/Search/UserList" to="Split/Rigth/Box" method="_on_user_selected"]
+[connection signal="pressed" from="Split/Left/Search/Footer/Add" to="Split/Rigth/Box" method="_on_add"]
+[connection signal="add_user" from="Split/Rigth/Box" to="Split/Left/Search/UserList" method="add_and_select_object"]
 [connection signal="show_books" from="Split/Rigth/Box" to="." method="_on_show_books"]
-[connection signal="update_user" from="Split/Rigth/Box" to="Split/Left/Box/UserList" method="update_selected"]
+[connection signal="update_user" from="Split/Rigth/Box" to="Split/Left/Search/UserList" method="update_selected"]
 [connection signal="pressed" from="Split/Rigth/Box/ShowBooks" to="Split/Rigth/Box" method="_on_show_books"]
 [connection signal="pressed" from="Split/Rigth/Box/Edit" to="Split/Rigth/Box" method="_on_edit"]
 [connection signal="pressed" from="Split/Rigth/Box/Editing/Cancel" to="Split/Rigth/Box" method="_on_edit_cancel"]

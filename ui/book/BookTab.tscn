@@ -46,9 +46,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 custom_constants/separation = 5
 script = ExtResource( 6 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="Tabs" type="TabContainer" parent="Split/Left/Search"]
 margin_right = 600.0
@@ -92,50 +89,50 @@ margin_right = -5.0
 margin_bottom = -5.0
 
 [node name="Grid" type="GridContainer" parent="Split/Left/Search/Tabs/Advanced"]
-margin_right = 686.0
-margin_bottom = 126.0
+margin_right = 590.0
+margin_bottom = 146.0
 columns = 2
 
 [node name="Title" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
-margin_right = 341.0
-margin_bottom = 22.0
+margin_right = 293.0
+margin_bottom = 26.0
 size_flags_horizontal = 3
 placeholder_text = ".book.title"
 
 [node name="ID" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
-margin_left = 345.0
-margin_right = 686.0
-margin_bottom = 22.0
+margin_left = 297.0
+margin_right = 590.0
+margin_bottom = 26.0
 size_flags_horizontal = 3
 placeholder_text = ".book.id"
 
 [node name="ISBN" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
-margin_top = 26.0
-margin_right = 341.0
-margin_bottom = 48.0
+margin_top = 30.0
+margin_right = 293.0
+margin_bottom = 56.0
 size_flags_horizontal = 3
 placeholder_text = ".book.isbn"
 
 [node name="Authors" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
-margin_left = 345.0
-margin_top = 26.0
-margin_right = 686.0
-margin_bottom = 48.0
+margin_left = 297.0
+margin_top = 30.0
+margin_right = 590.0
+margin_bottom = 56.0
 size_flags_horizontal = 3
 placeholder_text = ".book.authors"
 
 [node name="Publisher" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
-margin_top = 52.0
-margin_right = 341.0
-margin_bottom = 74.0
+margin_top = 60.0
+margin_right = 293.0
+margin_bottom = 86.0
 size_flags_horizontal = 3
 placeholder_text = ".book.publisher"
 
 [node name="Category" type="OptionButton" parent="Split/Left/Search/Tabs/Advanced/Grid"]
-margin_left = 345.0
-margin_top = 52.0
-margin_right = 686.0
-margin_bottom = 74.0
+margin_left = 297.0
+margin_top = 60.0
+margin_right = 590.0
+margin_bottom = 86.0
 size_flags_horizontal = 3
 text = ".category"
 clip_text = true
@@ -143,48 +140,48 @@ script = ExtResource( 1 )
 allow_empty = true
 
 [node name="Year" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
-margin_top = 78.0
-margin_right = 341.0
-margin_bottom = 100.0
+margin_top = 90.0
+margin_right = 293.0
+margin_bottom = 116.0
 size_flags_horizontal = 3
 placeholder_text = ".book.year"
 
 [node name="Note" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
-margin_left = 345.0
-margin_top = 78.0
-margin_right = 686.0
-margin_bottom = 100.0
+margin_left = 297.0
+margin_top = 90.0
+margin_right = 590.0
+margin_bottom = 116.0
 size_flags_horizontal = 3
 placeholder_text = ".book.note"
 
 [node name="User" type="LineEdit" parent="Split/Left/Search/Tabs/Advanced/Grid"]
-margin_top = 104.0
-margin_right = 341.0
-margin_bottom = 126.0
+margin_top = 120.0
+margin_right = 293.0
+margin_bottom = 146.0
 size_flags_horizontal = 3
 placeholder_text = ".user"
 
 [node name="State" type="OptionButton" parent="Split/Left/Search/Tabs/Advanced/Grid"]
-margin_left = 345.0
-margin_top = 104.0
-margin_right = 686.0
-margin_bottom = 126.0
+margin_left = 297.0
+margin_top = 120.0
+margin_right = 590.0
+margin_bottom = 146.0
 size_flags_horizontal = 3
 text = ".book.state"
 items = [ ".book.state", null, false, 0, null, ".book.borrowable", null, false, 1, null, ".book.not-borrowable", null, false, 2, null, ".book.unavaliable", null, false, 3, null ]
 selected = 0
 
 [node name="Search" type="Button" parent="Split/Left/Search/Tabs/Advanced"]
-margin_top = 130.0
-margin_right = 686.0
-margin_bottom = 152.0
+margin_top = 150.0
+margin_right = 590.0
+margin_bottom = 176.0
 size_flags_horizontal = 3
 text = ".search.action"
 
 [node name="BookList" type="Tree" parent="Split/Left/Search"]
 margin_top = 68.0
 margin_right = 600.0
-margin_bottom = 687.0
+margin_bottom = 718.0
 size_flags_vertical = 3
 columns = 4
 hide_folding = true
@@ -196,16 +193,22 @@ column_sizes = PoolIntArray( 120, 150, 100, 100 )
 column_expand = PoolByteArray( 0, 1, 1, 0 )
 column_selectors = PoolStringArray( "id", "title", "#book_authors", "#book_state" )
 
-[node name="Status" type="Label" parent="Split/Left/Search"]
-margin_top = 692.0
-margin_right = 600.0
-margin_bottom = 718.0
-script = ExtResource( 8 )
-
-[node name="Add" type="Button" parent="Split/Left/Search"]
+[node name="Footer" type="HBoxContainer" parent="Split/Left/Search"]
 margin_top = 723.0
 margin_right = 600.0
 margin_bottom = 749.0
+
+[node name="Status" type="Label" parent="Split/Left/Search/Footer"]
+margin_right = 298.0
+margin_bottom = 26.0
+size_flags_horizontal = 3
+script = ExtResource( 8 )
+
+[node name="Add" type="Button" parent="Split/Left/Search/Footer"]
+margin_left = 302.0
+margin_right = 600.0
+margin_bottom = 26.0
+size_flags_horizontal = 3
 text = ".book.new"
 script = ExtResource( 4 )
 theme_class = "EditorIcons"
@@ -219,12 +222,22 @@ margin_right = 1182.0
 margin_bottom = 749.0
 rect_min_size = Vector2( 200, 0 )
 
-[node name="BookPane" parent="Split/Right" instance=ExtResource( 5 )]
-margin_top = 30.0
+[node name="ScrollContainer" type="ScrollContainer" parent="Split/Right"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 32.0
+follow_focus = true
+scroll_horizontal_enabled = false
+
+[node name="BookPane" parent="Split/Right/ScrollContainer" instance=ExtResource( 5 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 574.0
+margin_bottom = 517.0
 size_flags_horizontal = 3
 
 [connection signal="search_results" from="Split/Left/Search" to="Split/Left/Search/BookList" method="fill"]
-[connection signal="search_results" from="Split/Left/Search" to="Split/Left/Search/Status" method="_on_search_results"]
+[connection signal="search_results" from="Split/Left/Search" to="Split/Left/Search/Footer/Status" method="_on_search_results"]
 [connection signal="text_entered" from="Split/Left/Search/Tabs/Basic" to="Split/Left/Search" method="_on_search"]
 [connection signal="pressed" from="Split/Left/Search/Tabs/Basic/ToolButton" to="Split/Left/Search" method="_on_search"]
 [connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/Title" to="Split/Left/Search" method="_on_advanced_search"]
@@ -238,7 +251,7 @@ size_flags_horizontal = 3
 [connection signal="text_entered" from="Split/Left/Search/Tabs/Advanced/Grid/User" to="Split/Left/Search" method="_on_advanced_search"]
 [connection signal="item_selected" from="Split/Left/Search/Tabs/Advanced/Grid/State" to="Split/Left/Search" method="_on_advanced_search"]
 [connection signal="pressed" from="Split/Left/Search/Tabs/Advanced/Search" to="Split/Left/Search" method="_on_advanced_search"]
-[connection signal="object_selected" from="Split/Left/Search/BookList" to="Split/Right/BookPane" method="set_book"]
-[connection signal="pressed" from="Split/Left/Search/Add" to="Split/Right/BookPane" method="_on_add_book"]
-[connection signal="add_book" from="Split/Right/BookPane" to="Split/Left/Search/BookList" method="add_and_select_object"]
-[connection signal="update_book" from="Split/Right/BookPane" to="Split/Left/Search/BookList" method="update_selected"]
+[connection signal="object_selected" from="Split/Left/Search/BookList" to="Split/Right/ScrollContainer/BookPane" method="set_book"]
+[connection signal="pressed" from="Split/Left/Search/Footer/Add" to="Split/Right/ScrollContainer/BookPane" method="_on_add_book"]
+[connection signal="add_book" from="Split/Right/ScrollContainer/BookPane" to="Split/Left/Search/BookList" method="add_and_select_object"]
+[connection signal="update_book" from="Split/Right/ScrollContainer/BookPane" to="Split/Left/Search/BookList" method="update_selected"]
