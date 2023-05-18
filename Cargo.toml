@@ -13,7 +13,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [profile.release]
-lto = true
+lto = "thin"
 opt-level = "s"
 codegen-units = 1
 strip = "debuginfo"
@@ -24,8 +24,6 @@ rusqlite = { version = "0.29", features = ["bundled"] }
 chrono = { version = "0.4", features = ["unstable-locales"] }
 roxmltree = "0.18"
 unicode-normalization = "0.1"
-java-properties = "1.4"
-unescape = "0.1"
 
 [dependencies.lettre]
 version = "0.10"

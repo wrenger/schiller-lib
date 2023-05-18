@@ -61,13 +61,6 @@ impl From<roxmltree::Error> for Error {
     }
 }
 
-impl From<java_properties::PropertiesError> for Error {
-    fn from(e: java_properties::PropertiesError) -> Self {
-        error!("Invalid Java Properties: {e:?}");
-        Self::FileOpen
-    }
-}
-
 impl gdnative::core_types::FromVariant for Error {
     fn from_variant(
         variant: &gdnative::core_types::Variant,

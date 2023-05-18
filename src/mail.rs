@@ -15,10 +15,6 @@ pub fn send(
     subject: &str,
     body: &str,
 ) -> api::Result<()> {
-    // Disable for debug builds
-    #[cfg(debug_assertions)]
-    return Err(api::Error::Logic);
-
     // Change encoding of äöü to ascii
     let subject = subject.nfc().collect::<String>();
     let body = body.nfc().collect::<String>();
