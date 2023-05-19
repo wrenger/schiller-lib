@@ -68,7 +68,8 @@ func _on_edit_cancel():
 func _on_edit_add():
     var user: Dictionary = _user_pane.user
     var result: Dictionary = Project.user_add(user)
-    if result.has("Err"): return MessageDialog.error_code(result["Err"])
+    if result.has("Err"):
+        return MessageDialog.error(Util.trf(".error.user.existing", [user["account"]]))
 
     set_user(_user_pane.user)
     emit_signal("add_user", user)

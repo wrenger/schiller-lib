@@ -14,7 +14,7 @@ func _set(property: String, value) -> bool:
 
 
 # Public exported methods
-func request(isbn: String) -> Dictionary:
-    return _pimpl.request(isbn)
+func request(account: String) -> Dictionary:
+    return _pimpl.request(account)
 func bulk_request(accounts: PoolStringArray) -> Dictionary:
     return _pimpl.bulk_request(accounts)

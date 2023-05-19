@@ -243,16 +243,18 @@ mod tests {
         };
 
         // Circumvent valid check
-        db.con.execute(
-        "insert into user values (?, ?, ?, ?, ?)",
-            rusqlite::params![
-                u1.account.trim(),
-                u1.forename.trim(),
-                u1.surname.trim(),
-                u1.role.trim(),
-                u1.may_borrow as i64,
-            ],
-        ).unwrap();
+        db.con
+            .execute(
+                "insert into user values (?, ?, ?, ?, ?)",
+                rusqlite::params![
+                    u1.account.trim(),
+                    u1.forename.trim(),
+                    u1.surname.trim(),
+                    u1.role.trim(),
+                    u1.may_borrow as i64,
+                ],
+            )
+            .unwrap();
 
         user::add(&db, &u2).unwrap();
 
