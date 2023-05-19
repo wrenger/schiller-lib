@@ -61,18 +61,28 @@ impl Record {
         let mut data = BookData::default();
         let mut persons = Vec::new();
         let mut isbns = Vec::new();
-        for field in record.descendants().filter(|x| x.has_tag_name("datafield")) {
-            match field.attribute("tag") {
-                Some(ISBN_COSTS_TAG) => {
-                    subfield(field, ISBN_CODE).map_or((), |t| isbns.push(t));
-                    subfield(field, COSTS_CODE).map_or((), |t| data.costs = parse_costs(&t));
+
+        let Some(record) = record.children().find(|n| n.has_tag_name("recordData")) else {
+            return Self::default();
+        };
+        let Some(record) = record.children().find(|n| n.has_tag_name("record")) else {
+            return Self::default();
+        };
+
+        for df in record.children().filter(|x| x.has_tag_name("datafield")) {
+            let Some(tag) = df.attribute("tag") else { continue };
+
+            match tag {
+                ISBN_COSTS_TAG => {
+                    subfield(df, ISBN_CODE).map_or((), |t| isbns.push(t));
+                    subfield(df, COSTS_CODE).map_or((), |t| data.costs = parse_costs(&t));
                 }
-                Some(EAN_TAG) => subfield(field, EAN_CODE).map_or((), |t| isbns.push(t)),
-                Some(TITLE_TAG) => {
-                    subfield(field, TITLE_CODE).map_or((), |t| data.title = t);
+                EAN_TAG => subfield(df, EAN_CODE).map_or((), |t| isbns.push(t)),
+                TITLE_TAG => {
+                    subfield(df, TITLE_CODE).map_or((), |t| data.title = t);
                     // Add subtitle if the title is to short
                     if data.title.len() < SHORT_TITLE_LEN {
-                        subfield(field, SUBTITLE_CODE).map_or((), |t| {
+                        subfield(df, SUBTITLE_CODE).map_or((), |t| {
                             if !t.is_empty() {
                                 data.title.push_str(" - ");
                                 data.title.push_str(&t);
@@ -80,13 +90,9 @@ impl Record {
                         });
                     }
                 }
-                Some(AUTHOR_TAG) => {
-                    subfield(field, AUTHOR_CODE).map_or((), |t| data.authors.push(t))
-                }
-                Some(PERSON_TAG) => subfield(field, PERSON_CODE).map_or((), |t| persons.push(t)),
-                Some(PUBLISHER_TAG) => {
-                    subfield(field, PUBLISHER_CODE).map_or((), |t| data.publisher = t)
-                }
+                AUTHOR_TAG => subfield(df, AUTHOR_CODE).map_or((), |t| data.authors.push(t)),
+                PERSON_TAG => subfield(df, PERSON_CODE).map_or((), |t| persons.push(t)),
+                PUBLISHER_TAG => subfield(df, PUBLISHER_CODE).map_or((), |t| data.publisher = t),
                 _ => {}
             };
         }

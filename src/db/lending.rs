@@ -9,16 +9,16 @@ pub fn lend(db: &Database, book: &mut Book, user: &User, days: i64) -> api::Resu
     if !book.borrowable {
         return Err(api::Error::LendingBookNotBorrowable);
     }
+    // Allow renewal
+    if !book.borrower.is_empty() && book.borrower != user.account {
+        return Err(api::Error::LendingBookAlreadyBorrowed);
+    }
     if !book.reservation.is_empty() {
         if book.reservation == user.account {
             release(db, book)?; // Allow lending to reserver
         } else {
             return Err(api::Error::LendingBookAlreadyReserved);
         }
-    }
-    // Allow renewal
-    if !book.borrower.is_empty() && book.borrower != user.account {
-        return Err(api::Error::LendingBookAlreadyBorrowed);
     }
 
     let deadline = chrono::Utc::now().date_naive() + chrono::Duration::days(days);

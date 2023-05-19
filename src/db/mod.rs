@@ -20,8 +20,6 @@ pub use user::{User, UserSearch};
 
 use super::PKG_VERSION;
 
-use rusqlite::Connection;
-
 pub struct Database {
     path: PathBuf,
     con: rusqlite::Connection,
@@ -96,7 +94,7 @@ impl Database {
     /// Stacking transactions on top of each other is not allowed!
     fn transaction(&self) -> rusqlite::Result<rusqlite::Transaction> {
         #[allow(clippy::cast_ref_to_mut)]
-        let con = unsafe { &mut *(addr_of!(self.con) as *mut Connection) };
+        let con = unsafe { &mut *(addr_of!(self.con).cast_mut()) };
         con.transaction()
     }
 }
