@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		%sveltekit.head%
+	</head>
+
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>
+
+<style>
+	.app,
+	body,
+	html {
+		height: 100%;
+	}
+
+	main {
+		padding: 20px;
+	}
+
+	html[data-bs-theme="dark"] body {
+		background-color: #212529;
+	}
+
+	html[data-bs-theme="light"] body {
+		background-color: #ffffff;
+	}
+</style>
