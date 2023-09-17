@@ -1,7 +1,6 @@
 # Rust
 /.cargo_home
-/target/*
-!/target/.gdignore
+target
 Cargo.lock
 
 # Translation
