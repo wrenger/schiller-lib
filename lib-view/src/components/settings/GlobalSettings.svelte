@@ -88,7 +88,7 @@
 					type="button"
 					class="btn btn-secondary"
 					id="up"
-					on:click={() => console.log("Update User Data")}>Update User Data</button
+					on:click={() => console.log("Updated User Data")}>Update User Data</button
 				>
 			</div>
 		</div>
