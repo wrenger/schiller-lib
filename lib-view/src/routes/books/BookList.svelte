@@ -77,6 +77,7 @@
 		width: 50%;
 	}
 	.list-body {
+		height: fit-content;
 		overflow-y: scroll;
 	}
 	@media (max-width: 768px) {
