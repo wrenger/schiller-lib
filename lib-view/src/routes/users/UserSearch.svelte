@@ -3,7 +3,7 @@
 		<input
 			type="text"
 			class="form-control"
-			placeholder="Keyword (E.g. Name or Account)"
+			placeholder="Keyword (E.g. Name, Account, Role)"
 			id="search"
 			on:keypress={(e) => {
 				if (e.key == "Enter") console.log("Initiated Search");
