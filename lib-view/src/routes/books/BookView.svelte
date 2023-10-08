@@ -369,7 +369,7 @@
 			</div>
 		{:else}
 			<div class="alert alert-light mb-0" role="alert">
-				This Book is neither borrowed nor reserved
+				This Book is neither borrowed or reserved
 			</div>
 		{/if}
 	{/if}
