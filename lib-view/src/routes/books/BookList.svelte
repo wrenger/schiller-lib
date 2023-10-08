@@ -38,7 +38,7 @@
 				</div>
 				<div class="d-flex flex-column align-items-end">
 					<small class="text-muted">{item.id}</small>
-					<p class="mb-0">{item.borrowed ? "Borrowed" : "Available"}</p>
+					<p class="mb-0">{item.borrower ? "Borrowed" : "Available"}</p>
 				</div>
 			</button>
 		{/each}

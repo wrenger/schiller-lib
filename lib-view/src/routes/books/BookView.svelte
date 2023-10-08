@@ -9,8 +9,10 @@
 		year!: number;
 		category!: string; //temporary - todo: add categories
 		note?: string;
-		borrowed!: boolean;
 		borrowable!: boolean;
+		borrower?: string;
+		deadline?: string;
+		reservation?: string;
 	}
 </script>
 
@@ -29,8 +31,10 @@
 	let year: number = 2023;
 	let category: string = "None"; //temporary - todo: add categories
 	let note: string | undefined = undefined;
-	let borrowed: boolean = false;
 	let borrowable: boolean = true;
+	let borrower: string | undefined = "";
+	let deadline: string | undefined = "";
+	let reservation: string | undefined = "";
 
 	$: if (editable || isNew || !editable || !isNew) setBook(book);
 	$: if (isNew) editable = true;
@@ -47,8 +51,10 @@
 				year = book.year;
 				category = book.category;
 				note = book.note;
-				borrowed = book.borrowed;
 				borrowable = book.borrowable;
+				borrower = book.borrower;
+				deadline = book.deadline;
+				reservation = book.reservation;
 			}
 		} else {
 			id = "";
@@ -60,8 +66,10 @@
 			year = 2023;
 			category = "None"; //temporary - todo: add categories
 			note = undefined;
-			borrowed = false;
 			borrowable = true;
+			borrower = "";
+			deadline = "";
+			reservation = "";
 		}
 	}
 
@@ -94,8 +102,10 @@
 			year,
 			category,
 			note,
-			borrowed,
-			borrowable
+			borrowable,
+			borrower,
+			deadline,
+			reservation
 		};
 		editable = false;
 		isNew = false;
@@ -340,6 +350,19 @@
 			<label class="form-check-label" for="borrowable">Borrowable</label>
 		</div>
 	</div>
+	{#if !editable && !isNew}
+		{#if borrower && deadline}
+			<div class="alert alert-light mb-0" role="alert">
+				This Book is borrowed by {borrower} until {deadline}
+			</div>
+		{/if}
+		{#if reservation}
+			<div class="alert alert-light mb-0 mt-1" role="alert">
+				This Book is reserved for {reservation}
+			</div>
+		{/if}
+	{/if}
+
 	<button
 		id="book-abort-button"
 		type="button"
@@ -402,7 +425,7 @@
 		class="btn btn-outline-primary mt-2"
 		type="button"
 		aria-expanded="false"
-		hidden={!(!editable && !isNew && !(book ? book.borrowed : false))}
+		hidden={!(!editable && !isNew && !(book ? book.borrower : false))}
 		on:click={async () => {
 			console.log("Initiate Borrow");
 		}}>Borrow</button
@@ -412,17 +435,17 @@
 		class="btn btn-outline-primary mt-2"
 		type="button"
 		aria-expanded="false"
-		hidden={!(!editable && !isNew && book ? book.borrowed : false)}
+		hidden={!(!editable && !isNew && book ? book.borrower : false)}
 		on:click={async () => {
 			console.log("Initiate Reserve");
-		}}>Reserve</button
+		}}>{book?.reservation ? "Change Reservation" : "Reserve"}</button
 	>
 	<button
 		id="del"
 		class="btn btn-outline-primary mt-2"
 		type="button"
 		aria-expanded="false"
-		hidden={!(!editable && !isNew && book ? book.borrowed : false)}
+		hidden={!(!editable && !isNew && book ? book.borrower : false)}
 		on:click={async () => {
 			console.log("Initiate Extend");
 		}}>Extend</button
@@ -432,7 +455,7 @@
 		class="btn btn-outline-danger mt-2"
 		type="button"
 		aria-expanded="false"
-		hidden={!(!editable && !isNew && book ? book.borrowed : false)}
+		hidden={!(!editable && !isNew && book ? book.borrower : false)}
 		on:click={async () => {
 			console.log("Initiate Give Back");
 		}}>Give Back</button
