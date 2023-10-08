@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from "svelte-i18n";
 	import type { Book } from "./BookView.svelte";
 
 	export let items: Book[];
@@ -18,8 +19,8 @@
 
 <div class="card list">
 	<div class="card-header d-flex justify-content-between">
-		Title / Authors
-		<span>Id / Status</span>
+		{$_(".book.title")} / {$_(".book.authors")}
+		<span>{$_(".book.id")} / {$_(".book.state")}</span>
 	</div>
 	<ul class="list-group list-group-flush list-body">
 		{#each items as item}
@@ -29,7 +30,6 @@
 				id={item.id}
 				on:click={() => {
 					active = item;
-					console.log("Show:", active);
 				}}
 			>
 				<div class="d-flex flex-column">
@@ -38,17 +38,21 @@
 				</div>
 				<div class="d-flex flex-column align-items-end">
 					<small class="text-muted">{item.id}</small>
-					<p class="mb-0">{item.borrower ? "Borrowed" : "Available"}</p>
+					<p class="mb-0">
+						{item.borrower || item.reservation
+							? `${$_(".book.unavailable")}`
+							: `${$_(".book.available")}`}
+					</p>
 				</div>
 			</button>
 		{/each}
 	</ul>
 	<div class="card-footer d-flex justify-content-between align-items-center">
-		{items.length} Results
+		{$_(".search.results", { values: { 0: items.length } })}
 		<button
 			class="btn btn-outline-primary {isNew ? 'active' : ''}"
 			type="button"
-			title="Add"
+			title={$_(".book.new")}
 			on:click={() => (isNew = true)}
 			><svg
 				xmlns="http://www.w3.org/2000/svg"

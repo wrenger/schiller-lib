@@ -1,6 +1,10 @@
+<script lang="ts">
+	import { _ } from "svelte-i18n";
+</script>
+
 <svelte:head>
-	<title>Info</title>
-	<meta name="description" content="Shows Info" />
+	<title>{$_(".alert.info")}</title>
+	<meta name="description" content={$_(".alert.info")} />
 </svelte:head>
 
-<p>(Show Info)</p>
+<p>({$_(".alert.info")})</p>

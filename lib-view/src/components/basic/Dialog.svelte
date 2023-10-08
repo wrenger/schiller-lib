@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from "svelte-i18n";
 	let dialog: HTMLDialogElement;
 
 	export let size: "default" | "medium" = "default";
@@ -28,7 +29,7 @@
 				on:click={() => {
 					dialog.close();
 					if (onCancel) onCancel();
-				}}>Close</button
+				}}>{$_(".action.close")}</button
 			>
 		</div>
 	</div>

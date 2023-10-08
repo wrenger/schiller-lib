@@ -1,17 +1,17 @@
 <script lang="ts">
+	import { _ } from "svelte-i18n";
 	import Container from "../../components/basic/Container.svelte";
 	import BookList from "./BookList.svelte";
 	import BookSearch, { BookParams } from "./BookSearch.svelte";
 	import BookView, { Book } from "./BookView.svelte";
-
 	let params: BookParams;
 	let active: Book | null;
 	let isNew: boolean;
 </script>
 
 <svelte:head>
-	<title>Books</title>
-	<meta name="description" content="Shows the Books" />
+	<title>{$_(".book")}</title>
+	<meta name="description" content={$_(".book")} />
 </svelte:head>
 
 <Container>

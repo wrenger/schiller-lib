@@ -1,6 +1,10 @@
+<script lang="ts">
+	import { _ } from "svelte-i18n";
+</script>
+
 <svelte:head>
-	<title>Overdues</title>
-	<meta name="description" content="Shows the Overdues" />
+	<title>{$_(".alert.overdue")}</title>
+	<meta name="description" content={$_(".alert.overdue")} />
 </svelte:head>
 
-<p>(Show Overdues)</p>
+<p>({$_(".alert.overdue")})</p>

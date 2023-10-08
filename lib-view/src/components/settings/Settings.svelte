@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from "svelte-i18n";
 	import Dialog from "../basic/Dialog.svelte";
 	import GlobalSettings from "./GlobalSettings.svelte";
 	import LocalSettings from "./LocalSettings.svelte";
@@ -47,7 +48,7 @@
 						type="button"
 						role="tab"
 						aria-controls="local-tab-pane"
-						aria-selected="true">Local</button
+						aria-selected="true">{$_(".pref.local")}</button
 					>
 				</li>
 				<li class="nav-item" role="presentation">
@@ -59,7 +60,7 @@
 						type="button"
 						role="tab"
 						aria-controls="global-tab-pane"
-						aria-selected="false">Global</button
+						aria-selected="false">{$_(".pref.global")}</button
 					>
 				</li>
 			</ul>
@@ -86,6 +87,8 @@
 				</div>
 			</div>
 		</span>
-		<button type="button" class="btn btn-primary" slot="footer" on:click={onSave}>Save</button>
+		<button type="button" class="btn btn-primary" slot="footer" on:click={onSave}
+			>{$_(".action.apply")}</button
+		>
 	</Dialog>
 </div>

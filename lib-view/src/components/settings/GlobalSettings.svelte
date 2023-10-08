@@ -1,16 +1,18 @@
 <script lang="ts">
+	import { _ } from "svelte-i18n";
+
 	let borrowing_time = 28;
 	let separator = "|";
 	let dnb = "ouehfuseifushiuefbiyagqyiiywfqgefybigg";
 	let host = "whatever.com";
 	let sender = "idk@whatever.com";
 	let password = "1234";
-	let title1 = "";
-	let text1 = "";
-	let title2 = "";
-	let text2 = "";
-	let title3 = "";
-	let text3 = "";
+	let title1 = $_(".mail.info.subject");
+	let text1 = $_(".mail.info.content");
+	let title2 = $_(".mail.overdue.subject");
+	let text2 = $_(".mail.overdue.content");
+	let title3 = $_(".mail.overdue2.subject");
+	let text3 = $_(".mail.overdue2.content");
 
 	let initialSettings = {
 		borrowing_time,
@@ -61,64 +63,63 @@
 	}
 </script>
 
-<h5 class="mb-2 mt-2">Database</h5>
+<h5 class="mb-2 mt-2">{$_(".pref.database.header")}</h5>
 <div class="form">
 	<button type="button" class="btn btn-secondary" on:click={() => console.log("Change Categories")}
-		>Change Categories</button
+		>{$_(".category.edit")}</button
 	>
 </div>
-<h5 class="mb-2 mt-2">Borrowing</h5>
+<h5 class="mb-2 mt-2">{$_(".pref.borrowing.header")}</h5>
 <div class="form">
-	<label class="form-label" for="borrowing-time">Time (Days):</label>
+	<label class="form-label" for="borrowing-time">{$_(".pref.borrowing.duration")}</label>
 	<input bind:value={borrowing_time} class="form-control" type="number" id="borrowing-time" />
 </div>
-<h5 class="mb-2 mt-2">Users</h5>
+<h5 class="mb-2 mt-2">{$_(".pref.user.header")}</h5>
 <div class="form">
-	<label class="form-label" for="separator">Separator:</label>
+	<label class="form-label" for="separator">{$_(".pref.user.delimiter")}</label>
 	<input bind:value={separator} class="form-control" type="text" id="separator" />
 	<div class="pt-1">
 		<div class="row">
 			<div class="col">
-				<label class="form-label" for="file-upload">Upload User File:</label>
+				<label class="form-label" for="file-upload">{$_(".pref.user.path")}</label>
 				<input type="file" class="form-control" id="file-upload" />
 			</div>
 			<div class="col">
-				<label class="form-label d-flex" for="up">Update User Data:</label>
+				<label class="form-label d-flex" for="up">{$_(".pref.user.update")}</label>
 				<button
 					type="button"
 					class="btn btn-secondary"
 					id="up"
-					on:click={() => console.log("Updated User Data")}>Update User Data</button
+					on:click={() => console.log("Updated User Data")}>{$_(".pref.user.update")}</button
 				>
 			</div>
 		</div>
 	</div>
 </div>
-<h5 class="mb-2 mt-2">Media</h5>
+<h5 class="mb-2 mt-2">{$_(".pref.request.header")}</h5>
 <div class="form">
-	<label class="form-label" for="dnb">DNB Token:</label>
+	<label class="form-label" for="dnb">{$_(".pref.request.token")}</label>
 	<input bind:value={dnb} class="form-control" type="text" id="dnb" />
 </div>
-<h5 class="mb-2 mt-2">E-Mail Account</h5>
+<h5 class="mb-2 mt-2">{$_(".pref.mail.account.header")}</h5>
 <div class="form">
 	<div>
-		<label class="form-label" for="host">Host:</label>
+		<label class="form-label" for="host">{$_(".pref.mail.account.host")}</label>
 		<input bind:value={host} class="form-control" type="text" id="host" />
 	</div>
 	<div class="pt-1">
-		<label class="form-label" for="sender">Sender:</label>
+		<label class="form-label" for="sender">{$_(".pref.mail.account.from")}</label>
 		<input bind:value={sender} class="form-control" type="text" id="sender" />
 	</div>
 	<div class="pt-1">
-		<label class="form-label" for="password">Password:</label>
+		<label class="form-label" for="password">{$_(".pref.mail.account.password")}</label>
 		<input bind:value={password} class="form-control" type="password" id="password" />
 	</div>
 </div>
-<h5 class="mb-2 mt-2">E-Mail Template</h5>
+<h5 class="mb-2 mt-2">{$_(".pref.mail.templates.header")}</h5>
 <div class="form">
 	<p>
-		You can also use keywords for certain values: "{"{username}"}": Username, "{"{booktitle}"}":
-		Book Title
+		{$_(".mail.info")}
 	</p>
 	<ul class="nav nav-tabs card-header-pills mb-2 ms-1 me-1">
 		<li class="nav-item" role="presentation">
@@ -130,7 +131,7 @@
 				type="button"
 				role="tab"
 				aria-controls="info-mail-pane"
-				aria-selected="true">Info</button
+				aria-selected="true">{$_(".mail.info.title")}</button
 			>
 		</li>
 		<li class="nav-item" role="presentation">
@@ -142,7 +143,7 @@
 				type="button"
 				role="tab"
 				aria-controls="warn-1-main-pane"
-				aria-selected="false">Warn 1</button
+				aria-selected="false">{$_(".mail.overdue.title")}</button
 			>
 		</li>
 		<li class="nav-item" role="presentation">
@@ -154,7 +155,7 @@
 				type="button"
 				role="tab"
 				aria-controls="warn-2-main-pane"
-				aria-selected="false">Warn 2</button
+				aria-selected="false">{$_(".mail.overdue2.title")}</button
 			>
 		</li>
 	</ul>
@@ -167,17 +168,17 @@
 			tabindex="0"
 		>
 			<div class="mb-3">
-				<label for="Title1" class="form-label">Title</label>
+				<label for="Title1" class="form-label">{$_(".mail.label.title")}</label>
 				<input
 					type="text"
 					class="form-control"
 					id="Title1"
-					placeholder="Title"
+					placeholder={$_(".mail.label.title")}
 					bind:value={title1}
 				/>
 			</div>
 			<div class="mb-3">
-				<label for="Text1" class="form-label">Text</label>
+				<label for="Text1" class="form-label">{$_(".mail.label.content")}</label>
 				<textarea class="form-control" id="Text1" rows="6" bind:value={text1} />
 			</div>
 		</div>
@@ -189,17 +190,17 @@
 			tabindex="0"
 		>
 			<div class="mb-3">
-				<label for="Title2" class="form-label">Title</label>
+				<label for="Title2" class="form-label">{$_(".mail.label.title")}</label>
 				<input
 					type="text"
 					class="form-control"
 					id="Title2"
-					placeholder="Title"
+					placeholder="{$_('.mail.label.title')}<"
 					bind:value={title2}
 				/>
 			</div>
 			<div class="mb-3">
-				<label for="Text2" class="form-label">Text</label>
+				<label for="Text2" class="form-label">{$_(".mail.label.content")}</label>
 				<textarea class="form-control" id="Text2" rows="6" bind:value={text2} />
 			</div>
 		</div>
@@ -211,17 +212,17 @@
 			tabindex="0"
 		>
 			<div class="mb-3">
-				<label for="Title3" class="form-label">Title</label>
+				<label for="Title3" class="form-label">{$_(".mail.label.title")}</label>
 				<input
 					type="text"
 					class="form-control"
 					id="Title3"
-					placeholder="Title"
+					placeholder="{$_('.mail.label.title')}<"
 					bind:value={title3}
 				/>
 			</div>
 			<div class="mb-3">
-				<label for="Text3" class="form-label">Text</label>
+				<label for="Text3" class="form-label">{$_(".mail.label.content")}</label>
 				<textarea class="form-control" id="Text3" rows="6" bind:value={text3} />
 			</div>
 		</div>

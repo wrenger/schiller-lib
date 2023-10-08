@@ -41,7 +41,8 @@
 .book,Book,Buch
 .book.authors,Authors,Autoren
 .book.authors.def,Forename Surname,Vorname Nachname
-.book.available,Not Borrowed or Reserved,Nicht Ausgeliehen oder Vorgemerkt
+.book.available,Available,Verfügbar
+.book.available.long,Not Borrowed or Reserved,Nicht Ausgeliehen oder Vorgemerkt
 .book.borrowable,Borrowable,Ausleihbar
 .book.borrowed,Borrowed,Ausgeliehen
 .book.borrowed.by,Borrowed by {0} until {1},Ausgeliehen von {0} bis zum {1}
@@ -66,7 +67,7 @@
 .book.period.days,days,Tage
 .book.publisher,Publisher,Verlag
 .book.renew,Renew,Verlängern
-.book.request,Fetch Infos,Infos laden
+.book.request,Fetch Book Infos,Buchinfos laden
 .book.reserve,Reserve,Vormerken
 .book.reserved,Reserved,Vorgemerkt
 .book.reserved.by,Reserved by {0},Vorgemerkt von {0}
@@ -74,7 +75,7 @@
 .book.revoke.reminder,The book is reserved by '{0}'.\nDo you want to inform him that the book is now available?,Das Buch wurde von '{0}' vorgemerkt.\n\nMöchtest du den Vormerker per Email über die Rückgabe informieren?
 .book.state,State,Status
 .book.title,Title,Titel
-.book.unavaliable,Borrowed or Reserved,Ausgeliehen oder Vorgemerkt
+.book.unavailable,Borrowed or Reserved,Ausgeliehen oder Vorgemerkt
 .book.year,Year,Anschaffungsjahr
 .category,Category,Kategorie
 .category.edit,Edit Categories,Kategorien bearbeiten
@@ -126,6 +127,9 @@
 .info.overdues,{0} overdue{0:|s},{0} Überziehung{0:|en}
 .info.costs,Total costs of all books: {0}\n(sum of all entered costs),Gesamtpreis aller Medien: {0}\n(Summe aller eingetragenen Preise)
 .info.stats,Statistics,Statistiken
+.lang.title,Language,Sprache
+.lang.en,English,Englisch
+.lang.de,German,Deutsch
 .mail.info,"You can use keywords in the subject and content. They are replace with the respective values before the mail is send.\n\n{username}: Username, {booktitle}: Book Title","Sowohl im Titel und auch im Inhalt können Schlüsselwörter verwendet werden. Diese werden beim Senden der Email durch den entsprechenden Werte ersetzt.\n\n{username}: Benutzername, {booktitle}: Buchtitel"
 .mail.info.content,"Hallo {username},\nYou have shown interest in the book '{booktitle}.'\nNow it is back in the library, reserved for you to borrow.\n\nRegards,\nThe Library Team.","Hallo {username},\nDu hast dich für das Buch '{booktitle}' interessiert.\nDas Buch war ausgeliehen und liegt nun wieder in der Schülerbücherei.\nWenn du willst, kannst du es jetzt ausleihen.\n\nViele Grüße vom Schülerbüchereiteam."
 .mail.info.subject,'{booktitle}' is back in the library,'{booktitle}' ist nun verfügbar!
@@ -142,11 +146,15 @@
 .main.info,Information,Informationen
 .main.title,Schiller Library Software,Schiller Büchereiverwaltung
 .menu.file,File,Datei
+.pref.appearance.title,Theme,Design
 .pref.appearance.dark,Dark Theme,Dunkles Design
+.pref.appearance.light,Light Theme,Helles Design
 .pref.borrowing.duration,Duration,Dauer
 .pref.borrowing.header,Borrowing,Ausleihen
 .pref.database.header,Database,Database
 .pref.database.warning,Advanced SQL knowledge is needed for maintaining the database. Please ask a teacher or developer if you want to proceed.,Zur Datenbankwartung werden SQL-Kenntnisse benötigt. Bitte wende dich an einen Informatiklehrer oder Entwickler.
+.pref.global,Global,Global
+.pref.local,Local,Lokal
 .pref.mail.account.from,From,Absender
 .pref.mail.account.header,Mail Account,Email Account
 .pref.mail.account.host,Hostname,Host
@@ -165,10 +173,10 @@
 .search.advanced,Advanced,Erweitert
 .search.base,Basic,Basic
 .search.book,Books,Bücher
-.search.book.entry,"Keyword (e.g. Author, Title or ID)","Suchbegriff (z.B. Autor, Titel oder Signatur)"
+.search.book.entry,"Keyword (e.g. Author, Title, ID, ISBN or User)","Suchbegriff (z.B. Autor, Titel, Signatur, ISBN oder Benutzer)"
 .search.results,{0} Results, {0} Ergebnisse
 .search.user,Users,Benutzer
-.search.user.entry,Keyword (e.g. Name or Account),Suchbegriff (z.B. Name oder Account)
+.search.user.entry,"Keyword (e.g. Name, Account or Role)","Suchbegriff (z.B. Name, Account oder Gruppe)"
 .sql.title,Maintain Database,Datenbank warten
 .user,User,Benutzer
 .user.account,Account,Account
@@ -178,9 +186,11 @@
 .user.invalid,"Account, Forename and Surname are mendatory.","Account, Vorname und Nachname dürfen nicht leer bleiben."
 .user.may-borrow,May Borrow,Darf ausleihen
 .user.may-not-borrow,May not Borrow,Darf nicht ausleihen
+.user.name,Name,Name
 .user.new,Add User,Neuer Benutzer
 .user.no-books,No book borrowed or reserved.,Keine Bücher ausgeliehen oder vorgemerkt.
 .user.permission,Borrowing Permission,Ausleihberechtigung
+.user.request,Fetch User Info,Benutzerinfos laden
 .user.role,Role,Gruppe
 .user.role.entry,Class / Grade,Klasse / Jahrgang
 .user.surname,Surname,Nachname

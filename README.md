@@ -3,7 +3,7 @@ Rework of schiller-lib.
 ## Frontend
 
 ### To Do's
-- [ ] Multi Language Support
+- [x] Multi Language Support
 - [ ] Server Requests -> Error Modal
 - [ ] Overdues Page
 - [ ] Infos Page

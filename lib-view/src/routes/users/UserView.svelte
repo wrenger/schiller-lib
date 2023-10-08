@@ -9,6 +9,8 @@
 </script>
 
 <script lang="ts">
+	import { _ } from "svelte-i18n";
+
 	export let user: User | null;
 	export let isNew: boolean = false;
 
@@ -79,7 +81,7 @@
 			class="btn btn-outline-primary {editable && !isNew ? 'active' : ''}"
 			type="button"
 			aria-expanded="false"
-			title="Edit"
+			title={$_(".action.edit")}
 			disabled={!user}
 			on:click={() => {
 				editable = true;
@@ -108,7 +110,7 @@
 			class="btn btn-outline-secondary"
 			type="button"
 			aria-expanded="false"
-			title="Close"
+			title={$_(".action.close")}
 			on:click={async () => {
 				user = null;
 				isNew = false;
@@ -132,25 +134,25 @@
 
 	<div class="row pt-1 m-0">
 		<div class="col ps-0">
-			<label for="forename" class="form-label">Forename</label>
+			<label for="forename" class="form-label">{$_(".user.forename")}</label>
 			<input
 				id="forename"
 				type="text"
 				class="form-control"
-				placeholder="Forename"
-				aria-label="Forename"
+				placeholder={$_(".user.forename")}
+				aria-label={$_(".user.forename")}
 				readonly={!editable}
 				bind:value={forename}
 			/>
 		</div>
 		<div class="col ps-0">
-			<label for="surname" class="form-label">Surname</label>
+			<label for="surname" class="form-label">{$_(".user.surname")}</label>
 			<input
 				id="surname"
 				type="text"
 				class="form-control"
-				placeholder="Surname"
-				aria-label="Surname"
+				placeholder={$_(".user.surname")}
+				aria-label={$_(".user.surname")}
 				readonly={!editable}
 				bind:value={surname}
 			/>
@@ -158,20 +160,20 @@
 	</div>
 	<div class="row m-0">
 		<div class="col ps-0">
-			<label for="account" class="form-label">Account</label>
+			<label for="account" class="form-label">{$_(".user.account")}</label>
 			<div class="input-group" id="account">
 				<input
 					type="text"
 					class="form-control"
-					placeholder="Account"
-					aria-label="Account"
+					placeholder={$_(".user.account")}
+					aria-label={$_(".user.account")}
 					readonly={!editable}
 					bind:value={account}
 				/>
 				<button
 					type="button"
 					class="btn btn-outline-secondary"
-					title="Autofill"
+					title={$_(".user.request")}
 					disabled={!editable}
 					on:click={() => console.log("Autofill")}
 				>
@@ -194,13 +196,13 @@
 			</div>
 		</div>
 		<div class="col ps-0">
-			<label for="role" class="form-label">Group</label>
+			<label for="role" class="form-label">{$_(".user.role")}</label>
 			<input
 				id="role"
 				type="text"
 				class="form-control"
-				placeholder="Group"
-				aria-label="Group"
+				placeholder={$_(".user.role")}
+				aria-label={$_(".user.role")}
 				readonly={!editable}
 				bind:value={role}
 			/>
@@ -216,7 +218,7 @@
 				bind:checked={permission}
 				disabled={!editable}
 			/>
-			<label class="form-check-label" for="permission">Can Borrow</label>
+			<label class="form-check-label" for="permission">{$_(".user.may-borrow")}</label>
 		</div>
 	</div>
 	<button
@@ -230,7 +232,7 @@
 			isNew = false;
 		}}
 	>
-		Cancel
+		{$_(".action.cancel")}
 	</button>
 	<button
 		id="user-add-button"
@@ -247,7 +249,7 @@
 				aria-hidden="true"
 			/>
 		{/await}
-		Add
+		{$_(".action.add")}
 	</button>
 	<button
 		id="user-confirm-button"
@@ -264,7 +266,7 @@
 				aria-hidden="true"
 			/>
 		{/await}
-		Confirm
+		{$_(".action.apply")}
 	</button>
 	<button
 		id="del"
@@ -274,7 +276,7 @@
 		hidden={!(editable && !isNew)}
 		on:click={async () => {
 			await del();
-		}}>Delete</button
+		}}>{$_(".action.delete")}</button
 	>
 	<a
 		id="del"
@@ -282,6 +284,6 @@
 		type="button"
 		aria-expanded="false"
 		hidden={!(!editable && !isNew)}
-		href="/books?i={account}">Borrowed/Reserved Books</a
+		href="/books?i={account}">{$_(".user.books")}</a
 	>
 {/if}

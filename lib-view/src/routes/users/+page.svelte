@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from "svelte-i18n";
 	import Container from "../../components/basic/Container.svelte";
 	import UserList from "./UserList.svelte";
 	import UserSearch, { UserParams } from "./UserSearch.svelte";
@@ -11,8 +12,8 @@
 </script>
 
 <svelte:head>
-	<title>Users</title>
-	<meta name="description" content="Shows the Users" />
+	<title>{$_(".user")}</title>
+	<meta name="description" content={$_(".user")} />
 </svelte:head>
 
 <Container>

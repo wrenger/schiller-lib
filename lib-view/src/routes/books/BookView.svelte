@@ -17,6 +17,7 @@
 </script>
 
 <script lang="ts">
+	import { _ } from "svelte-i18n";
 	import Spinner from "../../components/basic/Spinner.svelte";
 
 	export let book: Book | null;
@@ -87,7 +88,7 @@
 		console.log("Edit:", book);
 	}
 	export async function del() {
-		console.log("Delete:", book?.id);
+		console.log("Delete:", id);
 		book = null;
 		editable = false;
 		isNew = false;
@@ -121,7 +122,7 @@
 			class="btn btn-outline-primary {editable && !isNew ? 'active' : ''}"
 			type="button"
 			aria-expanded="false"
-			title="Edit"
+			title={$_(".action.edit")}
 			on:click={() => {
 				editable = true;
 				isNew = false;
@@ -149,7 +150,7 @@
 			class="btn btn-outline-secondary"
 			type="button"
 			aria-expanded="false"
-			title="Close"
+			title={$_(".action.close")}
 			on:click={async () => {
 				book = null;
 				isNew = false;
@@ -173,20 +174,20 @@
 
 	<div class="row pt-1 m-0">
 		<div class="col ps-0">
-			<label for="id" class="form-label">Id</label>
+			<label for="id" class="form-label">{$_(".book.id")}</label>
 			<div class="input-group" id="id">
 				<input
 					type="text"
 					class="form-control"
-					placeholder="Id"
-					aria-label="Id"
+					placeholder={$_(".book.id")}
+					aria-label={$_(".book.id")}
 					readonly={!editable}
 					bind:value={id}
 				/>
 				<button
 					type="button"
 					class="btn btn-outline-secondary"
-					title="Generate Id"
+					title={$_(".book.id.action")}
 					disabled={!editable}
 					on:click={() => console.log("Generate Id")}
 				>
@@ -210,20 +211,20 @@
 			</div>
 		</div>
 		<div class="col ps-0">
-			<label for="isbn" class="form-label">ISBN</label>
+			<label for="isbn" class="form-label">{$_(".book.isbn")}</label>
 			<div class="input-group" id="isbn">
 				<input
 					type="text"
 					class="form-control"
-					placeholder="ISBN"
-					aria-label="ISBN"
+					placeholder={$_(".book.isbn")}
+					aria-label={$_(".book.isbn")}
 					readonly={!editable}
 					bind:value={isbn}
 				/>
 				<button
 					type="button"
 					class="btn btn-outline-secondary"
-					title="Autofill"
+					title={$_(".book.request")}
 					disabled={!editable}
 					on:click={() => console.log("Autofill")}
 				>
@@ -248,25 +249,25 @@
 	</div>
 	<div class="row m-0">
 		<div class="col ps-0">
-			<label for="title" class="form-label">Title</label>
+			<label for="title" class="form-label">{$_(".book.title")}</label>
 			<input
 				id="title"
 				type="text"
 				class="form-control"
-				placeholder="Title"
-				aria-label="Title"
+				placeholder={$_(".book.title")}
+				aria-label={$_(".book.title")}
 				readonly={!editable}
 				bind:value={title}
 			/>
 		</div>
 		<div class="col ps-0">
-			<label for="publisher" class="form-label">Publisher</label>
+			<label for="publisher" class="form-label">{$_(".book.publisher")}</label>
 			<input
 				id="publisher"
 				type="text"
 				class="form-control"
-				placeholder="Publisher"
-				aria-label="Publisher"
+				placeholder={$_(".book.publisher")}
+				aria-label={$_(".book.publisher")}
 				readonly={!editable}
 				bind:value={publisher}
 			/>
@@ -274,25 +275,25 @@
 	</div>
 	<div class="row m-0">
 		<div class="col ps-0">
-			<label for="authors" class="form-label">Authors</label>
+			<label for="authors" class="form-label">{$_(".book.authors")}</label>
 			<input
 				id="authors"
 				type="text"
 				class="form-control"
-				placeholder="Authors"
-				aria-label="Authors"
+				placeholder={$_(".book.authors")}
+				aria-label={$_(".book.authors")}
 				readonly={!editable}
 				bind:value={authors}
 			/>
 		</div>
 		<div class="col ps-0">
-			<label for="costs" class="form-label">Costs</label>
+			<label for="costs" class="form-label">{$_(".book.costs")}</label>
 			<input
 				id="costs"
 				type="number"
 				class="form-control"
-				placeholder="Costs"
-				aria-label="Costs"
+				placeholder={$_(".book.costs")}
+				aria-label={$_(".book.costs")}
 				readonly={!editable}
 				bind:value={costs}
 			/>
@@ -300,26 +301,26 @@
 	</div>
 	<div class="row m-0">
 		<div class="col ps-0">
-			<label for="year" class="form-label">Year</label>
+			<label for="year" class="form-label">{$_(".book.year")}</label>
 			<input
 				id="year"
 				type="number"
 				class="form-control"
-				placeholder="Year"
-				aria-label="Year"
+				placeholder={$_(".book.year")}
+				aria-label={$_(".book.year")}
 				readonly={!editable}
 				bind:value={year}
 			/>
 		</div>
 		<div class="col ps-0">
 			<!--  Todo: General Selector  -->
-			<label for="category" class="form-label">Category</label>
+			<label for="category" class="form-label">{$_(".category")}</label>
 			<input
 				id="category"
 				type="text"
 				class="form-control"
-				placeholder="Category"
-				aria-label="Category"
+				placeholder={$_(".category")}
+				aria-label={$_(".category")}
 				readonly={!editable}
 				bind:value={category}
 			/>
@@ -327,13 +328,13 @@
 	</div>
 	<div class="row m-0">
 		<div class="col ps-0">
-			<label for="note" class="form-label">Note</label>
+			<label for="note" class="form-label">{$_(".book.note")}</label>
 			<input
 				id="note"
 				type="text"
 				class="form-control"
-				placeholder="Note"
-				aria-label="Note"
+				placeholder={$_(".book.note")}
+				aria-label={$_(".book.note")}
 				readonly={!editable}
 				bind:value={note}
 			/>
@@ -349,27 +350,31 @@
 				bind:checked={borrowable}
 				disabled={!editable}
 			/>
-			<label class="form-check-label" for="borrowable">Borrowable</label>
+			<label class="form-check-label" for="borrowable">{$_(".book.borrowable")}</label>
 		</div>
 	</div>
 
 	{#if !editable && !isNew}
 		{#if borrower && deadline}
 			<div class="alert alert-light mb-0" role="alert">
-				This Book is borrowed by {borrower} until {deadline}
+				{$_(".book.borrowed.by", { values: { "0": borrower, "1": deadline } })}
 			</div>
 			{#if reservation}
 				<div class="alert alert-light mb-0 mt-1" role="alert">
-					This Book is reserved for {reservation}
+					{$_(".book.reserved.by", { values: { "0": reservation } })}
 				</div>
 			{/if}
 		{:else if reservation}
 			<div class="alert alert-light mb-0" role="alert">
-				This Book is reserved for {reservation}
+				{$_(".book.reserved.by", { values: { "0": reservation } })}
+			</div>
+		{:else if borrowable}
+			<div class="alert alert-light mb-0" role="alert">
+				{$_(".book.available.long")}
 			</div>
 		{:else}
 			<div class="alert alert-light mb-0" role="alert">
-				This Book is neither borrowed or reserved
+				{$_(".book.not-borrowable")}
 			</div>
 		{/if}
 	{/if}
@@ -385,7 +390,7 @@
 			isNew = false;
 		}}
 	>
-		Cancel
+		{$_(".action.cancel")}
 	</button>
 	<button
 		id="book-add-button"
@@ -395,7 +400,7 @@
 		on:click={() => (addResponse = add())}
 	>
 		<Spinner response={addResponse} />
-		Add
+		{$_(".action.add")}
 	</button>
 	<button
 		id="book-confirm-button"
@@ -405,7 +410,7 @@
 		on:click={() => (editResponse = edit())}
 	>
 		<Spinner response={editResponse} />
-		Confirm
+		{$_(".action.apply")}
 	</button>
 	<button
 		id="del"
@@ -417,22 +422,22 @@
 			await del();
 		}}
 	>
-		Delete
+		{$_(".action.delete")}
 	</button>
 
 	{#if !editable && !isNew}
-		{#if book?.reservation}
+		{#if reservation}
 			<button
 				id="del"
 				class="btn btn-outline-primary mt-2"
 				type="button"
 				aria-expanded="false"
-				hidden={!!(book ? book.borrower : false)}
+				hidden={!!(borrower ?? false)}
 				on:click={async () => {
-					console.log("Initiate Borrow for", book?.reservation);
+					console.log("Initiate Borrow for", reservation);
 				}}
 			>
-				Borrow for {book.reservation}
+				{$_(".book.lend.to", { values: { "0": reservation } })}
 			</button>
 		{:else}
 			<button
@@ -440,12 +445,12 @@
 				class="btn btn-outline-primary mt-2"
 				type="button"
 				aria-expanded="false"
-				hidden={!!(book ? book.borrower : false)}
+				hidden={!(!(borrower ?? false) && borrowable)}
 				on:click={async () => {
 					console.log("Initiate Borrow");
 				}}
 			>
-				Borrow
+				{$_(".book.lend")}
 			</button>
 		{/if}
 		<button
@@ -453,14 +458,14 @@
 			class="btn btn-outline-danger mt-2"
 			type="button"
 			aria-expanded="false"
-			hidden={!book?.reservation}
+			hidden={!reservation}
 			on:click={() => {
 				reservation = undefined;
 				editResponse = edit();
 			}}
 		>
 			<Spinner response={editResponse} />
-			Delete Reservation
+			{$_(".book.delete-reservation")}
 		</button>
 		{#if book && book.borrower}
 			<button
@@ -468,24 +473,24 @@
 				class="btn btn-outline-primary mt-2"
 				type="button"
 				aria-expanded="false"
-				hidden={!!book?.reservation}
+				hidden={!!reservation}
 				on:click={async () => {
 					console.log("Initiate Reserve");
 				}}
 			>
-				Reserve
+				{$_(".book.reserve")}
 			</button>
 			<button
 				id="del"
 				class="btn btn-outline-primary mt-2"
 				type="button"
 				aria-expanded="false"
-				hidden={!!book?.reservation}
+				hidden={!!reservation}
 				on:click={async () => {
 					console.log("Initiate Extend");
 				}}
 			>
-				Extend
+				{$_(".book.renew")}
 			</button>
 			<button
 				id="del"
@@ -498,7 +503,7 @@
 				}}
 			>
 				<Spinner response={editResponse} />
-				Give Back
+				{$_(".book.revoke")}
 			</button>
 		{/if}
 	{/if}

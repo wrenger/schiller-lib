@@ -7,8 +7,8 @@
 </script>
 
 <script lang="ts">
+	import { _ } from "svelte-i18n";
 	import { page } from "$app/stores";
-
 	export let params: BookParams = {
 		input: $page.url.searchParams.get("i") || "",
 		category: null,
@@ -27,7 +27,7 @@
 		<input
 			type="text"
 			class="form-control"
-			placeholder="Keyword (E.g. Author, Title, Id, ISBN, User)"
+			placeholder={$_(".search.book.entry")}
 			id="search"
 			bind:value={input}
 			on:keypress={(e) => {
@@ -41,7 +41,7 @@
 			aria-expanded="false"
 			data-bs-toggle="dropdown"
 			data-bs-auto-close="outside"
-			title="Advanced Params"
+			title={$_(".search.advanced")}
 		>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -59,51 +59,39 @@
 		</button>
 		<ul class="dropdown-menu dropdown-menu-end" id="select-dropdown">
 			<li>
-				<h6 class="dropdown-header">Category</h6>
+				<h6 class="dropdown-header">{$_(".category")}</h6>
 			</li>
 			<form class="px-3 py-1" action="javascript:handleAdvanced()">
 				<div class="mb-2">
 					<select
 						id="select"
 						class="form-select"
-						aria-label="Advanced Select"
+						aria-label={$_(".search.advanced")}
 						bind:value={category}
 						on:change={() => (params.category = category)}
 					>
-						<option value={null} selected>All</option>
-						<option value={"1"}>1</option>
-						<option value={"2"}>2</option>
-						<option value={"3"}>3</option>
-						<option value={"4"}>4</option>
-						<option value={"5"}>5</option>
-						<option value={"6"}>6</option>
-						<option value={"7"}>7</option>
-						<option value={"8"}>8</option>
-						<option value={"9"}>9</option>
-						<option value={"10"}>10</option>
-						<option value={"11"}>11</option>
-						<option value={"12"}>12</option>
-						<option value={"13"}>13</option>
-						<option value={"14"}>14</option>
+						<option value={null} selected>{$_(".action.select")}</option>
+						<option value={$_(".category.t1.id")}>{$_(".category.t1.name")}</option>
+						<option value={$_(".category.t2.id")}>{$_(".category.t2.name")}</option>
 					</select>
 				</div>
 			</form>
 			<li>
-				<h6 class="dropdown-header">Status</h6>
+				<h6 class="dropdown-header">{$_(".book.state")}</h6>
 			</li>
 			<form class="px-3 py-1" action="javascript:handleAdvanced()">
 				<div class="mb-2">
 					<select
 						id="select"
 						class="form-select"
-						aria-label="Advanced Select"
+						aria-label={$_(".search.advanced")}
 						bind:value={status}
 						on:change={() => (params.status = status)}
 					>
-						<option value={null} selected>All</option>
-						<option value={"borrowable"}>Borrowable</option>
-						<option value={"not-borrowable"}>Not Borrowable</option>
-						<option value={"borrowed"}>Borrowed</option>
+						<option value={null} selected>{$_(".action.select")}</option>
+						<option value={"borrowable"}>{$_(".book.borrowable")}</option>
+						<option value={"not-borrowable"}>{$_(".book.not-borrowable")}</option>
+						<option value={"borrowed"}>{$_(".book.unavailable")}</option>
 					</select>
 				</div>
 			</form>

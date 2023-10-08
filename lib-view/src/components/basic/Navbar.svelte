@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from "svelte-i18n";
 	import { page } from "$app/stores";
 	import Settings from "../settings/Settings.svelte";
 </script>
@@ -28,17 +29,17 @@
 			<div class="offcanvas-body">
 				<div class="navbar-nav flex-grow-1 pe-3">
 					<a class={$page.url.pathname === "/books" ? "nav-link active" : "nav-link"} href="/books"
-						>Books</a
+						>{$_(".search.book")}</a
 					>
 					<a class={$page.url.pathname === "/users" ? "nav-link active" : "nav-link"} href="/users"
-						>Users</a
+						>{$_(".search.user")}</a
 					>
 					<a
 						class={$page.url.pathname === "/overdues" ? "nav-link active" : "nav-link"}
-						href="/overdues">Overdues</a
+						href="/overdues">{$_(".alert.overdue")}</a
 					>
 					<a class={$page.url.pathname === "/info" ? "nav-link active" : "nav-link"} href="/info"
-						>Info</a
+						>{$_(".alert.info")}</a
 					>
 				</div>
 			</div>

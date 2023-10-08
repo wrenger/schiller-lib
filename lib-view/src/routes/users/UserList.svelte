@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from "svelte-i18n";
 	import type { User } from "./UserView.svelte";
 
 	export let items: User[];
@@ -18,8 +19,8 @@
 
 <div class="card list">
 	<div class="card-header d-flex justify-content-between align-items-center">
-		Name / Account
-		<span>Role</span>
+		{$_(".user.name")} / {$_(".user.account")}
+		<span>{$_(".user.role")} </span>
 	</div>
 	<ul class="list-group list-group-flush list-body">
 		{#each items as item}
@@ -29,7 +30,6 @@
 				id={item.account}
 				on:click={() => {
 					active = item;
-					console.log("Show:", active);
 				}}
 			>
 				<div class="d-flex flex-column">
@@ -43,11 +43,11 @@
 		{/each}
 	</ul>
 	<div class="card-footer d-flex justify-content-between align-items-center">
-		{items.length} Results
+		{$_(".search.results", { values: { 0: items.length } })}
 		<button
 			class="btn btn-outline-primary {isNew ? 'active' : ''}"
 			type="button"
-			title="Add"
+			title={$_(".user.new")}
 			on:click={() => (isNew = true)}
 			><svg
 				xmlns="http://www.w3.org/2000/svg"

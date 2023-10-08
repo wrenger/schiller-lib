@@ -6,6 +6,8 @@
 </script>
 
 <script lang="ts">
+	import { _ } from "svelte-i18n";
+
 	export let params: UserParams = {
 		input: "",
 		permission: null
@@ -19,7 +21,7 @@
 	<input
 		type="text"
 		class="form-control"
-		placeholder="Keyword (E.g. Name, Account, Role)"
+		placeholder={$_(".search.user.entry")}
 		id="search"
 		bind:value={input}
 		on:keypress={(e) => {
@@ -51,20 +53,20 @@
 	</button>
 	<ul class="dropdown-menu dropdown-menu-end" id="select-dropdown">
 		<li>
-			<h6 class="dropdown-header">Borrow Permission</h6>
+			<h6 class="dropdown-header">{$_(".user.permission")}</h6>
 		</li>
 		<form class="px-3 py-1" action="javascript:handleAdvanced()">
 			<div class="mb-2">
 				<select
 					id="select"
 					class="form-select"
-					aria-label="Advanced Select"
+					aria-label={$_(".search.advanced")}
 					bind:value={permission}
 					on:change={() => (params.permission = permission)}
 				>
-					<option value={null} selected>All</option>
-					<option value={true}>Can Borrow</option>
-					<option value={false}>Cannot Borrow</option>
+					<option value={null} selected>{$_(".search.select")}</option>
+					<option value={true}>{$_(".user.may-borrow")}</option>
+					<option value={false}>{$_(".user.may-not-borrow")}</option>
 				</select>
 			</div>
 		</form>
