@@ -17,6 +17,8 @@
 </script>
 
 <script lang="ts">
+	import Spinner from "../../components/basic/Spinner.svelte";
+
 	export let book: Book | null;
 	export let isNew: boolean = false;
 
@@ -350,15 +352,24 @@
 			<label class="form-check-label" for="borrowable">Borrowable</label>
 		</div>
 	</div>
+
 	{#if !editable && !isNew}
 		{#if borrower && deadline}
 			<div class="alert alert-light mb-0" role="alert">
 				This Book is borrowed by {borrower} until {deadline}
 			</div>
-		{/if}
-		{#if reservation}
-			<div class="alert alert-light mb-0 mt-1" role="alert">
+			{#if reservation}
+				<div class="alert alert-light mb-0 mt-1" role="alert">
+					This Book is reserved for {reservation}
+				</div>
+			{/if}
+		{:else if reservation}
+			<div class="alert alert-light mb-0" role="alert">
 				This Book is reserved for {reservation}
+			</div>
+		{:else}
+			<div class="alert alert-light mb-0" role="alert">
+				This Book is neither borrowed nor reserved
 			</div>
 		{/if}
 	{/if}
@@ -383,14 +394,7 @@
 		hidden={!(editable && isNew)}
 		on:click={() => (addResponse = add())}
 	>
-		{#await addResponse}
-			<span
-				id="book-add-button-spinner"
-				class="spinner-border spinner-border-sm"
-				role="status"
-				aria-hidden="true"
-			/>
-		{/await}
+		<Spinner response={addResponse} />
 		Add
 	</button>
 	<button
@@ -400,14 +404,7 @@
 		hidden={!(editable && !isNew)}
 		on:click={() => (editResponse = edit())}
 	>
-		{#await editResponse}
-			<span
-				id="book-confirm-button-spinner"
-				class="spinner-border spinner-border-sm"
-				role="status"
-				aria-hidden="true"
-			/>
-		{/await}
+		<Spinner response={editResponse} />
 		Confirm
 	</button>
 	<button
@@ -418,46 +415,91 @@
 		hidden={!(editable && !isNew)}
 		on:click={async () => {
 			await del();
-		}}>Delete</button
+		}}
 	>
-	<button
-		id="del"
-		class="btn btn-outline-primary mt-2"
-		type="button"
-		aria-expanded="false"
-		hidden={!(!editable && !isNew && !(book ? book.borrower : false))}
-		on:click={async () => {
-			console.log("Initiate Borrow");
-		}}>Borrow</button
-	>
-	<button
-		id="del"
-		class="btn btn-outline-primary mt-2"
-		type="button"
-		aria-expanded="false"
-		hidden={!(!editable && !isNew && book ? book.borrower : false)}
-		on:click={async () => {
-			console.log("Initiate Reserve");
-		}}>{book?.reservation ? "Change Reservation" : "Reserve"}</button
-	>
-	<button
-		id="del"
-		class="btn btn-outline-primary mt-2"
-		type="button"
-		aria-expanded="false"
-		hidden={!(!editable && !isNew && book ? book.borrower : false)}
-		on:click={async () => {
-			console.log("Initiate Extend");
-		}}>Extend</button
-	>
-	<button
-		id="del"
-		class="btn btn-outline-danger mt-2"
-		type="button"
-		aria-expanded="false"
-		hidden={!(!editable && !isNew && book ? book.borrower : false)}
-		on:click={async () => {
-			console.log("Initiate Give Back");
-		}}>Give Back</button
-	>
+		Delete
+	</button>
+
+	{#if !editable && !isNew}
+		{#if book?.reservation}
+			<button
+				id="del"
+				class="btn btn-outline-primary mt-2"
+				type="button"
+				aria-expanded="false"
+				hidden={!!(book ? book.borrower : false)}
+				on:click={async () => {
+					console.log("Initiate Borrow for", book?.reservation);
+				}}
+			>
+				Borrow for {book.reservation}
+			</button>
+		{:else}
+			<button
+				id="del"
+				class="btn btn-outline-primary mt-2"
+				type="button"
+				aria-expanded="false"
+				hidden={!!(book ? book.borrower : false)}
+				on:click={async () => {
+					console.log("Initiate Borrow");
+				}}
+			>
+				Borrow
+			</button>
+		{/if}
+		<button
+			id="del"
+			class="btn btn-outline-danger mt-2"
+			type="button"
+			aria-expanded="false"
+			hidden={!book?.reservation}
+			on:click={() => {
+				reservation = undefined;
+				editResponse = edit();
+			}}
+		>
+			<Spinner response={editResponse} />
+			Delete Reservation
+		</button>
+		{#if book && book.borrower}
+			<button
+				id="del"
+				class="btn btn-outline-primary mt-2"
+				type="button"
+				aria-expanded="false"
+				hidden={!!book?.reservation}
+				on:click={async () => {
+					console.log("Initiate Reserve");
+				}}
+			>
+				Reserve
+			</button>
+			<button
+				id="del"
+				class="btn btn-outline-primary mt-2"
+				type="button"
+				aria-expanded="false"
+				hidden={!!book?.reservation}
+				on:click={async () => {
+					console.log("Initiate Extend");
+				}}
+			>
+				Extend
+			</button>
+			<button
+				id="del"
+				class="btn btn-outline-danger mt-2"
+				type="button"
+				aria-expanded="false"
+				on:click={async () => {
+					borrower = undefined;
+					editResponse = edit();
+				}}
+			>
+				<Spinner response={editResponse} />
+				Give Back
+			</button>
+		{/if}
+	{/if}
 {/if}

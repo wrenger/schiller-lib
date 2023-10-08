@@ -89,7 +89,7 @@
 					borrowable: true,
 					borrower: undefined,
 					deadline: undefined,
-					reservation: undefined
+					reservation: "nils.wrenger"
 				},
 				{
 					id: "TUVW XYZA 6",
