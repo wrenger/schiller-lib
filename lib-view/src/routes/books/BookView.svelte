@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
 	export class Book {
 		id!: string;
-		isbn!: number;
+		isbn!: string;
 		title!: string;
 		publisher!: string;
 		authors!: string[];
@@ -21,7 +21,7 @@
 	let editable: boolean = false;
 
 	let id: string = "";
-	let isbn: number = 1111111111;
+	let isbn: string = "";
 	let title: string = "";
 	let publisher: string = "";
 	let authors: string = "";
@@ -52,7 +52,7 @@
 			}
 		} else {
 			id = "";
-			isbn = 1111111111;
+			isbn = "";
 			title = "";
 			publisher = "";
 			authors = "";
