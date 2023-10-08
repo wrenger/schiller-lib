@@ -33,7 +33,7 @@
 					borrowable: true,
 					borrower: "nils.wrenger",
 					deadline: "15.04.2023",
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "WXYZ 1234 2",
@@ -47,7 +47,7 @@
 					borrowable: true,
 					borrower: undefined,
 					deadline: undefined,
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "QWER TYUI 3",
@@ -61,7 +61,7 @@
 					borrowable: false,
 					borrower: undefined,
 					deadline: undefined,
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "EFGH IJKL 4",
@@ -75,7 +75,7 @@
 					borrowable: true,
 					borrower: "emma.johnson",
 					deadline: "12.04.2023",
-					reservation: "james.brown",
+					reservation: "james.brown"
 				},
 				{
 					id: "LMNO PQRS 5",
@@ -89,7 +89,7 @@
 					borrowable: true,
 					borrower: undefined,
 					deadline: undefined,
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "TUVW XYZA 6",
@@ -103,7 +103,7 @@
 					borrowable: true,
 					borrower: "david.wilson",
 					deadline: "22.04.2023",
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "BCDE FGHI 7",
@@ -117,7 +117,7 @@
 					borrowable: false,
 					borrower: undefined,
 					deadline: undefined,
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "IJKL MNOP 8",
@@ -131,7 +131,7 @@
 					borrowable: true,
 					borrower: "sarah.davis",
 					deadline: "10.06.2023",
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "PQRS TUVW 9",
@@ -145,7 +145,7 @@
 					borrowable: true,
 					borrower: "michael.white",
 					deadline: "15.05.2023",
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "XYZA BCDE 10",
@@ -159,7 +159,7 @@
 					borrowable: true,
 					borrower: "linda.jackson",
 					deadline: "18.04.2023",
-					reservation: "mary.smith",
+					reservation: "mary.smith"
 				},
 				{
 					id: "FGHI JKLM 11",
@@ -173,7 +173,7 @@
 					borrowable: true,
 					borrower: "robert.brown",
 					deadline: "25.04.2023",
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "MNOP QRST 12",
@@ -187,7 +187,7 @@
 					borrowable: true,
 					borrower: "karen.white",
 					deadline: "20.05.2023",
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "UVWX YZAB 13",
@@ -201,7 +201,7 @@
 					borrowable: true,
 					borrower: "emily.davis",
 					deadline: "15.04.2023",
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "CDEF GHIJ 14",
@@ -215,7 +215,7 @@
 					borrowable: true,
 					borrower: "james.brown",
 					deadline: "10.05.2023",
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "KLMN OPQR 15",
@@ -229,7 +229,7 @@
 					borrowable: true,
 					borrower: "olivia.jones",
 					deadline: "12.04.2023",
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "STUV WXYZ 16",
@@ -243,7 +243,7 @@
 					borrowable: true,
 					borrower: "david.wilson",
 					deadline: "05.06.2023",
-					reservation: "sophie.miller",
+					reservation: "sophie.miller"
 				},
 				{
 					id: "YZAB CDEF 17",
@@ -257,7 +257,7 @@
 					borrowable: true,
 					borrower: "michael.white",
 					deadline: "22.04.2023",
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "GHIJ KLMN 18",
@@ -271,7 +271,7 @@
 					borrowable: true,
 					borrower: "linda.jackson",
 					deadline: "10.06.2023",
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "OPQR STUV 19",
@@ -285,7 +285,7 @@
 					borrowable: true,
 					borrower: "robert.brown",
 					deadline: "15.05.2023",
-					reservation: undefined,
+					reservation: undefined
 				},
 				{
 					id: "WXYZ ABCD 20",
@@ -299,8 +299,8 @@
 					borrowable: false,
 					borrower: undefined,
 					deadline: undefined,
-					reservation: undefined,
-				},
+					reservation: undefined
+				}
 			]}
 		/>
 	</span>
