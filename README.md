@@ -4,9 +4,10 @@ Rework of schiller-lib.
 
 ### To Do's
 - [ ] Multi Language Support
-- [ ] Server Requests
+- [ ] Server Requests -> Error Modal
 - [ ] Overdues Page
 - [ ] Infos Page
+- [ ] Borrow/Reserve/Extend Modal
 - [x] Books/User List with Search and Adding Button -> Set Up a Grid and Generalize
 - [x] Page Views including editing, deleting,...
 
