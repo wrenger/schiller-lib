@@ -60,7 +60,7 @@
 	".book.lend.period": "Period",
 	".book.lend.to": "Lend to {0}",
 	".book.lend.until": "Borrowed until {0}",
-	".book.new": "Add book",
+	".book.new": "Add Book",
 	".book.not-borrowable": "Not Borrowable",
 	".book.note": "Notes",
 	".book.period": "Since {0} ({1} day{1:|s})",

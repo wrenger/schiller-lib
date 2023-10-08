@@ -60,7 +60,7 @@
 .book.lend.period,Period,Dauer
 .book.lend.to,Lend to {0},Ausleihen an {0}
 .book.lend.until,Borrowed until {0},Ausgeliehen bis zum {0}
-.book.new,Add book,Neues Buch
+.book.new,Add Book,Neues Buch
 .book.not-borrowable,Not Borrowable,Nicht ausleihbar
 .book.note,Notes,Notizen
 .book.period,Since {0} ({1} day{1:|s}),Seit dem {0} ({1} Tag{1:|e})
