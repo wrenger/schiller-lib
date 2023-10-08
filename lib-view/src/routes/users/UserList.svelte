@@ -1,17 +1,19 @@
-<script lang="ts" context="module">
-	export class User {
-		account!: string;
-		forename!: string;
-		surname!: string;
-		role!: string;
-		permission!: boolean;
-	}
-</script>
-
 <script lang="ts">
-	export let items: User[];
+	import type { User } from "./UserView.svelte";
 
-	let entry: User;
+	export let items: User[];
+	export let active: User | null;
+	export let isNew: boolean;
+
+	$: if (active || !active) {
+		active = items.find((item) => active && item.account == active.account) || null;
+		if (active) {
+			const element = document.getElementById(active.account);
+			if (element) {
+				element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+			}
+		}
+	}
 </script>
 
 <div class="card list">
@@ -23,10 +25,11 @@
 		{#each items as item}
 			<button
 				class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-				class:active={item === entry}
+				class:active={item === active}
+				id={item.account}
 				on:click={() => {
-					entry = item;
-					console.log("Show:", entry);
+					active = item;
+					console.log("Show:", active);
 				}}
 			>
 				<div class="d-flex flex-column">
@@ -42,10 +45,10 @@
 	<div class="card-footer d-flex justify-content-between align-items-center">
 		{items.length} Results
 		<button
-			class="btn btn-primary"
+			class="btn btn-outline-primary {isNew ? 'active' : ''}"
 			type="button"
 			title="Add"
-			on:click={() => console.log("Initiate Add")}
+			on:click={() => (isNew = true)}
 			><svg
 				xmlns="http://www.w3.org/2000/svg"
 				width="16"
@@ -68,14 +71,10 @@
 		cursor: pointer;
 	}
 	.list {
-		width: 50%;
+		height: calc(var(--box) - 45px);
 	}
 	.list-body {
 		overflow-y: scroll;
-	}
-	@media (max-width: 768px) {
-		.list {
-			width: 100%;
-		}
+		flex: 1;
 	}
 </style>

@@ -1,12 +1,37 @@
-<section class="mb-2">
-	<div class="input-group">
+<script lang="ts" context="module">
+	export class BookParams {
+		input!: string;
+		category!: null | string; //temporary - todo: add categories
+		status!: null | "borrowable" | "not-borrowable" | "borrowed";
+	}
+</script>
+
+<script lang="ts">
+	import { page } from "$app/stores";
+
+	export let params: BookParams = {
+		input: $page.url.searchParams.get("i") || "",
+		category: null,
+		status: null
+	};
+
+	let input: string;
+	let category: null | string; //temporary - todo: add categories
+	let status: null | "borrowable" | "not-borrowable" | "borrowed";
+
+	input = $page.url.searchParams.get("i") || "";
+</script>
+
+<div class="d-flex">
+	<div class="input-group mb-2">
 		<input
 			type="text"
 			class="form-control"
-			placeholder="Keyword (E.g. Author, Title, Id, User)"
+			placeholder="Keyword (E.g. Author, Title, Id, ISBN, User)"
 			id="search"
+			bind:value={input}
 			on:keypress={(e) => {
-				if (e.key == "Enter") console.log("Initiated Search");
+				if (e.key == "Enter") params.input = input;
 			}}
 		/>
 		<button
@@ -42,23 +67,24 @@
 						id="select"
 						class="form-select"
 						aria-label="Advanced Select"
-						on:change={() => console.log("Initiated Search")}
+						bind:value={category}
+						on:change={() => (params.category = category)}
 					>
 						<option value={null} selected>All</option>
-						<option value={1}>1</option>
-						<option value={2}>2</option>
-						<option value={3}>3</option>
-						<option value={4}>4</option>
-						<option value={5}>5</option>
-						<option value={6}>6</option>
-						<option value={7}>7</option>
-						<option value={8}>8</option>
-						<option value={9}>9</option>
-						<option value={10}>10</option>
-						<option value={11}>11</option>
-						<option value={12}>12</option>
-						<option value={13}>13</option>
-						<option value={14}>14</option>
+						<option value={"1"}>1</option>
+						<option value={"2"}>2</option>
+						<option value={"3"}>3</option>
+						<option value={"4"}>4</option>
+						<option value={"5"}>5</option>
+						<option value={"6"}>6</option>
+						<option value={"7"}>7</option>
+						<option value={"8"}>8</option>
+						<option value={"9"}>9</option>
+						<option value={"10"}>10</option>
+						<option value={"11"}>11</option>
+						<option value={"12"}>12</option>
+						<option value={"13"}>13</option>
+						<option value={"14"}>14</option>
 					</select>
 				</div>
 			</form>
@@ -71,30 +97,22 @@
 						id="select"
 						class="form-select"
 						aria-label="Advanced Select"
-						on:change={() => console.log("Initiated Search")}
+						bind:value={status}
+						on:change={() => (params.status = status)}
 					>
 						<option value={null} selected>All</option>
-						<option value={1}>Borrowable</option>
-						<option value={2}>Not Borrowable</option>
-						<option value={3}>Borrowed</option>
+						<option value={"borrowable"}>Borrowable</option>
+						<option value={"not-borrowable"}>Not Borrowable</option>
+						<option value={"borrowed"}>Borrowed</option>
 					</select>
 				</div>
 			</form>
 		</ul>
 	</div>
-</section>
+</div>
 
 <style>
 	.hide-arrow::after {
 		display: none !important;
-	}
-
-	.input-group {
-		width: 50%;
-	}
-	@media (max-width: 768px) {
-		.input-group {
-			width: 100%;
-		}
 	}
 </style>

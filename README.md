@@ -4,9 +4,11 @@ Rework of schiller-lib.
 
 ### To Do's
 - [ ] Multi Language Support
-- [ ] Global Settings Server Requests
-- [ ] Books/User List with Search and Adding Button -> Set Up a Grid and Generalize
-- [ ] Page Views including editing, deleting,...
+- [ ] Server Requests
+- [ ] Overdues Page
+- [ ] Infos Page
+- [x] Books/User List with Search and Adding Button -> Set Up a Grid and Generalize
+- [x] Page Views including editing, deleting,...
 
 ## Backend
 

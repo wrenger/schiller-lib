@@ -1,23 +1,19 @@
-<script lang="ts" context="module">
-	export class Book {
-		id!: string;
-		isbn!: number;
-		title!: string;
-		publisher!: string;
-		authors!: string[];
-		costs!: number;
-		year!: number;
-		category!: string; //temporary - todo: add categories
-		note?: string;
-		borrowed!: boolean;
-		borrowable!: boolean;
-	}
-</script>
-
 <script lang="ts">
-	export let items: Book[];
+	import type { Book } from "./BookView.svelte";
 
-	let entry: Book;
+	export let items: Book[];
+	export let active: Book | null;
+	export let isNew: boolean;
+
+	$: if (active || !active) {
+		active = items.find((item) => active && item.id == active.id) || null;
+		if (active) {
+			const element = document.getElementById(active.id);
+			if (element) {
+				element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+			}
+		}
+	}
 </script>
 
 <div class="card list">
@@ -29,10 +25,11 @@
 		{#each items as item}
 			<button
 				class="list-group-item list-group-item-action d-flex justify-content-between"
-				class:active={item === entry}
+				class:active={item === active}
+				id={item.id}
 				on:click={() => {
-					entry = item;
-					console.log("Show:", entry);
+					active = item;
+					console.log("Show:", active);
 				}}
 			>
 				<div class="d-flex flex-column">
@@ -49,10 +46,10 @@
 	<div class="card-footer d-flex justify-content-between align-items-center">
 		{items.length} Results
 		<button
-			class="btn btn-primary"
+			class="btn btn-outline-primary {isNew ? 'active' : ''}"
 			type="button"
 			title="Add"
-			on:click={() => console.log("Initiate Add")}
+			on:click={() => (isNew = true)}
 			><svg
 				xmlns="http://www.w3.org/2000/svg"
 				width="16"
@@ -75,14 +72,10 @@
 		cursor: pointer;
 	}
 	.list {
-		width: 50%;
+		height: calc(var(--box) - 45px);
 	}
 	.list-body {
 		overflow-y: scroll;
-	}
-	@media (max-width: 768px) {
-		.list {
-			width: 100%;
-		}
+		flex: 1;
 	}
 </style>
