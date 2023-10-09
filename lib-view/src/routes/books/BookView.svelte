@@ -210,7 +210,7 @@
 				</button>
 			</div>
 		</div>
-		<div class="col ps-0">
+		<div class="col ps-0 pe-0">
 			<label for="isbn" class="form-label">{$_(".book.isbn")}</label>
 			<div class="input-group" id="isbn">
 				<input
@@ -260,7 +260,7 @@
 				bind:value={title}
 			/>
 		</div>
-		<div class="col ps-0">
+		<div class="col ps-0 pe-0">
 			<label for="publisher" class="form-label">{$_(".book.publisher")}</label>
 			<input
 				id="publisher"
@@ -286,7 +286,7 @@
 				bind:value={authors}
 			/>
 		</div>
-		<div class="col ps-0">
+		<div class="col ps-0 pe-0">
 			<label for="costs" class="form-label">{$_(".book.costs")}</label>
 			<input
 				id="costs"
@@ -312,7 +312,7 @@
 				bind:value={year}
 			/>
 		</div>
-		<div class="col ps-0">
+		<div class="col ps-0 pe-0">
 			<!--  Todo: General Selector  -->
 			<label for="category" class="form-label">{$_(".category")}</label>
 			<input
@@ -327,7 +327,7 @@
 		</div>
 	</div>
 	<div class="row m-0">
-		<div class="col ps-0">
+		<div class="col ps-0 pe-0">
 			<label for="note" class="form-label">{$_(".book.note")}</label>
 			<input
 				id="note"

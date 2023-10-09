@@ -145,7 +145,7 @@
 				bind:value={forename}
 			/>
 		</div>
-		<div class="col ps-0">
+		<div class="col ps-0 pe-0">
 			<label for="surname" class="form-label">{$_(".user.surname")}</label>
 			<input
 				id="surname"
@@ -195,7 +195,7 @@
 				</button>
 			</div>
 		</div>
-		<div class="col ps-0">
+		<div class="col ps-0 pe-0">
 			<label for="role" class="form-label">{$_(".user.role")}</label>
 			<input
 				id="role"
