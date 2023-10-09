@@ -9,29 +9,25 @@
 
 <style>
 	.main {
-		--list-height: calc(100vh - 76px);
 		display: grid;
 		grid-template-areas: "list view";
-		grid-template-rows: var(--list-height);
+		grid-template-rows: 100%;
 		grid-template-columns: 50% auto;
 		height: 100%;
 	}
 	.list {
 		grid-area: list;
 		margin-right: 5px;
-		display: flex;
-		flex-direction: column;
 	}
 	.view {
 		grid-area: view;
-		overflow-y: scroll;
+		overflow: visible;
 		margin-left: 5px;
 	}
 	@media only screen and (max-width: 768px) {
 		.main {
-			--list-height: 300px;
 			grid-template-areas: "list" "view";
-			grid-template-rows: var(--list-height) auto;
+			grid-template-rows: 300px auto;
 			grid-template-columns: auto;
 		}
 		.list {
@@ -39,6 +35,7 @@
 		}
 		.view {
 			padding-top: 15px;
+			padding-bottom: 10px;
 			margin-left: 0px;
 		}
 	}

@@ -19,7 +19,12 @@
 </script>
 
 <div class="d-flex">
-	<button class="btn btn-dark" type="button" title="Settings" on:click={() => dialog.open()}>
+	<button
+		class="btn btn-dark"
+		type="button"
+		title={$_(".pref.title")}
+		on:click={() => dialog.open()}
+	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="16"

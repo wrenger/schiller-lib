@@ -13,7 +13,7 @@
 	}
 </script>
 
-<dialog class="custom-dialog {size == 'medium' ? 'medium' : ''}" bind:this={dialog} on:close>
+<dialog class="custom-dialog {size == 'medium' ? 'medium' : ''} {height == 'fixed' ? 'fixed' : ''}" bind:this={dialog} on:close>
 	<div class="card {height == 'fixed' ? 'fixed' : ''}">
 		<div class="card-header">
 			<slot name="header" />
@@ -43,6 +43,9 @@
 		border: none;
 		position: relative;
 	}
+	.custom-dialog.fixed {
+		height: 100%;
+	}
 	.custom-dialog.medium {
 		width: 50rem;
 	}
@@ -50,7 +53,7 @@
 		background: rgba(0, 0, 0, 0.4);
 	}
 	.card.fixed {
-		height: 90vh;
+		height: 100%;
 	}
 	.card-body {
 		overflow-y: auto;

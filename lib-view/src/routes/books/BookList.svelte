@@ -39,8 +39,10 @@
 				<div class="d-flex flex-column align-items-end">
 					<small class="text-muted">{item.id}</small>
 					<p class="mb-0">
-						{item.borrower || item.reservation
-							? `${$_(".book.unavailable")}`
+						{item.borrower
+							? `${$_(".book.borrowed")}`
+							: item.reservation
+							? `${$_(".book.reserved")}`
 							: `${$_(".book.available")}`}
 					</p>
 				</div>
@@ -76,7 +78,8 @@
 		cursor: pointer;
 	}
 	.list {
-		height: calc(var(--list-height) - 45px);
+		--border-height: 45px;
+		height: calc(100% - var(--border-height));
 	}
 	.list-body {
 		overflow-y: scroll;

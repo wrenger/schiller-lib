@@ -71,7 +71,8 @@
 		cursor: pointer;
 	}
 	.list {
-		height: calc(var(--list-height) - 45px);
+		--border-height: 45px;
+		height: calc(100% - var(--border-height));
 	}
 	.list-body {
 		overflow-y: scroll;

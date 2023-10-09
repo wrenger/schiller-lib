@@ -64,7 +64,7 @@
 					bind:value={permission}
 					on:change={() => (params.permission = permission)}
 				>
-					<option value={null} selected>{$_(".search.select")}</option>
+					<option value={null} selected>{$_(".action.select")}</option>
 					<option value={true}>{$_(".user.may-borrow")}</option>
 					<option value={false}>{$_(".user.may-not-borrow")}</option>
 				</select>

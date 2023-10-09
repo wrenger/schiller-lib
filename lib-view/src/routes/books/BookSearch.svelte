@@ -2,7 +2,7 @@
 	export class BookParams {
 		input!: string;
 		category!: null | string; //temporary - todo: add categories
-		status!: null | "borrowable" | "not-borrowable" | "borrowed";
+		status!: null | "borrowable" | "not-borrowable" | "borrowed" | "reserved";
 	}
 </script>
 
@@ -17,7 +17,7 @@
 
 	let input: string;
 	let category: null | string; //temporary - todo: add categories
-	let status: null | "borrowable" | "not-borrowable" | "borrowed";
+	let status: null | "borrowable" | "not-borrowable" | "borrowed" | "reserved";
 
 	input = $page.url.searchParams.get("i") || "";
 </script>
@@ -91,7 +91,8 @@
 						<option value={null} selected>{$_(".action.select")}</option>
 						<option value={"borrowable"}>{$_(".book.borrowable")}</option>
 						<option value={"not-borrowable"}>{$_(".book.not-borrowable")}</option>
-						<option value={"borrowed"}>{$_(".book.unavailable")}</option>
+						<option value={"borrowed"}>{$_(".book.borrowed")}</option>
+						<option value={"reserved"}>{$_(".book.reserved")}</option>
 					</select>
 				</div>
 			</form>

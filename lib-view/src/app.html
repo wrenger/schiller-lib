@@ -14,13 +14,16 @@
 
 <style>
 	.app,
+	section,
 	body,
 	html {
 		height: 100%;
 	}
 
 	main {
+		--navbar-height: 56px;
 		padding: 10px;
+		height: calc(100% - var(--navbar-height));
 	}
 
 	html[data-bs-theme="dark"] body {

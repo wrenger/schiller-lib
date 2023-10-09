@@ -78,8 +78,8 @@
 		class="form-check-input"
 		type="radio"
 		name="lang-toggle"
-		id="ger-toggle"
-		value="ger"
+		id="de-toggle"
+		value="de"
 	/>
-	<label class="form-check-label" for="ger-toggle">{$_(".lang.de")}</label>
+	<label class="form-check-label" for="de-toggle">{$_(".lang.de")}</label>
 </div>
