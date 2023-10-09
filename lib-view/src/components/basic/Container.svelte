@@ -9,9 +9,11 @@
 
 <style>
 	.main {
-		--box: calc(100vh - 76px);
+		--list-height: calc(100vh - 76px);
 		display: grid;
-		grid-template: "list view" var(--box) / 50% auto;
+		grid-template-areas: "list view";
+		grid-template-rows: var(--list-height);
+		grid-template-columns: 50% auto;
 		height: 100%;
 	}
 	.list {
@@ -21,16 +23,16 @@
 		flex-direction: column;
 	}
 	.view {
-		overflow-y: scroll;
 		grid-area: view;
+		overflow-y: scroll;
 		margin-left: 5px;
 	}
 	@media only screen and (max-width: 768px) {
 		.main {
-			--box: 300px;
-			grid-template:
-				"list" var(--box)
-				"view" auto / auto;
+			--list-height: 300px;
+			grid-template-areas: "list" "view";
+			grid-template-rows: var(--list-height) auto;
+			grid-template-columns: auto;
 		}
 		.list {
 			margin-right: 0px;
