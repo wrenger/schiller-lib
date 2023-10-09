@@ -7,12 +7,12 @@
 	let host = "whatever.com";
 	let sender = "idk@whatever.com";
 	let password = "1234";
-	let title1 = $_(".mail.info.subject");
-	let text1 = $_(".mail.info.content");
-	let title2 = $_(".mail.overdue.subject");
-	let text2 = $_(".mail.overdue.content");
-	let title3 = $_(".mail.overdue2.subject");
-	let text3 = $_(".mail.overdue2.content");
+	let title1 = $_(".mail.info.subject", { locale: "de" });
+	let text1 = $_(".mail.info.content", { locale: "de" });
+	let title2 = $_(".mail.overdue.subject", { locale: "de" });
+	let text2 = $_(".mail.overdue.content", { locale: "de" });
+	let title3 = $_(".mail.overdue2.subject", { locale: "de" });
+	let text3 = $_(".mail.overdue2.content", { locale: "de" });
 
 	let initialSettings = {
 		borrowing_time,
