@@ -39,7 +39,9 @@
 				<div class="d-flex flex-column align-items-end">
 					<small class="text-muted">{item.id}</small>
 					<p class="mb-0">
-						{item.borrower
+						{!item.borrowable
+							? `${$_(".book.not-borrowable")}`
+							: item.borrower
 							? `${$_(".book.borrowed")}`
 							: item.reservation
 							? `${$_(".book.reserved")}`
