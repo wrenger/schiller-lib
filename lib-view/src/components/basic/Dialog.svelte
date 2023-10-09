@@ -13,7 +13,11 @@
 	}
 </script>
 
-<dialog class="custom-dialog {size == 'medium' ? 'medium' : ''} {height == 'fixed' ? 'fixed' : ''}" bind:this={dialog} on:close>
+<dialog
+	class="custom-dialog {size == 'medium' ? 'medium' : ''} {height == 'fixed' ? 'fixed' : ''}"
+	bind:this={dialog}
+	on:close
+>
 	<div class="card {height == 'fixed' ? 'fixed' : ''}">
 		<div class="card-header">
 			<slot name="header" />
