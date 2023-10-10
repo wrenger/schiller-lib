@@ -38,7 +38,7 @@
 				{
 					id: "WXYZ 1234 2",
 					isbn: "9876543210",
-					title: "Another Book",
+					title: "Another Book Another Book Another Book Another Book Another Book Another Book",
 					publisher: "Publisher B",
 					authors: ["Alice Johnson"],
 					costs: 15,

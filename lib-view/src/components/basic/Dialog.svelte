@@ -4,7 +4,7 @@
 
 	export let size: "default" | "medium" = "default";
 	export let height: "default" | "fixed" = "default";
-	export var onCancel: (() => void) | undefined;
+	export var onCancel: (() => void) | undefined = undefined;
 
 	export function open() {
 		if (!dialog.attributes.getNamedItem("open")) {

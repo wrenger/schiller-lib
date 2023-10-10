@@ -33,11 +33,11 @@
 				}}
 			>
 				<div class="d-flex flex-column">
-					<p class="mb-0">{item.forename} {item.surname}</p>
-					<small class="text-muted">{item.account}</small>
+					<p class="mb-0 text-truncate">{item.forename} {item.surname}</p>
+					<small class="text-muted text-truncate">{item.account}</small>
 				</div>
 				<div class="d-flex flex-column align-items-end">
-					<p class="mb-0">{item.role}</p>
+					<p class="mb-0 text-truncate">{item.role}</p>
 				</div>
 			</button>
 		{/each}
