@@ -21,7 +21,7 @@
 	}
 	.view {
 		grid-area: view;
-		overflow: visible;
+		overflow: scroll;
 		margin-left: 5px;
 	}
 	@media only screen and (max-width: 768px) {
@@ -34,6 +34,7 @@
 			margin-right: 0px;
 		}
 		.view {
+			overflow: visible;
 			padding-top: 15px;
 			padding-bottom: 10px;
 			margin-left: 0px;
