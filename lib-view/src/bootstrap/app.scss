@@ -32,5 +32,11 @@
 }
 
 .text-truncate {
-	max-width: 25vw;
+	max-width: 25dvw;
+}
+
+@media only screen and (max-width: 768px) {
+	.text-truncate {
+		max-width: 40dvw;
+	}
 }
