@@ -1,11 +1,11 @@
-use crate::api;
+use crate::error::{Error, Result};
 
 use super::{DBIter, Database, FromRow};
 
-use gdnative::derive::{FromVariant, ToVariant};
+use serde::{Serialize, Deserialize};
 
 /// Data object for a user.
-#[derive(Debug, Clone, ToVariant, FromVariant)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[cfg_attr(test, derive(PartialEq, Default))]
 pub struct User {
     pub account: String,
@@ -37,7 +37,7 @@ impl FromRow for User {
 }
 
 /// Returns the user with the given `id`.
-pub fn fetch(db: &Database, id: &str) -> api::Result<User> {
+pub fn fetch(db: &Database, id: &str) -> Result<User> {
     Ok(db.con.query_row(
         "select \
         account, \
@@ -53,7 +53,7 @@ pub fn fetch(db: &Database, id: &str) -> api::Result<User> {
 }
 
 /// Performes a simple user search with the given `text`.
-pub fn search(db: &Database, text: &str) -> api::Result<Vec<User>> {
+pub fn search(db: &Database, text: &str) -> Result<Vec<User>> {
     let mut stmt = db.con.prepare(
         "select \
         account, \
@@ -74,7 +74,7 @@ pub fn search(db: &Database, text: &str) -> api::Result<Vec<User>> {
 }
 
 /// Parameters for the advanced search
-#[derive(Debug, Clone, Default, FromVariant)]
+#[derive(Debug, Clone, Default, Deserialize)]
 pub struct UserSearch {
     pub account: String,
     pub forename: String,
@@ -84,7 +84,7 @@ pub struct UserSearch {
 }
 
 /// Performes a simple user search with the given `text`.
-pub fn search_advanced(db: &Database, params: &UserSearch) -> api::Result<Vec<User>> {
+pub fn search_advanced(db: &Database, params: &UserSearch) -> Result<Vec<User>> {
     let mut stmt = db.con.prepare(
         "select \
         account, \
@@ -116,9 +116,9 @@ pub fn search_advanced(db: &Database, params: &UserSearch) -> api::Result<Vec<Us
 }
 
 /// Adds a new user.
-pub fn add(db: &Database, user: &User) -> api::Result<()> {
+pub fn add(db: &Database, user: &User) -> Result<()> {
     if !user.is_valid() {
-        return Err(api::Error::InvalidUser);
+        return Err(Error::InvalidUser);
     }
     db.con.execute(
         "insert into user values (?, ?, ?, ?, ?)",
@@ -134,10 +134,10 @@ pub fn add(db: &Database, user: &User) -> api::Result<()> {
 }
 
 /// Updates the user and all references if its account changes.
-pub fn update(db: &Database, previous_account: &str, user: &User) -> api::Result<()> {
+pub fn update(db: &Database, previous_account: &str, user: &User) -> Result<()> {
     let previous_account = previous_account.trim();
     if previous_account.is_empty() || !user.is_valid() {
-        return Err(api::Error::InvalidUser);
+        return Err(Error::InvalidUser);
     }
     let transaction = db.transaction()?;
     // update user
@@ -170,10 +170,10 @@ pub fn update(db: &Database, previous_account: &str, user: &User) -> api::Result
 
 /// Deletes the user.
 /// This includes all its borrows & reservations.
-pub fn delete(db: &Database, account: &str) -> api::Result<()> {
+pub fn delete(db: &Database, account: &str) -> Result<()> {
     let account = account.trim();
     if account.is_empty() {
-        return Err(api::Error::InvalidUser);
+        return Err(Error::InvalidUser);
     }
     let transaction = db.transaction()?;
     // remove user
@@ -194,7 +194,7 @@ pub fn delete(db: &Database, account: &str) -> api::Result<()> {
 /// Deletes the roles from all users and inserts the new roles.
 ///
 /// The roles of all users not contained in the given list are cleared.
-pub fn update_roles(db: &Database, users: &[(&str, &str)]) -> api::Result<()> {
+pub fn update_roles(db: &Database, users: &[(&str, &str)]) -> Result<()> {
     let transaction = db.transaction()?;
     transaction.execute("update user set role='-'", [])?;
 

@@ -1,10 +1,11 @@
 use std::time::Duration;
 
-use crate::api;
+use crate::error::{Result, Error};
 
 use lettre::message::{header::ContentType, Mailbox, SinglePartBuilder};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Address, Message, SmtpTransport, Transport};
+use tracing::error;
 use unicode_normalization::UnicodeNormalization;
 
 pub fn send(
@@ -14,7 +15,7 @@ pub fn send(
     to: &str,
     subject: &str,
     body: &str,
-) -> api::Result<()> {
+) -> Result<()> {
     // Change encoding of äöü to ascii
     let subject = subject.nfc().collect::<String>();
     let body = body.nfc().collect::<String>();
@@ -41,22 +42,22 @@ pub fn send(
     Ok(())
 }
 
-impl From<lettre::address::AddressError> for api::Error {
+impl From<lettre::address::AddressError> for Error {
     fn from(e: lettre::address::AddressError) -> Self {
         error!("Invalid Mail Address {e:?}");
-        api::Error::Arguments
+        Error::Arguments
     }
 }
-impl From<lettre::error::Error> for api::Error {
+impl From<lettre::error::Error> for Error {
     fn from(e: lettre::error::Error) -> Self {
         error!("Invalid Mail Format {e:?}");
-        api::Error::Arguments
+        Error::Arguments
     }
 }
-impl From<lettre::transport::smtp::Error> for api::Error {
+impl From<lettre::transport::smtp::Error> for Error {
     fn from(e: lettre::transport::smtp::Error) -> Self {
         error!("Mail SMTP Error {e:?}");
-        api::Error::Network
+        Error::Network
     }
 }
 

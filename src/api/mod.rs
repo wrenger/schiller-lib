@@ -1,7 +1,6 @@
 use gdnative::prelude::*;
 
-mod error;
-pub use error::*;
+use super::error::*;
 
 mod project;
 mod date;

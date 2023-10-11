@@ -1,27 +1,31 @@
+use super::{book, user};
 use super::{Book, DBIter, Database, FromRow, User};
-use crate::api;
+use crate::error::{Error, Result};
 
 /// Lends the book to the specified user.
-pub fn lend(db: &Database, book: &mut Book, user: &User, days: i64) -> api::Result<()> {
+pub fn lend(db: &Database, id: &str, account: &str, days: usize) -> Result<Book> {
+    let mut book = book::fetch(db, id)?;
+    let user = user::fetch(db, account)?;
+
     if !user.may_borrow {
-        return Err(api::Error::LendingUserMayNotBorrow);
+        return Err(Error::LendingUserMayNotBorrow);
     }
     if !book.borrowable {
-        return Err(api::Error::LendingBookNotBorrowable);
+        return Err(Error::LendingBookNotBorrowable);
     }
     // Allow renewal
     if !book.borrower.is_empty() && book.borrower != user.account {
-        return Err(api::Error::LendingBookAlreadyBorrowed);
+        return Err(Error::LendingBookAlreadyBorrowed);
     }
     if !book.reservation.is_empty() {
         if book.reservation == user.account {
-            release(db, book)?; // Allow lending to reserver
+            release(db, id)?; // Allow lending to reserver
         } else {
-            return Err(api::Error::LendingBookAlreadyReserved);
+            return Err(Error::LendingBookAlreadyReserved);
         }
     }
 
-    let deadline = chrono::Utc::now().date_naive() + chrono::Duration::days(days);
+    let deadline = chrono::Utc::now().date_naive() + chrono::Duration::days(days as _);
     let deadline = deadline.format("%F").to_string();
 
     db.con.execute(
@@ -31,13 +35,15 @@ pub fn lend(db: &Database, book: &mut Book, user: &User, days: i64) -> api::Resu
 
     book.borrower = user.account.clone();
     book.deadline = deadline;
-    Ok(())
+    Ok(book)
 }
 
 /// Returns the book.
-pub fn return_back(db: &Database, book: &mut Book) -> api::Result<()> {
+pub fn return_back(db: &Database, id: &str) -> Result<Book> {
+    let mut book = book::fetch(db, id)?;
+
     if book.borrower.is_empty() {
-        return Err(api::Error::Logic);
+        return Err(Error::Logic);
     }
 
     db.con.execute(
@@ -46,25 +52,28 @@ pub fn return_back(db: &Database, book: &mut Book) -> api::Result<()> {
     )?;
     book.borrower = String::new();
     book.deadline = String::new();
-    Ok(())
+    Ok(book)
 }
 
 /// Creates a reservation for the borrowed book.
-pub fn reserve(db: &Database, book: &mut Book, user: &User) -> api::Result<()> {
+pub fn reserve(db: &Database, id: &str, account: &str) -> Result<Book> {
+    let mut book = book::fetch(db, id)?;
+    let user = user::fetch(db, account)?;
+
     if !user.may_borrow {
-        return Err(api::Error::LendingUserMayNotBorrow);
+        return Err(Error::LendingUserMayNotBorrow);
     }
     if !book.borrowable {
-        return Err(api::Error::LendingBookNotBorrowable);
+        return Err(Error::LendingBookNotBorrowable);
     }
     if !book.reservation.is_empty() {
-        return Err(api::Error::LendingBookAlreadyReserved);
+        return Err(Error::LendingBookAlreadyReserved);
     }
     if book.borrower.is_empty() {
-        return Err(api::Error::LendingBookNotBorrowed);
+        return Err(Error::LendingBookNotBorrowed);
     }
     if book.borrower == user.account {
-        return Err(api::Error::LendingBookAlreadyBorrowedByUser);
+        return Err(Error::LendingBookAlreadyBorrowedByUser);
     }
 
     db.con.execute(
@@ -72,13 +81,15 @@ pub fn reserve(db: &Database, book: &mut Book, user: &User) -> api::Result<()> {
         [user.account.trim(), book.id.trim()],
     )?;
     book.reservation = user.account.clone();
-    Ok(())
+    Ok(book)
 }
 
 /// Removes the reservation from the specified book.
-pub fn release(db: &Database, book: &mut Book) -> api::Result<()> {
+pub fn release(db: &Database, id: &str) -> Result<Book> {
+    let mut book = book::fetch(db, id)?;
+
     if book.reservation.is_empty() {
-        return Err(api::Error::Logic);
+        return Err(Error::Logic);
     }
 
     db.con.execute(
@@ -86,11 +97,11 @@ pub fn release(db: &Database, book: &mut Book) -> api::Result<()> {
         [book.id.trim()],
     )?;
     book.reservation = String::new();
-    Ok(())
+    Ok(book)
 }
 
 /// Return the list of expired loan periods.
-pub fn overdues(db: &Database) -> api::Result<Vec<(Book, User)>> {
+pub fn overdues(db: &Database) -> Result<Vec<(Book, User)>> {
     const QUERY_EXPIRED: &str = "\
         select \
         id, \

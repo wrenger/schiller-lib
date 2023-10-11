@@ -1,14 +1,16 @@
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
-use crate::api;
+use tracing::info;
+
+use crate::error::{Error, Result};
 
 use super::{settings, settings::Settings, Database};
 
 /// Minimum supported version.
 const MIN_VERSION: Version = Version(0, 7, 0);
 
-type Migration = fn(&Database) -> api::Result<()>;
+type Migration = fn(&Database) -> Result<()>;
 
 /// Database migration routines
 const PATCHES: [(Version, Migration); 2] = [
@@ -16,7 +18,7 @@ const PATCHES: [(Version, Migration); 2] = [
     (Version(0, 8, 3), patch_0_8_3),
 ];
 
-pub fn create(db: &Database, version: &str) -> api::Result<()> {
+pub fn create(db: &Database, version: &str) -> Result<()> {
     const CREATE_TABLES: &str = "\
         create table sbv_meta ( \
         key text primary key, \
@@ -64,7 +66,7 @@ pub fn create(db: &Database, version: &str) -> api::Result<()> {
 
 /// Applies the related migration routines if the version changed.
 /// Returns true if the database was updated.
-pub fn migrate(db: &Database, version: &str) -> api::Result<bool> {
+pub fn migrate(db: &Database, version: &str) -> Result<bool> {
     let transaction = db.transaction()?;
     let old_version: String = transaction
         .query_row(
@@ -72,7 +74,7 @@ pub fn migrate(db: &Database, version: &str) -> api::Result<bool> {
             [],
             |row| row.get(0),
         )
-        .map_err(|_| api::Error::UnsupportedProjectVersion)?;
+        .map_err(|_| Error::UnsupportedProjectVersion)?;
     info!("Start migration of {old_version}");
 
     let old_version: Version = old_version.parse()?;
@@ -88,11 +90,11 @@ pub fn migrate(db: &Database, version: &str) -> api::Result<bool> {
         transaction.commit()?;
         Ok(old_version != new_version)
     } else {
-        Err(api::Error::UnsupportedProjectVersion)
+        Err(Error::UnsupportedProjectVersion)
     }
 }
 
-fn update_version(db: &rusqlite::Connection, version: &str) -> api::Result<()> {
+fn update_version(db: &rusqlite::Connection, version: &str) -> Result<()> {
     db.execute("replace into sbv_meta values ('version', ?)", [version])?;
     Ok(())
 }
@@ -101,19 +103,19 @@ fn update_version(db: &rusqlite::Connection, version: &str) -> api::Result<()> {
 struct Version(u8, u8, u8);
 
 impl FromStr for Version {
-    type Err = api::Error;
-    fn from_str(version: &str) -> Result<Self, Self::Err> {
+    type Err = Error;
+    fn from_str(version: &str) -> std::result::Result<Self, Self::Err> {
         let version_parts = version
             .splitn(3, '.')
             .map(str::parse)
-            .collect::<Result<Vec<u8>, _>>()
-            .map_err(|_| api::Error::UnsupportedProjectVersion)?;
+            .collect::<std::result::Result<Vec<u8>, _>>()
+            .map_err(|_| Error::UnsupportedProjectVersion)?;
         if let [major, minor, patch] = version_parts[..] {
             Ok(Version(major, minor, patch))
         } else if let [minor, patch] = version_parts[..] {
             Ok(Version(0, minor, patch))
         } else {
-            Err(api::Error::UnsupportedProjectVersion)
+            Err(Error::UnsupportedProjectVersion)
         }
     }
 }
@@ -124,7 +126,7 @@ impl Display for Version {
     }
 }
 
-fn patch_0_8_0(db: &Database) -> api::Result<()> {
+fn patch_0_8_0(db: &Database) -> Result<()> {
     const UPDATE_MAIL_PLACEHOLDERS: &str = "\
         update sbv_meta set \
         value=replace(replace(value, '[mediumtitel]', '{booktitle}'), '[name]', '{username}') \
@@ -134,7 +136,7 @@ fn patch_0_8_0(db: &Database) -> api::Result<()> {
     Ok(())
 }
 
-fn patch_0_8_3(db: &Database) -> api::Result<()> {
+fn patch_0_8_3(db: &Database) -> Result<()> {
     const UPDATE_USER_ROLES: &str = "\
         update user set \
         role=? \

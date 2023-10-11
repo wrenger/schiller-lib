@@ -1,14 +1,12 @@
-use gdnative::core_types::{FromVariant, FromVariantError};
+use serde::{de::Visitor, Deserialize, Serialize};
 use unicode_normalization::UnicodeNormalization;
 
-use crate::api;
+use crate::error::{Error, Result};
 
 use super::{DBIter, Database, FromRow};
 
-use gdnative::derive::{FromVariant, ToVariant};
-
 /// Data object for book.
-#[derive(Debug, Clone, ToVariant, FromVariant)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Default))]
 pub struct Book {
     pub id: String,
@@ -57,7 +55,8 @@ impl FromRow for Book {
 }
 
 /// Book search parameters
-#[derive(Debug, Clone, Default, FromVariant)]
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(default)]
 pub struct BookSearch {
     id: String,
     isbn: String,
@@ -80,25 +79,44 @@ impl Default for YearRange {
     }
 }
 
-impl FromVariant for YearRange {
-    fn from_variant(variant: &gdnative::core_types::Variant) -> Result<Self, FromVariantError> {
-        let str = String::from_variant(variant)?;
-        let str = str.trim();
+impl<'i> Deserialize<'i> for YearRange {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'i>,
+    {
+        deserializer.deserialize_string(YearRangeVisitor)
+    }
+}
+
+struct YearRangeVisitor;
+
+impl<'de> Visitor<'de> for YearRangeVisitor {
+    type Value = YearRange;
+
+    fn visit_string<E>(self, v: String) -> std::result::Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        let str = v.trim();
         if str.is_empty() {
-            Ok(Self::default())
+            Ok(YearRange::default())
         } else if let Some((start, end)) = str.split_once('-') {
             let start = start.trim().parse().unwrap_or_default();
             let end = end.trim().parse().unwrap_or(u16::MAX);
-            Ok(Self(start, end))
+            Ok(YearRange(start, end))
         } else {
             let year = str.trim().parse().unwrap_or_default();
-            Ok(Self(year, year))
+            Ok(YearRange(year, year))
         }
+    }
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("two years divided by a minus")
     }
 }
 
 #[repr(i64)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BookState {
     None = 0,
     Borrowable,
@@ -123,20 +141,8 @@ impl From<i64> for BookState {
     }
 }
 
-impl gdnative::core_types::ToVariant for BookState {
-    fn to_variant(&self) -> gdnative::core_types::Variant {
-        (*self as i64).to_variant()
-    }
-}
-
-impl gdnative::core_types::FromVariant for BookState {
-    fn from_variant(variant: &gdnative::core_types::Variant) -> Result<Self, FromVariantError> {
-        i64::from_variant(variant).map(Into::into)
-    }
-}
-
 /// Returns the book with the given `id`.
-pub fn fetch(db: &Database, id: &str) -> api::Result<Book> {
+pub fn fetch(db: &Database, id: &str) -> Result<Book> {
     Ok(db.con.query_row(
         "select \
         id, \
@@ -163,7 +169,7 @@ pub fn fetch(db: &Database, id: &str) -> api::Result<Book> {
 }
 
 /// Performs a simple media search with the given `text`.
-pub fn search(db: &Database, text: &str) -> api::Result<Vec<Book>> {
+pub fn search(db: &Database, text: &str) -> Result<Vec<Book>> {
     let mut stmt = db.con.prepare(
         "select \
         id, \
@@ -195,7 +201,7 @@ pub fn search(db: &Database, text: &str) -> api::Result<Vec<Book>> {
 }
 
 /// Performs an advanced media search with the given search parameters.
-pub fn search_advanced(db: &Database, params: &BookSearch) -> api::Result<Vec<Book>> {
+pub fn search_advanced(db: &Database, params: &BookSearch) -> Result<Vec<Book>> {
     let mut stmt = db.con.prepare(
         "select \
         id, \
@@ -256,9 +262,9 @@ pub fn search_advanced(db: &Database, params: &BookSearch) -> api::Result<Vec<Bo
 }
 
 /// Adds a new book.
-pub fn add(db: &Database, book: &Book) -> api::Result<()> {
+pub fn add(db: &Database, book: &Book) -> Result<()> {
     if !book.is_valid() {
-        return Err(api::Error::InvalidBook);
+        return Err(Error::InvalidBook);
     }
     let isbn = if !book.isbn.trim().is_empty() {
         crate::isbn::parse(&book.isbn).unwrap_or_else(|invalid_isbn| invalid_isbn)
@@ -293,10 +299,10 @@ pub fn add(db: &Database, book: &Book) -> api::Result<()> {
 }
 
 /// Updates the book and all references if its id changes.
-pub fn update(db: &Database, previous_id: &str, book: &Book) -> api::Result<()> {
+pub fn update(db: &Database, previous_id: &str, book: &Book) -> Result<()> {
     let previous_id = previous_id.trim();
     if previous_id.is_empty() || !book.is_valid() {
-        return Err(api::Error::InvalidBook);
+        return Err(Error::InvalidBook);
     }
     let isbn = if !book.isbn.trim().is_empty() {
         crate::isbn::parse(&book.isbn).unwrap_or_else(|invalid_isbn| invalid_isbn)
@@ -336,10 +342,10 @@ pub fn update(db: &Database, previous_id: &str, book: &Book) -> api::Result<()> 
 
 /// Deletes the book including the its authors.
 /// Also borrowers & reservations for this book are removed.
-pub fn delete(db: &Database, id: &str) -> api::Result<()> {
+pub fn delete(db: &Database, id: &str) -> Result<()> {
     let id = id.trim();
     if id.is_empty() {
-        return Err(api::Error::InvalidBook);
+        return Err(Error::InvalidBook);
     }
 
     let transaction = db.transaction()?;
@@ -355,7 +361,7 @@ pub fn delete(db: &Database, id: &str) -> api::Result<()> {
 }
 
 /// Generates a new unique id based on the authors surname and the category.
-pub fn generate_id(db: &Database, book: &Book) -> api::Result<String> {
+pub fn generate_id(db: &Database, book: &Book) -> Result<String> {
     let prefix = id_prefix(
         book.authors.first().map(|s| s.trim()).unwrap_or_default(),
         book.category.trim(),

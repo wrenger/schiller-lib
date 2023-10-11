@@ -1,5 +1,7 @@
-use gdnative::core_types::FromVariantError;
-use gdnative::prelude::*;
+use axum::{response::IntoResponse, Json};
+use hyper::StatusCode;
+use serde::Serialize;
+use tracing::error;
 
 /// The api compatible error type.
 /// On the godot side there are specific error messages displayed for each of the error types.
@@ -7,11 +9,10 @@ use gdnative::prelude::*;
 /// More specific error messages are removed to be api compatible.
 /// Those messages are logged however.
 #[repr(i64)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize)]
 pub enum Error {
     Arguments,
     Logic,
-    NoProject,
     FileNotFound,
     FileOpen,
     SQL,
@@ -35,8 +36,13 @@ pub enum Error {
 
 impl From<rusqlite::Error> for Error {
     fn from(e: rusqlite::Error) -> Self {
-        error!("SQL: {e}");
-        Self::SQL
+        match e {
+            rusqlite::Error::QueryReturnedNoRows => Self::NothingFound,
+            _ => {
+                error!("SQL: {e}");
+                Self::SQL
+            }
+        }
     }
 }
 
@@ -61,23 +67,11 @@ impl From<roxmltree::Error> for Error {
     }
 }
 
-impl gdnative::core_types::FromVariant for Error {
-    fn from_variant(
-        variant: &gdnative::core_types::Variant,
-    ) -> std::result::Result<Self, FromVariantError> {
-        let val = i64::from_variant(variant)?;
-        if 0 <= val && val <= Error::UnsupportedProjectVersion as i64 {
-            Ok(unsafe { std::mem::transmute(val) })
-        } else {
-            Err(FromVariantError::Unspecified)
-        }
-    }
-}
-
-impl ToVariant for Error {
-    #[inline]
-    fn to_variant(&self) -> Variant {
-        (*self as i64).to_variant()
+impl IntoResponse for Error {
+    fn into_response(self) -> axum::response::Response {
+        let status = StatusCode::INTERNAL_SERVER_ERROR;
+        let body = Json(self);
+        (status, body).into_response()
     }
 }
 

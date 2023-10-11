@@ -3,7 +3,7 @@ use std::fmt;
 use std::path::{Path, PathBuf};
 use std::ptr::addr_of;
 
-use crate::api;
+use crate::error::{Error, Result};
 
 pub mod book;
 pub use book::{Book, BookSearch, BookState};
@@ -35,7 +35,7 @@ impl fmt::Debug for Database {
 
 impl Database {
     /// Creates a new database at the given path.
-    pub fn create(path: Cow<'_, Path>) -> api::Result<Database> {
+    pub fn create(path: Cow<'_, Path>) -> Result<Database> {
         if !path.exists() {
             let database = Database {
                 con: rusqlite::Connection::open_with_flags(
@@ -43,31 +43,31 @@ impl Database {
                     rusqlite::OpenFlags::SQLITE_OPEN_CREATE
                         | rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
                 )
-                .map_err(|_| api::Error::FileOpen)?,
+                .map_err(|_| Error::FileOpen)?,
                 path: path.into_owned(),
             };
             structure::create(&database, PKG_VERSION)?;
             Ok(database)
         } else {
-            Err(api::Error::FileOpen)
+            Err(Error::FileOpen)
         }
     }
 
     /// Opens a database connection to the given project database.
-    pub fn open(path: Cow<'_, Path>) -> api::Result<(Database, bool)> {
+    pub fn open(path: Cow<'_, Path>) -> Result<(Database, bool)> {
         if path.exists() {
             let database = Database {
                 con: rusqlite::Connection::open_with_flags(
                     &path,
                     rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
                 )
-                .map_err(|_| api::Error::FileOpen)?,
+                .map_err(|_| Error::FileOpen)?,
                 path: path.into_owned(),
             };
             let updated = structure::migrate(&database, PKG_VERSION)?;
             Ok((database, updated))
         } else {
-            Err(api::Error::FileNotFound)
+            Err(Error::FileNotFound)
         }
     }
 
@@ -78,7 +78,7 @@ impl Database {
 
     /// In memory database for testing purposes.
     #[cfg(test)]
-    fn memory() -> api::Result<Database> {
+    fn memory() -> Result<Database> {
         Ok(Database {
             path: PathBuf::new(),
             con: rusqlite::Connection::open_in_memory()?,
@@ -120,7 +120,7 @@ pub trait FromRow: Sized {
 }
 
 impl<'a, T: FromRow> Iterator for DBIter<'a, T> {
-    type Item = api::Result<T>;
+    type Item = Result<T>;
     fn next(&mut self) -> Option<Self::Item> {
         match self.rows.next() {
             Ok(row) => Some(T::from_row(row?).map_err(Into::into)),

@@ -1,10 +1,10 @@
 use super::{Database, FromRow};
-use crate::api;
+use crate::error::Result;
 
-use gdnative::derive::{FromVariant, ToVariant};
+use serde::{Deserialize, Serialize};
 
 /// Data object for book.
-#[derive(Debug, Clone, ToVariant, FromVariant)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Default))]
 pub struct Stats {
     pub books: usize,
@@ -28,7 +28,7 @@ impl FromRow for Stats {
     }
 }
 
-pub fn fetch(db: &Database) -> api::Result<Stats> {
+pub fn fetch(db: &Database) -> Result<Stats> {
     const STATS: &str = "\
         select \
         (select count(*) from medium) as books, \

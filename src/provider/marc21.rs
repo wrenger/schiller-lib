@@ -1,4 +1,4 @@
-use crate::api;
+use crate::error::{Error, Result};
 use crate::provider::BookData;
 
 use unicode_normalization::UnicodeNormalization;
@@ -28,7 +28,7 @@ const SHORT_TITLE_LEN: usize = 16;
 ///
 /// ## See Also
 /// https://www.dnb.de/EN/Professionell/Metadatendienste/Datenbezug/SRU/sru_node.html
-pub fn parse(response: &str, isbn: &str) -> api::Result<BookData> {
+pub fn parse(response: &str, isbn: &str) -> Result<BookData> {
     let document = roxmltree::Document::parse(response)?;
 
     let mut first_result = None;
@@ -47,7 +47,7 @@ pub fn parse(response: &str, isbn: &str) -> api::Result<BookData> {
         }
     }
 
-    first_result.ok_or(api::Error::NothingFound)
+    first_result.ok_or(Error::NothingFound)
 }
 
 #[derive(Debug, Default)]
@@ -70,7 +70,9 @@ impl Record {
         };
 
         for df in record.children().filter(|x| x.has_tag_name("datafield")) {
-            let Some(tag) = df.attribute("tag") else { continue };
+            let Some(tag) = df.attribute("tag") else {
+                continue;
+            };
 
             match tag {
                 ISBN_COSTS_TAG => {

@@ -1,10 +1,10 @@
-use crate::api;
+use serde::{Serialize, Deserialize};
+
+use crate::error::{Error, Result};
 
 use super::{DBIter, Database, FromRow};
 
-use gdnative::derive::{FromVariant, ToVariant};
-
-#[derive(Debug, Clone, ToVariant, FromVariant)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Category {
     pub id: String,
     pub name: String,
@@ -30,7 +30,7 @@ impl FromRow for Category {
 }
 
 /// Returns all categories.
-pub fn list(db: &Database) -> api::Result<Vec<Category>> {
+pub fn list(db: &Database) -> Result<Vec<Category>> {
     let mut stmt = db
         .con
         .prepare("select id, name, section from category order by section, id")?;
@@ -39,9 +39,9 @@ pub fn list(db: &Database) -> api::Result<Vec<Category>> {
 }
 
 /// Adds a new category.
-pub fn add(db: &Database, category: &Category) -> api::Result<()> {
+pub fn add(db: &Database, category: &Category) -> Result<()> {
     if !category.is_valid() {
-        return Err(api::Error::Arguments);
+        return Err(Error::Arguments);
     }
 
     db.con.execute(
@@ -56,9 +56,9 @@ pub fn add(db: &Database, category: &Category) -> api::Result<()> {
 }
 
 /// Updates the category and all references.
-pub fn update(db: &Database, id: &str, category: &Category) -> api::Result<()> {
+pub fn update(db: &Database, id: &str, category: &Category) -> Result<()> {
     if !category.is_valid() {
-        return Err(api::Error::Arguments);
+        return Err(Error::Arguments);
     }
 
     let transaction = db.transaction()?;
@@ -86,16 +86,16 @@ pub fn update(db: &Database, id: &str, category: &Category) -> api::Result<()> {
 }
 
 /// Removes the category, assuming it is not referenced anywhere.
-pub fn delete(db: &Database, id: &str) -> api::Result<()> {
+pub fn delete(db: &Database, id: &str) -> Result<()> {
     let id = id.trim();
     if id.is_empty() {
-        return Err(api::Error::Arguments);
+        return Err(Error::Arguments);
     }
 
     let transaction = db.transaction()?;
     // Do not allow the removal of used categories
     if references(db, id)? > 0 {
-        return Err(api::Error::Logic);
+        return Err(Error::Logic);
     }
 
     transaction.execute("delete from category where id=?", [id])?;
@@ -105,10 +105,10 @@ pub fn delete(db: &Database, id: &str) -> api::Result<()> {
 }
 
 /// Returns the number of books in this category.
-pub fn references(db: &Database, id: &str) -> api::Result<i64> {
+pub fn references(db: &Database, id: &str) -> Result<i64> {
     let id = id.trim();
     if id.is_empty() {
-        return Err(api::Error::Arguments);
+        return Err(Error::Arguments);
     }
 
     Ok(db.con.query_row(

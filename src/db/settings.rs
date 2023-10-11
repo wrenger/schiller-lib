@@ -1,11 +1,12 @@
-use crate::api;
+use serde::{Deserialize, Serialize};
+use tracing::error;
+
+use crate::error::Result;
 use std::iter::FromIterator;
 
 use super::{DBIter, Database, FromRow};
 
-use gdnative::derive::{FromVariant, ToVariant};
-
-#[derive(Debug, PartialEq, Eq, Clone, ToVariant, FromVariant)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Settings {
     // Borrowing
     pub borrowing_duration: i64,
@@ -90,7 +91,7 @@ impl FromRow for (String, String) {
     }
 }
 
-pub fn update(db: &Database, settings: &Settings) -> api::Result<()> {
+pub fn update(db: &Database, settings: &Settings) -> Result<()> {
     db.con.execute(
         "replace into sbv_meta values \
         ('borrowing.duration', ?), \
@@ -127,7 +128,7 @@ pub fn update(db: &Database, settings: &Settings) -> api::Result<()> {
     Ok(())
 }
 
-pub fn fetch(db: &Database) -> api::Result<Settings> {
+pub fn fetch(db: &Database) -> Result<Settings> {
     let mut stmt = db.con.prepare("select key, value from sbv_meta")?;
     let rows = stmt.query([])?;
     DBIter::new(rows).collect()
