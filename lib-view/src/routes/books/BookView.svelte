@@ -467,7 +467,7 @@
 {/if}
 
 <Dialog bind:this={lendDialog}>
-	<span slot="header">{$_(".book.lend")}</span>
+	<span slot="header"><h5 class="mb-0">{$_(".book.lend")}</h5></span>
 	<span slot="body">
 		<UserSelect label={$_(".user")} placeholder={$_(".user.account")} bind:value={gonnaBorrow} />
 		<label for="period" class="form-label">{$_(".book.lend.period")}</label>
@@ -500,7 +500,7 @@
 </Dialog>
 
 <Dialog bind:this={reserveDialog}>
-	<span slot="header">{$_(".book.reserve")}</span>
+	<span slot="header"><h5 class="mb-0">{$_(".book.reserve")}</h5></span>
 	<span slot="body">
 		<UserSelect label={$_(".user")} placeholder={$_(".user.account")} bind:value={gonnaReserve} />
 	</span>
@@ -521,7 +521,7 @@
 </Dialog>
 
 <Dialog bind:this={confirmDialog}>
-	<span slot="header">{$_(".alert.confirm")}</span>
+	<span slot="header"><h5 class="mb-0">{$_(".alert.confirm")}</h5></span>
 	<span slot="body">{$_(".book.revoke.reminder", { values: { "0": reservation } })}</span>
 	<span slot="footer">
 		<button
