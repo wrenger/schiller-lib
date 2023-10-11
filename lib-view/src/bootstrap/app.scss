@@ -24,7 +24,10 @@
 @import "bootstrap/scss/helpers";
 @import "bootstrap/scss/utilities/api";
 
-@import "bootstrap-icons/font/bootstrap-icons.css";
+// icons
+$bootstrap-icons-font-src: url("bootstrap-icons/font/fonts/bootstrap-icons.woff2") format("woff2"),
+	url("bootstrap-icons/font/fonts/bootstrap-icons.woff") format("woff");
+@import "bootstrap-icons/font/bootstrap-icons.scss";
 
 // own styles
 .text-truncate {
