@@ -27,16 +27,14 @@
 	@media only screen and (max-width: 768px) {
 		.main {
 			grid-template-areas: "list" "view";
-			grid-template-rows: 300px auto;
+			grid-template-rows: 50% auto;
 			grid-template-columns: auto;
 		}
 		.list {
 			margin-right: 0px;
 		}
 		.view {
-			overflow: visible;
 			padding-top: 15px;
-			padding-bottom: 10px;
 			margin-left: 0px;
 		}
 	}

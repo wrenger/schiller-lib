@@ -20,6 +20,7 @@
 	import { _ } from "svelte-i18n";
 	import Spinner from "../../components/basic/Spinner.svelte";
 	import Dialog from "../../components/basic/Dialog.svelte";
+	import UserSelect from "../users/UserSelect.svelte";
 
 	export let book: Book | null;
 	export let isNew: boolean = false;
@@ -523,15 +524,7 @@
 <Dialog bind:this={lendDialog}>
 	<span slot="header">Lend</span>
 	<span slot="body">
-		<label for="user" class="form-label">{$_(".user")}</label>
-		<input
-			id="user"
-			type="text"
-			class="form-control"
-			placeholder={$_(".user.account")}
-			aria-label={$_(".user.account")}
-			bind:value={gonnaBorrow}
-		/>
+		<UserSelect label={$_(".user")} placeholder={$_(".user.account")} bind:value={gonnaBorrow} />
 		<label for="period" class="form-label">{$_(".book.lend.period")}</label>
 		<input
 			id="period"
@@ -564,15 +557,7 @@
 <Dialog bind:this={reserveDialog}>
 	<span slot="header">Reserve</span>
 	<span slot="body">
-		<label for="user" class="form-label">{$_(".user")}</label>
-		<input
-			id="user"
-			type="text"
-			class="form-control"
-			placeholder={$_(".user.account")}
-			aria-label={$_(".user.account")}
-			bind:value={gonnaReserve}
-		/>
+		<UserSelect label={$_(".user")} placeholder={$_(".user.account")} bind:value={gonnaReserve} />
 	</span>
 	<span slot="footer">
 		<button
