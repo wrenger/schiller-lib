@@ -11,7 +11,7 @@
 		note?: string;
 		borrowable!: boolean;
 		borrower?: string;
-		deadline?: string;
+		deadline?: Date;
 		reservation?: string;
 	}
 </script>
@@ -19,11 +19,16 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import Spinner from "../../components/basic/Spinner.svelte";
+	import Dialog from "../../components/basic/Dialog.svelte";
 
 	export let book: Book | null;
 	export let isNew: boolean = false;
 
 	let editable: boolean = false;
+
+	let lendDialog: Dialog;
+	let reserveDialog: Dialog;
+	let confirmDialog: Dialog;
 
 	let id: string = "";
 	let isbn: string = "";
@@ -36,8 +41,12 @@
 	let note: string | undefined = undefined;
 	let borrowable: boolean = true;
 	let borrower: string | undefined = "";
-	let deadline: string | undefined = "";
+	let deadline: Date | undefined = undefined;
 	let reservation: string | undefined = "";
+
+	let period: number = 28;
+	let gonnaBorrow: string | undefined;
+	let gonnaReserve: string | undefined;
 
 	$: if (editable || isNew || !editable || !isNew) setBook(book);
 	$: if (isNew) editable = true;
@@ -71,7 +80,7 @@
 			note = undefined;
 			borrowable = true;
 			borrower = "";
-			deadline = "";
+			deadline = undefined;
 			reservation = "";
 		}
 	}
@@ -291,6 +300,7 @@
 			<input
 				id="costs"
 				type="number"
+				step="0.1"
 				class="form-control"
 				placeholder={$_(".book.costs")}
 				aria-label={$_(".book.costs")}
@@ -357,7 +367,9 @@
 	{#if !editable && !isNew}
 		{#if borrower && deadline}
 			<div class="alert alert-light mb-0" role="alert">
-				{$_(".book.borrowed.by", { values: { "0": borrower, "1": deadline } })}
+				{$_(".book.borrowed.by", {
+					values: { "0": borrower, "1": deadline.toLocaleDateString("en-GB").replace(/\//g, ".") }
+				})}
 			</div>
 			{#if reservation}
 				<div class="alert alert-light mb-0 mt-1" role="alert">
@@ -413,7 +425,6 @@
 		{$_(".action.apply")}
 	</button>
 	<button
-		id="del"
 		class="btn btn-outline-danger mt-2"
 		type="button"
 		aria-expanded="false"
@@ -428,33 +439,32 @@
 	{#if !editable && !isNew}
 		{#if reservation}
 			<button
-				id="del"
 				class="btn btn-outline-primary mt-2"
 				type="button"
 				aria-expanded="false"
 				hidden={!!(borrower ?? false)}
-				on:click={async () => {
-					console.log("Initiate Borrow for", reservation);
+				on:click={() => {
+					lendDialog.open();
+					gonnaBorrow = reservation;
 				}}
 			>
 				{$_(".book.lend.to", { values: { "0": reservation } })}
 			</button>
 		{:else}
 			<button
-				id="del"
 				class="btn btn-outline-primary mt-2"
 				type="button"
 				aria-expanded="false"
 				hidden={!(!(borrower ?? false) && borrowable)}
-				on:click={async () => {
-					console.log("Initiate Borrow");
+				on:click={() => {
+					gonnaBorrow = "";
+					lendDialog.open();
 				}}
 			>
 				{$_(".book.lend")}
 			</button>
 		{/if}
 		<button
-			id="del"
 			class="btn btn-outline-danger mt-2"
 			type="button"
 			aria-expanded="false"
@@ -469,37 +479,38 @@
 		</button>
 		{#if book && book.borrower}
 			<button
-				id="del"
 				class="btn btn-outline-primary mt-2"
 				type="button"
 				aria-expanded="false"
 				hidden={!!reservation}
-				on:click={async () => {
-					console.log("Initiate Reserve");
+				on:click={() => {
+					gonnaReserve = "";
+					reserveDialog.open();
 				}}
 			>
 				{$_(".book.reserve")}
 			</button>
 			<button
-				id="del"
 				class="btn btn-outline-primary mt-2"
 				type="button"
 				aria-expanded="false"
 				hidden={!!reservation}
-				on:click={async () => {
-					console.log("Initiate Extend");
+				on:click={() => {
+					gonnaBorrow = borrower;
+					lendDialog.open();
 				}}
 			>
 				{$_(".book.renew")}
 			</button>
 			<button
-				id="del"
 				class="btn btn-outline-danger mt-2"
 				type="button"
 				aria-expanded="false"
-				on:click={async () => {
+				on:click={() => {
 					borrower = undefined;
+					deadline = new Date();
 					editResponse = edit();
+					if (reservation) confirmDialog.open();
 				}}
 			>
 				<Spinner response={editResponse} />
@@ -508,3 +519,90 @@
 		{/if}
 	{/if}
 {/if}
+
+<Dialog bind:this={lendDialog}>
+	<span slot="header">Lend</span>
+	<span slot="body">
+		<label for="user" class="form-label">{$_(".user")}</label>
+		<input
+			id="user"
+			type="text"
+			class="form-control"
+			placeholder={$_(".user.account")}
+			aria-label={$_(".user.account")}
+			bind:value={gonnaBorrow}
+		/>
+		<label for="period" class="form-label">{$_(".book.lend.period")}</label>
+		<input
+			id="period"
+			type="number"
+			class="form-control"
+			placeholder={$_(".book.lend.period")}
+			aria-label={$_(".book.lend.period")}
+			bind:value={period}
+		/>
+	</span>
+	<span slot="footer">
+		<button
+			id="book-confirm-button"
+			type="button"
+			class="btn btn-primary"
+			on:click={() => {
+				deadline = new Date(new Date().getTime() + period * 24 * 60 * 60 * 1000);
+				borrower = gonnaBorrow;
+				reservation = "";
+				editResponse = edit();
+				lendDialog.close();
+			}}
+		>
+			<Spinner response={editResponse} />
+			{$_(".action.apply")}
+		</button>
+	</span>
+</Dialog>
+
+<Dialog bind:this={reserveDialog}>
+	<span slot="header">Reserve</span>
+	<span slot="body">
+		<label for="user" class="form-label">{$_(".user")}</label>
+		<input
+			id="user"
+			type="text"
+			class="form-control"
+			placeholder={$_(".user.account")}
+			aria-label={$_(".user.account")}
+			bind:value={gonnaReserve}
+		/>
+	</span>
+	<span slot="footer">
+		<button
+			type="button"
+			class="btn btn-primary"
+			on:click={() => {
+				reservation = gonnaReserve;
+				editResponse = edit();
+				reserveDialog.close();
+			}}
+		>
+			<Spinner response={editResponse} />
+			{$_(".action.apply")}
+		</button>
+	</span>
+</Dialog>
+
+<Dialog bind:this={confirmDialog}>
+	<span slot="header">{$_(".alert.confirm")}</span>
+	<span slot="body">{$_(".book.revoke.reminder", { values: { "0": reservation } })}</span>
+	<span slot="footer">
+		<button
+			type="button"
+			class="btn btn-primary"
+			on:click={() => {
+				console.log("Send Mail!");
+				confirmDialog.close();
+			}}
+		>
+			{$_(".action.ok")}
+		</button>
+	</span>
+</Dialog>

@@ -5,9 +5,9 @@ Rework of schiller-lib. Here is a current [Test Website](https://schiller-lib.we
 ### To Do's
 - [x] Multi Language Support
 - [ ] Server Requests -> Error Modal
-- [ ] Overdues Page
+- [ ] Borrowed Page
 - [ ] Infos Page
-- [ ] Borrow/Reserve/Extend Modal
+- [x] Borrow/Reserve/Extend Modal
 - [x] Books/User List with Search and Adding Button -> Set Up a Grid and Generalize
 - [x] Page Views including editing, deleting,...
 

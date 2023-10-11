@@ -11,6 +11,10 @@
 			dialog.showModal();
 		}
 	}
+
+	export function close() {
+		dialog.close();
+	}
 </script>
 
 <dialog

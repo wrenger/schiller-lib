@@ -35,8 +35,8 @@
 						>{$_(".search.user")}</a
 					>
 					<a
-						class={$page.url.pathname === "/overdues" ? "nav-link active" : "nav-link"}
-						href="/overdues">{$_(".alert.overdue")}</a
+						class={$page.url.pathname === "/borrowed" ? "nav-link active" : "nav-link"}
+						href="/borrowed">{$_(".book.borrowed")}</a
 					>
 					<a class={$page.url.pathname === "/info" ? "nav-link active" : "nav-link"} href="/info"
 						>{$_(".alert.info")}</a

@@ -72,7 +72,7 @@
 	".book.reserved": "Vorgemerkt",
 	".book.reserved.by": "Vorgemerkt von {0}",
 	".book.revoke": "Zurückgeben",
-	".book.revoke.reminder": "Das Buch wurde von '{0}' vorgemerkt.\n\nMöchtest du den Vormerker per Email über die Rückgabe informieren?",
+	".book.revoke.reminder": "Das Buch wurde von \"{0}\" vorgemerkt.\n\nMöchtest du den Vormerker per Email über die Rückgabe informieren?",
 	".book.state": "Status",
 	".book.title": "Titel",
 	".book.unavailable": "Ausgeliehen oder Vorgemerkt",

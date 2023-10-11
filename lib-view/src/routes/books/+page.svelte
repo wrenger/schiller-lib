@@ -32,7 +32,7 @@
 					category: "Fiction",
 					borrowable: true,
 					borrower: "nils.wrenger",
-					deadline: "15.04.2023",
+					deadline: new Date("2023-04-15"),
 					reservation: undefined
 				},
 				{
@@ -74,7 +74,7 @@
 					category: "Mystery",
 					borrowable: true,
 					borrower: "emma.johnson",
-					deadline: "12.04.2023",
+					deadline: new Date("2023-04-12"),
 					reservation: "james.brown"
 				},
 				{
@@ -102,7 +102,7 @@
 					category: "Thriller",
 					borrowable: true,
 					borrower: "david.wilson",
-					deadline: "22.04.2023",
+					deadline: new Date("2023-04-22"),
 					reservation: undefined
 				},
 				{
@@ -130,7 +130,7 @@
 					category: "Biography",
 					borrowable: true,
 					borrower: "sarah.davis",
-					deadline: "10.06.2023",
+					deadline: new Date("2023-06-10"),
 					reservation: undefined
 				},
 				{
@@ -144,7 +144,7 @@
 					category: "Self-Help",
 					borrowable: true,
 					borrower: "michael.white",
-					deadline: "15.05.2023",
+					deadline: new Date("2023-05-15"),
 					reservation: undefined
 				},
 				{
@@ -158,7 +158,7 @@
 					category: "Romance",
 					borrowable: true,
 					borrower: "linda.jackson",
-					deadline: "18.04.2023",
+					deadline: new Date("2023-04-18"),
 					reservation: "mary.smith"
 				},
 				{
@@ -172,7 +172,7 @@
 					category: "Historical Fiction",
 					borrowable: true,
 					borrower: "robert.brown",
-					deadline: "25.04.2023",
+					deadline: new Date("2023-04-25"),
 					reservation: undefined
 				},
 				{
@@ -186,7 +186,7 @@
 					category: "Cooking",
 					borrowable: true,
 					borrower: "karen.white",
-					deadline: "20.05.2023",
+					deadline: new Date("2023-05-20"),
 					reservation: undefined
 				},
 				{
@@ -200,7 +200,7 @@
 					category: "Travel",
 					borrowable: true,
 					borrower: "emily.davis",
-					deadline: "15.04.2023",
+					deadline: new Date("2023-04-15"),
 					reservation: undefined
 				},
 				{
@@ -214,7 +214,7 @@
 					category: "Art",
 					borrowable: true,
 					borrower: "james.brown",
-					deadline: "10.05.2023",
+					deadline: new Date("2023-05-10"),
 					reservation: undefined
 				},
 				{
@@ -228,7 +228,7 @@
 					category: "Psychology",
 					borrowable: true,
 					borrower: "olivia.jones",
-					deadline: "12.04.2023",
+					deadline: new Date("2023-04-12"),
 					reservation: undefined
 				},
 				{
@@ -242,7 +242,7 @@
 					category: "Science",
 					borrowable: true,
 					borrower: "david.wilson",
-					deadline: "05.06.2023",
+					deadline: new Date("2023-06-05"),
 					reservation: "sophie.miller"
 				},
 				{
@@ -256,7 +256,7 @@
 					category: "Drama",
 					borrowable: true,
 					borrower: "michael.white",
-					deadline: "22.04.2023",
+					deadline: new Date("2023-04-22"),
 					reservation: undefined
 				},
 				{
@@ -270,7 +270,7 @@
 					category: "Business",
 					borrowable: true,
 					borrower: "linda.jackson",
-					deadline: "10.06.2023",
+					deadline: new Date("2023-06-10"),
 					reservation: undefined
 				},
 				{
@@ -284,7 +284,7 @@
 					category: "Technology",
 					borrowable: true,
 					borrower: "robert.brown",
-					deadline: "15.05.2023",
+					deadline: new Date("2023-05-15"),
 					reservation: undefined
 				},
 				{
