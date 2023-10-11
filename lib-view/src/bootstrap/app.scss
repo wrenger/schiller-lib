@@ -24,13 +24,9 @@
 @import "bootstrap/scss/helpers";
 @import "bootstrap/scss/utilities/api";
 
-// custom class for center icons
-.bi {
-	display: inline-block;
-	vertical-align: -0.125em;
-	fill: currentcolor;
-}
+@import "bootstrap-icons/font/bootstrap-icons.css";
 
+// own styles
 .text-truncate {
 	max-width: 25dvw;
 }
