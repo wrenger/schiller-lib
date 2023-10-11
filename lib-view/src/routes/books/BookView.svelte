@@ -522,7 +522,7 @@
 {/if}
 
 <Dialog bind:this={lendDialog}>
-	<span slot="header">Lend</span>
+	<span slot="header">{$_(".book.lend")}</span>
 	<span slot="body">
 		<UserSelect label={$_(".user")} placeholder={$_(".user.account")} bind:value={gonnaBorrow} />
 		<label for="period" class="form-label">{$_(".book.lend.period")}</label>
@@ -555,7 +555,7 @@
 </Dialog>
 
 <Dialog bind:this={reserveDialog}>
-	<span slot="header">Reserve</span>
+	<span slot="header">{$_(".book.reserve")}</span>
 	<span slot="body">
 		<UserSelect label={$_(".user")} placeholder={$_(".user.account")} bind:value={gonnaReserve} />
 	</span>

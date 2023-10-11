@@ -29,8 +29,7 @@
 		<div class="card-body">
 			<slot name="body" />
 		</div>
-		<div class="card-footer">
-			<slot name="footer" />
+		<div class="card-footer d-flex justify-content-between">
 			<button
 				type="button"
 				class="btn btn-secondary"
@@ -39,6 +38,7 @@
 					if (onCancel) onCancel();
 				}}>{$_(".action.close")}</button
 			>
+			<slot name="footer" />
 		</div>
 	</div>
 </dialog>
@@ -47,7 +47,7 @@
 	.custom-dialog {
 		padding: 0px;
 		height: fit-content;
-		width: 20rem;
+		width: 30rem;
 		border: none;
 		background: none;
 		position: relative;
@@ -66,5 +66,7 @@
 	}
 	.card-body {
 		overflow-y: auto;
+		display: block;
+		min-height: 200px;
 	}
 </style>
