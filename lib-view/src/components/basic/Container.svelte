@@ -32,9 +32,10 @@
 		}
 		.list {
 			margin-right: 0px;
+			padding-bottom: 5px;
 		}
 		.view {
-			padding-top: 15px;
+			padding-top: 5px;
 			margin-left: 0px;
 		}
 	}
