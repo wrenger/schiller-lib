@@ -45,6 +45,7 @@
 		height: fit-content;
 		width: 20rem;
 		border: none;
+		background: none;
 		position: relative;
 	}
 	.custom-dialog.fixed {
