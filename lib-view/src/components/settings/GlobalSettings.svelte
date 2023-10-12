@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
+	import { settingsLocal } from "$lib/store";
 
+	// todo: initial server request
 	let borrowing_time = 28;
 	let separator = "|";
 	let dnb = "ouehfuseifushiuefbiyagqyiiywfqgefybigg";
@@ -14,24 +16,11 @@
 	let title3 = $_(".mail.overdue2.subject", { locale: "de" });
 	let text3 = $_(".mail.overdue2.content", { locale: "de" });
 
-	let initialSettings = {
-		borrowing_time,
-		separator,
-		dnb,
-		host,
-		sender,
-		password,
-		title1,
-		text1,
-		title2,
-		text2,
-		title3,
-		text3
-	};
+	save();
 
 	export function save() {
 		// todo: Server request
-		initialSettings = {
+		settingsLocal.set({
 			borrowing_time,
 			separator,
 			dnb,
@@ -44,22 +33,24 @@
 			text2,
 			title3,
 			text3
-		};
+		});
 	}
 
 	export function cancel() {
-		borrowing_time = initialSettings.borrowing_time;
-		separator = initialSettings.separator;
-		dnb = initialSettings.dnb;
-		host = initialSettings.host;
-		sender = initialSettings.sender;
-		password = initialSettings.password;
-		title1 = initialSettings.title1;
-		text1 = initialSettings.text1;
-		title2 = initialSettings.title2;
-		text2 = initialSettings.text2;
-		title3 = initialSettings.title3;
-		text3 = initialSettings.text3;
+		const settings = $settingsLocal;
+
+		borrowing_time = settings.borrowing_time;
+		separator = settings.separator;
+		dnb = settings.dnb;
+		host = settings.host;
+		sender = settings.sender;
+		password = settings.password;
+		title1 = settings.title1;
+		text1 = settings.text1;
+		title2 = settings.title2;
+		text2 = settings.text2;
+		title3 = settings.title3;
+		text3 = settings.text3;
 	}
 </script>
 

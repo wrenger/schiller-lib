@@ -4,6 +4,7 @@
 	import BookList from "./BookList.svelte";
 	import BookSearch, { BookParams } from "./BookSearch.svelte";
 	import BookView, { Book } from "./BookView.svelte";
+	import { DateTime } from "luxon";
 	let params: BookParams;
 	let active: Book | null;
 	let isNew: boolean;
@@ -32,7 +33,7 @@
 					category: "Fiction",
 					borrowable: true,
 					borrower: "nils.wrenger",
-					deadline: new Date("2023-04-15"),
+					deadline: DateTime.fromISO("2023-04-15"),
 					reservation: undefined
 				},
 				{
@@ -74,7 +75,7 @@
 					category: "Mystery",
 					borrowable: true,
 					borrower: "emma.johnson",
-					deadline: new Date("2023-04-12"),
+					deadline: DateTime.fromISO("2023-04-12"),
 					reservation: "james.brown"
 				},
 				{
@@ -102,7 +103,7 @@
 					category: "Thriller",
 					borrowable: true,
 					borrower: "david.wilson",
-					deadline: new Date("2023-04-22"),
+					deadline: DateTime.fromISO("2023-04-22"),
 					reservation: undefined
 				},
 				{
@@ -130,7 +131,7 @@
 					category: "Biography",
 					borrowable: true,
 					borrower: "sarah.davis",
-					deadline: new Date("2023-06-10"),
+					deadline: DateTime.fromISO("2023-06-10"),
 					reservation: undefined
 				},
 				{
@@ -144,7 +145,7 @@
 					category: "Self-Help",
 					borrowable: true,
 					borrower: "michael.white",
-					deadline: new Date("2023-05-15"),
+					deadline: DateTime.fromISO("2023-05-15"),
 					reservation: undefined
 				},
 				{
@@ -158,7 +159,7 @@
 					category: "Romance",
 					borrowable: true,
 					borrower: "linda.jackson",
-					deadline: new Date("2023-04-18"),
+					deadline: DateTime.fromISO("2023-04-18"),
 					reservation: "mary.smith"
 				},
 				{
@@ -172,7 +173,7 @@
 					category: "Historical Fiction",
 					borrowable: true,
 					borrower: "robert.brown",
-					deadline: new Date("2023-04-25"),
+					deadline: DateTime.fromISO("2023-04-25"),
 					reservation: undefined
 				},
 				{
@@ -186,7 +187,7 @@
 					category: "Cooking",
 					borrowable: true,
 					borrower: "karen.white",
-					deadline: new Date("2023-05-20"),
+					deadline: DateTime.fromISO("2023-05-20"),
 					reservation: undefined
 				},
 				{
@@ -200,7 +201,7 @@
 					category: "Travel",
 					borrowable: true,
 					borrower: "emily.davis",
-					deadline: new Date("2023-04-15"),
+					deadline: DateTime.fromISO("2023-04-15"),
 					reservation: undefined
 				},
 				{
@@ -214,7 +215,7 @@
 					category: "Art",
 					borrowable: true,
 					borrower: "james.brown",
-					deadline: new Date("2023-05-10"),
+					deadline: DateTime.fromISO("2023-05-10"),
 					reservation: undefined
 				},
 				{
@@ -228,7 +229,7 @@
 					category: "Psychology",
 					borrowable: true,
 					borrower: "olivia.jones",
-					deadline: new Date("2023-04-12"),
+					deadline: DateTime.fromISO("2023-04-12"),
 					reservation: undefined
 				},
 				{
@@ -242,7 +243,7 @@
 					category: "Science",
 					borrowable: true,
 					borrower: "david.wilson",
-					deadline: new Date("2023-06-05"),
+					deadline: DateTime.fromISO("2023-06-05"),
 					reservation: "sophie.miller"
 				},
 				{
@@ -256,7 +257,7 @@
 					category: "Drama",
 					borrowable: true,
 					borrower: "michael.white",
-					deadline: new Date("2023-04-22"),
+					deadline: DateTime.fromISO("2023-04-22"),
 					reservation: undefined
 				},
 				{
@@ -270,7 +271,7 @@
 					category: "Business",
 					borrowable: true,
 					borrower: "linda.jackson",
-					deadline: new Date("2023-06-10"),
+					deadline: DateTime.fromISO("2023-06-10"),
 					reservation: undefined
 				},
 				{
@@ -284,7 +285,7 @@
 					category: "Technology",
 					borrowable: true,
 					borrower: "robert.brown",
-					deadline: new Date("2023-05-15"),
+					deadline: DateTime.fromISO("2023-05-15"),
 					reservation: undefined
 				},
 				{

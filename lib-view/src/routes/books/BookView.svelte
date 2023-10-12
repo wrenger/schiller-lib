@@ -11,7 +11,7 @@
 		note?: string;
 		borrowable!: boolean;
 		borrower?: string;
-		deadline?: Date;
+		deadline?: DateTime;
 		reservation?: string;
 	}
 </script>
@@ -21,6 +21,9 @@
 	import Spinner from "../../components/basic/Spinner.svelte";
 	import Dialog from "../../components/basic/Dialog.svelte";
 	import UserSelect from "../users/UserSelect.svelte";
+	import DateField from "./DateField.svelte";
+	import { DateTime } from "luxon";
+	import { settingsLocal } from "$lib/store";
 
 	export let book: Book | null;
 	export let isNew: boolean = false;
@@ -42,10 +45,12 @@
 	let note: string | undefined = undefined;
 	let borrowable: boolean = true;
 	let borrower: string | undefined = "";
-	let deadline: Date | undefined = undefined;
+	let deadline: DateTime | undefined = undefined;
 	let reservation: string | undefined = "";
 
-	let period: number = 28;
+	let period = DateTime.local().plus({ days: $settingsLocal.borrowing_time });
+	settingsLocal.subscribe((s) => (period = DateTime.local().plus({ days: s.borrowing_time })));
+
 	let gonnaBorrow: string | undefined;
 	let gonnaReserve: string | undefined;
 
@@ -314,7 +319,10 @@
 		{#if borrower && deadline}
 			<div class="alert alert-light mb-0" role="alert">
 				{$_(".book.borrowed.by", {
-					values: { "0": borrower, "1": deadline.toLocaleDateString("en-GB").replace(/\//g, ".") }
+					values: {
+						"0": borrower,
+						"1": deadline.toLocaleString()
+					}
 				})}
 			</div>
 			{#if reservation}
@@ -454,7 +462,7 @@
 				aria-expanded="false"
 				on:click={() => {
 					borrower = undefined;
-					deadline = new Date();
+					deadline = undefined;
 					editResponse = edit();
 					if (reservation) confirmDialog.open();
 				}}
@@ -466,19 +474,15 @@
 	{/if}
 {/if}
 
-<Dialog bind:this={lendDialog}>
+<Dialog
+	bind:this={lendDialog}
+	onCancel={() => (period = DateTime.local().plus({ days: $settingsLocal.borrowing_time }))}
+>
 	<span slot="header"><h5 class="mb-0">{$_(".book.lend")}</h5></span>
 	<span slot="body">
 		<UserSelect label={$_(".user")} placeholder={$_(".user.account")} bind:value={gonnaBorrow} />
-		<label for="period" class="form-label">{$_(".book.lend.period")}</label>
-		<input
-			id="period"
-			type="number"
-			class="form-control"
-			placeholder={$_(".book.lend.period")}
-			aria-label={$_(".book.lend.period")}
-			bind:value={period}
-		/>
+		<label for="period" class="sform-label">{$_(".book.lend.period")}</label>
+		<DateField bind:date={period} id="period" />
 	</span>
 	<span slot="footer">
 		<button
@@ -487,7 +491,8 @@
 			class="btn btn-primary"
 			disabled={!gonnaBorrow?.match(/^[a-z]+\.[a-z]+$/)}
 			on:click={() => {
-				deadline = new Date(new Date().getTime() + period * 24 * 60 * 60 * 1000);
+				deadline = period;
+				period = DateTime.local().plus({ days: $settingsLocal.borrowing_time });
 				borrower = gonnaBorrow;
 				reservation = "";
 				editResponse = edit();
