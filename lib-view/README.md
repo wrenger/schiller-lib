@@ -1,3 +1,7 @@
+# Example Page
+
+An Example Page can be found [here](https://schiller-lib.web.app/books).
+
 # Usage
 
 1. Install all Dependencies using:
