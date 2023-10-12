@@ -178,7 +178,7 @@ mod tests {
         let db = Database::memory().unwrap();
         structure::create(&db, PKG_VERSION).unwrap();
 
-        let books = book::search(&db, "").unwrap();
+        let books = book::search(&db, "", 100).unwrap();
         assert!(books.is_empty());
         let users = user::search(&db, "").unwrap();
         assert!(users.is_empty());

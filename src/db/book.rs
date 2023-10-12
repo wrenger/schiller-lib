@@ -169,7 +169,7 @@ pub fn fetch(db: &Database, id: &str) -> Result<Book> {
 }
 
 /// Performs a simple media search with the given `text`.
-pub fn search(db: &Database, text: &str) -> Result<Vec<Book>> {
+pub fn search(db: &Database, text: &str, limit: usize) -> Result<Vec<Book>> {
     let mut stmt = db.con.prepare(
         "select \
         id, \
@@ -188,15 +188,17 @@ pub fn search(db: &Database, text: &str) -> Result<Vec<Book>> {
         \
         from medium \
         left join author on author.medium=id \
-        group by id \
+        group by title \
         having id like '%'||?1||'%' \
         or isbn like '%'||?1||'%' \
         or title like '%'||?1||'%' \
         or publisher like '%'||?1||'%' \
         or note like '%'||?1||'%' \
-        or authors like '%'||?1||'%'",
+        or authors like '%'||?1||'%' \
+        or (borrower like ?1 or reservation like ?1) \
+        limit ?2",
     )?;
-    let rows = stmt.query(rusqlite::params![text.trim()])?;
+    let rows = stmt.query(rusqlite::params![text.trim(), limit])?;
     DBIter::new(rows).collect()
 }
 
@@ -436,7 +438,7 @@ mod tests {
         let db = Database::memory().unwrap();
         structure::create(&db, PKG_VERSION).unwrap();
 
-        assert_eq!(book::search(&db, "").unwrap().len(), 0);
+        assert_eq!(book::search(&db, "", 100).unwrap().len(), 0);
 
         // New book
         let book = Book {
@@ -455,7 +457,7 @@ mod tests {
 
         book::add(&db, &book).unwrap();
 
-        let db_book = &book::search(&db, "").unwrap()[0];
+        let db_book = &book::search(&db, "", 100).unwrap()[0];
         assert_eq!(&book, db_book);
 
         // Update book
@@ -469,12 +471,12 @@ mod tests {
         )
         .unwrap();
 
-        let db_book = &book::search(&db, "").unwrap()[0];
+        let db_book = &book::search(&db, "", 100).unwrap()[0];
         assert_eq!(db_book.title, "Another Title");
 
         // Remove book
         book::delete(&db, &book.id).unwrap();
 
-        assert_eq!(book::search(&db, "").unwrap().len(), 0);
+        assert_eq!(book::search(&db, "", 100).unwrap().len(), 0);
     }
 }

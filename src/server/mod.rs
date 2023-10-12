@@ -198,7 +198,7 @@ async fn book_search(
     State(project): State<Project>,
     Query(params): Query<SimpleSearch>,
 ) -> Result<Json<Vec<db::book::Book>>> {
-    Ok(Json(db::book::search(&project.db(), &params.query)?))
+    Ok(Json(db::book::search(&project.db(), &params.query, params.limit)?))
 }
 
 // /// Performs an advanced media search with the given search parameters.
