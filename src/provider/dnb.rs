@@ -1,7 +1,30 @@
-use crate::error::{Error, Result};
-use crate::provider::BookData;
-
+use reqwest::Client;
+use serde::Serialize;
 use unicode_normalization::UnicodeNormalization;
+
+use crate::error::{Error, Result};
+
+#[derive(Debug, Default, PartialEq, Serialize)]
+pub struct BookData {
+    pub title: String,
+    pub authors: Vec<String>,
+    pub publisher: String,
+    pub costs: f64,
+}
+
+/// Try fetching the book data from the "Deutsche Nationalbibliothek"
+pub async fn fetch(client: Client, dnb_token: &str, isbn: &str) -> Result<BookData> {
+    let url = format!(
+        "https://services.dnb.de/sru/accessToken~{dnb_token}/dnb?version=1.1&operation=searchRetrieve&recordSchema=MARC21-xml&query=NUM%3D{isbn}"
+    );
+    let response = client.get(url).send().await?;
+    if !response.status().is_success() {
+        return Err(Error::Network);
+    }
+
+    let text = response.text().await?;
+    parse(&text, &isbn)
+}
 
 const ISBN_COSTS_TAG: &str = "020";
 const ISBN_CODE: &str = "a";
@@ -28,7 +51,7 @@ const SHORT_TITLE_LEN: usize = 16;
 ///
 /// ## See Also
 /// https://www.dnb.de/EN/Professionell/Metadatendienste/Datenbezug/SRU/sru_node.html
-pub fn parse(response: &str, isbn: &str) -> Result<BookData> {
+fn parse(response: &str, isbn: &str) -> Result<BookData> {
     let document = roxmltree::Document::parse(response)?;
 
     let mut first_result = None;
@@ -76,25 +99,43 @@ impl Record {
 
             match tag {
                 ISBN_COSTS_TAG => {
-                    subfield(df, ISBN_CODE).map_or((), |t| isbns.push(t));
-                    subfield(df, COSTS_CODE).map_or((), |t| data.costs = parse_costs(&t));
+                    if let Some(t) = subfield(df, ISBN_CODE) {
+                        isbns.push(t)
+                    }
+                    if let Some(t) = subfield(df, COSTS_CODE) {
+                        data.costs = parse_costs(&t);
+                    }
                 }
                 EAN_TAG => subfield(df, EAN_CODE).map_or((), |t| isbns.push(t)),
                 TITLE_TAG => {
-                    subfield(df, TITLE_CODE).map_or((), |t| data.title = t);
+                    if let Some(t) = subfield(df, TITLE_CODE) {
+                        data.title = t;
+                    }
                     // Add subtitle if the title is to short
                     if data.title.len() < SHORT_TITLE_LEN {
-                        subfield(df, SUBTITLE_CODE).map_or((), |t| {
+                        if let Some(t) = subfield(df, SUBTITLE_CODE) {
                             if !t.is_empty() {
                                 data.title.push_str(" - ");
                                 data.title.push_str(&t);
                             }
-                        });
+                        }
                     }
                 }
-                AUTHOR_TAG => subfield(df, AUTHOR_CODE).map_or((), |t| data.authors.push(t)),
-                PERSON_TAG => subfield(df, PERSON_CODE).map_or((), |t| persons.push(t)),
-                PUBLISHER_TAG => subfield(df, PUBLISHER_CODE).map_or((), |t| data.publisher = t),
+                AUTHOR_TAG => {
+                    if let Some(t) = subfield(df, AUTHOR_CODE) {
+                        data.authors.push(t);
+                    }
+                }
+                PERSON_TAG => {
+                    if let Some(t) = subfield(df, PERSON_CODE) {
+                        persons.push(t);
+                    }
+                }
+                PUBLISHER_TAG => {
+                    if let Some(t) = subfield(df, PUBLISHER_CODE) {
+                        data.publisher = t;
+                    }
+                }
                 _ => {}
             };
         }

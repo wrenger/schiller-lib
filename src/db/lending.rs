@@ -3,7 +3,7 @@ use super::{Book, DBIter, Database, FromRow, User};
 use crate::error::{Error, Result};
 
 /// Lends the book to the specified user.
-pub fn lend(db: &Database, id: &str, account: &str, days: usize) -> Result<Book> {
+pub fn lend(db: &Database, id: &str, account: &str, deadline: &str) -> Result<Book> {
     let mut book = book::fetch(db, id)?;
     let user = user::fetch(db, account)?;
 
@@ -25,16 +25,13 @@ pub fn lend(db: &Database, id: &str, account: &str, days: usize) -> Result<Book>
         }
     }
 
-    let deadline = chrono::Utc::now().date_naive() + chrono::Duration::days(days as _);
-    let deadline = deadline.format("%F").to_string();
-
     db.con.execute(
         "update medium set borrower=?, deadline=? where id=?",
         [user.account.trim(), deadline.trim(), book.id.trim()],
     )?;
 
     book.borrower = user.account.clone();
-    book.deadline = deadline;
+    book.deadline = deadline.trim().into();
     Ok(book)
 }
 

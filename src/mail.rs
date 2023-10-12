@@ -1,12 +1,18 @@
 use std::time::Duration;
 
-use crate::error::{Result, Error};
+use crate::error::{Error, Result};
 
+use email_address::EmailAddress;
 use lettre::message::{header::ContentType, Mailbox, SinglePartBuilder};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Address, Message, SmtpTransport, Transport};
 use tracing::error;
 use unicode_normalization::UnicodeNormalization;
+
+/// Checks if the username is valid for an email
+pub fn account_is_valid(account: &str) -> bool {
+    EmailAddress::is_valid_local_part(account)
+}
 
 pub fn send(
     host: &str,

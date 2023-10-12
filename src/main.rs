@@ -32,8 +32,11 @@ struct Args {
     #[arg(short, long, default_value = "schillerbib.db")]
     db: PathBuf,
     /// Path to the user file
-    #[arg(short, long, default_value = "users.txt")]
-    userfile: PathBuf,
+    #[arg(long, default_value = "users.txt")]
+    user_file: PathBuf,
+    /// Path to the user file
+    #[arg(long, default_value_t = '|')]
+    user_delimiter: char,
     /// Path to the TLS certificate
     #[arg(short, long)]
     cert: PathBuf,
@@ -54,10 +57,13 @@ async fn main() {
         host,
         assets,
         db,
-        userfile,
+        user_file,
+        user_delimiter,
         cert,
         key,
     } = Args::parse();
+
+    assert!(user_delimiter.is_ascii());
 
     let db = if db.exists() {
         Database::open(db.into()).unwrap().0
@@ -65,5 +71,14 @@ async fn main() {
         Database::create(db.into()).unwrap()
     };
 
-    server::start(host, db, assets, userfile, &cert, &key).await;
+    server::start(
+        host,
+        db,
+        assets,
+        user_file,
+        user_delimiter as _,
+        &cert,
+        &key,
+    )
+    .await;
 }

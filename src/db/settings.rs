@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
-use crate::error::Result;
+use crate::error::{Error, Result};
+use crate::mail::account_is_valid;
 use std::iter::FromIterator;
 
 use super::{DBIter, Database, FromRow};
@@ -10,9 +11,6 @@ use super::{DBIter, Database, FromRow};
 pub struct Settings {
     // Borrowing
     pub borrowing_duration: i64,
-    // User
-    pub user_path: String,
-    pub user_delimiter: String,
     // DNB
     pub dnb_token: String,
     // Mail
@@ -36,8 +34,6 @@ impl Settings {
             "borrowing.duration" => {
                 self.borrowing_duration = value.parse().unwrap_or(self.borrowing_duration);
             }
-            "user.path" => self.user_path = value,
-            "user.delimiter" => self.user_delimiter = value,
             "dnb.token" => self.dnb_token = value,
             "mail.lastReminder" => self.mail_last_reminder = value,
             "mail.from" => self.mail_from = value,
@@ -58,8 +54,6 @@ impl Default for Settings {
     fn default() -> Settings {
         Settings {
             borrowing_duration: 28,
-            user_path: String::new(),
-            user_delimiter: ",".into(),
             dnb_token: String::new(),
             mail_last_reminder: String::new(),
             mail_from: String::new(),
@@ -92,11 +86,14 @@ impl FromRow for (String, String) {
 }
 
 pub fn update(db: &Database, settings: &Settings) -> Result<()> {
+    let mail_from = settings.mail_from.trim();
+    if !account_is_valid(mail_from) {
+        return Err(Error::InvalidUser);
+    }
+
     db.con.execute(
         "replace into sbv_meta values \
         ('borrowing.duration', ?), \
-        ('user.path', ?), \
-        ('user.delimiter', ?), \
         ('dnb.token', ?), \
         ('mail.lastReminder', ?), \
         ('mail.from', ?), \
@@ -110,11 +107,9 @@ pub fn update(db: &Database, settings: &Settings) -> Result<()> {
         ('mail.overdue2.content', ?)",
         rusqlite::params![
             settings.borrowing_duration,
-            settings.user_path.trim(),
-            settings.user_delimiter.trim(),
             settings.dnb_token.trim(),
             settings.mail_last_reminder.trim(),
-            settings.mail_from.trim(),
+            mail_from,
             settings.mail_host.trim(),
             settings.mail_password.trim(),
             settings.mail_info_subject.trim(),

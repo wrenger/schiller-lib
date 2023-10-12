@@ -21,7 +21,6 @@ pub enum Error {
     NothingFound,
     // Specific errors
     InvalidBook,
-    InvalidISBN,
     InvalidUser,
     // Lending errors
     LendingUserMayNotBorrow,
@@ -45,25 +44,50 @@ impl From<rusqlite::Error> for Error {
         }
     }
 }
-
 impl From<std::convert::Infallible> for Error {
     fn from(e: std::convert::Infallible) -> Self {
         error!("convert::Infallible: {e:?}");
         Self::Arguments
     }
 }
-
 impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Self {
-        error!("File Error: {e:?}");
-        Self::FileOpen
+        use std::io::ErrorKind;
+
+        error!("File Error: {e}");
+        match e.kind() {
+            ErrorKind::NotFound => Self::FileNotFound,
+            ErrorKind::ConnectionRefused
+            | ErrorKind::ConnectionReset
+            | ErrorKind::ConnectionAborted
+            | ErrorKind::NotConnected
+            | ErrorKind::AddrInUse
+            | ErrorKind::AddrNotAvailable => Self::Network,
+            _ => Self::FileOpen,
+        }
     }
 }
-
 impl From<roxmltree::Error> for Error {
     fn from(e: roxmltree::Error) -> Self {
         error!("Invalid XML Format: {e:?}");
         Self::InvalidFormat
+    }
+}
+impl From<csv::Error> for Error {
+    fn from(e: csv::Error) -> Self {
+        match e.into_kind() {
+            csv::ErrorKind::Io(e) => Self::from(e),
+            e => {
+                error!("Invalid CSV Format: {e:?}");
+                Self::InvalidFormat
+            }
+        }
+    }
+}
+impl From<reqwest::Error> for Error {
+    fn from(e: reqwest::Error) -> Self {
+        error!("Network request: {e:?}");
+        Self::Network
     }
 }
 

@@ -1,8 +1,8 @@
-use crate::error::{Error, Result};
+use crate::{error::{Error, Result}, mail::account_is_valid};
 
 use super::{DBIter, Database, FromRow};
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Data object for a user.
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -17,7 +17,7 @@ pub struct User {
 
 impl User {
     fn is_valid(&self) -> bool {
-        !self.account.trim().is_empty()
+        !account_is_valid(self.account.trim())
             && !self.forename.trim().is_empty()
             && !self.surname.trim().is_empty()
             && !self.role.trim().is_empty()
@@ -194,12 +194,12 @@ pub fn delete(db: &Database, account: &str) -> Result<()> {
 /// Deletes the roles from all users and inserts the new roles.
 ///
 /// The roles of all users not contained in the given list are cleared.
-pub fn update_roles(db: &Database, users: &[(&str, &str)]) -> Result<()> {
+pub fn update_roles(db: &Database, users: &[(String, String)]) -> Result<()> {
     let transaction = db.transaction()?;
     transaction.execute("update user set role='-'", [])?;
 
     let mut stmt = transaction.prepare("update user set role=? where account=?")?;
-    for &(account, role) in users {
+    for (account, role) in users {
         let account = account.trim();
         if !account.is_empty() {
             stmt.execute([role.trim(), account])?;
@@ -278,7 +278,7 @@ mod tests {
         assert_eq!(result[0], user2);
         assert_eq!(result[1], user1);
 
-        user::update_roles(&db, &[("foo.bar", "Teacher")]).unwrap();
+        user::update_roles(&db, &[("foo.bar".into(), "Teacher".into())]).unwrap();
 
         user1.role = "Teacher".into();
         user2.role = "-".into();
