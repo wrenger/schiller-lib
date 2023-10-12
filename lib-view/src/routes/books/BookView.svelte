@@ -485,6 +485,7 @@
 			id="book-confirm-button"
 			type="button"
 			class="btn btn-primary"
+			disabled={!gonnaBorrow?.match(/^[a-z]+\.[a-z]+$/)}
 			on:click={() => {
 				deadline = new Date(new Date().getTime() + period * 24 * 60 * 60 * 1000);
 				borrower = gonnaBorrow;
@@ -508,6 +509,7 @@
 		<button
 			type="button"
 			class="btn btn-primary"
+			disabled={!gonnaReserve?.match(/^[a-z]+\.[a-z]+$/)}
 			on:click={() => {
 				reservation = gonnaReserve;
 				editResponse = edit();
