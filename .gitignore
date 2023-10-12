@@ -12,6 +12,10 @@ Cargo.lock
 !/test/data/dnb
 !/test/data/csv
 
+!/test/data/cert
+/test/data/cert/*
+!/test/data/cert/gen.sh
+
 # Misc
 .vscode
 .DS_Store

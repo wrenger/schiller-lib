@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -7,16 +8,27 @@ use axum::extract::{Path, Query};
 use axum::http::StatusCode;
 use axum::routing::*;
 use axum::{extract::State, Json, Router};
-use hyper::Server;
+use axum_server::tls_rustls::RustlsConfig;
 use serde::{Deserialize, Serialize};
 use tower::{BoxError, ServiceBuilder};
+use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use tracing::debug;
 
 use crate::db;
 use crate::error::Result;
+use crate::provider::BookData;
 
-pub async fn start(host: SocketAddr, db: db::Database) {
+pub async fn  start(
+    host: SocketAddr,
+    db: db::Database,
+    dir: PathBuf,
+    userfile: PathBuf,
+    cert: &std::path::Path,
+    key: &std::path::Path,
+) {
+    let config = RustlsConfig::from_pem_file(cert, key).await.unwrap();
+
     let app = Router::new()
         // general
         .route("/api/about", get(about))
@@ -30,6 +42,7 @@ pub async fn start(host: SocketAddr, db: db::Database) {
         )
         .route("/api/book-search", get(book_search_advanced))
         .route("/api/book-id", get(book_generate_id))
+        .route("/api/book-fetch/:isbn", get(book_fetch_data))
         // user
         .route("/api/user", get(user_search).post(user_add))
         .route(
@@ -50,6 +63,7 @@ pub async fn start(host: SocketAddr, db: db::Database) {
         .route("/api/lending/reserve", patch(lending_reserve))
         .route("/api/lending/release", patch(lending_release))
         .route("/api/overdues", get(lending_overdues))
+        .fallback_service(ServeDir::new(dir))
         // TODO: Mail, DNB Requests, User Role Updating
         .layer(
             ServiceBuilder::new()
@@ -70,7 +84,8 @@ pub async fn start(host: SocketAddr, db: db::Database) {
         .with_state(Arc::new(Mutex::new(db)));
 
     debug!("Listening on {host}");
-    Server::bind(&host)
+
+    axum_server::bind_rustls(host, config)
         .serve(app.into_make_service())
         .await
         .unwrap();
@@ -200,6 +215,11 @@ async fn book_generate_id(
     Json(book): Json<db::Book>,
 ) -> Result<Json<String>> {
     Ok(Json(db::book::generate_id(&db.lock().unwrap(), &book)?))
+}
+
+/// Fetch the data of the book from the DNB an their like.
+async fn book_fetch_data(Path(isbn): Path<String>) -> Result<Json<BookData>> {
+    todo!()
 }
 
 // User

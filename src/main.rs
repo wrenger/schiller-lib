@@ -20,11 +20,26 @@ const PKG_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 const PKG_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 const PKG_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
+/// Schiller Library Backend
 #[derive(Parser)]
 struct Args {
+    /// Ip and port for the webserver
     host: SocketAddr,
+    /// Directory for the static assets
+    #[arg(short, long, default_value = "lib-view/build")]
+    assets: PathBuf,
+    /// Path to the database
     #[arg(short, long, default_value = "schillerbib.db")]
     db: PathBuf,
+    /// Path to the user file
+    #[arg(short, long, default_value = "users.txt")]
+    userfile: PathBuf,
+    /// Path to the TLS certificate
+    #[arg(short, long)]
+    cert: PathBuf,
+    /// Path to the TLS key
+    #[arg(short, long)]
+    key: PathBuf,
 }
 
 #[tokio::main]
@@ -35,7 +50,14 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let Args { host, db } = Args::parse();
+    let Args {
+        host,
+        assets,
+        db,
+        userfile,
+        cert,
+        key,
+    } = Args::parse();
 
     let db = if db.exists() {
         Database::open(db.into()).unwrap().0
@@ -43,5 +65,5 @@ async fn main() {
         Database::create(db.into()).unwrap()
     };
 
-    server::start(host, db).await;
+    server::start(host, db, assets, userfile, &cert, &key).await;
 }
