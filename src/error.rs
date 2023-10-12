@@ -84,10 +84,36 @@ impl From<csv::Error> for Error {
         }
     }
 }
+impl From<serde_json::Error> for Error {
+    fn from(e: serde_json::Error) -> Self {
+        error!("Invalid JSON Format: {e:?}");
+        Self::InvalidFormat
+    }
+}
 impl From<reqwest::Error> for Error {
     fn from(e: reqwest::Error) -> Self {
         error!("Network request: {e:?}");
         Self::Network
+    }
+}
+impl From<oauth2::url::ParseError> for Error {
+    fn from(e: oauth2::url::ParseError) -> Self {
+        error!("Parse URL: {e:?}");
+        Self::Arguments
+    }
+}
+impl<ER: std::error::Error + 'static, T: oauth2::ErrorResponse + 'static>
+    From<oauth2::RequestTokenError<ER, T>> for Error
+{
+    fn from(e: oauth2::RequestTokenError<ER, T>) -> Self {
+        error!("OAUTH Failed: {e:?}");
+        Self::Network
+    }
+}
+impl From<async_session::Error> for Error {
+    fn from(e: async_session::Error) -> Self {
+        error!("Session error: {e:?}");
+        Self::Arguments
     }
 }
 

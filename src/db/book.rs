@@ -55,7 +55,7 @@ impl FromRow for Book {
 }
 
 /// Book search parameters
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct BookSearch {
     id: String,
@@ -68,6 +68,27 @@ pub struct BookSearch {
     note: String,
     user: String,
     state: BookState,
+    offset: usize,
+    limit: usize,
+}
+
+impl Default for BookSearch {
+    fn default() -> Self {
+        Self {
+            id: Default::default(),
+            isbn: Default::default(),
+            title: Default::default(),
+            publisher: Default::default(),
+            authors: Default::default(),
+            year: Default::default(),
+            category: Default::default(),
+            note: Default::default(),
+            user: Default::default(),
+            state: Default::default(),
+            offset: 0,
+            limit: 100,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -169,7 +190,7 @@ pub fn fetch(db: &Database, id: &str) -> Result<Book> {
 }
 
 /// Performs a simple media search with the given `text`.
-pub fn search(db: &Database, text: &str, limit: usize) -> Result<Vec<Book>> {
+pub fn search(db: &Database, text: &str, offset: usize, limit: usize) -> Result<Vec<Book>> {
     let mut stmt = db.con.prepare(
         "select \
         id, \
@@ -196,9 +217,9 @@ pub fn search(db: &Database, text: &str, limit: usize) -> Result<Vec<Book>> {
         or note like '%'||?1||'%' \
         or authors like '%'||?1||'%' \
         or (borrower like ?1 or reservation like ?1) \
-        limit ?2",
+        limit ?2 offset ?3",
     )?;
-    let rows = stmt.query(rusqlite::params![text.trim(), limit])?;
+    let rows = stmt.query(rusqlite::params![text.trim(), limit, offset])?;
     DBIter::new(rows).collect()
 }
 
@@ -232,7 +253,8 @@ pub fn search_advanced(db: &Database, params: &BookSearch) -> Result<Vec<Book>> 
         and category like ? \
         and note like '%'||?||'%' \
         and (borrower like '%'||?||'%' or reservation like '%'||?||'%') \
-        and borrowable like ?",
+        and borrowable like ?\
+        limit ? offset ?",
     )?;
     let user = params.user.trim();
     let user = if !user.is_empty() {
@@ -258,7 +280,9 @@ pub fn search_advanced(db: &Database, params: &BookSearch) -> Result<Vec<Book>> 
             BookState::Borrowable => "1",
             BookState::NotBorrowable => "0",
             _ => "%",
-        }
+        },
+        params.limit,
+        params.offset,
     ])?;
     DBIter::new(rows).collect()
 }
@@ -438,7 +462,7 @@ mod tests {
         let db = Database::memory().unwrap();
         structure::create(&db, PKG_VERSION).unwrap();
 
-        assert_eq!(book::search(&db, "", 100).unwrap().len(), 0);
+        assert_eq!(book::search(&db, "", 0, 100).unwrap().len(), 0);
 
         // New book
         let book = Book {
@@ -457,7 +481,7 @@ mod tests {
 
         book::add(&db, &book).unwrap();
 
-        let db_book = &book::search(&db, "", 100).unwrap()[0];
+        let db_book = &book::search(&db, "", 0, 100).unwrap()[0];
         assert_eq!(&book, db_book);
 
         // Update book
@@ -471,12 +495,12 @@ mod tests {
         )
         .unwrap();
 
-        let db_book = &book::search(&db, "", 100).unwrap()[0];
+        let db_book = &book::search(&db, "", 0, 100).unwrap()[0];
         assert_eq!(db_book.title, "Another Title");
 
         // Remove book
         book::delete(&db, &book.id).unwrap();
 
-        assert_eq!(book::search(&db, "", 100).unwrap().len(), 0);
+        assert_eq!(book::search(&db, "", 0, 100).unwrap().len(), 0);
     }
 }

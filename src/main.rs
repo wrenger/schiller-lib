@@ -1,9 +1,11 @@
-use std::net::SocketAddr;
 use std::path::PathBuf;
+use std::{fs::File, net::SocketAddr};
 
 use clap::Parser;
 use db::Database;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+
+use crate::server::AuthConfig;
 
 // mod api;
 mod db;
@@ -25,6 +27,12 @@ const PKG_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 struct Args {
     /// Ip and port for the webserver
     host: SocketAddr,
+    /// Externally visible domain of this webserver
+    #[arg(long)]
+    domain: Option<String>,
+    /// Path to the oauth config
+    #[arg(long)]
+    auth: PathBuf,
     /// Directory for the static assets
     #[arg(short, long, default_value = "lib-view/build")]
     assets: PathBuf,
@@ -38,10 +46,10 @@ struct Args {
     #[arg(long, default_value_t = '|')]
     user_delimiter: char,
     /// Path to the TLS certificate
-    #[arg(short, long)]
+    #[arg(long)]
     cert: PathBuf,
     /// Path to the TLS key
-    #[arg(short, long)]
+    #[arg(long)]
     key: PathBuf,
 }
 
@@ -55,6 +63,8 @@ async fn main() {
 
     let Args {
         host,
+        domain,
+        auth,
         assets,
         db,
         user_file,
@@ -63,7 +73,12 @@ async fn main() {
         key,
     } = Args::parse();
 
+    let auth: AuthConfig =
+        serde_json::from_reader(File::open(auth).expect("No OAuth Config found")).unwrap();
+
     assert!(user_delimiter.is_ascii());
+
+    let domain = domain.unwrap_or_else(|| host.to_string());
 
     let db = if db.exists() {
         Database::open(db.into()).unwrap().0
@@ -73,6 +88,8 @@ async fn main() {
 
     server::start(
         host,
+        &domain,
+        auth,
         db,
         assets,
         user_file,

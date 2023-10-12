@@ -26,10 +26,10 @@ This project is currently in a highly unstable stage due to a fundamental rework
 - [x] Users
 - [x] Categories
 - [x] Lending, Reserving, Overdues
-- [ ] Updating User Roles
-- [ ] Fetching Book Data
-- [ ] E-Mails
-- [ ] OAuth & Logins
+- [x] Updating User Roles
+- [x] Fetching Book Data
+- [x] E-Mails
+- [x] OAuth & Logins
 
 ### Download
 
@@ -45,8 +45,9 @@ Using cargo, the project can be built and executed:
 ```sh
 # generate TLS certificates with OpenSSL
 ./test/data/cert/gen.sh
+# prepare the auth.json with client_id, client_secret, auth_url, token_url, user_url
 # start the webserver on port 5000
-cargo run -- 0.0.0.0:5000 -d test/data/schillerbib.db -c test/data/cert/cert.pem -k test/data/cert/key.pem
+cargo run -- 127.0.0.1:5000 -d lib.db --cert test/data/cert/cert.pem --key test/data/cert/key.pem --user-file users.txt --auth auth.json
 ```
 
 > A new database is created if the provided path to the database is non-existent.
