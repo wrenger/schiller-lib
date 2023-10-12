@@ -21,7 +21,7 @@
 	import Spinner from "../../components/basic/Spinner.svelte";
 	import Dialog from "../../components/basic/Dialog.svelte";
 	import UserSelect from "../users/UserSelect.svelte";
-	import DateField from "./DateField.svelte";
+	import DateField from "../../components/basic/DateField.svelte";
 	import { DateTime } from "luxon";
 	import { settingsLocal } from "$lib/store";
 
@@ -44,9 +44,9 @@
 	let category: string = "None"; //temporary - todo: add categories
 	let note: string | undefined = undefined;
 	let borrowable: boolean = true;
-	let borrower: string | undefined = "";
+	let borrower: string | undefined = undefined;
 	let deadline: DateTime | undefined = undefined;
-	let reservation: string | undefined = "";
+	let reservation: string | undefined = undefined;
 
 	let period = DateTime.local().plus({ days: $settingsLocal.borrowing_time });
 	settingsLocal.subscribe((s) => (period = DateTime.local().plus({ days: s.borrowing_time })));
@@ -85,9 +85,9 @@
 			category = "None"; //temporary - todo: add categories
 			note = undefined;
 			borrowable = true;
-			borrower = "";
+			borrower = undefined;
 			deadline = undefined;
-			reservation = "";
+			reservation = undefined;
 		}
 	}
 
