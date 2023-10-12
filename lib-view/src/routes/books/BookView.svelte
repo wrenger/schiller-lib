@@ -11,7 +11,7 @@
 		note?: string;
 		borrowable!: boolean;
 		borrower?: string;
-		deadline?: DateTime;
+		deadline?: string;
 		reservation?: string;
 	}
 </script>
@@ -71,7 +71,7 @@
 				note = book.note;
 				borrowable = book.borrowable;
 				borrower = book.borrower;
-				deadline = book.deadline;
+				deadline = DateTime.fromISO(book.deadline || "");
 				reservation = book.reservation;
 			}
 		} else {
@@ -122,7 +122,7 @@
 			note,
 			borrowable,
 			borrower,
-			deadline,
+			deadline: deadline?.toISO() || undefined,
 			reservation
 		};
 		editable = false;
@@ -398,7 +398,7 @@
 				aria-expanded="false"
 				hidden={!!(borrower ?? false)}
 				on:click={() => {
-					lendDialog.open();
+					lendDialog.open(undefined, undefined);
 					gonnaBorrow = reservation;
 				}}
 			>
@@ -412,7 +412,7 @@
 				hidden={!(!(borrower ?? false) && borrowable)}
 				on:click={() => {
 					gonnaBorrow = "";
-					lendDialog.open();
+					lendDialog.open(undefined, undefined);
 				}}
 			>
 				{$_(".book.lend")}
@@ -439,7 +439,7 @@
 				hidden={!!reservation}
 				on:click={() => {
 					gonnaReserve = "";
-					reserveDialog.open();
+					reserveDialog.open(undefined, undefined);
 				}}
 			>
 				{$_(".book.reserve")}
@@ -451,7 +451,7 @@
 				hidden={!!reservation}
 				on:click={() => {
 					gonnaBorrow = borrower;
-					lendDialog.open();
+					lendDialog.open(undefined, undefined);
 				}}
 			>
 				{$_(".book.renew")}
@@ -464,7 +464,7 @@
 					borrower = undefined;
 					deadline = undefined;
 					editResponse = edit();
-					if (reservation) confirmDialog.open();
+					if (reservation) confirmDialog.open(undefined, undefined);
 				}}
 			>
 				<Spinner response={editResponse} />

@@ -1,15 +1,20 @@
 <script lang="ts">
-	import { _ } from "svelte-i18n";
-	let dialog: HTMLDialogElement;
-
+	import { _, t } from "svelte-i18n";
+	export let id: string = "";
 	export let size: "default" | "medium" = "default";
 	export let height: "default" | "fixed" = "default";
 	export var onCancel: (() => void) | undefined = undefined;
 
-	export function open() {
+	let dialog: HTMLDialogElement;
+	let title: string | undefined;
+	let text: string | undefined;
+
+	export function open(title: string | undefined, text: string | undefined) {
 		if (!dialog.attributes.getNamedItem("open")) {
 			dialog.showModal();
 		}
+		title = title;
+		text = text;
 	}
 
 	export function close() {
@@ -18,15 +23,22 @@
 </script>
 
 <dialog
+	{id}
 	class="custom-dialog {size == 'medium' ? 'medium' : ''} {height == 'fixed' ? 'fixed' : ''}"
 	bind:this={dialog}
 	on:close
 >
 	<div class="card {height == 'fixed' ? 'fixed' : ''}">
 		<div class="card-header">
+			{#if title}
+				{title}
+			{/if}
 			<slot name="header" />
 		</div>
 		<div class="card-body">
+			{#if text}
+				{text}
+			{/if}
 			<slot name="body" />
 		</div>
 		<div class="card-footer d-flex justify-content-between">

@@ -1,4 +1,7 @@
-use crate::{error::{Error, Result}, mail::account_is_valid};
+use crate::{
+    error::{Error, Result},
+    mail::account_is_valid,
+};
 
 use super::{DBIter, Database, FromRow};
 
