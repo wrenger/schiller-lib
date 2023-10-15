@@ -26,7 +26,7 @@ use self::auth::Login;
 pub async fn start(
     host: SocketAddr,
     domain: &str,
-    auth: AuthConfig,
+    auth: Option<AuthConfig>,
     db: db::Database,
     dir: PathBuf,
     user_file: PathBuf,

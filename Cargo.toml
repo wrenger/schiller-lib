@@ -37,6 +37,6 @@ async-session = "3.0.0"
 oauth2 = "4.4"
 
 [dependencies.lettre]
-version = "0.10"
+version = "0.11"
 default-features = false
 features = ["builder", "smtp-transport", "native-tls"]

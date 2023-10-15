@@ -5,8 +5,6 @@ use clap::Parser;
 use db::Database;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
-use crate::server::AuthConfig;
-
 // mod api;
 mod db;
 mod error;
@@ -32,7 +30,7 @@ struct Args {
     domain: Option<String>,
     /// Path to the oauth config
     #[arg(long)]
-    auth: PathBuf,
+    auth: Option<PathBuf>,
     /// Directory for the static assets
     #[arg(short, long, default_value = "lib-view/build")]
     assets: PathBuf,
@@ -73,8 +71,9 @@ async fn main() {
         key,
     } = Args::parse();
 
-    let auth: AuthConfig =
-        serde_json::from_reader(File::open(auth).expect("No OAuth Config found")).unwrap();
+    let auth = auth.map(|auth| {
+        serde_json::from_reader(File::open(auth).expect("No OAuth Config found")).unwrap()
+    });
 
     assert!(user_delimiter.is_ascii());
 

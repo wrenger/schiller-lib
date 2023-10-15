@@ -19,16 +19,20 @@ use oauth2::{
     ClientSecret, CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl,
 };
 use serde::{Deserialize, Serialize};
+use tracing::error;
 
 static COOKIE_NAME: &str = "SESSION";
 
 pub fn routes(auth: Auth) -> Router {
-    Router::new()
-        .route("/login", get(login_redirect))
-        .route("/authorized", get(login_authorized))
-        .route("/logout", get(logout))
-        .fallback(|| async { (StatusCode::NOT_FOUND, Json(Error::NothingFound)) })
-        .with_state(auth)
+    match auth {
+        Auth::None => Router::new(),
+        Auth::OAuth(auth) => Router::new()
+            .route("/login", get(login_redirect))
+            .route("/authorized", get(login_authorized))
+            .route("/logout", get(logout))
+            .fallback(|| async { (StatusCode::NOT_FOUND, Json(Error::NothingFound)) })
+            .with_state(auth),
+    }
 }
 
 // The user data we'll get back from Discord.
@@ -36,13 +40,17 @@ pub fn routes(auth: Auth) -> Router {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Login {
     id: String,
-    avatar: Option<String>,
     username: String,
-    discriminator: String,
 }
 
 #[derive(Debug, Clone)]
-pub struct Auth {
+pub enum Auth {
+    None,
+    OAuth(OAuthState),
+}
+
+#[derive(Debug, Clone)]
+pub struct OAuthState {
     client: BasicClient,
     sessions: MemoryStore,
     user_url: Arc<String>,
@@ -59,41 +67,46 @@ pub struct Auth {
 ///     - https://discordapp.com/api/users/@me
 #[derive(Debug, Deserialize)]
 pub struct AuthConfig {
-    client_id: String,
-    client_secret: String,
-    auth_url: String,
-    token_url: String,
-    user_url: String,
+    pub client_id: String,
+    pub client_secret: String,
+    pub auth_url: String,
+    pub token_url: String,
+    pub user_url: String,
 }
+
 impl Auth {
     /// domain: Public domain of the webserver used for redirection
-    pub fn new(domain: &str, config: AuthConfig) -> Self {
-        let redirect = format!("https://{domain}/auth/authorized");
-        let AuthConfig {
+    pub fn new(domain: &str, config: Option<AuthConfig>) -> Self {
+        if let Some(AuthConfig {
             client_id,
             client_secret,
             auth_url,
             token_url,
             user_url,
-        } = config;
+        }) = config
+        {
+            let redirect = format!("https://{domain}/auth/authorized");
+            let oauth = BasicClient::new(
+                ClientId::new(client_id),
+                Some(ClientSecret::new(client_secret)),
+                AuthUrl::new(auth_url).unwrap(),
+                Some(TokenUrl::new(token_url).unwrap()),
+            )
+            .set_redirect_uri(RedirectUrl::new(redirect).unwrap());
 
-        let oauth = BasicClient::new(
-            ClientId::new(client_id),
-            Some(ClientSecret::new(client_secret)),
-            AuthUrl::new(auth_url).unwrap(),
-            Some(TokenUrl::new(token_url).unwrap()),
-        )
-        .set_redirect_uri(RedirectUrl::new(redirect).unwrap());
-
-        Self {
-            client: oauth,
-            sessions: MemoryStore::new(),
-            user_url: Arc::new(user_url),
+            Self::OAuth(OAuthState {
+                client: oauth,
+                sessions: MemoryStore::new(),
+                user_url: Arc::new(user_url),
+            })
+        } else {
+            error!("SECURITY: Missing OAuth configuration!");
+            Auth::None
         }
     }
 }
 
-async fn login_redirect(State(auth): State<Auth>) -> impl IntoResponse {
+async fn login_redirect(State(auth): State<OAuthState>) -> impl IntoResponse {
     let (auth_url, _csrf_token) = auth
         .client
         .authorize_url(CsrfToken::new_random)
@@ -103,7 +116,7 @@ async fn login_redirect(State(auth): State<Auth>) -> impl IntoResponse {
 }
 
 async fn logout(
-    State(auth): State<Auth>,
+    State(auth): State<OAuthState>,
     TypedHeader(cookies): TypedHeader<Cookie>,
 ) -> Result<impl IntoResponse> {
     if let Some(cookie) = cookies.get(COOKIE_NAME) {
@@ -123,7 +136,7 @@ struct AuthRequest {
 
 async fn login_authorized(
     Query(query): Query<AuthRequest>,
-    State(auth): State<Auth>,
+    State(auth): State<OAuthState>,
 ) -> Result<impl IntoResponse> {
     // Get an auth token
     let token = auth
@@ -182,6 +195,14 @@ where
         parts: &mut Parts,
         state: &S,
     ) -> std::result::Result<Self, Self::Rejection> {
+        let auth = Auth::from_ref(&state);
+        let Auth::OAuth(OAuthState { sessions, .. }) = auth else {
+            return Ok(Login {
+                id: String::new(),
+                username: String::new(),
+            });
+        };
+
         let cookies =
             parts
                 .extract::<TypedHeader<Cookie>>()
@@ -195,9 +216,7 @@ where
                 })?;
 
         let session = cookies.get(COOKIE_NAME).ok_or(AuthRedirect)?;
-        let auth = Auth::from_ref(&state);
-        let login = auth
-            .sessions
+        let login = sessions
             .load_session(session.to_string())
             .await
             .unwrap()
