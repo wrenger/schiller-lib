@@ -1,28 +1,33 @@
-use std::sync::Arc;
+use std::collections::HashMap;
+use std::fmt;
+use std::sync::{Arc, RwLock};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::error::{Error, Result};
 
 use axum::extract::FromRef;
-use axum::extract::{
-    rejection::TypedHeaderRejectionReason, FromRequestParts, Query, State, TypedHeader,
-};
-use axum::http::{header, header::SET_COOKIE, request::Parts};
+use axum::extract::{FromRequestParts, Query, State, TypedHeader};
+use axum::http::{header::SET_COOKIE, request::Parts};
 use axum::response::{IntoResponse, Redirect, Response};
 use axum::routing::get;
 use axum::{async_trait, Json, Router};
 use axum::{headers::Cookie, RequestPartsExt};
 
-use async_session::{MemoryStore, Session, SessionStore};
+use base64::engine::general_purpose::STANDARD as BASE64;
+use base64::Engine;
 use hyper::{HeaderMap, StatusCode};
 use oauth2::{
     basic::BasicClient, reqwest::async_http_client, AuthUrl, AuthorizationCode, ClientId,
     ClientSecret, CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl,
 };
+use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
 static COOKIE_NAME: &str = "SESSION";
+const SESSION_EXPIRE_SEC: usize = 3 * 24 * 60 * 60; // 3 days
 
+/// The routes requires for login and logout
 pub fn routes(auth: Auth) -> Router {
     match auth {
         Auth::None => Router::new(),
@@ -37,23 +42,61 @@ pub fn routes(auth: Auth) -> Router {
 
 // The user data we'll get back from Discord.
 // https://discord.com/developers/docs/resources/user#user-object-user-structure
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Login {
     id: String,
     username: String,
 }
 
+/// The corresponding route requires authentication
 #[derive(Debug, Clone)]
 pub enum Auth {
     None,
-    OAuth(OAuthState),
+    OAuth(Arc<OAuthState>),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Hash, PartialEq, Eq)]
+struct Session([u8; 32]);
+
+impl Session {
+    fn new() -> Self {
+        let mut data = [0; 32];
+        rand::thread_rng().fill_bytes(&mut data);
+        Self(data)
+    }
+    fn from_cookie(cookie: &str) -> Result<Self> {
+        let mut data = [0; 32 + 8]; // has to be larger due to fucked up estimates!
+        let len = BASE64
+            .decode_slice(cookie, &mut data)
+            .map_err(|_| Error::Network)?;
+
+        let mut ret = [0; 32];
+        if len == ret.len() {
+            let len = ret.len();
+            ret.copy_from_slice(&data[..len]);
+            Ok(Self(ret))
+        } else {
+            Err(Error::Network)
+        }
+    }
+    fn to_cookie(&self) -> String {
+        BASE64.encode(self.0)
+    }
+}
+
+impl fmt::Debug for Session {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("Session")
+            .field(&BASE64.encode(self.0))
+            .finish()
+    }
+}
+
+#[derive(Debug)]
 pub struct OAuthState {
     client: BasicClient,
-    sessions: MemoryStore,
-    user_url: Arc<String>,
+    sessions: RwLock<HashMap<Session, (Login, u64)>>,
+    user_url: String,
 }
 
 /// Configuration for OAuth
@@ -86,7 +129,7 @@ impl Auth {
         }) = config
         {
             let redirect = format!("https://{domain}/auth/authorized");
-            let oauth = BasicClient::new(
+            let client = BasicClient::new(
                 ClientId::new(client_id),
                 Some(ClientSecret::new(client_secret)),
                 AuthUrl::new(auth_url).unwrap(),
@@ -94,11 +137,11 @@ impl Auth {
             )
             .set_redirect_uri(RedirectUrl::new(redirect).unwrap());
 
-            Self::OAuth(OAuthState {
-                client: oauth,
-                sessions: MemoryStore::new(),
-                user_url: Arc::new(user_url),
-            })
+            Self::OAuth(Arc::new(OAuthState {
+                client,
+                sessions: Default::default(),
+                user_url,
+            }))
         } else {
             error!("SECURITY: Missing OAuth configuration!");
             Auth::None
@@ -106,7 +149,7 @@ impl Auth {
     }
 }
 
-async fn login_redirect(State(auth): State<OAuthState>) -> impl IntoResponse {
+async fn login_redirect(State(auth): State<Arc<OAuthState>>) -> impl IntoResponse {
     let (auth_url, _csrf_token) = auth
         .client
         .authorize_url(CsrfToken::new_random)
@@ -116,13 +159,12 @@ async fn login_redirect(State(auth): State<OAuthState>) -> impl IntoResponse {
 }
 
 async fn logout(
-    State(auth): State<OAuthState>,
+    State(auth): State<Arc<OAuthState>>,
     TypedHeader(cookies): TypedHeader<Cookie>,
 ) -> Result<impl IntoResponse> {
     if let Some(cookie) = cookies.get(COOKIE_NAME) {
-        if let Some(session) = auth.sessions.load_session(cookie.into()).await? {
-            auth.sessions.destroy_session(session).await?;
-        }
+        let session = Session::from_cookie(cookie)?;
+        auth.sessions.write().unwrap().remove(&session);
     }
     Ok(Redirect::to("/"))
 }
@@ -136,7 +178,7 @@ struct AuthRequest {
 
 async fn login_authorized(
     Query(query): Query<AuthRequest>,
-    State(auth): State<OAuthState>,
+    State(auth): State<Arc<OAuthState>>,
 ) -> Result<impl IntoResponse> {
     // Get an auth token
     let token = auth
@@ -147,39 +189,36 @@ async fn login_authorized(
 
     // Fetch user data from discord
     let client = reqwest::Client::new();
-    let user_data: Login = client
+    let login: Login = client
         .get(&*auth.user_url)
         .bearer_auth(token.access_token().secret())
         .send()
         .await?
-        .json::<Login>()
+        .json()
         .await?;
 
     // Create a new session filled with user data
-    let mut session = Session::new();
-    session.insert("login", user_data)?;
-
-    // Store session and get corresponding cookie
-    let cookie = auth
-        .sessions
-        .store_session(session)
-        .await?
-        .ok_or(Error::NothingFound)?;
+    let session = Session::new();
 
     // Set cookie
+    let cookie = format!(
+        "{COOKIE_NAME}={}; SameSite=Lax; Path=/",
+        session.to_cookie()
+    );
     let mut headers = HeaderMap::new();
-    let cookie = format!("{COOKIE_NAME}={cookie}; SameSite=Lax; Path=/");
     headers.insert(SET_COOKIE, cookie.parse().unwrap());
 
+    // Store session and get corresponding cookie
+    let expires = unix_secs() + SESSION_EXPIRE_SEC as u64;
+
+    let previous = auth
+        .sessions
+        .write()
+        .unwrap()
+        .insert(session, (login, expires));
+    assert!(previous.is_none());
+
     Ok((headers, Redirect::to("/")))
-}
-
-pub struct AuthRedirect;
-
-impl IntoResponse for AuthRedirect {
-    fn into_response(self) -> Response {
-        Redirect::temporary("/auth/login").into_response()
-    }
 }
 
 #[async_trait]
@@ -196,34 +235,59 @@ where
         state: &S,
     ) -> std::result::Result<Self, Self::Rejection> {
         let auth = Auth::from_ref(&state);
-        let Auth::OAuth(OAuthState { sessions, .. }) = auth else {
+        let Auth::OAuth(auth) = auth else {
             return Ok(Login {
                 id: String::new(),
                 username: String::new(),
             });
         };
+        let sessions = &auth.sessions;
 
-        let cookies =
-            parts
-                .extract::<TypedHeader<Cookie>>()
-                .await
-                .map_err(|e| match *e.name() {
-                    header::COOKIE => match e.reason() {
-                        TypedHeaderRejectionReason::Missing => AuthRedirect,
-                        _ => panic!("unexpected error getting Cookie header(s): {e}"),
-                    },
-                    _ => panic!("unexpected error getting cookies: {e}"),
-                })?;
-
-        let session = cookies.get(COOKIE_NAME).ok_or(AuthRedirect)?;
-        let login = sessions
-            .load_session(session.to_string())
+        let cookies = parts
+            .extract::<TypedHeader<Cookie>>()
             .await
-            .unwrap()
-            .ok_or(AuthRedirect)?
-            .get::<Login>("login")
-            .ok_or(AuthRedirect)?;
+            .map_err(|_| AuthRedirect)?;
 
-        Ok(login)
+        let cookie = cookies.get(COOKIE_NAME).ok_or(AuthRedirect)?;
+        let session = Session::from_cookie(cookie).map_err(|_| AuthRedirect)?;
+        let guard = sessions.read().unwrap();
+        let (login, expires) = guard.get(&session).ok_or(AuthRedirect)?;
+        if unix_secs() > *expires {
+            sessions.write().unwrap().remove(&session);
+            Err(AuthRedirect)
+        } else {
+            Ok(login.clone())
+        }
+    }
+}
+
+pub struct AuthRedirect;
+
+impl IntoResponse for AuthRedirect {
+    fn into_response(self) -> Response {
+        Redirect::temporary("/auth/login").into_response()
+    }
+}
+
+fn unix_secs() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
+}
+
+#[cfg(test)]
+mod test {
+    use crate::logging;
+
+    use super::Session;
+
+    #[test]
+    fn session() {
+        logging();
+        let session = Session::new();
+        let cookie = session.to_cookie();
+        let parsed = Session::from_cookie(&cookie).unwrap();
+        assert_eq!(session, parsed);
     }
 }

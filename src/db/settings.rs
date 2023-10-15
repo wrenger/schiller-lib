@@ -87,7 +87,7 @@ impl FromRow for (String, String) {
 
 pub fn update(db: &Database, settings: &Settings) -> Result<()> {
     let mail_from = settings.mail_from.trim();
-    if !account_is_valid(mail_from) {
+    if !mail_from.is_empty() && !account_is_valid(mail_from) {
         return Err(Error::InvalidUser);
     }
 

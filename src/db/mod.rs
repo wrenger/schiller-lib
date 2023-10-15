@@ -1,6 +1,5 @@
 use std::borrow::Cow;
-use std::fmt;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::ptr::addr_of;
 
 use crate::error::{Error, Result};
@@ -20,17 +19,9 @@ pub use user::{User, UserSearch};
 
 use super::PKG_VERSION;
 
+#[derive(Debug)]
 pub struct Database {
-    path: PathBuf,
     con: rusqlite::Connection,
-}
-
-impl fmt::Debug for Database {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("Database")
-            .field("path", &self.path)
-            .finish()
-    }
 }
 
 impl Database {
@@ -44,7 +35,6 @@ impl Database {
                         | rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
                 )
                 .map_err(|_| Error::FileOpen)?,
-                path: path.into_owned(),
             };
             structure::create(&database, PKG_VERSION)?;
             Ok(database)
@@ -62,7 +52,6 @@ impl Database {
                     rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
                 )
                 .map_err(|_| Error::FileOpen)?,
-                path: path.into_owned(),
             };
             let updated = structure::migrate(&database, PKG_VERSION)?;
             Ok((database, updated))
@@ -71,16 +60,10 @@ impl Database {
         }
     }
 
-    /// Returns the filepath to this database.
-    pub fn path(&self) -> &Path {
-        &self.path
-    }
-
     /// In memory database for testing purposes.
     #[cfg(test)]
     fn memory() -> Result<Database> {
         Ok(Database {
-            path: PathBuf::new(),
             con: rusqlite::Connection::open_in_memory()?,
         })
     }

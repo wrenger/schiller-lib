@@ -20,7 +20,7 @@ pub struct User {
 
 impl User {
     fn is_valid(&self) -> bool {
-        !account_is_valid(self.account.trim())
+        account_is_valid(self.account.trim())
             && !self.forename.trim().is_empty()
             && !self.surname.trim().is_empty()
             && !self.role.trim().is_empty()

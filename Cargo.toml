@@ -11,7 +11,7 @@ publish = false
 
 [profile.release]
 lto = "thin"
-opt-level = "s"
+opt-level = 3
 codegen-units = 1
 strip = "debuginfo"
 
@@ -33,8 +33,9 @@ tower = { version = "0.4", features = ["util", "timeout"] }
 tower-http = { version = "0.4", features = ["add-extension", "fs", "trace", "auth"] }
 reqwest = { version = "0.11", features = ["rustls-tls", "json"] }
 email_address = "0.2"
-async-session = "3.0.0"
 oauth2 = "4.4"
+base64 = "0.21"
+rand = "0.8"
 
 [dependencies.lettre]
 version = "0.11"
