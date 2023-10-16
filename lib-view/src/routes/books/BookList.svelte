@@ -14,11 +14,14 @@
 	let items: Book[] | undefined = undefined;
 	let loadingMore = false;
 	let listLoaded = false;
+	let startLoading = false;
+
+	$: console.log(items?.length);
 
 	async function loadMore() {
-		if (!loadingMore && !listLoaded) {
+		if (!loadingMore && !listLoaded && !startLoading) {
 			loadingMore = true;
-			const offset = items?.length;
+			const offset = items?.length || 0;
 			try {
 				const newItems = await request(
 					`api/book?query=${params?.input}&offset=${offset}&limit=250`,
@@ -26,7 +29,7 @@
 					null
 				);
 				items = items?.concat(newItems);
-				promise = items as unknown as Promise<Book[]>;
+				promise = (items || []) as unknown as Promise<Book[]>;
 				if (newItems?.length === 0) listLoaded = true;
 			} catch (error) {
 				console.error("Error loading more items", error);
@@ -41,12 +44,21 @@
 		const distanceToBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
 
 		if (distanceToBottom <= scrollThreshold) {
-			console.log(event);
 			loadMore();
 		}
 	}
 
-	$: if (promise instanceof Promise) promise.then((val) => (items = val));
+	$: if (params || !params) {
+		items = undefined;
+		listLoaded = false;
+	}
+	$: if (promise instanceof Promise) {
+		startLoading = true;
+		promise.then((val) => {
+			items = val;
+			startLoading = false;
+		});
+	}
 	$: if ((active || !active) && items)
 		active = items.find((item) => active && item.id == active.id) || null;
 </script>

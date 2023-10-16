@@ -20,6 +20,17 @@
 	let status: null | "borrowable" | "not-borrowable" | "borrowed" | "reserved";
 
 	input = $page.url.searchParams.get("i") || "";
+
+	let timer: NodeJS.Timeout | null = null;
+
+	function handleInputDelayed() {
+		if (timer) {
+			clearTimeout(timer);
+		}
+		timer = setTimeout(() => {
+			params.input = input;
+		}, 250);
+	}
 </script>
 
 <div class="d-flex">
@@ -30,9 +41,7 @@
 			placeholder={$_(".search.book.entry")}
 			id="search"
 			bind:value={input}
-			on:keypress={(e) => {
-				if (e.key == "Enter") params.input = input;
-			}}
+			on:input={handleInputDelayed}
 		/>
 		<button
 			id="advanced"
