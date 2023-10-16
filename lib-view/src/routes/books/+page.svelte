@@ -10,7 +10,7 @@
 	let isNew: boolean;
 	let promise: Promise<any>;
 
-	$: promise = request(`api/book?query=${params?.input}`, "GET", null);
+	$: promise = request(`api/book?query=${params?.input}&limit=250`, "GET", null);
 </script>
 
 <svelte:head>
@@ -21,7 +21,7 @@
 <Container>
 	<span slot="list">
 		<BookSearch bind:params />
-		<BookList bind:active bind:isNew {promise} />
+		<BookList bind:active bind:isNew {promise} {params} />
 	</span>
 	<BookView slot="view" bind:book={active} bind:isNew />
 </Container>

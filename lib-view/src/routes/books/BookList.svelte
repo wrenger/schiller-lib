@@ -1,23 +1,54 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import type { Book } from "./BookView.svelte";
+	import { request } from "$lib/util";
+	import type { BookParams } from "./BookSearch.svelte";
 
 	export let promise: Promise<Book[]>;
+	export let params: BookParams;
 	export let active: Book | null;
 	export let isNew: boolean;
 
-	let items: Book[] | undefined = undefined;
-	$: if (promise instanceof Promise) promise.then((val) => (items = val));
+	const scrollThreshold = 200;
 
-	$: if ((active || !active) && items) {
-		active = items.find((item) => active && item.id == active.id) || null;
-		if (active) {
-			const element = document.getElementById(active.id);
-			if (element) {
-				element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+	let items: Book[] | undefined = undefined;
+	let loadingMore = false;
+	let listLoaded = false;
+
+	async function loadMore() {
+		if (!loadingMore && !listLoaded) {
+			loadingMore = true;
+			const offset = items?.length;
+			try {
+				const newItems = await request(
+					`api/book?query=${params?.input}&offset=${offset}&limit=250`,
+					"GET",
+					null
+				);
+				items = items?.concat(newItems);
+				promise = items as unknown as Promise<Book[]>;
+				if (newItems?.length === 0) listLoaded = true;
+			} catch (error) {
+				console.error("Error loading more items", error);
+			} finally {
+				loadingMore = false;
 			}
 		}
 	}
+
+	function handleScroll(event: { target: any }) {
+		const target = event.target;
+		const distanceToBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
+
+		if (distanceToBottom <= scrollThreshold) {
+			console.log(event);
+			loadMore();
+		}
+	}
+
+	$: if (promise instanceof Promise) promise.then((val) => (items = val));
+	$: if ((active || !active) && items)
+		active = items.find((item) => active && item.id == active.id) || null;
 </script>
 
 <div class="card list">
@@ -25,7 +56,7 @@
 		{$_(".book.title")} / {$_(".book.authors")}
 		<span>{$_(".book.id")} / {$_(".book.state")}</span>
 	</div>
-	<ul class="list-group list-group-flush list-body">
+	<ul class="list-group list-group-flush list-body" on:scroll={handleScroll}>
 		{#await promise}
 			<li class="list-group-item">
 				<div class="d-flex justify-content-center">
@@ -62,6 +93,15 @@
 					</div>
 				</button>
 			{/each}
+			{#if loadingMore}
+				<li class="list-group-item">
+					<div class="d-flex justify-content-center">
+						<div class="spinner-grow" role="status">
+							<span class="visually-hidden">Loading...</span>
+						</div>
+					</div>
+				</li>
+			{/if}
 		{/await}
 	</ul>
 	<div class="card-footer d-flex justify-content-between align-items-center">
