@@ -4,7 +4,7 @@
 	import BookList from "./BookList.svelte";
 	import BookSearch, { BookParams } from "./BookSearch.svelte";
 	import BookView, { Book } from "./BookView.svelte";
-	import { request } from "./../+layout.svelte";
+	import { request } from "$lib/util";
 	let params: BookParams;
 	let active: Book | null;
 	let isNew: boolean;
