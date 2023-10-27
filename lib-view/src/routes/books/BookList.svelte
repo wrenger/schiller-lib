@@ -41,7 +41,12 @@
 
 	export async function reloadList() {
 		scrollPosition = ul.scrollTop;
+
 		promise = request(`api/book?query=${params?.input}&limit=${items?.length}`, "GET", null);
+
+		promise.then(() => {
+			requestAnimationFrame(() => ul.scrollTo(0, scrollPosition));
+		});
 	}
 
 	function handleScroll(event: { target: any }) {
@@ -62,7 +67,6 @@
 		promise.then((val) => {
 			items = val;
 			startLoading = false;
-			requestAnimationFrame(() => ul.scrollTo(0, scrollPosition));
 		});
 	}
 	$: if ((active || !active) && items)
