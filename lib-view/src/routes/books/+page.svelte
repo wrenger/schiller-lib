@@ -12,7 +12,8 @@
 	let promise: Promise<any>;
 	let t: BookList;
 
-	$: if (params != undefined) promise = request(`api/book?query=${params?.input}&limit=250`, "GET", null);
+	$: if (params != undefined)
+		promise = request(`api/book?query=${params?.input}&limit=250`, "GET", null);
 </script>
 
 <svelte:head>
