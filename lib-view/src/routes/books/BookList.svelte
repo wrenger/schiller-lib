@@ -9,14 +9,14 @@
 	export let active: Book | null;
 	export let isNew: boolean;
 
-	const scrollThreshold = 200;
+	const scrollThreshold = 2000;
 
 	let items: Book[] | undefined = undefined;
 	let loadingMore = false;
 	let listLoaded = false;
 	let startLoading = false;
-
-	$: console.log(items?.length);
+	let scrollPosition = 0;
+	let ul: HTMLUListElement;
 
 	async function loadMore() {
 		if (!loadingMore && !listLoaded && !startLoading) {
@@ -39,6 +39,11 @@
 		}
 	}
 
+	export async function reloadList() {
+		scrollPosition = ul.scrollTop;
+		promise = request(`api/book?query=${params?.input}&limit=${items?.length}`, "GET", null);
+	}
+
 	function handleScroll(event: { target: any }) {
 		const target = event.target;
 		const distanceToBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
@@ -57,6 +62,7 @@
 		promise.then((val) => {
 			items = val;
 			startLoading = false;
+			requestAnimationFrame(() => ul.scrollTo(0, scrollPosition));
 		});
 	}
 	$: if ((active || !active) && items)
@@ -68,7 +74,7 @@
 		{$_(".book.title")} / {$_(".book.authors")}
 		<span>{$_(".book.id")} / {$_(".book.state")}</span>
 	</div>
-	<ul class="list-group list-group-flush list-body" on:scroll={handleScroll}>
+	<ul bind:this={ul} class="list-group list-group-flush list-body" on:scroll={handleScroll}>
 		{#await promise}
 			<li class="list-group-item">
 				<div class="d-flex justify-content-center">
@@ -78,33 +84,35 @@
 				</div>
 			</li>
 		{:then data}
-			{#each data as item}
-				<button
-					class="list-group-item list-group-item-action d-flex justify-content-between"
-					class:active={item === active}
-					id={item.id}
-					on:click={() => {
-						active = item;
-					}}
-				>
-					<div class="d-flex flex-column">
-						<p class="mb-0 text-truncate">{item.title}</p>
-						<small class="text-muted text-truncate">{item.authors.join(", ")}</small>
-					</div>
-					<div class="d-flex flex-column align-items-end">
-						<small class="text-muted text-truncate">{item.id}</small>
-						<p class="mb-0 text-truncate">
-							{!item.borrowable
-								? `${$_(".book.not-borrowable")}`
-								: item.borrower
-								? `${$_(".book.borrowed")}`
-								: item.reservation
-								? `${$_(".book.reserved")}`
-								: `${$_(".book.available")}`}
-						</p>
-					</div>
-				</button>
-			{/each}
+			{#if data}
+				{#each data as item (item.id)}
+					<button
+						class="list-group-item list-group-item-action d-flex justify-content-between"
+						class:active={item === active}
+						id={item.id}
+						on:click={() => {
+							active = item;
+						}}
+					>
+						<div class="d-flex flex-column">
+							<p class="mb-0 text-truncate">{item.title}</p>
+							<small class="text-muted text-truncate">{item.authors.join(", ")}</small>
+						</div>
+						<div class="d-flex flex-column align-items-end">
+							<small class="text-muted text-truncate">{item.id}</small>
+							<p class="mb-0 text-truncate">
+								{!item.borrowable
+									? `${$_(".book.not-borrowable")}`
+									: item.borrower
+									? `${$_(".book.borrowed")}`
+									: item.reservation
+									? `${$_(".book.reserved")}`
+									: `${$_(".book.available")}`}
+							</p>
+						</div>
+					</button>
+				{/each}
+			{/if}
 			{#if loadingMore}
 				<li class="list-group-item">
 					<div class="d-flex justify-content-center">

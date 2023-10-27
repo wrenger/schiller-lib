@@ -1,23 +1,32 @@
 <script lang="ts" context="module">
 	export class BookParams {
-		input!: string;
-		category!: null | string; //temporary - todo: add categories
-		status!: null | "borrowable" | "not-borrowable" | "borrowed" | "reserved";
+		input: string;
+		category: null | string;
+		status: null | "borrowable" | "not-borrowable" | "borrowed" | "reserved";
+
+		constructor(
+			params: {
+				input?: string;
+				category?: null | string;
+				status?: null | "borrowable" | "not-borrowable" | "borrowed" | "reserved";
+			} = {}
+		) {
+			this.input = params.input || "";
+			this.category = params.category || null;
+			this.status = params.status || null;
+		}
 	}
 </script>
 
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { page } from "$app/stores";
-	export let params: BookParams = {
-		input: $page.url.searchParams.get("i") || "",
-		category: null,
-		status: null
-	};
 
-	let input: string;
-	let category: null | string; //temporary - todo: add categories
-	let status: null | "borrowable" | "not-borrowable" | "borrowed" | "reserved";
+	export let params: BookParams = new BookParams();
+
+	let input: string = "";
+	let category: null | string = null; //temporary - todo: add categories
+	let status: null | "borrowable" | "not-borrowable" | "borrowed" | "reserved" = null;
 
 	input = $page.url.searchParams.get("i") || "";
 
@@ -29,7 +38,7 @@
 		}
 		timer = setTimeout(() => {
 			params.input = input;
-		}, 250);
+		}, 500);
 	}
 </script>
 

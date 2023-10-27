@@ -27,6 +27,7 @@
 
 	export let book: Book | null;
 	export let isNew: boolean = false;
+	export var reload: (() => Promise<void>) | undefined;
 
 	let editable: boolean = false;
 
@@ -95,18 +96,22 @@
 	async function add() {
 		onChange();
 		console.log("Add:", book);
+		if (reload) await reload();
 	}
 
 	let editResponse: Promise<any>;
 	async function edit() {
 		onChange();
 		console.log("Edit:", book);
+		if (reload) await reload();
 	}
-	export async function del() {
+
+	async function del() {
 		console.log("Delete:", id);
 		book = null;
 		editable = false;
 		isNew = false;
+		if (reload) await reload();
 	}
 
 	function onChange() {
