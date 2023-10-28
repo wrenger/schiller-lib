@@ -57,7 +57,7 @@
 		console.log("Edit:", user);
 		if (reload) await reload();
 	}
-	
+
 	async function del() {
 		console.log("Delete:", user?.account);
 		user = null;

@@ -63,7 +63,13 @@
 			startLoading = false;
 		});
 	}
-	$: if (active && items) active = items.find((item) => active && (item.id && item.id == active.id) || (item.account && item.account == active.account)) || null;
+	$: if (active && items)
+		active =
+			items.find(
+				(item) =>
+					(active && item.id && item.id == active.id) ||
+					(item.account && item.account == active.account)
+			) || null;
 </script>
 
 <div class="card list">

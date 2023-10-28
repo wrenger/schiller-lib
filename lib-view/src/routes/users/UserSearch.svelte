@@ -1,20 +1,19 @@
 <script lang="ts" context="module">
 	export class UserParams {
-    input!: string;
-    permission!: null | boolean;
+		input!: string;
+		permission!: null | boolean;
 
-    constructor(input: string = "", permission: null | boolean = null) {
-        this.input = input;
-        this.permission = permission;
-    }
-}
+		constructor(input: string = "", permission: null | boolean = null) {
+			this.input = input;
+			this.permission = permission;
+		}
+	}
 </script>
 
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 
 	export let params: UserParams = new UserParams();
-	
 
 	let input: string;
 	let permission!: null | boolean;

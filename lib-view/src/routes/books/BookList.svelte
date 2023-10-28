@@ -14,7 +14,6 @@
 	export async function reload() {
 		if (list) list.reloadList();
 	}
-	
 </script>
 
 <List bind:this={list} bind:active bind:isNew {promise} req={`api/book?query=${params?.input}`}>
