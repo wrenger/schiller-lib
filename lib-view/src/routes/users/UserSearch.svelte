@@ -1,20 +1,34 @@
 <script lang="ts" context="module">
 	export class UserParams {
-		input!: string;
-		permission!: null | boolean;
-	}
+    input!: string;
+    permission!: null | boolean;
+
+    constructor(input: string = "", permission: null | boolean = null) {
+        this.input = input;
+        this.permission = permission;
+    }
+}
 </script>
 
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 
-	export let params: UserParams = {
-		input: "",
-		permission: null
-	};
+	export let params: UserParams = new UserParams();
+	
 
 	let input: string;
 	let permission!: null | boolean;
+
+	let timer: NodeJS.Timeout | null = null;
+
+	function handleInputDelayed() {
+		if (timer) {
+			clearTimeout(timer);
+		}
+		timer = setTimeout(() => {
+			params.input = input;
+		}, 500);
+	}
 </script>
 
 <div class="input-group mb-2">
@@ -24,9 +38,7 @@
 		placeholder={$_(".search.user.entry")}
 		id="search"
 		bind:value={input}
-		on:keypress={(e) => {
-			if (e.key == "Enter") params.input = input;
-		}}
+		on:input={handleInputDelayed}
 	/>
 	<button
 		id="advanced"

@@ -247,7 +247,12 @@ async fn user_search(
     State(project): State<Project>,
     Query(params): Query<SimpleSearch>,
 ) -> Result<Json<Vec<db::user::User>>> {
-    Ok(Json(db::user::search(&project.db(), &params.query)?))
+    Ok(Json(db::user::search(
+        &project.db(),
+        &params.query,
+        params.offset,
+        params.limit,
+    )?))
 }
 
 /// Performs a simple user search with the given `text`.

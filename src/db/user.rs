@@ -56,7 +56,7 @@ pub fn fetch(db: &Database, id: &str) -> Result<User> {
 }
 
 /// Performes a simple user search with the given `text`.
-pub fn search(db: &Database, text: &str) -> Result<Vec<User>> {
+pub fn search(db: &Database, text: &str, offset: usize, limit: usize) -> Result<Vec<User>> {
     let mut stmt = db.con.prepare(
         "select \
         account, \
@@ -70,9 +70,10 @@ pub fn search(db: &Database, text: &str) -> Result<Vec<User>> {
         or forename like '%'||?1||'%' \
         or surname like '%'||?1||'%' \
         or role like '%'||?1||'%' \
-        order by account",
+        order by account \
+        limit ?2 offset ?3",
     )?;
-    let rows = stmt.query([text.trim()])?;
+    let rows = stmt.query(rusqlite::params![text.trim(), limit, offset])?;
     DBIter::new(rows).collect()
 }
 
@@ -232,7 +233,7 @@ mod tests {
         };
         user::add(&db, &user).unwrap();
 
-        let result = user::search(&db, "").unwrap();
+        let result = user::search(&db, "", 0, 100).unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0], user);
 
@@ -245,12 +246,12 @@ mod tests {
             },
         )
         .unwrap();
-        let result = user::search(&db, "").unwrap();
+        let result = user::search(&db, "", 0, 100).unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].role, "Teacher");
 
         user::delete(&db, &user.account).unwrap();
-        let result = user::search(&db, "").unwrap();
+        let result = user::search(&db, "", 0, 100).unwrap();
         assert_eq!(result.len(), 0);
     }
 
@@ -276,7 +277,7 @@ mod tests {
         user::add(&db, &user1).unwrap();
         user::add(&db, &user2).unwrap();
 
-        let result = user::search(&db, "").unwrap();
+        let result = user::search(&db, "", 0, 100).unwrap();
         assert_eq!(result.len(), 2);
         assert_eq!(result[0], user2);
         assert_eq!(result[1], user1);
@@ -286,7 +287,7 @@ mod tests {
         user1.role = "Teacher".into();
         user2.role = "-".into();
 
-        let result = user::search(&db, "").unwrap();
+        let result = user::search(&db, "", 0, 100).unwrap();
         assert_eq!(result.len(), 2);
         assert_eq!(result[0], user2);
         assert_eq!(result[1], user1);

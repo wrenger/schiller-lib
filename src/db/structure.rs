@@ -180,7 +180,7 @@ mod tests {
 
         let books = book::search(&db, "", 0, 100).unwrap();
         assert!(books.is_empty());
-        let users = user::search(&db, "").unwrap();
+        let users = user::search(&db, "", 0, 100).unwrap();
         assert!(users.is_empty());
         let categories = category::list(&db).unwrap();
         assert!(categories.is_empty());

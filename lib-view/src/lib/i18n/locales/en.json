@@ -9,6 +9,7 @@
 	".action.delete": "Delete",
 	".action.edit": "Edit",
 	".action.finish": "Finish",
+	".action.load": "Loading",
 	".action.new": "New",
 	".action.next": "Next",
 	".action.no": "No",

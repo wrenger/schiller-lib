@@ -13,6 +13,7 @@
 
 	export let user: User | null;
 	export let isNew: boolean = false;
+	export var reload: (() => Promise<void>) | undefined;
 
 	let editable: boolean = false;
 
@@ -47,18 +48,22 @@
 	async function add() {
 		onChange();
 		console.log("Add:", user);
+		if (reload) await reload();
 	}
 
 	let editResponse: Promise<any>;
 	async function edit() {
 		onChange();
 		console.log("Edit:", user);
+		if (reload) await reload();
 	}
+	
 	async function del() {
 		console.log("Delete:", user?.account);
 		user = null;
 		editable = false;
 		isNew = false;
+		if (reload) await reload();
 	}
 
 	function onChange() {

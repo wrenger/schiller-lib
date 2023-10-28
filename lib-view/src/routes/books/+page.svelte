@@ -10,7 +10,7 @@
 	let active: Book | null;
 	let isNew: boolean;
 	let promise: Promise<any>;
-	let t: BookList;
+	let list: BookList;
 
 	$: if (params != undefined)
 		promise = request(`api/book?query=${params?.input}&limit=250`, "GET", null);
@@ -24,7 +24,7 @@
 <Container>
 	<span slot="list">
 		<BookSearch bind:params />
-		<BookList bind:this={t} bind:active bind:isNew {promise} {params} />
+		<BookList bind:this={list} bind:active bind:isNew {promise} {params} />
 	</span>
-	<BookView slot="view" bind:book={active} bind:isNew reload={t ? t.reloadList : undefined} />
+	<BookView slot="view" bind:book={active} bind:isNew reload={list ? list.reload : undefined} />
 </Container>

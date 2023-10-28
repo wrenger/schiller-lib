@@ -29,6 +29,7 @@
 	let status: null | "borrowable" | "not-borrowable" | "borrowed" | "reserved" = null;
 
 	input = $page.url.searchParams.get("i") || "";
+	params.input = input;
 
 	let timer: NodeJS.Timeout | null = null;
 
