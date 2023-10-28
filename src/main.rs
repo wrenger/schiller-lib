@@ -37,10 +37,10 @@ struct Args {
     /// Path to the database
     #[arg(short, long, default_value = "schillerbib.db")]
     db: PathBuf,
-    /// Path to the user file
+    /// Path to the users file
     #[arg(long, default_value = "users.txt")]
     user_file: PathBuf,
-    /// Path to the user file
+    /// CSV row delimiter for the users file
     #[arg(long, default_value_t = '|')]
     user_delimiter: char,
     /// Path to the TLS certificate

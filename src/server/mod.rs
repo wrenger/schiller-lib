@@ -47,7 +47,7 @@ pub async fn start(
             Router::new()
                 .fallback_service(ServeDir::new(dir))
                 // requires authorization
-                .layer(from_extractor_with_state::<Login, Auth>(auth)),
+                .layer(from_extractor_with_state::<Login, Auth>(auth.clone())),
         )
         .layer(
             ServiceBuilder::new()
@@ -68,8 +68,9 @@ pub async fn start(
 
     debug!("Listening on {host}");
 
-    axum_server::bind_rustls(host, config)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    let (_, r) = tokio::join!(
+        auth::background(auth),
+        axum_server::bind_rustls(host, config).serve(app.into_make_service())
+    );
+    r.unwrap();
 }

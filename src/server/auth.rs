@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fmt;
 use std::sync::{Arc, RwLock};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crate::error::{Error, Result};
 
@@ -25,7 +25,8 @@ use serde::{Deserialize, Serialize};
 use tracing::error;
 
 static COOKIE_NAME: &str = "SESSION";
-const SESSION_EXPIRE_SEC: usize = 3 * 24 * 60 * 60; // 3 days
+const SESSION_CHECK_SEC: u64 = 24 * 60 * 60; // daily
+const SESSION_EXPIRE_SEC: u64 = 7 * 24 * 60 * 60; // 7 days
 
 /// The routes requires for login and logout
 pub fn routes(auth: Auth) -> Router {
@@ -37,6 +38,24 @@ pub fn routes(auth: Auth) -> Router {
             .route("/logout", get(logout))
             .fallback(|| async { (StatusCode::NOT_FOUND, Json(Error::NothingFound)) })
             .with_state(auth),
+    }
+}
+
+pub async fn background(auth: Auth) {
+    if let Auth::OAuth(auth) = auth {
+        let mut timer = tokio::time::interval(Duration::from_secs(SESSION_CHECK_SEC));
+        loop {
+            timer.tick().await;
+
+            let auth = auth.clone();
+            tokio::task::spawn(async move {
+                let now = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs();
+                auth.sessions.write().unwrap().retain(|_, (_, e)| *e > now);
+            });
+        }
     }
 }
 
@@ -53,6 +72,63 @@ pub struct Login {
 pub enum Auth {
     None,
     OAuth(Arc<OAuthState>),
+}
+
+impl Auth {
+    /// domain: Public domain of the webserver used for redirection
+    pub fn new(domain: &str, config: Option<AuthConfig>) -> Self {
+        if let Some(AuthConfig {
+            client_id,
+            client_secret,
+            auth_url,
+            token_url,
+            user_url,
+        }) = config
+        {
+            let redirect = format!("https://{domain}/auth/authorized");
+            let client = BasicClient::new(
+                ClientId::new(client_id),
+                Some(ClientSecret::new(client_secret)),
+                AuthUrl::new(auth_url).unwrap(),
+                Some(TokenUrl::new(token_url).unwrap()),
+            )
+            .set_redirect_uri(RedirectUrl::new(redirect).unwrap());
+
+            Self::OAuth(Arc::new(OAuthState {
+                client,
+                sessions: Default::default(),
+                user_url,
+            }))
+        } else {
+            error!("SECURITY: Missing OAuth configuration!");
+            Auth::None
+        }
+    }
+}
+
+/// Configuration for OAuth
+/// - client_id: REPLACE_ME
+/// - client_secret: REPLACE_ME
+/// - auth_url: Login page from the OAuth server
+///     - https://discord.com/api/oauth2/authorize?response_type=code
+/// - token_url: Convert the login code to a token
+///     - https://discord.com/api/oauth2/token
+/// - user_url: Endpoint for user data (requires a token)
+///     - https://discordapp.com/api/users/@me
+#[derive(Debug, Deserialize)]
+pub struct AuthConfig {
+    pub client_id: String,
+    pub client_secret: String,
+    pub auth_url: String,
+    pub token_url: String,
+    pub user_url: String,
+}
+
+#[derive(Debug)]
+pub struct OAuthState {
+    client: BasicClient,
+    sessions: RwLock<HashMap<Session, (Login, u64)>>,
+    user_url: String,
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -89,63 +165,6 @@ impl fmt::Debug for Session {
         f.debug_tuple("Session")
             .field(&BASE64.encode(self.0))
             .finish()
-    }
-}
-
-#[derive(Debug)]
-pub struct OAuthState {
-    client: BasicClient,
-    sessions: RwLock<HashMap<Session, (Login, u64)>>,
-    user_url: String,
-}
-
-/// Configuration for OAuth
-/// - client_id: REPLACE_ME
-/// - client_secret: REPLACE_ME
-/// - auth_url: Login page from the OAuth server
-///     - https://discord.com/api/oauth2/authorize?response_type=code
-/// - token_url: Convert the login code to a token
-///     - https://discord.com/api/oauth2/token
-/// - user_url: Endpoint for user data (requires a token)
-///     - https://discordapp.com/api/users/@me
-#[derive(Debug, Deserialize)]
-pub struct AuthConfig {
-    pub client_id: String,
-    pub client_secret: String,
-    pub auth_url: String,
-    pub token_url: String,
-    pub user_url: String,
-}
-
-impl Auth {
-    /// domain: Public domain of the webserver used for redirection
-    pub fn new(domain: &str, config: Option<AuthConfig>) -> Self {
-        if let Some(AuthConfig {
-            client_id,
-            client_secret,
-            auth_url,
-            token_url,
-            user_url,
-        }) = config
-        {
-            let redirect = format!("https://{domain}/auth/authorized");
-            let client = BasicClient::new(
-                ClientId::new(client_id),
-                Some(ClientSecret::new(client_secret)),
-                AuthUrl::new(auth_url).unwrap(),
-                Some(TokenUrl::new(token_url).unwrap()),
-            )
-            .set_redirect_uri(RedirectUrl::new(redirect).unwrap());
-
-            Self::OAuth(Arc::new(OAuthState {
-                client,
-                sessions: Default::default(),
-                user_url,
-            }))
-        } else {
-            error!("SECURITY: Missing OAuth configuration!");
-            Auth::None
-        }
     }
 }
 
@@ -209,7 +228,7 @@ async fn login_authorized(
     headers.insert(SET_COOKIE, cookie.parse().unwrap());
 
     // Store session and get corresponding cookie
-    let expires = unix_secs() + SESSION_EXPIRE_SEC as u64;
+    let expires = unix_secs() + SESSION_EXPIRE_SEC;
 
     let previous = auth
         .sessions
