@@ -8,7 +8,7 @@
 		costs!: number;
 		year!: number;
 		category!: string; //temporary - todo: add categories
-		note?: string;
+		note!: string;
 		borrowable!: boolean;
 		borrower?: string;
 		deadline?: string;
@@ -24,12 +24,14 @@
 	import DateField from "../../components/basic/DateField.svelte";
 	import { DateTime } from "luxon";
 	import { settingsLocal } from "$lib/store";
+	import Request from "../../components/basic/Request.svelte";
 
 	export let book: Book | null;
 	export let isNew: boolean = false;
 	export var reload: (() => Promise<void>) | undefined;
 
 	let editable: boolean = false;
+	let r: Request;
 
 	let lendDialog: Dialog;
 	let reserveDialog: Dialog;
@@ -43,7 +45,7 @@
 	let costs: number = 0;
 	let year: number = 2023;
 	let category: string = "None"; //temporary - todo: add categories
-	let note: string | undefined = undefined;
+	let note: string = "";
 	let borrowable: boolean = true;
 	let borrower: string | undefined = undefined;
 	let deadline: DateTime | undefined = undefined;
@@ -84,7 +86,7 @@
 			costs = 0;
 			year = 2023;
 			category = "None"; //temporary - todo: add categories
-			note = undefined;
+			note = "";
 			borrowable = true;
 			borrower = undefined;
 			deadline = undefined;
@@ -94,27 +96,59 @@
 
 	let addResponse: Promise<any>;
 	async function add() {
-		onChange();
-		console.log("Add:", book);
-		if (reload) await reload();
+		await r.request(
+			"/api/book",
+			"POST",
+			JSON.stringify({
+				id,
+				isbn,
+				title,
+				publisher,
+				authors: authors.split(","),
+				costs,
+				year,
+				category,
+				note,
+				borrowable,
+				borrower: borrower ? borrower : "",
+				deadline: deadline ? deadline?.toISO() || "" : "",
+				reservation: reservation ? reservation : ""
+			})
+		);
+		await onChange();
 	}
 
 	let editResponse: Promise<any>;
 	async function edit() {
-		onChange();
-		console.log("Edit:", book);
-		if (reload) await reload();
+		console.log(deadline);
+		await r.request(
+			`/api/book/${book?.id}`,
+			"PATCH",
+			JSON.stringify({
+				id,
+				isbn,
+				title,
+				publisher,
+				authors: authors.split(","),
+				costs,
+				year,
+				category,
+				note,
+				borrowable,
+				borrower: borrower ? borrower : "",
+				deadline: deadline ? deadline?.toISO() || "" : "",
+				reservation: reservation ? reservation : ""
+			})
+		);
+		await onChange();
 	}
 
 	async function del() {
-		console.log("Delete:", id);
-		book = null;
-		editable = false;
-		isNew = false;
-		if (reload) await reload();
+		await r.request(`/api/book/${book?.id}`, "DELETE", null);
+		await onChange();
 	}
 
-	function onChange() {
+	async function onChange() {
 		book = {
 			id,
 			isbn,
@@ -130,10 +164,13 @@
 			deadline: deadline?.toISO() || undefined,
 			reservation
 		};
+		if (reload) await reload();
 		editable = false;
 		isNew = false;
 	}
 </script>
+
+<Request bind:this={r} />
 
 {#if book || isNew}
 	<div class="card-header d-flex justify-content-between">
@@ -183,7 +220,27 @@
 					class="btn btn-outline-secondary"
 					title={$_(".book.id.action")}
 					disabled={!editable}
-					on:click={() => console.log("Generate Id")}
+					on:click={async () => {
+						id = await r.request(
+							`/api/book-id`,
+							"POST",
+							JSON.stringify({
+								id,
+								isbn,
+								title,
+								publisher,
+								authors: authors.split(","),
+								costs,
+								year,
+								category,
+								note,
+								borrowable,
+								borrower: borrower ? borrower : "",
+								deadline: deadline ? deadline?.toISO() || "" : "",
+								reservation: reservation ? reservation : ""
+							})
+						);
+					}}
 				>
 					<i class="bi bi-arrow-repeat" />
 				</button>
@@ -203,9 +260,15 @@
 				<button
 					type="button"
 					class="btn btn-outline-secondary"
-					title={$_(".book.request")}
+					title={$_(".book.r.request")}
 					disabled={!editable}
-					on:click={() => console.log("Autofill")}
+					on:click={async () => {
+						let data = await r.request(`/api/book-fetch/${isbn}`, "GET", null);
+						title = data.title;
+						publisher = data.publisher;
+						authors = data.authors.join(",");
+						costs = data.costs;
+					}}
 				>
 					<i class="bi bi-upload" />
 				</button>
@@ -403,7 +466,7 @@
 				aria-expanded="false"
 				hidden={!!(borrower ?? false)}
 				on:click={() => {
-					lendDialog.open(undefined, undefined);
+					lendDialog.open();
 					gonnaBorrow = reservation;
 				}}
 			>
@@ -417,7 +480,7 @@
 				hidden={!(!(borrower ?? false) && borrowable)}
 				on:click={() => {
 					gonnaBorrow = "";
-					lendDialog.open(undefined, undefined);
+					lendDialog.open();
 				}}
 			>
 				{$_(".book.lend")}
@@ -444,7 +507,7 @@
 				hidden={!!reservation}
 				on:click={() => {
 					gonnaReserve = "";
-					reserveDialog.open(undefined, undefined);
+					reserveDialog.open();
 				}}
 			>
 				{$_(".book.reserve")}
@@ -456,7 +519,7 @@
 				hidden={!!reservation}
 				on:click={() => {
 					gonnaBorrow = borrower;
-					lendDialog.open(undefined, undefined);
+					lendDialog.open();
 				}}
 			>
 				{$_(".book.renew")}
@@ -469,7 +532,7 @@
 					borrower = undefined;
 					deadline = undefined;
 					editResponse = edit();
-					if (reservation) confirmDialog.open(undefined, undefined);
+					if (reservation) confirmDialog.open();
 				}}
 			>
 				<Spinner response={editResponse} />

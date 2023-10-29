@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import { request } from "$lib/util";
+	import Request from "./Request.svelte";
 
 	export let promise: Promise<any[]>;
 	export let req: string;
@@ -15,13 +15,14 @@
 	let startLoading = false;
 	let scrollPosition = 0;
 	let ul: HTMLUListElement;
+	let r: Request;
 
 	async function loadMore() {
 		if (!loadingMore && !listLoaded && !startLoading) {
 			loadingMore = true;
 			const offset = items?.length || 0;
 			try {
-				const newItems = await request(`${req}&offset=${offset}&limit=250`, "GET", null);
+				const newItems = await r.request(`${req}&offset=${offset}&limit=250`, "GET", null);
 				items = items?.concat(newItems);
 				promise = (items || []) as unknown as Promise<any[]>;
 				if (newItems?.length === 0) listLoaded = true;
@@ -36,7 +37,7 @@
 	export async function reloadList() {
 		scrollPosition = ul.scrollTop;
 
-		promise = request(`${req}&limit=${items?.length}`, "GET", null);
+		promise = r.request(`${req}&limit=${items?.length}`, "GET", null);
 
 		promise.then(() => {
 			requestAnimationFrame(() => ul.scrollTo(0, scrollPosition));
@@ -56,21 +57,26 @@
 		items = undefined;
 		listLoaded = false;
 	}
+	
 	$: if (promise instanceof Promise) {
 		startLoading = true;
 		promise.then((val) => {
-			items = val;
-			startLoading = false;
+			then(val);
 		});
 	}
-	$: if (active && items)
+
+	function then(val: any) {
+		items = val;
+		startLoading = false;
 		active =
-			items.find(
-				(item) =>
-					(active && item.id && item.id == active.id) ||
-					(item.account && item.account == active.account)
+			val.find(
+				(item: { id: any; account: any }) =>
+					(item.id && item.id == active?.id) || (item.account && item.account == active?.account)
 			) || null;
+	}
 </script>
+
+<Request bind:this={r} />
 
 <div class="card list">
 	<slot name="header" />

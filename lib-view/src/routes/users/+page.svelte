@@ -5,22 +5,25 @@
 	import UserSearch, { UserParams } from "./UserSearch.svelte";
 	import type { User } from "./UserView.svelte";
 	import UserView from "./UserView.svelte";
-	import { request } from "$lib/util";
+	import Request from "../../components/basic/Request.svelte";
 
 	let params: UserParams;
 	let active: User | null;
 	let isNew: boolean;
 	let promise: Promise<any>;
 	let list: UserList;
+	let r: Request;
 
 	$: if (params != undefined)
-		promise = request(`api/user?query=${params?.input}&limit=250`, "GET", null);
+		promise = r.request(`api/user?query=${params?.input}&limit=250`, "GET", null);
 </script>
 
 <svelte:head>
 	<title>{$_(".user")}</title>
 	<meta name="description" content={$_(".user")} />
 </svelte:head>
+
+<Request bind:this={r} />
 
 <Container>
 	<span slot="list">

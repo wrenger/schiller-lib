@@ -1,20 +1,17 @@
 <script lang="ts">
-	import { _, t } from "svelte-i18n";
+	import { _ } from "svelte-i18n";
 	export let id: string = "";
-	export let size: "default" | "medium" = "default";
+	export let size: "default" | "small" | "medium" = "default";
 	export let height: "default" | "fixed" = "default";
+	export let min: "default" | "fit" = "default";
 	export var onCancel: (() => void) | undefined = undefined;
 
 	let dialog: HTMLDialogElement;
-	let title: string | undefined;
-	let text: string | undefined;
 
-	export function open(title: string | undefined, text: string | undefined) {
+	export function open() {
 		if (!dialog.attributes.getNamedItem("open")) {
 			dialog.showModal();
 		}
-		title = title;
-		text = text;
 	}
 
 	export function close() {
@@ -24,21 +21,15 @@
 
 <dialog
 	{id}
-	class="custom-dialog {size == 'medium' ? 'medium' : ''} {height == 'fixed' ? 'fixed' : ''}"
+	class="custom-dialog {size == 'default' ? '' : size} {height == 'fixed' ? 'fixed' : ''}"
 	bind:this={dialog}
 	on:close
 >
 	<div class="card {height == 'fixed' ? 'fixed' : ''}">
 		<div class="card-header">
-			{#if title}
-				{title}
-			{/if}
 			<slot name="header" />
 		</div>
-		<div class="card-body">
-			{#if text}
-				{text}
-			{/if}
+		<div class="card-body {min == 'fit' ? 'fit' : ''}">
 			<slot name="body" />
 		</div>
 		<div class="card-footer d-flex justify-content-between">
@@ -67,6 +58,9 @@
 	.custom-dialog.fixed {
 		height: 100%;
 	}
+	.custom-dialog.small {
+		width: 20rem;
+	}
 	.custom-dialog.medium {
 		width: 50rem;
 	}
@@ -80,5 +74,8 @@
 		overflow-y: auto;
 		display: block;
 		min-height: 200px;
+	}
+	.card-body.fit {
+		min-height: 0px;
 	}
 </style>

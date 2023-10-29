@@ -61,7 +61,7 @@ pub fn routes(state: Project) -> Router {
             get(book_fetch).patch(book_update).delete(book_delete),
         )
         .route("/book-search", get(book_search_advanced))
-        .route("/book-id", get(book_generate_id))
+        .route("/book-id", post(book_generate_id))
         .route("/book-fetch/:isbn", get(book_fetch_data))
         // user
         .route("/user", get(user_search).post(user_add))
