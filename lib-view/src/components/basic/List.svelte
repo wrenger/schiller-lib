@@ -57,7 +57,7 @@
 		items = undefined;
 		listLoaded = false;
 	}
-	
+
 	$: if (promise instanceof Promise) {
 		startLoading = true;
 		promise.then((val) => {
