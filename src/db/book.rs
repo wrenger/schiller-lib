@@ -360,6 +360,14 @@ pub fn update(db: &Database, previous_id: &str, book: &Book) -> Result<()> {
         ],
     )?;
 
+    if previous_id != book.id {
+        // update authors on id change
+        transaction.execute(
+            "update author set medium=? where medium=?",
+            [book.id.trim(), previous_id],
+        )?;
+    }
+    
     // update authors
     transaction.execute("delete from author where medium=?", [book.id.trim()])?;
 
@@ -370,13 +378,6 @@ pub fn update(db: &Database, previous_id: &str, book: &Book) -> Result<()> {
         )?;
     }
 
-    if previous_id != book.id {
-        // update authors on id change
-        transaction.execute(
-            "update author set medium=? where medium=?",
-            [book.id.trim(), previous_id],
-        )?;
-    }
     transaction.commit()?;
     Ok(())
 }
