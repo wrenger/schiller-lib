@@ -69,7 +69,7 @@ impl Default for BookSearch {
     fn default() -> Self {
         Self {
             query: Default::default(),
-            category: Default::default(),
+            category: '%'.to_string(),
             state: Default::default(),
             offset: 0,
             limit: 100,
@@ -243,7 +243,7 @@ pub fn search(db: &Database, params: &BookSearch) -> Result<Vec<Book>> {
             OR authors LIKE '%' || ?1 || '%' \
             OR borrower LIKE ?1 \
             OR reservation LIKE ?1) \
-            and category LIKE '%' || ?2 || '%' \
+            and category LIKE ?2 \
             and borrowable LIKE ?3 \
             and (borrower != '') LIKE ?4 \
             and (reservation != '') LIKE ?5 \

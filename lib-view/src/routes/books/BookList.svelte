@@ -21,7 +21,7 @@
 	bind:active
 	bind:isNew
 	{promise}
-	req={`api/book?query=${params?.input}${params?.category ? `&category=${params?.category}` : ""}${
+	req={`api/book?query=${params?.input}${params?.category != null ? `&category=${params?.category}` : ""}${
 		params?.status ? `&state=${params?.status}` : ""
 	}`}
 >
