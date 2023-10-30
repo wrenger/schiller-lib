@@ -18,6 +18,6 @@
 <select class="form-select" id={label ? `select-${label}` : ""} bind:value {disabled}>
 	<option selected value={null}>{$_(".action.select")}</option>
 	{#each items as item}
-		<option value={item.id}>{item.id}</option>
+		<option value={item.id}>{item.id} - {item.name} - {item.section}</option>
 	{/each}
 </select>
