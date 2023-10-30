@@ -1,58 +1,89 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import { settingsLocal } from "$lib/store";
+	import { category, settingsGlobal } from "$lib/store";
+	import Request from "../basic/Request.svelte";
+	import { onMount } from "svelte";
+	import Spinner from "../basic/Spinner.svelte";
 
-	// todo: initial server request
-	let borrowing_time = 28;
-	let separator = "|";
-	let dnb = "ouehfuseifushiuefbiyagqyiiywfqgefybigg";
-	let host = "whatever.com";
-	let sender = "idk@whatever.com";
-	let password = "1234";
-	let title1 = $_(".mail.info.subject", { locale: "de" });
-	let text1 = $_(".mail.info.content", { locale: "de" });
-	let title2 = $_(".mail.overdue.subject", { locale: "de" });
-	let text2 = $_(".mail.overdue.content", { locale: "de" });
-	let title3 = $_(".mail.overdue2.subject", { locale: "de" });
-	let text3 = $_(".mail.overdue2.content", { locale: "de" });
+	let borrowing_duration = 0;
+	let dnb_token = "";
+	let mail_last_reminder = "";
+	let mail_from = "";
+	let mail_host = "";
+	let mail_password = "";
+	let mail_info_subject = "";
+	let mail_info_content = "";
+	let mail_overdue_subject = "";
+	let mail_overdue_content = "";
+	let mail_overdue2_subject = "";
+	let mail_overdue2_content = "";
 
-	save();
+	let r: Request;
+
+	onMount(async () => {
+		let data: any = await r.request("api/settings", "GET", null);
+
+		borrowing_duration = data.borrowing_duration;
+		dnb_token = data.dnb_token;
+		mail_last_reminder = data.mail_last_reminder;
+		mail_from = data.mail_from;
+		mail_host = data.mail_host;
+		mail_password = data.mail_password;
+		mail_info_subject = data.mail_info_subject;
+		mail_info_content = data.mail_info_content;
+		mail_overdue_subject = data.mail_overdue_subject;
+		mail_overdue_content = data.mail_overdue_content;
+		mail_overdue2_subject = data.mail_overdue2_subject;
+		mail_overdue2_content = data.mail_overdue2_content;
+
+		save();
+
+		// get categories
+		let data2: any = await r.request("api/category", "GET", null);
+
+		category.set(data2);
+	});
 
 	export function save() {
-		// todo: Server request
-		settingsLocal.set({
-			borrowing_time,
-			separator,
-			dnb,
-			host,
-			sender,
-			password,
-			title1,
-			text1,
-			title2,
-			text2,
-			title3,
-			text3
+		settingsGlobal.set({
+			borrowing_duration,
+			dnb_token,
+			mail_last_reminder,
+			mail_from,
+			mail_host,
+			mail_password,
+			mail_info_subject,
+			mail_info_content,
+			mail_overdue_subject,
+			mail_overdue_content,
+			mail_overdue2_subject,
+			mail_overdue2_content
 		});
 	}
 
 	export function cancel() {
-		const settings = $settingsLocal;
+		const settings = $settingsGlobal;
 
-		borrowing_time = settings.borrowing_time;
-		separator = settings.separator;
-		dnb = settings.dnb;
-		host = settings.host;
-		sender = settings.sender;
-		password = settings.password;
-		title1 = settings.title1;
-		text1 = settings.text1;
-		title2 = settings.title2;
-		text2 = settings.text2;
-		title3 = settings.title3;
-		text3 = settings.text3;
+		borrowing_duration = settings.borrowing_duration;
+		dnb_token = settings.dnb_token;
+		mail_host = settings.mail_host;
+		mail_from = settings.mail_from;
+		mail_password = settings.mail_password;
+		mail_info_subject = settings.mail_info_subject;
+		mail_info_content = settings.mail_info_content;
+		mail_overdue_subject = settings.mail_overdue_subject;
+		mail_overdue_content = settings.mail_overdue_content;
+		mail_overdue2_subject = settings.mail_overdue2_subject;
+		mail_overdue2_content = settings.mail_overdue2_content;
+	}
+
+	let userResponse: Promise<any>;
+	async function userUpdate() {
+		await r.request("api/user-update-roles", "PATCH", null);
 	}
 </script>
+
+<Request bind:this={r} />
 
 <h5 class="mb-2 mt-2">{$_(".pref.database.header")}</h5>
 <div class="form">
@@ -63,48 +94,36 @@
 <h5 class="mb-2 mt-2">{$_(".pref.borrowing.header")}</h5>
 <div class="form">
 	<label class="form-label" for="borrowing-time">{$_(".pref.borrowing.duration")}</label>
-	<input bind:value={borrowing_time} class="form-control" type="number" id="borrowing-time" />
+	<input bind:value={borrowing_duration} class="form-control" type="number" id="borrowing-time" />
 </div>
 <h5 class="mb-2 mt-2">{$_(".pref.user.header")}</h5>
-<div class="form">
-	<label class="form-label" for="separator">{$_(".pref.user.delimiter")}</label>
-	<input bind:value={separator} class="form-control" type="text" id="separator" />
-	<div class="pt-1">
-		<div class="row">
-			<div class="col">
-				<label class="form-label" for="file-upload">{$_(".pref.user.path")}</label>
-				<input type="file" class="form-control" id="file-upload" />
-			</div>
-			<div class="col">
-				<label class="form-label d-flex" for="up">{$_(".pref.user.update")}</label>
-				<button
-					type="button"
-					class="btn btn-secondary"
-					id="up"
-					on:click={() => console.log("Updated User Data")}>{$_(".pref.user.update")}</button
-				>
-			</div>
-		</div>
-	</div>
-</div>
+<button
+	type="button"
+	class="btn btn-secondary"
+	id="up"
+	on:click={() => (userResponse = userUpdate())}
+>
+	<Spinner response={userResponse} />
+	{$_(".pref.user.update")}</button
+>
 <h5 class="mb-2 mt-2">{$_(".pref.request.header")}</h5>
 <div class="form">
 	<label class="form-label" for="dnb">{$_(".pref.request.token")}</label>
-	<input bind:value={dnb} class="form-control" type="text" id="dnb" />
+	<input bind:value={dnb_token} class="form-control" type="text" id="dnb" />
 </div>
 <h5 class="mb-2 mt-2">{$_(".pref.mail.account.header")}</h5>
 <div class="form">
 	<div>
 		<label class="form-label" for="host">{$_(".pref.mail.account.host")}</label>
-		<input bind:value={host} class="form-control" type="text" id="host" />
+		<input bind:value={mail_host} class="form-control" type="text" id="host" />
 	</div>
 	<div class="pt-1">
 		<label class="form-label" for="sender">{$_(".pref.mail.account.from")}</label>
-		<input bind:value={sender} class="form-control" type="text" id="sender" />
+		<input bind:value={mail_from} class="form-control" type="text" id="sender" />
 	</div>
 	<div class="pt-1">
 		<label class="form-label" for="password">{$_(".pref.mail.account.password")}</label>
-		<input bind:value={password} class="form-control" type="password" id="password" />
+		<input bind:value={mail_password} class="form-control" type="password" id="password" />
 	</div>
 </div>
 <h5 class="mb-2 mt-2">{$_(".pref.mail.templates.header")}</h5>
@@ -159,18 +178,18 @@
 			tabindex="0"
 		>
 			<div class="mb-3">
-				<label for="Title1" class="form-label">{$_(".mail.label.title")}</label>
+				<label for="infoSub" class="form-label">{$_(".mail.label.title")}</label>
 				<input
 					type="text"
 					class="form-control"
-					id="Title1"
+					id="infoSub"
 					placeholder={$_(".mail.label.title")}
-					bind:value={title1}
+					bind:value={mail_info_subject}
 				/>
 			</div>
 			<div class="mb-3">
-				<label for="Text1" class="form-label">{$_(".mail.label.content")}</label>
-				<textarea class="form-control" id="Text1" rows="6" bind:value={text1} />
+				<label for="infoCon" class="form-label">{$_(".mail.label.content")}</label>
+				<textarea class="form-control" id="infoCon" rows="6" bind:value={mail_info_content} />
 			</div>
 		</div>
 		<div
@@ -181,18 +200,18 @@
 			tabindex="0"
 		>
 			<div class="mb-3">
-				<label for="Title2" class="form-label">{$_(".mail.label.title")}</label>
+				<label for="overSub" class="form-label">{$_(".mail.label.title")}</label>
 				<input
 					type="text"
 					class="form-control"
-					id="Title2"
+					id="overSub"
 					placeholder="{$_('.mail.label.title')}<"
-					bind:value={title2}
+					bind:value={mail_overdue_subject}
 				/>
 			</div>
 			<div class="mb-3">
-				<label for="Text2" class="form-label">{$_(".mail.label.content")}</label>
-				<textarea class="form-control" id="Text2" rows="6" bind:value={text2} />
+				<label for="overCon" class="form-label">{$_(".mail.label.content")}</label>
+				<textarea class="form-control" id="overCon" rows="6" bind:value={mail_overdue_content} />
 			</div>
 		</div>
 		<div
@@ -203,18 +222,18 @@
 			tabindex="0"
 		>
 			<div class="mb-3">
-				<label for="Title3" class="form-label">{$_(".mail.label.title")}</label>
+				<label for="overSub2" class="form-label">{$_(".mail.label.title")}</label>
 				<input
 					type="text"
 					class="form-control"
-					id="Title3"
+					id="overSub2"
 					placeholder="{$_('.mail.label.title')}<"
-					bind:value={title3}
+					bind:value={mail_overdue2_subject}
 				/>
 			</div>
 			<div class="mb-3">
-				<label for="Text3" class="form-label">{$_(".mail.label.content")}</label>
-				<textarea class="form-control" id="Text3" rows="6" bind:value={text3} />
+				<label for="overCon2" class="form-label">{$_(".mail.label.content")}</label>
+				<textarea class="form-control" id="overCon2" rows="6" bind:value={mail_overdue2_content} />
 			</div>
 		</div>
 	</div>

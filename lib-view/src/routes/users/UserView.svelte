@@ -4,12 +4,14 @@
 		forename!: string;
 		surname!: string;
 		role!: string;
-		permission!: boolean;
+		may_borrow!: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { _ } from "svelte-i18n";
+	import Request from "../../components/basic/Request.svelte";
+	import Spinner from "../../components/basic/Spinner.svelte";
 
 	export let user: User | null;
 	export let isNew: boolean = false;
@@ -21,7 +23,9 @@
 	let forename: string = "";
 	let surname: string = "";
 	let role: string = "";
-	let permission: boolean = true;
+	let may_borrow: boolean = true;
+
+	let r: Request;
 
 	$: if (editable || isNew || !editable || !isNew) setUser(user);
 	$: if (isNew) editable = true;
@@ -33,51 +37,70 @@
 				forename = user.forename;
 				surname = user.surname;
 				role = user.role;
-				permission = user.permission;
+				may_borrow = user.may_borrow;
 			}
 		} else {
 			account = "";
 			forename = "";
 			surname = "";
 			role = "";
-			permission = true;
+			may_borrow = true;
 		}
 	}
 
 	let addResponse: Promise<any>;
 	async function add() {
-		onChange();
-		console.log("Add:", user);
-		if (reload) await reload();
+		await r.request(
+			"/api/user",
+			"POST",
+			JSON.stringify({
+				account,
+				forename,
+				surname,
+				role,
+				may_borrow
+			})
+		);
+		await onChange();
 	}
 
 	let editResponse: Promise<any>;
 	async function edit() {
-		onChange();
-		console.log("Edit:", user);
-		if (reload) await reload();
+		await r.request(
+			`/api/user/${user?.account}`,
+			"PATCH",
+			JSON.stringify({
+				account,
+				forename,
+				surname,
+				role,
+				may_borrow
+			})
+		);
+		await onChange();
 	}
 
+	let deleteResponse: Promise<any>;
 	async function del() {
-		console.log("Delete:", user?.account);
-		user = null;
-		editable = false;
-		isNew = false;
-		if (reload) await reload();
+		await r.request(`/api/user/${user?.account}`, "DELETE", null);
+		await onChange();
 	}
 
-	function onChange() {
+	async function onChange() {
 		user = {
 			account,
 			forename,
 			surname,
 			role,
-			permission
+			may_borrow
 		};
 		editable = false;
 		isNew = false;
+		if (reload) await reload();
 	}
 </script>
+
+<Request bind:this={r} />
 
 {#if user || isNew}
 	<div class="card-header d-flex justify-content-between">
@@ -154,7 +177,13 @@
 					class="btn btn-outline-secondary"
 					title={$_(".user.request")}
 					disabled={!editable}
-					on:click={() => console.log("Autofill")}
+					on:click={async () => {
+						let data = await r.request(`/api/user-fetch/${account}`, "GET", null);
+						forename = data.forename;
+						surname = data.surname;
+						account = data.account;
+						role = data.role;
+					}}
 				>
 					<i class="bi bi-upload" />
 				</button>
@@ -179,11 +208,11 @@
 				class="form-check-input"
 				type="checkbox"
 				value=""
-				id="permission"
-				bind:checked={permission}
+				id="may_borrow"
+				bind:checked={may_borrow}
 				disabled={!editable}
 			/>
-			<label class="form-check-label" for="permission">{$_(".user.may-borrow")}</label>
+			<label class="form-check-label" for="may_borrow">{$_(".user.may-borrow")}</label>
 		</div>
 	</div>
 	<button
@@ -206,14 +235,7 @@
 		hidden={!(editable && isNew)}
 		on:click={() => (addResponse = add())}
 	>
-		{#await addResponse}
-			<span
-				id="user-add-button-spinner"
-				class="spinner-border spinner-border-sm"
-				role="status"
-				aria-hidden="true"
-			/>
-		{/await}
+		<Spinner response={addResponse} />
 		{$_(".action.add")}
 	</button>
 	<button
@@ -223,14 +245,7 @@
 		hidden={!(editable && !isNew)}
 		on:click={() => (editResponse = edit())}
 	>
-		{#await editResponse}
-			<span
-				id="user-confirm-button-spinner"
-				class="spinner-border spinner-border-sm"
-				role="status"
-				aria-hidden="true"
-			/>
-		{/await}
+		<Spinner response={editResponse} />
 		{$_(".action.apply")}
 	</button>
 	<button
@@ -239,9 +254,10 @@
 		type="button"
 		aria-expanded="false"
 		hidden={!(editable && !isNew)}
-		on:click={async () => {
-			await del();
-		}}>{$_(".action.delete")}</button
+		on:click={async () => (deleteResponse = del())}
+	>
+		<Spinner response={deleteResponse} />
+		{$_(".action.delete")}</button
 	>
 	<a
 		id="del"

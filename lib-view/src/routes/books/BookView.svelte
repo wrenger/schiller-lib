@@ -23,8 +23,9 @@
 	import UserSelect from "../users/UserSelect.svelte";
 	import DateField from "../../components/basic/DateField.svelte";
 	import { DateTime } from "luxon";
-	import { settingsLocal } from "$lib/store";
+	import { settingsGlobal } from "$lib/store";
 	import Request from "../../components/basic/Request.svelte";
+	import CategorySelect from "../../components/basic/CategorySelect.svelte";
 
 	export let book: Book | null;
 	export let isNew: boolean = false;
@@ -35,7 +36,7 @@
 
 	let lendDialog: Dialog;
 	let reserveDialog: Dialog;
-	let confirmDialog: Dialog;
+	let mailDialog: Dialog;
 
 	let id: string = "";
 	let isbn: string = "";
@@ -51,8 +52,8 @@
 	let deadline: DateTime | undefined = undefined;
 	let reservation: string | undefined = undefined;
 
-	let period = DateTime.local().plus({ days: $settingsLocal.borrowing_time });
-	settingsLocal.subscribe((s) => (period = DateTime.local().plus({ days: s.borrowing_time })));
+	let period = DateTime.local().plus({ days: $settingsGlobal.borrowing_duration });
+	settingsGlobal.subscribe((s) => (period = DateTime.local().plus({ days: s.borrowing_duration })));
 
 	let gonnaBorrow: string | undefined;
 	let gonnaReserve: string | undefined;
@@ -157,7 +158,7 @@
 			"PATCH",
 			null
 		);
-		period = DateTime.local().plus({ days: $settingsLocal.borrowing_time });
+		period = DateTime.local().plus({ days: $settingsGlobal.borrowing_duration });
 		reservation = "";
 		lendDialog.close();
 		await onChange();
@@ -169,7 +170,7 @@
 		borrower = undefined;
 		deadline = undefined;
 		await onChange();
-		if (reservation) confirmDialog.open();
+		if (reservation) mailDialog.open();
 	}
 
 	let reserveResponse: Promise<any>;
@@ -183,6 +184,25 @@
 	async function release() {
 		await r.request(`/api/lending/release?id=${id}`, "PATCH", null);
 		await onChange();
+	}
+
+	let mailResponse: Promise<any>;
+	async function mail() {
+		await r.request(
+			`/api/notify`,
+			"POST",
+			JSON.stringify({
+				account: reservation,
+				subject: $settingsGlobal.mail_info_subject
+					.replace(/\{booktitle\}/g, title)
+					.replace(/\{username\}/g, reservation ? reservation : ""),
+				body: $settingsGlobal.mail_info_content
+					.replace(/\{booktitle\}/g, title)
+					.replace(/\{username\}/g, reservation ? reservation : "")
+			})
+		);
+		await onChange();
+		mailDialog.close();
 	}
 
 	async function onChange() {
@@ -380,29 +400,19 @@
 		</div>
 		<div class="col ps-0 pe-0">
 			<!--  Todo: General Selector  -->
-			<label for="category" class="form-label">{$_(".category")}</label>
-			<input
-				id="category"
-				type="text"
-				class="form-control"
-				placeholder={$_(".category")}
-				aria-label={$_(".category")}
-				readonly={!editable}
-				bind:value={category}
-			/>
+			<CategorySelect bind:value={category} disabled={!editable} label={"Category"} />
 		</div>
 	</div>
 	<div class="row m-0">
 		<div class="col ps-0 pe-0">
 			<label for="note" class="form-label">{$_(".book.note")}</label>
-			<input
+			<textarea
 				id="note"
-				type="text"
 				class="form-control"
-				placeholder={$_(".book.note")}
 				aria-label={$_(".book.note")}
 				readonly={!editable}
 				bind:value={note}
+				rows="3"
 			/>
 		</div>
 	</div>
@@ -572,7 +582,7 @@
 
 <Dialog
 	bind:this={lendDialog}
-	onCancel={() => (period = DateTime.local().plus({ days: $settingsLocal.borrowing_time }))}
+	onCancel={() => (period = DateTime.local().plus({ days: $settingsGlobal.borrowing_duration }))}
 >
 	<span slot="header"><h5 class="mb-0">{$_(".book.lend")}</h5></span>
 	<span slot="body">
@@ -612,18 +622,11 @@
 	</span>
 </Dialog>
 
-<Dialog bind:this={confirmDialog}>
+<Dialog bind:this={mailDialog}>
 	<span slot="header"><h5 class="mb-0">{$_(".alert.confirm")}</h5></span>
 	<span slot="body">{$_(".book.revoke.reminder", { values: { "0": reservation } })}</span>
 	<span slot="footer">
-		<button
-			type="button"
-			class="btn btn-primary"
-			on:click={() => {
-				console.log("Send Mail!");
-				confirmDialog.close();
-			}}
-		>
+		<button type="button" class="btn btn-primary" on:click={() => (mailResponse = mail())}>
 			{$_(".action.ok")}
 		</button>
 	</span>

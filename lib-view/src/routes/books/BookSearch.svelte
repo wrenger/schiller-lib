@@ -21,6 +21,7 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { page } from "$app/stores";
+	import CategorySelect from "../../components/basic/CategorySelect.svelte";
 
 	export let params: BookParams = new BookParams();
 
@@ -70,17 +71,7 @@
 			</li>
 			<form class="px-3 py-1" action="javascript:handleAdvanced()">
 				<div class="mb-2">
-					<select
-						id="select"
-						class="form-select"
-						aria-label={$_(".search.advanced")}
-						bind:value={category}
-						on:change={() => (params.category = category)}
-					>
-						<option value={null} selected>{$_(".action.select")}</option>
-						<option value={$_(".category.t1.id")}>{$_(".category.t1.name")}</option>
-						<option value={$_(".category.t2.id")}>{$_(".category.t2.name")}</option>
-					</select>
+					<CategorySelect bind:value={category} />
 				</div>
 			</form>
 			<li>

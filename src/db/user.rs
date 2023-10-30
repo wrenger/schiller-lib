@@ -70,7 +70,10 @@ pub fn search(db: &Database, text: &str, offset: usize, limit: usize) -> Result<
         or forename like '%'||?1||'%' \
         or surname like '%'||?1||'%' \
         or role like '%'||?1||'%' \
-        order by account \
+        order by case \
+            when account like ?1 || '%' then 0 \
+            else 1 \
+        end asc, account asc \
         limit ?2 offset ?3",
     )?;
     let rows = stmt.query(rusqlite::params![text.trim(), limit, offset])?;
