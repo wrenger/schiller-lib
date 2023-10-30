@@ -58,6 +58,29 @@ impl FromRow for Book {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct BookSearch {
+    pub query: String,
+    pub category: String,
+    pub state: BookState,
+    pub offset: usize,
+    pub limit: usize,
+}
+
+impl Default for BookSearch {
+    fn default() -> Self {
+        Self {
+            query: Default::default(),
+            category: Default::default(),
+            state: Default::default(),
+            offset: 0,
+            limit: 100,
+        }
+    }
+}
+
+/// Book advanced search parameters
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default)]
+pub struct BookAdvancedSearch {
     id: String,
     isbn: String,
     title: String,
@@ -72,7 +95,7 @@ pub struct BookSearch {
     limit: usize,
 }
 
-impl Default for BookSearch {
+impl Default for BookAdvancedSearch {
     fn default() -> Self {
         Self {
             id: Default::default(),
@@ -142,7 +165,8 @@ pub enum BookState {
     None = 0,
     Borrowable,
     NotBorrowable,
-    BorrowedOrReserved,
+    Borrowed,
+    Reserved,
 }
 
 impl Default for BookState {
@@ -156,7 +180,8 @@ impl From<i64> for BookState {
         match value {
             1 => BookState::Borrowable,
             2 => BookState::NotBorrowable,
-            3 => BookState::BorrowedOrReserved,
+            3 => BookState::Borrowed,
+            4 => BookState::Reserved,
             _ => BookState::None,
         }
     }
@@ -190,9 +215,9 @@ pub fn fetch(db: &Database, id: &str) -> Result<Book> {
 }
 
 /// Performs a simple media search with the given `text`.
-pub fn search(db: &Database, text: &str, offset: usize, limit: usize) -> Result<Vec<Book>> {
+pub fn search(db: &Database, params: &BookSearch) -> Result<Vec<Book>> {
     let mut stmt = db.con.prepare(
-        "select \
+        "SELECT \
         id, \
         isbn, \
         title, \
@@ -202,34 +227,59 @@ pub fn search(db: &Database, text: &str, offset: usize, limit: usize) -> Result<
         note, \
         borrowable, \
         category, \
-        ifnull(group_concat(author.name),'') as authors, \
+        IFNULL(GROUP_CONCAT(author.name), '') as authors, \
         borrower, \
         deadline, \
         reservation \
         \
-        from medium \
-        left join author on author.medium=id \
-        group by id \
-        having title like '%'||?1||'%' \
-            or id like '%'||?1||'%' \
-            or isbn like '%'||?1||'%' \
-            or publisher like '%'||?1||'%' \
-            or note like '%'||?1||'%' \
-            or authors like '%'||?1||'%' \
-            or (borrower like ?1 or reservation like ?1) \
-        order by case \
-            when title like ?1 || '%' then 0 \
-            when title like '%'||?1||'%' then 1 \
-            else 2 \
-        end asc, lower(title) asc \
-        limit ?2 offset ?3",
+        FROM medium \
+        LEFT JOIN author ON author.medium = id \
+        GROUP BY id \
+        HAVING (title LIKE '%' || ?1 || '%' \
+            OR id LIKE '%' || ?1 || '%' \
+            OR isbn LIKE '%' || ?1 || '%' \
+            OR publisher LIKE '%' || ?1 || '%' \
+            OR note LIKE '%' || ?1 || '%' \
+            OR authors LIKE '%' || ?1 || '%' \
+            OR borrower LIKE ?1 \
+            OR reservation LIKE ?1) \
+            and category LIKE '%' || ?2 || '%' \
+            and borrowable LIKE ?3 \
+            and (borrower != '') LIKE ?4 \
+            and (reservation != '') LIKE ?5 \
+        ORDER BY CASE \
+            WHEN title LIKE ?1 || '%' THEN 0 \
+            WHEN title LIKE '%' || ?1 || '%' THEN 1 \
+            ELSE 2 \
+        END ASC, LOWER(title) ASC \
+        LIMIT ?6 OFFSET ?7",
     )?;
-    let rows = stmt.query(rusqlite::params![text.trim(), limit, offset])?;
+
+    let rows = stmt.query(rusqlite::params![
+        params.query.trim(),
+        params.category.trim(),
+        match params.state {
+            BookState::Borrowable => "1",
+            BookState::NotBorrowable => "0",
+            _ => "%",
+        },
+        match params.state {
+            BookState::Borrowed => "1",
+            _ => "%",
+        },
+        match params.state {
+            BookState::Reserved => "1",
+            _ => "%",
+        },
+        params.limit,
+        params.offset,
+    ])?;
+
     DBIter::new(rows).collect()
 }
 
 /// Performs an advanced media search with the given search parameters.
-pub fn search_advanced(db: &Database, params: &BookSearch) -> Result<Vec<Book>> {
+pub fn search_advanced(db: &Database, params: &BookAdvancedSearch) -> Result<Vec<Book>> {
     let mut stmt = db.con.prepare(
         "select \
         id, \
@@ -258,13 +308,13 @@ pub fn search_advanced(db: &Database, params: &BookSearch) -> Result<Vec<Book>> 
         and category like ? \
         and note like '%'||?||'%' \
         and (borrower like '%'||?||'%' or reservation like '%'||?||'%') \
-        and borrowable like ?\
+        and borrowable like ? \
         limit ? offset ?",
     )?;
     let user = params.user.trim();
     let user = if !user.is_empty() {
         user
-    } else if params.state == BookState::BorrowedOrReserved {
+    } else if params.state == BookState::Borrowed || params.state == BookState::Reserved {
         "_%"
     } else {
         "%"
@@ -478,7 +528,18 @@ mod tests {
         let db = Database::memory().unwrap();
         structure::create(&db, PKG_VERSION).unwrap();
 
-        assert_eq!(book::search(&db, "", 0, 100).unwrap().len(), 0);
+        assert_eq!(
+            book::search(
+                &db,
+                &BookSearch {
+                    query: "".to_owned(),
+                    ..BookSearch::default()
+                }
+            )
+            .unwrap()
+            .len(),
+            0
+        );
 
         // New book
         let book = Book {
@@ -497,7 +558,14 @@ mod tests {
 
         book::add(&db, &book).unwrap();
 
-        let db_book = &book::search(&db, "", 0, 100).unwrap()[0];
+        let db_book = &book::search(
+            &db,
+            &BookSearch {
+                query: "".to_owned(),
+                ..BookSearch::default()
+            },
+        )
+        .unwrap()[0];
         assert_eq!(&book, db_book);
 
         // Update book
@@ -511,12 +579,30 @@ mod tests {
         )
         .unwrap();
 
-        let db_book = &book::search(&db, "", 0, 100).unwrap()[0];
+        let db_book = &book::search(
+            &db,
+            &BookSearch {
+                query: "".to_owned(),
+                ..BookSearch::default()
+            },
+        )
+        .unwrap()[0];
         assert_eq!(db_book.title, "Another Title");
 
         // Remove book
         book::delete(&db, &book.id).unwrap();
 
-        assert_eq!(book::search(&db, "", 0, 100).unwrap().len(), 0);
+        assert_eq!(
+            book::search(
+                &db,
+                &BookSearch {
+                    query: "".to_owned(),
+                    ..BookSearch::default()
+                }
+            )
+            .unwrap()
+            .len(),
+            0
+        );
     }
 }

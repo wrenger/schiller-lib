@@ -2,18 +2,18 @@
 	export class BookParams {
 		input: string;
 		category: null | string;
-		status: null | "borrowable" | "not-borrowable" | "borrowed" | "reserved";
+		status!: "None" | "Borrowable" | "NotBorrowable" | "Borrowed" | "Reserved";
 
 		constructor(
 			params: {
 				input?: string;
 				category?: null | string;
-				status?: null | "borrowable" | "not-borrowable" | "borrowed" | "reserved";
+				status?: "None" | "Borrowable" | "NotBorrowable" | "Borrowed" | "Reserved";
 			} = {}
 		) {
 			this.input = params.input || "";
 			this.category = params.category || null;
-			this.status = params.status || null;
+			this.status = params.status || "None";
 		}
 	}
 </script>
@@ -27,7 +27,7 @@
 
 	let input: string = "";
 	let category: null | string = null; //temporary - todo: add categories
-	let status: null | "borrowable" | "not-borrowable" | "borrowed" | "reserved" = null;
+	let status: "None" | "Borrowable" | "NotBorrowable" | "Borrowed" | "Reserved" = "None";
 
 	input = $page.url.searchParams.get("i") || "";
 	params.input = input;
@@ -71,7 +71,7 @@
 			</li>
 			<form class="px-3 py-1" action="javascript:handleAdvanced()">
 				<div class="mb-2">
-					<CategorySelect bind:value={category} />
+					<CategorySelect bind:value={category} onChange={() => (params.category = category)} />
 				</div>
 			</form>
 			<li>
@@ -86,11 +86,11 @@
 						bind:value={status}
 						on:change={() => (params.status = status)}
 					>
-						<option value={null} selected>{$_(".action.select")}</option>
-						<option value={"borrowable"}>{$_(".book.borrowable")}</option>
-						<option value={"not-borrowable"}>{$_(".book.not-borrowable")}</option>
-						<option value={"borrowed"}>{$_(".book.borrowed")}</option>
-						<option value={"reserved"}>{$_(".book.reserved")}</option>
+						<option value={"None"} selected>{$_(".action.select")}</option>
+						<option value={"Borrowable"}>{$_(".book.borrowable")}</option>
+						<option value={"NotBorrowable"}>{$_(".book.not-borrowable")}</option>
+						<option value={"Borrowed"}>{$_(".book.borrowed")}</option>
+						<option value={"Reserved"}>{$_(".book.reserved")}</option>
 					</select>
 				</div>
 			</form>

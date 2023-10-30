@@ -14,7 +14,14 @@
 	let r: Request;
 
 	$: if (params != undefined)
-		promise = r.request(`api/book?query=${params?.input}&limit=250`, "GET", null);
+		promise = r.request(
+			`api/book?query=${params?.input}${params?.category ? `&category=${params?.category}` : ""}${
+				params?.status ? `&state=${params?.status}` : ""
+			}
+			&limit=250`,
+			"GET",
+			null
+		);
 </script>
 
 <svelte:head>

@@ -5,3 +5,6 @@
 @import "bootstrap/scss/maps";
 @import "bootstrap/scss/mixins";
 @import "bootstrap/scss/utilities";
+
+// fits more to the readonly style of inputs
+$form-select-disabled-bg: null;

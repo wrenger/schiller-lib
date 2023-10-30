@@ -16,7 +16,15 @@
 	}
 </script>
 
-<List bind:this={list} bind:active bind:isNew {promise} req={`api/book?query=${params?.input}`}>
+<List
+	bind:this={list}
+	bind:active
+	bind:isNew
+	{promise}
+	req={`api/book?query=${params?.input}${params?.category ? `&category=${params?.category}` : ""}${
+		params?.status ? `&state=${params?.status}` : ""
+	}`}
+>
 	<div slot="header" class="card-header d-flex justify-content-between">
 		{$_(".book.title")} / {$_(".book.authors")}
 		<span>{$_(".book.id")} / {$_(".book.state")}</span>

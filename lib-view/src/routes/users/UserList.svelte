@@ -16,7 +16,15 @@
 	}
 </script>
 
-<List bind:this={list} bind:active bind:isNew {promise} req={`api/user?query=${params?.input}`}>
+<List
+	bind:this={list}
+	bind:active
+	bind:isNew
+	{promise}
+	req={`api/user?query=${params?.input}${
+		params?.permission != null ? `&may_borrow=${params?.permission}` : ""
+	}`}
+>
 	<div slot="header" class="card-header d-flex justify-content-between">
 		{$_(".user.name")} / {$_(".user.account")}
 		<span>{$_(".user.role")} </span>

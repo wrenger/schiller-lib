@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use tracing::error;
 
 use super::auth::{Auth, Login};
-use crate::db;
+use crate::db::{self, UserSearch};
 use crate::error::{Error, Result};
 use crate::mail::{self, account_is_valid};
 use crate::provider;
@@ -174,20 +174,15 @@ impl Default for SimpleSearch {
 /// Preforms a simple media search with the given `query`.
 async fn book_search(
     State(project): State<Project>,
-    Query(params): Query<SimpleSearch>,
+    Query(params): Query<db::BookSearch>,
 ) -> Result<Json<Vec<db::book::Book>>> {
-    Ok(Json(db::book::search(
-        &project.db(),
-        &params.query,
-        params.offset,
-        params.limit,
-    )?))
+    Ok(Json(db::book::search(&project.db(), &params)?))
 }
 
 // /// Performs an advanced media search with the given search parameters.
 async fn book_search_advanced(
     State(project): State<Project>,
-    Query(params): Query<db::BookSearch>,
+    Query(params): Query<db::BookAdvancedSearch>,
 ) -> Result<Json<Vec<db::book::Book>>> {
     Ok(Json(db::book::search_advanced(&project.db(), &params)?))
 }
@@ -245,20 +240,15 @@ async fn user_fetch(
 /// Performs a simple user search with the given `text`.
 async fn user_search(
     State(project): State<Project>,
-    Query(params): Query<SimpleSearch>,
+    Query(params): Query<UserSearch>,
 ) -> Result<Json<Vec<db::user::User>>> {
-    Ok(Json(db::user::search(
-        &project.db(),
-        &params.query,
-        params.offset,
-        params.limit,
-    )?))
+    Ok(Json(db::user::search(&project.db(), &params)?))
 }
 
 /// Performs a simple user search with the given `text`.
 async fn user_search_advanced(
     State(project): State<Project>,
-    Query(params): Query<db::UserSearch>,
+    Query(params): Query<db::UserAdvancedSearch>,
 ) -> Result<Json<Vec<db::user::User>>> {
     Ok(Json(db::user::search_advanced(&project.db(), &params)?))
 }

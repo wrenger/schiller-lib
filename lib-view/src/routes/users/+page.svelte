@@ -15,7 +15,13 @@
 	let r: Request;
 
 	$: if (params != undefined)
-		promise = r.request(`api/user?query=${params?.input}&limit=250`, "GET", null);
+		promise = r.request(
+			`api/user?query=${params?.input}${
+				params?.permission != null ? `&may_borrow=${params?.permission}` : ""
+			}&limit=250`,
+			"GET",
+			null
+		);
 </script>
 
 <svelte:head>

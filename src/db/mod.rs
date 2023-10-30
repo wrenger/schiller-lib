@@ -5,7 +5,7 @@ use std::ptr::addr_of;
 use crate::error::{Error, Result};
 
 pub mod book;
-pub use book::{Book, BookSearch, BookState};
+pub use book::{Book, BookAdvancedSearch, BookSearch, BookState};
 pub mod category;
 pub use category::Category;
 pub mod lending;
@@ -15,7 +15,7 @@ pub mod stats;
 pub use stats::Stats;
 pub mod structure;
 pub mod user;
-pub use user::{User, UserSearch};
+pub use user::{User, UserAdvancedSearch, UserSearch};
 
 use super::PKG_VERSION;
 

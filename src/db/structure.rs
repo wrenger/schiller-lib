@@ -148,6 +148,7 @@ fn patch_0_8_3(db: &Database) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use crate::db::book::BookSearch;
     use crate::PKG_VERSION;
 
     use super::super::*;
@@ -178,9 +179,25 @@ mod tests {
         let db = Database::memory().unwrap();
         structure::create(&db, PKG_VERSION).unwrap();
 
-        let books = book::search(&db, "", 0, 100).unwrap();
+        let books = book::search(
+            &db,
+            &BookSearch {
+                query: "".to_owned(),
+                ..BookSearch::default()
+            },
+        )
+        .unwrap();
         assert!(books.is_empty());
-        let users = user::search(&db, "", 0, 100).unwrap();
+        let users = user::search(
+            &db,
+            &UserSearch {
+                query: "".to_owned(),
+                may_borrow: None,
+                offset: 0,
+                limit: 100,
+            },
+        )
+        .unwrap();
         assert!(users.is_empty());
         let categories = category::list(&db).unwrap();
         assert!(categories.is_empty());

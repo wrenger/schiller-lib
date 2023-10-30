@@ -10,7 +10,7 @@ This project is currently in a highly unstable stage due to a fundamental rework
 ### Frontend
 
 - [x] Multi Language Support
-- [ ] Server Requests -> Error Modal
+- [x] Server Requests -> Error Modal
 - [ ] Borrowed Page
 - [ ] Infos Page
 - [x] Borrow/Reserve/Extend Modal

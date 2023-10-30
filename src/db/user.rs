@@ -55,8 +55,29 @@ pub fn fetch(db: &Database, id: &str) -> Result<User> {
     )?)
 }
 
+/// Parameters for the normal search
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default)]
+pub struct UserSearch {
+    pub query: String,
+    pub may_borrow: Option<bool>,
+    pub offset: usize,
+    pub limit: usize,
+}
+
+impl Default for UserSearch {
+    fn default() -> Self {
+        Self {
+            query: Default::default(),
+            may_borrow: None,
+            offset: 0,
+            limit: 100,
+        }
+    }
+}
+
 /// Performes a simple user search with the given `text`.
-pub fn search(db: &Database, text: &str, offset: usize, limit: usize) -> Result<Vec<User>> {
+pub fn search(db: &Database, params: &UserSearch) -> Result<Vec<User>> {
     let mut stmt = db.con.prepare(
         "select \
         account, \
@@ -66,23 +87,33 @@ pub fn search(db: &Database, text: &str, offset: usize, limit: usize) -> Result<
         may_borrow \
         \
         from user \
-        where account like '%'||?1||'%' \
+        where (account like '%'||?1||'%' \
         or forename like '%'||?1||'%' \
         or surname like '%'||?1||'%' \
-        or role like '%'||?1||'%' \
+        or role like '%'||?1||'%') \
+        and may_borrow like '%'||?2||'%' \
         order by case \
             when account like ?1 || '%' then 0 \
             else 1 \
         end asc, account asc \
-        limit ?2 offset ?3",
+        limit ?3 offset ?4",
     )?;
-    let rows = stmt.query(rusqlite::params![text.trim(), limit, offset])?;
+    let rows = stmt.query(rusqlite::params![
+        &params.query.trim(),
+        match params.may_borrow {
+            Some(true) => "1",
+            Some(false) => "0",
+            None => "%",
+        },
+        params.limit,
+        params.offset
+    ])?;
     DBIter::new(rows).collect()
 }
 
 /// Parameters for the advanced search
 #[derive(Debug, Clone, Default, Deserialize)]
-pub struct UserSearch {
+pub struct UserAdvancedSearch {
     pub account: String,
     pub forename: String,
     pub surname: String,
@@ -91,7 +122,7 @@ pub struct UserSearch {
 }
 
 /// Performes a simple user search with the given `text`.
-pub fn search_advanced(db: &Database, params: &UserSearch) -> Result<Vec<User>> {
+pub fn search_advanced(db: &Database, params: &UserAdvancedSearch) -> Result<Vec<User>> {
     let mut stmt = db.con.prepare(
         "select \
         account, \
@@ -236,7 +267,16 @@ mod tests {
         };
         user::add(&db, &user).unwrap();
 
-        let result = user::search(&db, "", 0, 100).unwrap();
+        let result = user::search(
+            &db,
+            &UserSearch {
+                query: "".to_owned(),
+                may_borrow: None,
+                offset: 0,
+                limit: 100,
+            },
+        )
+        .unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0], user);
 
@@ -249,12 +289,30 @@ mod tests {
             },
         )
         .unwrap();
-        let result = user::search(&db, "", 0, 100).unwrap();
+        let result = user::search(
+            &db,
+            &UserSearch {
+                query: "".to_owned(),
+                may_borrow: None,
+                offset: 0,
+                limit: 100,
+            },
+        )
+        .unwrap();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].role, "Teacher");
 
         user::delete(&db, &user.account).unwrap();
-        let result = user::search(&db, "", 0, 100).unwrap();
+        let result = user::search(
+            &db,
+            &UserSearch {
+                query: "".to_owned(),
+                may_borrow: None,
+                offset: 0,
+                limit: 100,
+            },
+        )
+        .unwrap();
         assert_eq!(result.len(), 0);
     }
 
@@ -280,7 +338,16 @@ mod tests {
         user::add(&db, &user1).unwrap();
         user::add(&db, &user2).unwrap();
 
-        let result = user::search(&db, "", 0, 100).unwrap();
+        let result = user::search(
+            &db,
+            &UserSearch {
+                query: "".to_owned(),
+                may_borrow: None,
+                offset: 0,
+                limit: 100,
+            },
+        )
+        .unwrap();
         assert_eq!(result.len(), 2);
         assert_eq!(result[0], user2);
         assert_eq!(result[1], user1);
@@ -290,7 +357,16 @@ mod tests {
         user1.role = "Teacher".into();
         user2.role = "-".into();
 
-        let result = user::search(&db, "", 0, 100).unwrap();
+        let result = user::search(
+            &db,
+            &UserSearch {
+                query: "".to_owned(),
+                may_borrow: None,
+                offset: 0,
+                limit: 100,
+            },
+        )
+        .unwrap();
         assert_eq!(result.len(), 2);
         assert_eq!(result[0], user2);
         assert_eq!(result[1], user1);
