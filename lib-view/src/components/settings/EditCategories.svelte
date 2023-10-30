@@ -71,13 +71,13 @@
 <Request bind:this={r} />
 
 <Dialog bind:this={dialog}>
-	<h5 slot="header" class="m-0">Edit Categories</h5>
+	<h5 slot="header" class="m-0">{$_(".category.edit")}</h5>
 
 	<span slot="body">
 		<div class="row">
 			<div class="col">
 				<select class="form-select" id="categorySelect" bind:value={selected}>
-					<option selected={!selected} value={null}>Add a Category</option>
+					<option selected={!selected} value={null}>{$_(".action.add")}</option>
 					{#each items as category (category.id)}
 						<option selected={category == selected} value={category}
 							>{category.id} - {category.name} - {category.section}</option
@@ -87,18 +87,18 @@
 			</div>
 		</div>
 		<div class="mt-2">
-			<label for="id" class="form-label">ID</label>
-			<input type="text" placeholder="ID" class="form-control" id="id" bind:value={id} />
+			<label for="id" class="form-label">{$_(".category.id")}</label>
+			<input type="text" placeholder="{$_(".category.id")}" class="form-control" id="id" bind:value={id} />
 		</div>
 		<div class="mt-2">
-			<label for="name" class="form-label">Name</label>
-			<input type="text" placeholder="Name" class="form-control" id="name" bind:value={name} />
+			<label for="name" class="form-label">{$_(".category.name")}</label>
+			<input type="text" placeholder="{$_(".category.name")}" class="form-control" id="name" bind:value={name} />
 		</div>
 		<div class="mt-2">
-			<label for="section" class="form-label">Section</label>
+			<label for="section" class="form-label">{$_(".category.section")}</label>
 			<input
 				type="text"
-				placeholder="Section"
+				placeholder="{$_(".category.section")}"
 				class="form-control"
 				id="section"
 				bind:value={section}
