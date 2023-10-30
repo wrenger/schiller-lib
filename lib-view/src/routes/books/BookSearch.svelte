@@ -65,7 +65,7 @@
 		>
 			<i class="bi bi-sliders" />
 		</button>
-		<ul class="dropdown-menu dropdown-menu-end" id="select-dropdown">
+		<ul class="dropdown-menu dropdown-menu-end" id="select-dropdown" style="max-width: 250px;">
 			<li>
 				<h6 class="dropdown-header">{$_(".category")}</h6>
 			</li>

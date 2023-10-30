@@ -4,6 +4,7 @@
 	import Request from "../basic/Request.svelte";
 	import { onMount } from "svelte";
 	import Spinner from "../basic/Spinner.svelte";
+	import EditCategories from "./EditCategories.svelte";
 
 	let borrowing_duration = 0;
 	let dnb_token = "";
@@ -19,8 +20,10 @@
 	let mail_overdue2_content = "";
 
 	let r: Request;
+	let editDialog: EditCategories;
 
 	onMount(async () => {
+		// get settings
 		let data: any = await r.request("api/settings", "GET", null);
 
 		borrowing_duration = data.borrowing_duration;
@@ -44,7 +47,26 @@
 		category.set(data2);
 	});
 
-	export function save() {
+	export async function save() {
+		await r.request(
+			"api/settings",
+			"POST",
+			JSON.stringify({
+				borrowing_duration,
+				dnb_token,
+				mail_last_reminder,
+				mail_from,
+				mail_host,
+				mail_password,
+				mail_info_subject,
+				mail_info_content,
+				mail_overdue_subject,
+				mail_overdue_content,
+				mail_overdue2_subject,
+				mail_overdue2_content
+			})
+		);
+
 		settingsGlobal.set({
 			borrowing_duration,
 			dnb_token,
@@ -85,9 +107,11 @@
 
 <Request bind:this={r} />
 
+<EditCategories bind:this={editDialog} />
+
 <h5 class="mb-2 mt-2">{$_(".pref.database.header")}</h5>
 <div class="form">
-	<button type="button" class="btn btn-secondary" on:click={() => console.log("Change Categories")}
+	<button type="button" class="btn btn-secondary" on:click={() => editDialog.open()}
 		>{$_(".category.edit")}</button
 	>
 </div>

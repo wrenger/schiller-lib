@@ -3,6 +3,7 @@
 	import Dialog from "../basic/Dialog.svelte";
 	import GlobalSettings from "./GlobalSettings.svelte";
 	import LocalSettings from "./LocalSettings.svelte";
+	import Spinner from "../basic/Spinner.svelte";
 	let dialog: Dialog;
 	let local: LocalSettings;
 	let global: GlobalSettings;
@@ -12,9 +13,11 @@
 		if (global) global.cancel();
 	}
 
-	function onSave() {
+	let safeResponse: Promise<any>;
+	async function onSave() {
 		if (local) local.save();
-		if (global) global.save();
+		if (global) await global.save();
+		dialog.close();
 	}
 </script>
 
@@ -78,8 +81,14 @@
 				</div>
 			</div>
 		</span>
-		<button type="button" class="btn btn-primary" slot="footer" on:click={onSave}
-			>{$_(".action.apply")}</button
+		<button
+			type="button"
+			class="btn btn-primary"
+			slot="footer"
+			on:click={() => (safeResponse = onSave())}
+		>
+			<Spinner response={safeResponse} />
+			{$_(".action.apply")}</button
 		>
 	</Dialog>
 </div>
