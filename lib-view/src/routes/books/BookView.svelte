@@ -317,7 +317,7 @@
 				<button
 					type="button"
 					class="btn btn-outline-secondary"
-					title={$_(".book.r.request")}
+					title={$_(".book.request")}
 					disabled={!editable}
 					on:click={async () => {
 						let data = await r.request(`/api/book-fetch/${isbn}`, "GET", null);
