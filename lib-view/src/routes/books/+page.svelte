@@ -15,9 +15,9 @@
 
 	$: if (params != undefined)
 		promise = r.request(
-			`api/book?query=${params?.input}${params?.category != null ? `&category=${params?.category}` : ""}${
-				params?.status ? `&state=${params?.status}` : ""
-			}
+			`api/book?query=${params?.input}${
+				params?.category != null ? `&category=${params?.category}` : ""
+			}${params?.status ? `&state=${params?.status}` : ""}
 			&limit=250`,
 			"GET",
 			null

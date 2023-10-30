@@ -21,9 +21,9 @@
 	bind:active
 	bind:isNew
 	{promise}
-	req={`api/book?query=${params?.input}${params?.category != null ? `&category=${params?.category}` : ""}${
-		params?.status ? `&state=${params?.status}` : ""
-	}`}
+	req={`api/book?query=${params?.input}${
+		params?.category != null ? `&category=${params?.category}` : ""
+	}${params?.status ? `&state=${params?.status}` : ""}`}
 >
 	<div slot="header" class="card-header d-flex justify-content-between">
 		{$_(".book.title")} / {$_(".book.authors")}

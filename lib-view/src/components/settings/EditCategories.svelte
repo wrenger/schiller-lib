@@ -88,17 +88,29 @@
 		</div>
 		<div class="mt-2">
 			<label for="id" class="form-label">{$_(".category.id")}</label>
-			<input type="text" placeholder="{$_(".category.id")}" class="form-control" id="id" bind:value={id} />
+			<input
+				type="text"
+				placeholder={$_(".category.id")}
+				class="form-control"
+				id="id"
+				bind:value={id}
+			/>
 		</div>
 		<div class="mt-2">
 			<label for="name" class="form-label">{$_(".category.name")}</label>
-			<input type="text" placeholder="{$_(".category.name")}" class="form-control" id="name" bind:value={name} />
+			<input
+				type="text"
+				placeholder={$_(".category.name")}
+				class="form-control"
+				id="name"
+				bind:value={name}
+			/>
 		</div>
 		<div class="mt-2">
 			<label for="section" class="form-label">{$_(".category.section")}</label>
 			<input
 				type="text"
-				placeholder="{$_(".category.section")}"
+				placeholder={$_(".category.section")}
 				class="form-control"
 				id="section"
 				bind:value={section}
