@@ -120,7 +120,6 @@
 
 	let editResponse: Promise<any>;
 	async function edit() {
-		console.log(deadline);
 		await r.request(
 			`/api/book/${book?.id}`,
 			"PATCH",

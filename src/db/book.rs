@@ -209,14 +209,18 @@ pub fn search(db: &Database, text: &str, offset: usize, limit: usize) -> Result<
         \
         from medium \
         left join author on author.medium=id \
-        group by title \
+        group by id \
         having id like '%'||?1||'%' \
-        or isbn like '%'||?1||'%' \
-        or title like '%'||?1||'%' \
-        or publisher like '%'||?1||'%' \
-        or note like '%'||?1||'%' \
-        or authors like '%'||?1||'%' \
-        or (borrower like ?1 or reservation like ?1) \
+            or isbn like '%'||?1||'%' \
+            or title like '%'||?1||'%' \
+            or publisher like '%'||?1||'%' \
+            or note like '%'||?1||'%' \
+            or authors like '%'||?1||'%' \
+            or (borrower like ?1 or reservation like ?1) \
+        order by case \
+            when title like ?1 || '%' then 0 \
+            else 1 \
+        end asc, lower(title) asc \
         limit ?2 offset ?3",
     )?;
     let rows = stmt.query(rusqlite::params![text.trim(), limit, offset])?;
@@ -355,8 +359,18 @@ pub fn update(db: &Database, previous_id: &str, book: &Book) -> Result<()> {
         ],
     )?;
 
+    // update authors
+    transaction.execute("delete from author where medium=?", [book.id.trim()])?;
+
+    for author in &book.authors {
+        transaction.execute(
+            "insert or replace into author values (?, ?)",
+            [author.trim(), book.id.trim()],
+        )?;
+    }
+
     if previous_id != book.id {
-        // update authors
+        // update authors on id change
         transaction.execute(
             "update author set medium=? where medium=?",
             [book.id.trim(), previous_id],
