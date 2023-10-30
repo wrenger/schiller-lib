@@ -367,7 +367,7 @@ pub fn update(db: &Database, previous_id: &str, book: &Book) -> Result<()> {
             [book.id.trim(), previous_id],
         )?;
     }
-    
+
     // update authors
     transaction.execute("delete from author where medium=?", [book.id.trim()])?;
 
