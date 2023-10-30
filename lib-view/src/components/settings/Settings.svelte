@@ -17,7 +17,6 @@
 	async function onSave() {
 		if (local) local.save();
 		if (global) await global.save();
-		dialog.close();
 	}
 </script>
 
