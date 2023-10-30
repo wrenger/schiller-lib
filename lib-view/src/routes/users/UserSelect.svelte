@@ -59,7 +59,7 @@
 	/>
 </div>
 
-{#if !value.match(/^[a-z]+\.[a-z]+$/)}
+{#if !value.match(/^[a-z]+\.[a-z.]+$/)}
 	<div class="alert alert-danger" role="alert">
 		{$_(".error.input")}
 	</div>

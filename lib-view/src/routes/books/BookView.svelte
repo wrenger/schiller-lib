@@ -585,7 +585,7 @@
 			id="book-confirm-button"
 			type="button"
 			class="btn btn-primary"
-			disabled={!gonnaBorrow?.match(/^[a-z]+\.[a-z]+$/)}
+			disabled={!gonnaBorrow?.match(/^[a-z]+\.[a-z.]+$/)}
 			on:click={() => (lendResponse = lend())}
 		>
 			<Spinner response={lendResponse} />
@@ -603,7 +603,7 @@
 		<button
 			type="button"
 			class="btn btn-primary"
-			disabled={!gonnaReserve?.match(/^[a-z]+\.[a-z]+$/)}
+			disabled={!gonnaReserve?.match(/^[a-z]+\.[a-z.]+$/)}
 			on:click={() => (reserveResponse = reserve())}
 		>
 			<Spinner response={reserveResponse} />
