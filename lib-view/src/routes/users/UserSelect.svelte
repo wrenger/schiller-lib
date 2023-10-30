@@ -1,15 +1,17 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
+	import Request from "../../components/basic/Request.svelte";
 	import type { User } from "./UserView.svelte";
 	export let value = "";
 	export let label = "";
 	export let placeholder = "";
 	export let editable: boolean = true;
-	export var search: ((params: string, limit: number | null) => Promise<User[]>) | undefined =
-		undefined;
 
 	let items: Promise<User[]> | never[] = [];
+	let r: Request;
 </script>
+
+<Request bind:this={r} />
 
 <label for="select-{label}" class="form-label">{label}</label>
 <div class="input-group mb-3" id="select-{label}">
@@ -21,10 +23,7 @@
 		aria-expanded="false"
 		title={$_(".action.select")}
 		disabled={!editable}
-		on:click={() => {
-			if (search) items = search(value, 10);
-			console.log("Initiate Search with params:", value);
-		}}
+		on:click={() => (items = r.request(`api/user?query=${value}&limit=10`, "GET", null))}
 	>
 		<i class="bi bi-search" />
 	</button>

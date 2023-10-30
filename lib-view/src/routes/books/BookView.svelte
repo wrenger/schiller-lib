@@ -111,7 +111,7 @@
 				note,
 				borrowable,
 				borrower: borrower ? borrower : "",
-				deadline: deadline ? deadline?.toISO() || "" : "",
+				deadline: deadline ? deadline?.toISODate() || "" : "",
 				reservation: reservation ? reservation : ""
 			})
 		);
@@ -135,15 +135,53 @@
 				note,
 				borrowable,
 				borrower: borrower ? borrower : "",
-				deadline: deadline ? deadline?.toISO() || "" : "",
+				deadline: deadline ? deadline?.toISODate() || "" : "",
 				reservation: reservation ? reservation : ""
 			})
 		);
 		await onChange();
 	}
 
+	let deleteResponse: Promise<any>;
 	async function del() {
 		await r.request(`/api/book/${book?.id}`, "DELETE", null);
+		await onChange();
+	}
+
+	let lendResponse: Promise<any>;
+	async function lend() {
+		await r.request(
+			`/api/lending/lend?id=${id}&account=${gonnaBorrow ? gonnaBorrow : ""}&deadline=${
+				period ? period?.toISODate() || "" : ""
+			}`,
+			"PATCH",
+			null
+		);
+		period = DateTime.local().plus({ days: $settingsLocal.borrowing_time });
+		reservation = "";
+		lendDialog.close();
+		await onChange();
+	}
+
+	let retResponse: Promise<any>;
+	async function ret() {
+		await r.request(`/api/lending/return?id=${id}`, "PATCH", null);
+		borrower = undefined;
+		deadline = undefined;
+		await onChange();
+		if (reservation) confirmDialog.open();
+	}
+
+	let reserveResponse: Promise<any>;
+	async function reserve() {
+		await r.request(`/api/lending/reserve?id=${id}&account=${gonnaReserve}`, "PATCH", null);
+		await onChange();
+		reserveDialog.close();
+	}
+
+	let releaseResponse: Promise<any>;
+	async function release() {
+		await r.request(`/api/lending/release?id=${id}`, "PATCH", null);
 		await onChange();
 	}
 
@@ -160,7 +198,7 @@
 			note,
 			borrowable,
 			borrower,
-			deadline: deadline?.toISO() || undefined,
+			deadline: deadline?.toISODate() || undefined,
 			reservation
 		};
 		if (reload) await reload();
@@ -235,7 +273,7 @@
 								note,
 								borrowable,
 								borrower: borrower ? borrower : "",
-								deadline: deadline ? deadline?.toISO() || "" : "",
+								deadline: deadline ? deadline?.toISODate() || "" : "",
 								reservation: reservation ? reservation : ""
 							})
 						);
@@ -450,10 +488,9 @@
 		type="button"
 		aria-expanded="false"
 		hidden={!(editable && !isNew)}
-		on:click={async () => {
-			await del();
-		}}
+		on:click={() => (deleteResponse = del())}
 	>
+		<Spinner response={deleteResponse} />
 		{$_(".action.delete")}
 	</button>
 
@@ -490,12 +527,9 @@
 			type="button"
 			aria-expanded="false"
 			hidden={!reservation}
-			on:click={() => {
-				reservation = undefined;
-				editResponse = edit();
-			}}
+			on:click={() => (releaseResponse = release())}
 		>
-			<Spinner response={editResponse} />
+			<Spinner response={releaseResponse} />
 			{$_(".book.delete-reservation")}
 		</button>
 		{#if book && book.borrower}
@@ -527,14 +561,9 @@
 				class="btn btn-outline-danger mt-2"
 				type="button"
 				aria-expanded="false"
-				on:click={() => {
-					borrower = undefined;
-					deadline = undefined;
-					editResponse = edit();
-					if (reservation) confirmDialog.open();
-				}}
+				on:click={() => (retResponse = ret())}
 			>
-				<Spinner response={editResponse} />
+				<Spinner response={retResponse} />
 				{$_(".book.revoke")}
 			</button>
 		{/if}
@@ -557,16 +586,9 @@
 			type="button"
 			class="btn btn-primary"
 			disabled={!gonnaBorrow?.match(/^[a-z]+\.[a-z]+$/)}
-			on:click={() => {
-				deadline = period;
-				period = DateTime.local().plus({ days: $settingsLocal.borrowing_time });
-				borrower = gonnaBorrow;
-				reservation = "";
-				editResponse = edit();
-				lendDialog.close();
-			}}
+			on:click={() => (lendResponse = lend())}
 		>
-			<Spinner response={editResponse} />
+			<Spinner response={lendResponse} />
 			{$_(".action.apply")}
 		</button>
 	</span>
@@ -582,13 +604,9 @@
 			type="button"
 			class="btn btn-primary"
 			disabled={!gonnaReserve?.match(/^[a-z]+\.[a-z]+$/)}
-			on:click={() => {
-				reservation = gonnaReserve;
-				editResponse = edit();
-				reserveDialog.close();
-			}}
+			on:click={() => (reserveResponse = reserve())}
 		>
-			<Spinner response={editResponse} />
+			<Spinner response={reserveResponse} />
 			{$_(".action.apply")}
 		</button>
 	</span>
