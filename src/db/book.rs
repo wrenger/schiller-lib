@@ -210,16 +210,17 @@ pub fn search(db: &Database, text: &str, offset: usize, limit: usize) -> Result<
         from medium \
         left join author on author.medium=id \
         group by id \
-        having id like '%'||?1||'%' \
+        having title like '%'||?1||'%' \
+            or id like '%'||?1||'%' \
             or isbn like '%'||?1||'%' \
-            or title like '%'||?1||'%' \
             or publisher like '%'||?1||'%' \
             or note like '%'||?1||'%' \
             or authors like '%'||?1||'%' \
             or (borrower like ?1 or reservation like ?1) \
         order by case \
             when title like ?1 || '%' then 0 \
-            else 1 \
+            when title like '%'||?1||'%' then 1 \
+            else 2 \
         end asc, lower(title) asc \
         limit ?2 offset ?3",
     )?;
