@@ -42,7 +42,7 @@
 		{/await}
 	</div>
 	<div class="row pb-2 m-0">
-		<div class="col-sm-6 mb-2 mb-sm-0 p-0 pe-sm-2">
+		<div class="col-md-6 mb-2 mb-md-0 p-0 pe-md-2">
 			<div class="card mb-2 h-100">
 				{#await stats}
 					<div class="card-header">{$_(".action.load")}...</div>
@@ -65,7 +65,7 @@
 				{/await}
 			</div>
 		</div>
-		<div class="col-sm-6 p-0">
+		<div class="col-md-6 p-0">
 			<div class="card mb-2 h-100">
 				{#await about}
 					<div class="card-header">{$_(".action.load")}...</div>

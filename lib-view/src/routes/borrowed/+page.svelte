@@ -69,12 +69,12 @@
 					href="books?i={book.id}"
 				>
 					<div class="d-flex flex-column">
-						<p class="mb-1 text-truncate h"><strong>{book.title}</strong></p>
-						<p class="mb-0 text-truncate h">
+						<p class="mb-0 text-truncate h">{book.title}</p>
+						<small class="mb-0 text-muted text-truncate h">
 							{$_(".book.borrowed.by.short", {
 								values: { "0": `${user.forename} ${user.surname}` }
 							})}
-						</p>
+						</small>
 					</div>
 					<div class="d-flex flex-column">
 						<p class="mb-0 text-truncate h">
@@ -100,12 +100,12 @@
 					href={`books?i=${book.id}`}
 				>
 					<div class="d-flex flex-column">
-						<p class="mb-1 text-truncate h"><strong>{book.title}</strong></p>
-						<p class="mb-0 text-truncate h">
+						<p class="mb-0 text-truncate h">{book.title}</p>
+						<small class="mb-0 text-muted text-truncate h">
 							{$_(".book.overdone.by.short", {
 								values: { "0": `${user.forename} ${user.surname}` }
 							})}
-						</p>
+						</small>
 					</div>
 					<div class="d-flex flex-column">
 						<p class="mb-0 text-truncate h">
