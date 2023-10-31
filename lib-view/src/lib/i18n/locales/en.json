@@ -115,6 +115,7 @@
 	".error.update": "Critical error during the update of the database!\nPlease contanct a developer.",
 	".error.user.existing": "The user account '{0}' already exists.",
 	".error.user.none": "No user found.",
+	".error.version": "The current Project Version is unsupported.\nPlease contanct a developer.",
 	".info.category-freq": "Number of Books per Category:\n\n{0}",
 	".info.about": "About {0} - Version {1}",
 	".info.about.repo": "Repository:",

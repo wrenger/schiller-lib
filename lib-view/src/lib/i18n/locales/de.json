@@ -115,6 +115,7 @@
 	".error.update": "Kritischer Fehler beim Aktualisieren der Datenbank!\nBitte kontaktiere einen Entwickler.",
 	".error.user.existing": "Ein Benutzer mit dem Account '{0}' existiert bereits.",
 	".error.user.none": "Kein Benutzer gefunden.",
+	".error.version": "Die aktuelle Projektversion wird nicht unterstützt.\nBitte kontaktieren Sie einen Entwickler.",
 	".info.category-freq": "Anzahl der Bücher in den Kategorien:\n\n{0}",
 	".info.about": "Über {0} - Version {1}",
 	".info.about.repo": "Repository:",

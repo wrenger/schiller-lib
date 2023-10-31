@@ -1,4 +1,4 @@
-use axum::{response::IntoResponse, Json};
+use axum::response::IntoResponse;
 use hyper::StatusCode;
 use serde::Serialize;
 use tracing::error;
@@ -108,8 +108,33 @@ impl<ER: std::error::Error + 'static, T: oauth2::ErrorResponse + 'static>
 impl IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
         let status = StatusCode::INTERNAL_SERVER_ERROR;
-        let body = Json(self);
+        let body = self.to_local();
         (status, body).into_response()
+    }
+}
+
+impl Error {
+    fn to_local(&self) -> String {
+        match self {
+            Error::Arguments => ".error.input",
+            Error::Logic => ".error.update",
+            Error::FileNotFound => ".error.db",
+            Error::FileOpen => ".error.file-open",
+            Error::SQL => ".error.sql",
+            Error::Network => ".error.network",
+            Error::InvalidFormat => ".error.format",
+            Error::NothingFound => ".error.none",
+            Error::InvalidBook => ".error.input",
+            Error::InvalidUser => ".error.input",
+            Error::LendingUserMayNotBorrow => ".error.lending.user",
+            Error::LendingBookNotBorrowable => ".error.lending.book",
+            Error::LendingBookAlreadyBorrowed => ".error.lending.already-borrowed",
+            Error::LendingBookAlreadyBorrowedByUser => ".error.lending.already-borrowed-by",
+            Error::LendingBookNotBorrowed => ".error.lending.not-borrowed",
+            Error::LendingBookAlreadyReserved => ".error.lending.already-reserved",
+            Error::UnsupportedProjectVersion => ".error.version",
+        }
+        .to_string()
     }
 }
 
