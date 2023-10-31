@@ -83,3 +83,5 @@
 	/>
 	<label class="form-check-label" for="de-toggle">{$_(".lang.de")}</label>
 </div>
+<h5 class="mb-2 mt-2">{$_(".info.session")}</h5>
+<a class="btn btn-danger" href="auth/logout">{$_(".action.logout")}</a>

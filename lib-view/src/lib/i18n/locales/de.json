@@ -10,6 +10,7 @@
 	".action.edit": "Bearbeiten",
 	".action.finish": "Fertigstellen",
 	".action.load": "Lädt",
+	".action.logout": "Abmelden",
 	".action.new": "Neu",
 	".action.next": "Weiter",
 	".action.no": "Nein",
