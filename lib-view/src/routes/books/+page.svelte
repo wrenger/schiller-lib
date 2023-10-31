@@ -25,7 +25,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_(".book")}</title>
+	<title>{$_(".search.book")}</title>
 	<meta name="description" content={$_(".book")} />
 </svelte:head>
 
