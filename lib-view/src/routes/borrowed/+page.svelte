@@ -36,7 +36,7 @@
 					href="#all-borrowed"
 					role="tab"
 					aria-controls="all-borrowed"
-					aria-selected="true">{$_(".book.all.borrowed")}</a
+					aria-selected="true">{$_(".book.borrowed")}</a
 				>
 			</li>
 			<li class="nav-item">
@@ -48,7 +48,7 @@
 					href="#over-tab"
 					role="tab"
 					aria-controls="all-overdues"
-					aria-selected="true">{$_(".book.all.overdues")}</a
+					aria-selected="true">{$_(".book.overdues")}</a
 				>
 			</li>
 		</ul>
