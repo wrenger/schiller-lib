@@ -43,6 +43,7 @@
 			null
 		);
 
+		items = undefined;
 		listLoaded = false;
 
 		promise.then(() => {
