@@ -122,6 +122,7 @@
 	".error.user.existing": "Ein Benutzer mit dem Account '{0}' existiert bereits.",
 	".error.user.none": "Kein Benutzer gefunden.",
 	".error.version": "Die aktuelle Projektversion wird nicht unterstützt.\nBitte kontaktieren Sie einen Entwickler.",
+	".error.unknown": "Ein unbekannter Fehler ist aufgetreten.\nVersuchen sie die Seite neuzuladen oder sich nochmal ab- und wieder anzumelden!",
 	".info.category-freq": "Anzahl der Bücher in den Kategorien:\n\n{0}",
 	".info.about": "Über {0} - Version {1}",
 	".info.about.repo": "Repository:",

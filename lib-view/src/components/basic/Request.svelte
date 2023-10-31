@@ -33,7 +33,7 @@
 			}
 		} catch (error) {
 			if (dialog) dialog.open();
-			al = error as string;
+			al = error;
 			throw error;
 		}
 	}
@@ -41,5 +41,16 @@
 
 <Dialog bind:this={dialog} min={"fit"} size={"small"}>
 	<h5 slot="header" class="m-0">{$_(".alert.error")}</h5>
-	<p slot="body" class="m-0 fs-6">{$_(al)}</p>
+	<span slot="body">
+		{#if al && typeof al === "string"}
+			<p class="m-0 fs-6">{$_(al)}</p>
+		{:else}
+			<p class="m-0 fs-6">{$_(".error.unknown")}</p>
+		{/if}
+	</span>
+	<span slot="footer">
+		{#if !al || typeof al !== "string"}
+			<a class="btn btn-danger" href="auth/logout">{$_(".action.logout")}</a>
+		{/if}
+	</span>
 </Dialog>
