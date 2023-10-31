@@ -37,7 +37,13 @@
 	export async function reloadList() {
 		scrollPosition = ul.scrollTop;
 
-		promise = r.request(`${req}&limit=${items?.length}`, "GET", null);
+		promise = r.request(
+			`${req}&limit=${Math.ceil((items?.length ? items?.length : 0) / 250) * 250}`,
+			"GET",
+			null
+		);
+
+		listLoaded = false;
 
 		promise.then(() => {
 			requestAnimationFrame(() => ul.scrollTo(0, scrollPosition));
