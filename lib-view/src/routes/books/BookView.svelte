@@ -595,7 +595,6 @@
 			id="book-confirm-button"
 			type="button"
 			class="btn btn-primary"
-			disabled={!gonnaBorrow?.match(/^[a-z]+\.[a-z.]+$/)}
 			on:click={() => (lendResponse = lend())}
 		>
 			<Spinner response={lendResponse} />
@@ -610,12 +609,7 @@
 		<UserSelect label={$_(".user")} placeholder={$_(".user.account")} bind:value={gonnaReserve} />
 	</span>
 	<span slot="footer">
-		<button
-			type="button"
-			class="btn btn-primary"
-			disabled={!gonnaReserve?.match(/^[a-z]+\.[a-z.]+$/)}
-			on:click={() => (reserveResponse = reserve())}
-		>
+		<button type="button" class="btn btn-primary" on:click={() => (reserveResponse = reserve())}>
 			<Spinner response={reserveResponse} />
 			{$_(".action.apply")}
 		</button>

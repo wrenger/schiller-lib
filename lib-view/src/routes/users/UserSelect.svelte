@@ -59,12 +59,6 @@
 	/>
 </div>
 
-{#if !value.match(/^[a-z]+\.[a-z.]+$/)}
-	<div class="alert alert-danger" role="alert">
-		{$_(".error.input")}
-	</div>
-{/if}
-
 <style>
 	.hide-arrow::after {
 		display: none !important;

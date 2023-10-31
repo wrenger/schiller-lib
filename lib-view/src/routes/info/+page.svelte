@@ -41,7 +41,7 @@
 			{/if}
 		{/await}
 	</div>
-	<div class="row pb-3 m-0">
+	<div class="row pb-2 m-0">
 		<div class="col-sm-6 mb-2 mb-sm-0 p-0 pe-sm-2">
 			<div class="card mb-2 h-100">
 				{#await stats}
