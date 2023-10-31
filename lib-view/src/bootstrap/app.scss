@@ -36,11 +36,11 @@ $bootstrap-icons-font-src: url("bootstrap-icons/font/fonts/bootstrap-icons.woff2
 }
 
 .text-truncate.h {
-	max-width: 60dvw;
+	max-width: 45dvw;
 }
 
 @media only screen and (max-width: 768px) {
 	.text-truncate.q {
-		max-width: 40dvw;
+		max-width: 45dvw;
 	}
 }
