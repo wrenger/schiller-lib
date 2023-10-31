@@ -11,8 +11,8 @@ This project is currently in a highly unstable stage due to a fundamental rework
 
 - [x] Multi Language Support
 - [x] Server Requests -> Error Modal
-- [ ] Borrowed Page
-- [ ] Infos Page
+- [x] Borrowed Page
+- [x] Infos Page
 - [ ] Show total amount of Infos
 - [x] Borrow/Reserve/Extend Modal
 - [x] Books/User List with Search and Adding Button -> Set Up a Grid and Generalize

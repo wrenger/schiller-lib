@@ -22,9 +22,9 @@
 	let r: Request;
 	let editDialog: EditCategories;
 
-	onMount(async () => {
+	async function update() {
 		// get settings
-		let data: any = await r.request("api/settings", "GET", null);
+		let data = await r.request("api/settings", "GET", null);
 
 		borrowing_duration = data.borrowing_duration;
 		dnb_token = data.dnb_token;
@@ -42,9 +42,25 @@
 		save();
 
 		// get categories
-		let data2: any = await r.request("api/category", "GET", null);
+		let data2 = await r.request("api/category", "GET", null);
 
 		category.set(data2);
+	}
+
+	async function updatePeriodically() {
+		await update();
+	}
+
+	onMount(() => {
+		// Run the `update` function immediately on mount
+		updatePeriodically();
+
+		const interval = setInterval(updatePeriodically, 300000);
+
+		// Cleanup the interval when the component is unmounted
+		return () => {
+			clearInterval(interval);
+		};
 	});
 
 	export async function save() {

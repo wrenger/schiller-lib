@@ -84,6 +84,7 @@ pub fn routes(state: Project) -> Router {
         .route("/lending/return", patch(lending_return))
         .route("/lending/reserve", patch(lending_reserve))
         .route("/lending/release", patch(lending_release))
+        .route("/borrowed", get(lending_borrowed))
         .route("/overdues", get(lending_overdues))
         // mail
         .route("/notify", post(mail_notify))
@@ -392,6 +393,13 @@ async fn lending_release(
     Query(params): Query<ReturnParams>,
 ) -> Result<Json<db::Book>> {
     Ok(Json(db::lending::release(&project.db(), &params.id)?))
+}
+
+/// Returns the list of currently all borrowed books.
+async fn lending_borrowed(
+    State(project): State<Project>,
+) -> Result<Json<Vec<(db::book::Book, db::user::User)>>> {
+    Ok(Json(db::lending::borrowed(&project.db())?))
 }
 
 /// Returns the list of expired borrowing periods.

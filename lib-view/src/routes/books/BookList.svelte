@@ -40,12 +40,12 @@
 		}}
 	>
 		<div class="d-flex flex-column">
-			<p class="mb-0 text-truncate">{item.title}</p>
-			<small class="text-muted text-truncate">{item.authors.join(", ")}</small>
+			<p class="mb-0 text-truncate q">{item.title}</p>
+			<small class="text-muted text-truncate q">{item.authors.join(", ")}</small>
 		</div>
 		<div class="d-flex flex-column align-items-end">
-			<small class="text-muted text-truncate">{item.id}</small>
-			<p class="mb-0 text-truncate">
+			<small class="text-muted text-truncate q">{item.id}</small>
+			<p class="mb-0 text-truncate q">
 				{!item.borrowable
 					? `${$_(".book.not-borrowable")}`
 					: item.borrower

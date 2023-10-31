@@ -31,12 +31,16 @@ $bootstrap-icons-font-src: url("bootstrap-icons/font/fonts/bootstrap-icons.woff2
 @import "bootstrap-icons/font/bootstrap-icons.scss";
 
 // own styles
-.text-truncate {
+.text-truncate.q {
 	max-width: 25dvw;
 }
 
+.text-truncate.h {
+	max-width: 60dvw;
+}
+
 @media only screen and (max-width: 768px) {
-	.text-truncate {
+	.text-truncate.q {
 		max-width: 40dvw;
 	}
 }

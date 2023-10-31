@@ -40,11 +40,11 @@
 		}}
 	>
 		<div class="d-flex flex-column">
-			<p class="mb-0 text-truncate">{item.forename} {item.surname}</p>
-			<small class="text-muted text-truncate">{item.account}</small>
+			<p class="mb-0 text-truncate q">{item.forename} {item.surname}</p>
+			<small class="text-muted text-truncate q">{item.account}</small>
 		</div>
 		<div class="d-flex flex-column align-items-end">
-			<p class="mb-0 text-truncate">{item.role}</p>
+			<p class="mb-0 text-truncate q">{item.role}</p>
 		</div>
 	</button>
 </List>
