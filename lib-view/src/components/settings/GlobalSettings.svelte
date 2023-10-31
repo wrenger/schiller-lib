@@ -26,25 +26,27 @@
 		// get settings
 		let data = await r.request("api/settings", "GET", null);
 
-		borrowing_duration = data.borrowing_duration;
-		dnb_token = data.dnb_token;
-		mail_last_reminder = data.mail_last_reminder;
-		mail_from = data.mail_from;
-		mail_host = data.mail_host;
-		mail_password = data.mail_password;
-		mail_info_subject = data.mail_info_subject;
-		mail_info_content = data.mail_info_content;
-		mail_overdue_subject = data.mail_overdue_subject;
-		mail_overdue_content = data.mail_overdue_content;
-		mail_overdue2_subject = data.mail_overdue2_subject;
-		mail_overdue2_content = data.mail_overdue2_content;
+		if (data) {
+			borrowing_duration = data.borrowing_duration ? data.borrowing_duration : 0;
+			dnb_token = data.dnb_token ? data.dnb_token : "";
+			mail_last_reminder = data.mail_last_reminder ? data.mail_last_reminder : "";
+			mail_from = data.mail_from ? data.mail_from : "";
+			mail_host = data.mail_host ? data.mail_host : "";
+			mail_password = data.mail_password ? data.mail_password : "";
+			mail_info_subject = data.mail_info_subject ? data.mail_info_subject : "";
+			mail_info_content = data.mail_info_content ? data.mail_info_content : "";
+			mail_overdue_subject = data.mail_overdue_subject ? data.mail_overdue_subject : "";
+			mail_overdue_content = data.mail_overdue_content ? data.mail_overdue_content : "";
+			mail_overdue2_subject = data.mail_overdue2_subject ? data.mail_overdue2_subject : "";
+			mail_overdue2_content = data.mail_overdue2_content ? data.mail_overdue2_content : "";
+		}
 
 		save();
 
 		// get categories
 		let data2 = await r.request("api/category", "GET", null);
 
-		category.set(data2);
+		if (data2) category.set(data2);
 	}
 
 	async function updatePeriodically() {
