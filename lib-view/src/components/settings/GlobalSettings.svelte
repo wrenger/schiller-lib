@@ -79,10 +79,40 @@
 	});
 
 	export async function save() {
-		await r.request(
-			"api/settings",
-			"POST",
-			JSON.stringify({
+		if (
+			borrowing_duration !== $settingsGlobal.borrowing_duration ||
+			dnb_token !== $settingsGlobal.dnb_token ||
+			mail_last_reminder !== $settingsGlobal.mail_last_reminder ||
+			mail_from !== $settingsGlobal.mail_from ||
+			mail_host !== $settingsGlobal.mail_host ||
+			mail_password !== $settingsGlobal.mail_password ||
+			mail_info_subject !== $settingsGlobal.mail_info_subject ||
+			mail_info_content !== $settingsGlobal.mail_info_content ||
+			mail_overdue_subject !== $settingsGlobal.mail_overdue_subject ||
+			mail_overdue_content !== $settingsGlobal.mail_overdue_content ||
+			mail_overdue2_subject !== $settingsGlobal.mail_overdue2_subject ||
+			mail_overdue2_content !== $settingsGlobal.mail_overdue2_content
+		) {
+			await r.request(
+				"api/settings",
+				"POST",
+				JSON.stringify({
+					borrowing_duration,
+					dnb_token,
+					mail_last_reminder,
+					mail_from,
+					mail_host,
+					mail_password,
+					mail_info_subject,
+					mail_info_content,
+					mail_overdue_subject,
+					mail_overdue_content,
+					mail_overdue2_subject,
+					mail_overdue2_content
+				})
+			);
+
+			settingsGlobal.set({
 				borrowing_duration,
 				dnb_token,
 				mail_last_reminder,
@@ -95,23 +125,8 @@
 				mail_overdue_content,
 				mail_overdue2_subject,
 				mail_overdue2_content
-			})
-		);
-
-		settingsGlobal.set({
-			borrowing_duration,
-			dnb_token,
-			mail_last_reminder,
-			mail_from,
-			mail_host,
-			mail_password,
-			mail_info_subject,
-			mail_info_content,
-			mail_overdue_subject,
-			mail_overdue_content,
-			mail_overdue2_subject,
-			mail_overdue2_content
-		});
+			});
+		}
 	}
 
 	export function cancel() {
@@ -133,7 +148,7 @@
 	let userResponse: Promise<any>;
 	async function userUpdate() {
 		await r.request("api/user-update-roles", "PATCH", null);
-		await save();
+		await update();
 	}
 </script>
 
@@ -261,7 +276,7 @@
 					type="text"
 					class="form-control"
 					id="overSub"
-					placeholder="{$_('.mail.label.title')}<"
+					placeholder={$_(".mail.label.title")}
 					bind:value={mail_overdue_subject}
 				/>
 			</div>
@@ -283,7 +298,7 @@
 					type="text"
 					class="form-control"
 					id="overSub2"
-					placeholder="{$_('.mail.label.title')}<"
+					placeholder={$_(".mail.label.title")}
 					bind:value={mail_overdue2_subject}
 				/>
 			</div>
