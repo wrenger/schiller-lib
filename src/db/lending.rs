@@ -97,43 +97,6 @@ pub fn release(db: &Database, id: &str) -> Result<Book> {
     Ok(book)
 }
 
-/// Return the list of currently all borrowed books.
-pub fn borrowed(db: &Database) -> Result<Vec<(Book, User)>> {
-    const QUERY_CURRENT: &str = "\
-        select \
-        id, \
-        isbn, \
-        title, \
-        publisher, \
-        year, \
-        costs, \
-        note, \
-        borrowable, \
-        category, \
-        ifnull(group_concat(author.name),'') as authors, \
-        borrower, \
-        deadline, \
-        reservation, \
-        \
-        account, \
-        forename, \
-        surname, \
-        role, \
-        may_borrow, \
-        \
-        JulianDay(date(deadline)) - JulianDay(date('now')) as days \
-        \
-        from medium \
-        left join author on author.medium=id \
-        join user on account=borrower \
-        group by id \
-        order by days \
-    ";
-    let mut stmt = db.con.prepare(QUERY_CURRENT)?;
-    let rows = stmt.query([])?;
-    DBIter::new(rows).collect()
-}
-
 /// Return the list of expired loan periods.
 pub fn overdues(db: &Database) -> Result<Vec<(Book, User)>> {
     const QUERY_EXPIRED: &str = "\

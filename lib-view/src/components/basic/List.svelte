@@ -104,6 +104,8 @@
 			{#if data}
 				{#each data as item (item.id ? item.id : item.account)}
 					<slot name="item" {item} class="list-group-item list-group-item-action" />
+				{:else}
+					<li class="list-group-item disabled">{$_(".error.none")}</li>
 				{/each}
 			{/if}
 			{#if loadingMore}
