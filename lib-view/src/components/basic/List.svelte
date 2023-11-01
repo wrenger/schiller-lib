@@ -38,7 +38,11 @@
 		scrollPosition = ul.scrollTop;
 
 		promise = r.request(
-			`${req}&limit=${Math.ceil((items?.length ? items?.length : 0) / 250) * 250}`,
+			`${req}&limit=${
+				(Math.ceil((items?.length ? items?.length : 0) / 250) == 0
+					? 1
+					: Math.ceil((items?.length ? items?.length : 0) / 250)) * 250
+			}`,
 			"GET",
 			null
 		);

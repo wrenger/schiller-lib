@@ -133,6 +133,7 @@
 	let userResponse: Promise<any>;
 	async function userUpdate() {
 		await r.request("api/user-update-roles", "PATCH", null);
+		await save();
 	}
 </script>
 
