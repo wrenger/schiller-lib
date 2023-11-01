@@ -430,7 +430,7 @@
 		</div>
 	</div>
 
-	{#if !editable && !isNew}
+	{#if !editable && !isNew && borrowable}
 		{#if borrower && deadline}
 			<div class="alert alert-light mb-0" role="alert">
 				{$_(".book.borrowed.by", {
@@ -460,122 +460,122 @@
 		{/if}
 	{/if}
 
-	<button
-		id="book-abort-button"
-		type="button"
-		class="btn btn-outline-secondary mt-2"
-		hidden={!editable}
-		on:click={() => {
-			setBook(book);
-			editable = false;
-			isNew = false;
-		}}
-	>
-		{$_(".action.cancel")}
-	</button>
-	<button
-		id="book-add-button"
-		class="btn btn-outline-primary mt-2"
-		type="button"
-		hidden={!(editable && isNew)}
-		on:click={() => (addResponse = add())}
-	>
-		<Spinner response={addResponse} />
-		{$_(".action.add")}
-	</button>
-	<button
-		id="book-confirm-button"
-		type="button"
-		class="btn btn-outline-primary mt-2"
-		hidden={!(editable && !isNew)}
-		on:click={() => (editResponse = edit())}
-	>
-		<Spinner response={editResponse} />
-		{$_(".action.apply")}
-	</button>
-	<button
-		class="btn btn-outline-danger mt-2"
-		type="button"
-		aria-expanded="false"
-		hidden={!(editable && !isNew)}
-		on:click={() => (deleteResponse = del())}
-	>
-		<Spinner response={deleteResponse} />
-		{$_(".action.delete")}
-	</button>
-
-	{#if !editable && !isNew}
-		{#if reservation}
+	{#if editable}
+		<button
+			id="book-abort-button"
+			type="button"
+			class="btn btn-outline-secondary mt-2"
+			hidden={!editable}
+			on:click={() => {
+				setBook(book);
+				editable = false;
+				isNew = false;
+			}}
+		>
+			{$_(".action.cancel")}
+		</button>
+		{#if isNew}
 			<button
+				id="book-add-button"
 				class="btn btn-outline-primary mt-2"
 				type="button"
-				aria-expanded="false"
-				hidden={!!(borrower ?? false)}
-				on:click={() => {
-					lendDialog.open();
-					gonnaBorrow = reservation;
-				}}
+				on:click={() => (addResponse = add())}
 			>
-				{$_(".book.lend.to", { values: { "0": reservation } })}
+				<Spinner response={addResponse} />
+				{$_(".action.add")}
 			</button>
 		{:else}
 			<button
-				class="btn btn-outline-primary mt-2"
+				id="book-confirm-button"
 				type="button"
-				aria-expanded="false"
-				hidden={!(!(borrower ?? false) && borrowable)}
-				on:click={() => {
-					gonnaBorrow = "";
-					lendDialog.open();
-				}}
-			>
-				{$_(".book.lend")}
-			</button>
-		{/if}
-		<button
-			class="btn btn-outline-danger mt-2"
-			type="button"
-			aria-expanded="false"
-			hidden={!reservation}
-			on:click={() => (releaseResponse = release())}
-		>
-			<Spinner response={releaseResponse} />
-			{$_(".book.delete-reservation")}
-		</button>
-		{#if book && book.borrower}
-			<button
 				class="btn btn-outline-primary mt-2"
-				type="button"
-				aria-expanded="false"
-				hidden={!!reservation}
-				on:click={() => {
-					gonnaReserve = "";
-					reserveDialog.open();
-				}}
+				on:click={() => (editResponse = edit())}
 			>
-				{$_(".book.reserve")}
-			</button>
-			<button
-				class="btn btn-outline-primary mt-2"
-				type="button"
-				aria-expanded="false"
-				hidden={!!reservation}
-				on:click={() => {
-					gonnaBorrow = borrower;
-					lendDialog.open();
-				}}
-			>
-				{$_(".book.renew")}
+				<Spinner response={editResponse} />
+				{$_(".action.apply")}
 			</button>
 			<button
 				class="btn btn-outline-danger mt-2"
 				type="button"
 				aria-expanded="false"
-				on:click={() => (retResponse = ret())}
+				on:click={() => (deleteResponse = del())}
 			>
-				<Spinner response={retResponse} />
-				{$_(".book.revoke")}
+				<Spinner response={deleteResponse} />
+				{$_(".action.delete")}
 			</button>
+		{/if}
+	{:else if !isNew}
+		{#if borrowable}
+			{#if reservation}
+				{#if !borrower}
+					<button
+						class="btn btn-outline-primary mt-2"
+						type="button"
+						aria-expanded="false"
+						on:click={() => {
+							lendDialog.open();
+							gonnaBorrow = reservation;
+						}}
+					>
+						{$_(".book.lend.to", { values: { "0": reservation } })}
+					</button>
+				{/if}
+				<button
+					class="btn btn-outline-danger mt-2"
+					type="button"
+					aria-expanded="false"
+					on:click={() => (releaseResponse = release())}
+				>
+					<Spinner response={releaseResponse} />
+					{$_(".book.delete-reservation")}
+				</button>
+			{:else if borrower}
+				<button
+					class="btn btn-outline-primary mt-2"
+					type="button"
+					aria-expanded="false"
+					on:click={() => {
+						gonnaReserve = "";
+						reserveDialog.open();
+					}}
+				>
+					{$_(".book.reserve")}
+				</button>
+				<button
+					class="btn btn-outline-primary mt-2"
+					type="button"
+					aria-expanded="false"
+					on:click={() => {
+						gonnaBorrow = borrower;
+						lendDialog.open();
+					}}
+				>
+					{$_(".book.renew")}
+				</button>
+			{:else}
+				<button
+					class="btn btn-outline-primary mt-2"
+					type="button"
+					aria-expanded="false"
+					on:click={() => {
+						gonnaBorrow = "";
+						lendDialog.open();
+					}}
+				>
+					{$_(".book.lend")}
+				</button>
+			{/if}
+			{#if borrower}
+				<button
+					class="btn btn-outline-danger mt-2"
+					type="button"
+					aria-expanded="false"
+					on:click={() => (retResponse = ret())}
+				>
+					<Spinner response={retResponse} />
+					{$_(".book.revoke")}
+				</button>
+			{/if}
 		{/if}
 	{/if}
 {/if}
