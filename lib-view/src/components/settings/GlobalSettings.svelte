@@ -41,7 +41,20 @@
 			mail_overdue2_content = data.mail_overdue2_content ? data.mail_overdue2_content : "";
 		}
 
-		save();
+		settingsGlobal.set({
+			borrowing_duration,
+			dnb_token,
+			mail_last_reminder,
+			mail_from,
+			mail_host,
+			mail_password,
+			mail_info_subject,
+			mail_info_content,
+			mail_overdue_subject,
+			mail_overdue_content,
+			mail_overdue2_subject,
+			mail_overdue2_content
+		});
 
 		// get categories
 		let data2 = await r.request("api/category", "GET", null);
