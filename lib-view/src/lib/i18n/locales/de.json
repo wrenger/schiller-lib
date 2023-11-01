@@ -186,7 +186,7 @@
 	".search.base": "Basic",
 	".search.book": "Bücher",
 	".search.book.entry": "Suchbegriff (z.B. Autor, Titel, Signatur, ISBN oder Benutzer)",
-	".search.results": " {0} Ergebnisse",
+	".search.results": " {0} Ergebniss{0, plural, one {} other {e}}",
 	".search.user": "Benutzer",
 	".search.user.entry": "Suchbegriff (z.B. Name, Account oder Gruppe)",
 	".sql.title": "Datenbank warten",

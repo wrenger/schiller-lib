@@ -21,7 +21,7 @@
 	<meta name="description" content={$_(".alert.info")} />
 </svelte:head>
 
-<section class="h-100">
+<section class="h-100" style="overflow: scroll;">
 	<Request bind:this={r} />
 	<div class="card mb-2">
 		{#await session}
@@ -41,9 +41,9 @@
 			{/if}
 		{/await}
 	</div>
-	<div class="row pb-2 m-0">
+	<div class="row m-0">
 		<div class="col-md-6 mb-2 mb-md-0 p-0 pe-md-2">
-			<div class="card mb-2 h-100">
+			<div class="card h-100">
 				{#await stats}
 					<div class="card-header">{$_(".action.load")}...</div>
 					<div class="d-flex justify-content-center">
@@ -66,7 +66,7 @@
 			</div>
 		</div>
 		<div class="col-md-6 p-0">
-			<div class="card mb-2 h-100">
+			<div class="card h-100">
 				{#await about}
 					<div class="card-header">{$_(".action.load")}...</div>
 					<div class="d-flex justify-content-center">
