@@ -21,7 +21,8 @@
 	}
 	.view {
 		grid-area: view;
-		overflow: scroll;
+		overflow-y: scroll;
+		overflow-x: hidden;
 		margin-left: 5px;
 	}
 	@media only screen and (max-width: 768px) {
