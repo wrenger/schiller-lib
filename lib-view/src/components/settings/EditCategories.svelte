@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import { category } from "$lib/store";
+	import { category, state } from "$lib/store";
 	import Dialog from "../basic/Dialog.svelte";
 	import Spinner from "../basic/Spinner.svelte";
 	import Request from "../basic/Request.svelte";
@@ -65,6 +65,7 @@
 		let data: any = await r.request("api/category", "GET", null);
 		category.set(data);
 		selected = data.find((t: { id: any }) => t.id == selected.id) || null;
+		state.set({});
 	}
 </script>
 

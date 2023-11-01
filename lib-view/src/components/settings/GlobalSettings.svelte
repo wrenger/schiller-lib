@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import { category, settingsGlobal } from "$lib/store";
+	import { category, settingsGlobal, state } from "$lib/store";
 	import Request from "../basic/Request.svelte";
 	import { onMount } from "svelte";
 	import Spinner from "../basic/Spinner.svelte";
@@ -126,6 +126,8 @@
 				mail_overdue2_subject,
 				mail_overdue2_content
 			});
+
+			state.set({});
 		}
 	}
 
@@ -148,7 +150,7 @@
 	let userResponse: Promise<any>;
 	async function userUpdate() {
 		await r.request("api/user-update-roles", "PATCH", null);
-		await update();
+		state.set({});
 	}
 </script>
 

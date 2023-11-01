@@ -37,3 +37,5 @@ interface Category {
 }
 
 export const category = writable<Category[]>([]);
+
+export const state = writable<Object>({});

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { category, settingsGlobal } from "$lib/store";
+	import { state } from "$lib/store";
 	import "../bootstrap/app.scss";
 	import "../bootstrap/main.ts";
 	import Navbar from "../components/basic/Navbar.svelte";
@@ -7,7 +7,7 @@
 
 <div class="app">
 	<Navbar />
-	{#key $settingsGlobal || $category}
+	{#key $state}
 		<main>
 			<slot />
 		</main>
