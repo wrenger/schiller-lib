@@ -5,7 +5,7 @@ A small, simple, and intuitive library program for school libraries.
 
 ## Rework
 
-This project is currently in a highly unstable stage due to a fundamental rework!
+This project is currently in a highly unstable stage due to a fundamental rework! A test Version can be seen [here](https://nils.wrenger.net).
 
 ### Frontend
 
