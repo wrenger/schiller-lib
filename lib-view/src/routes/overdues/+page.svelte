@@ -41,7 +41,7 @@
 			{#if data}
 				{#each data as [book, user] (book.id)}
 					<a
-						class="list-group-item list-group-item-action d-flex justify-content-between"
+						class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
 						href={`books?i=${book.id}`}
 					>
 						<div class="d-flex flex-column">
