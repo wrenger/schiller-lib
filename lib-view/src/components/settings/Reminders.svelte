@@ -9,32 +9,10 @@
 	import Spinner from "../basic/Spinner.svelte";
 	import { onMount } from "svelte";
 
-	let borrowing_duration = 0;
-	let dnb_token = "";
 	let mail_last_reminder = "";
-	let mail_from = "";
-	let mail_host = "";
-	let mail_password = "";
-	let mail_info_subject = "";
-	let mail_info_content = "";
-	let mail_overdue_subject = "";
-	let mail_overdue_content = "";
-	let mail_overdue2_subject = "";
-	let mail_overdue2_content = "";
 
 	settingsGlobal.subscribe((s) => {
-		borrowing_duration = s.borrowing_duration;
-		dnb_token = s.dnb_token;
 		mail_last_reminder = s.mail_last_reminder;
-		mail_from = s.mail_from;
-		mail_host = s.mail_host;
-		mail_password = s.mail_password;
-		mail_info_subject = s.mail_info_subject;
-		mail_info_content = s.mail_info_content;
-		mail_overdue_subject = s.mail_overdue_subject;
-		mail_overdue_content = s.mail_overdue_content;
-		mail_overdue2_subject = s.mail_overdue2_subject;
-		mail_overdue2_content = s.mail_overdue2_content;
 	});
 
 	let remDialog: Dialog;
@@ -45,8 +23,8 @@
 
 	$: if (
 		$settingsGlobal.mail_last_reminder &&
-		mounted &&
-		!DateTime.now().hasSame(DateTime.fromISO($settingsGlobal.mail_last_reminder), "day")
+		mounted //&&
+		// !DateTime.now().hasSame(DateTime.fromISO($settingsGlobal.mail_last_reminder), "day")
 	) {
 		remDialog.open();
 	}
@@ -96,34 +74,14 @@
 			"api/settings",
 			"POST",
 			JSON.stringify({
-				borrowing_duration,
-				dnb_token,
-				mail_last_reminder,
-				mail_from,
-				mail_host,
-				mail_password,
-				mail_info_subject,
-				mail_info_content,
-				mail_overdue_subject,
-				mail_overdue_content,
-				mail_overdue2_subject,
-				mail_overdue2_content
+				...$settingsGlobal,
+				mail_last_reminder
 			})
 		);
 
 		settingsGlobal.set({
-			borrowing_duration,
-			dnb_token,
-			mail_last_reminder,
-			mail_from,
-			mail_host,
-			mail_password,
-			mail_info_subject,
-			mail_info_content,
-			mail_overdue_subject,
-			mail_overdue_content,
-			mail_overdue2_subject,
-			mail_overdue2_content
+			...$settingsGlobal,
+			mail_last_reminder
 		});
 
 		state.set({});
@@ -131,8 +89,6 @@
 		remDialog.close();
 	}
 </script>
-
-<Request bind:this={r} />
 
 <Dialog bind:this={remDialog}>
 	<span slot="header"><h5 class="mb-0">{$_(".alert.confirm")}</h5></span>
@@ -144,3 +100,5 @@
 		</button>
 	</span>
 </Dialog>
+
+<Request bind:this={r} />
