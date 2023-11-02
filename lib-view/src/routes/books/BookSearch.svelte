@@ -22,6 +22,7 @@
 	import { _ } from "svelte-i18n";
 	import { page } from "$app/stores";
 	import CategorySelect from "../../components/basic/CategorySelect.svelte";
+	import { goto } from "$app/navigation";
 
 	export let params: BookParams = new BookParams();
 
@@ -40,6 +41,10 @@
 		}
 		timer = setTimeout(() => {
 			params.input = input;
+			goto(`/books${params.input ? `?i=${params.input}` : ""}`, {
+				replaceState: false,
+				keepFocus: true
+			});
 		}, 500);
 	}
 </script>
