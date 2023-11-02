@@ -188,6 +188,8 @@
 
 	let mailResponse: Promise<any>;
 	async function mail() {
+		let user = await r.request(`/api/user-fetch/${reservation}`, "GET", null);
+
 		await r.request(
 			`/api/notify`,
 			"POST",
@@ -195,12 +197,13 @@
 				account: reservation,
 				subject: $settingsGlobal.mail_info_subject
 					.replace(/\{booktitle\}/g, title)
-					.replace(/\{username\}/g, reservation ? reservation : ""),
+					.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : ""),
 				body: $settingsGlobal.mail_info_content
 					.replace(/\{booktitle\}/g, title)
-					.replace(/\{username\}/g, reservation ? reservation : "")
+					.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : "")
 			})
 		);
+
 		await onChange();
 		mailDialog.close();
 	}
@@ -619,6 +622,7 @@
 	<span slot="body">{$_(".book.revoke.reminder", { values: { "0": reservation } })}</span>
 	<span slot="footer">
 		<button type="button" class="btn btn-primary" on:click={() => (mailResponse = mail())}>
+			<Spinner response={mailResponse} />
 			{$_(".action.ok")}
 		</button>
 	</span>

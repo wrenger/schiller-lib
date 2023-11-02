@@ -14,7 +14,7 @@ This project is currently in a highly unstable stage due to a fundamental rework
 - [x] Borrowed Page
 - [x] Infos Page
 - [ ] Show total amount of Infos
-- [ ] Reminders Modal
+- [x] Reminders Modal
 - [x] Borrow/Reserve/Extend Modal
 - [x] Books/User List with Search and Adding Button -> Set Up a Grid and Generalize
 - [x] Page Views including editing, deleting,...

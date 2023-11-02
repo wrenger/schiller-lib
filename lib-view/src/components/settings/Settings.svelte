@@ -4,6 +4,7 @@
 	import GlobalSettings from "./GlobalSettings.svelte";
 	import LocalSettings from "./LocalSettings.svelte";
 	import Spinner from "../basic/Spinner.svelte";
+	import Reminders from "./Reminders.svelte";
 	let dialog: Dialog;
 	let local: LocalSettings;
 	let global: GlobalSettings;
@@ -19,6 +20,8 @@
 		if (global) await global.save();
 	}
 </script>
+
+<Reminders />
 
 <div class="d-flex">
 	<button
