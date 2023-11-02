@@ -81,8 +81,9 @@
 		startLoading = false;
 		active =
 			val.find(
-				(item: { id: any; account: any }) =>
-					(item.id && item.id == active?.id) || (item.account && item.account == active?.account)
+				(item: { id: string; account: any }) =>
+					(item.id && item.id == active?.id.trim()) ||
+					(item.account && item.account == active?.account.trim())
 			) || null;
 	}
 </script>
