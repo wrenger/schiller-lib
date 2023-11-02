@@ -13,9 +13,10 @@ const MIN_VERSION: Version = Version(0, 7, 0);
 type Migration = fn(&Database) -> Result<()>;
 
 /// Database migration routines
-const PATCHES: [(Version, Migration); 2] = [
+const PATCHES: [(Version, Migration); 3] = [
     (Version(0, 8, 0), patch_0_8_0),
     (Version(0, 8, 3), patch_0_8_3),
+    (Version(0, 8, 4), patch_0_8_4),
 ];
 
 pub fn create(db: &Database, version: &str) -> Result<()> {
@@ -143,6 +144,20 @@ fn patch_0_8_3(db: &Database) -> Result<()> {
         where role='' \
     ";
     db.con.execute(UPDATE_USER_ROLES, ["-"])?;
+    Ok(())
+}
+
+fn patch_0_8_4(db: &Database) -> Result<()> {
+    const DELETE_PATH: &str = "\
+    delete from sbv_meta where key = ? \
+    ";
+
+    db.con.execute(DELETE_PATH, ["user.path"])?;
+    const DELETE_DELIMITER: &str = "\
+    delete from sbv_meta where key = ? \
+    ";
+
+    db.con.execute(DELETE_DELIMITER, ["user.delimiter"])?;
     Ok(())
 }
 
