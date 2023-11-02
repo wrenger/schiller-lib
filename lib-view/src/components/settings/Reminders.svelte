@@ -23,8 +23,8 @@
 
 	$: if (
 		$settingsGlobal.mail_last_reminder &&
-		mounted //&&
-		// !DateTime.now().hasSame(DateTime.fromISO($settingsGlobal.mail_last_reminder), "day")
+		mounted &&
+		!DateTime.now().hasSame(DateTime.fromISO($settingsGlobal.mail_last_reminder), "day")
 	) {
 		remDialog.open();
 	}
