@@ -11,12 +11,19 @@
 </script>
 
 <script lang="ts">
+	import { goto } from "$app/navigation";
+
+	import { page } from "$app/stores";
+
 	import { _ } from "svelte-i18n";
 
 	export let params: UserParams = new UserParams();
 
 	let input: string;
 	let permission!: null | boolean;
+
+	input = $page.url.searchParams.get("i") || "";
+	params.input = input;
 
 	let timer: NodeJS.Timeout | null = null;
 
@@ -26,6 +33,10 @@
 		}
 		timer = setTimeout(() => {
 			params.input = input;
+			goto(`/users${params.input ? `?i=${params.input}` : ""}`, {
+				replaceState: false,
+				keepFocus: true
+			});
 		}, 500);
 	}
 </script>
