@@ -64,9 +64,9 @@
 	function error_msg(code: string): string {
 		switch (parseInt(code)) {
 			case ServerError.Arguments:
-				return "error.input";
+				return ".error.input";
 			case ServerError.Logic:
-				return "error.update";
+				return ".error.update";
 			case ServerError.FileNotFound:
 				return ".error.file-open";
 			case ServerError.FileOpen:
