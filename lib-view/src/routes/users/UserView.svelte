@@ -57,7 +57,7 @@
 				account,
 				forename,
 				surname,
-				role,
+				role: role ? role : "-",
 				may_borrow
 			})
 		);
@@ -73,7 +73,7 @@
 				account,
 				forename,
 				surname,
-				role,
+				role: role ? role : "-",
 				may_borrow
 			})
 		);
