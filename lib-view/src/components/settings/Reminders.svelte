@@ -27,16 +27,14 @@
 		!DateTime.now().hasSame(DateTime.fromISO($settingsGlobal.mail_last_reminder), "day")
 	) {
 		remDialog.open();
+		mounted = false;
 	}
 
 	let remResponse: Promise<any>;
 	async function sendReminders() {
 		let overdoneBooks: [Book, User][] = await r.request("api/overdues", "GET", null);
 
-		overdoneBooks.forEach(async (e: [Book, User]) => {
-			let book = e[0];
-			let user = e[1];
-
+		for (const [book, user] of overdoneBooks) {
 			if (-DateTime.fromISO(book.deadline ? book.deadline : "").diffNow("days").days > 14) {
 				await r.request(
 					`/api/notify`,
@@ -66,7 +64,11 @@
 					})
 				);
 			}
-		});
+		}
+
+		let data = await r.request("api/settings", "GET", null);
+
+		settingsGlobal.set(data);
 
 		mail_last_reminder = DateTime.now().toISODate() || "";
 
@@ -90,6 +92,8 @@
 	}
 </script>
 
+<Request bind:this={r} />
+
 <Dialog bind:this={remDialog}>
 	<span slot="header"><h5 class="mb-0">{$_(".alert.confirm")}</h5></span>
 	<span slot="body">{$_(".alert.mail.overdue")}</span>
@@ -100,5 +104,3 @@
 		</button>
 	</span>
 </Dialog>
-
-<Request bind:this={r} />

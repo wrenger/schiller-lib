@@ -27,7 +27,7 @@
 	export let params: BookParams = new BookParams();
 
 	let input: string = "";
-	let category: null | string = null; //temporary - todo: add categories
+	let category: null | string = null;
 	let status: "None" | "Borrowable" | "NotBorrowable" | "Borrowed" | "Reserved" = "None";
 
 	input = $page.url.searchParams.get("i") || "";
@@ -41,7 +41,7 @@
 		}
 		timer = setTimeout(() => {
 			params.input = input;
-			goto(`/books${params.input ? `?i=${params.input}` : ""}`, {
+			goto(`/books${params.input.trim() ? `?i=${params.input}` : ""}`, {
 				replaceState: false,
 				keepFocus: true
 			});

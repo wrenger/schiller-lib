@@ -33,7 +33,7 @@
 		}
 		timer = setTimeout(() => {
 			params.input = input;
-			goto(`/users${params.input ? `?i=${params.input}` : ""}`, {
+			goto(`/users${params.input.trim() ? `?i=${params.input}` : ""}`, {
 				replaceState: false,
 				keepFocus: true
 			});

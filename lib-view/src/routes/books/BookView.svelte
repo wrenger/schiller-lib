@@ -7,7 +7,7 @@
 		authors!: string[];
 		costs!: number;
 		year!: number;
-		category!: string; //temporary - todo: add categories
+		category!: string;
 		note!: string;
 		borrowable!: boolean;
 		borrower?: string;
@@ -45,7 +45,7 @@
 	let authors: string = "";
 	let costs: number = 0;
 	let year: number = 2023;
-	let category: string = "None"; //temporary - todo: add categories
+	let category: string = "None";
 	let note: string = "";
 	let borrowable: boolean = true;
 	let borrower: string | undefined = undefined;
@@ -86,7 +86,7 @@
 			authors = "";
 			costs = 0;
 			year = 2023;
-			category = "None"; //temporary - todo: add categories
+			category = "None";
 			note = "";
 			borrowable = true;
 			borrower = undefined;
@@ -402,7 +402,6 @@
 			/>
 		</div>
 		<div class="col ps-0 pe-0">
-			<!--  Todo: General Selector  -->
 			<CategorySelect bind:value={category} disabled={!editable} label={"Category"} />
 		</div>
 	</div>
