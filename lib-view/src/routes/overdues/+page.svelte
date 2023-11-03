@@ -79,6 +79,6 @@
 <style>
 	.full {
 		overflow: scroll;
-		height: calc(100% - 51px);
+		height: calc(100% - 41px);
 	}
 </style>
