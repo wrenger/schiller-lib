@@ -33,69 +33,46 @@
 			}
 		} catch (error) {
 			if (dialog) dialog.open();
-			err = error_msg(error as string);
+			err = error_msg(JSON.parse(error as string));
 			throw error;
 		}
 	}
 
-	enum ServerError {
-		Arguments,
-		Logic,
-		FileNotFound,
-		FileOpen,
-		SQL,
-		Network,
-		InvalidFormat,
-		NothingFound,
-		// Specific errors
-		InvalidBook,
-		InvalidUser,
-		// Lending errors
-		LendingUserMayNotBorrow,
-		LendingBookNotBorrowable,
-		LendingBookAlreadyBorrowed,
-		LendingBookAlreadyBorrowedByUser,
-		LendingBookNotBorrowed,
-		LendingBookAlreadyReserved,
-		// Migration
-		UnsupportedProjectVersion
-	}
-
-	function error_msg(code: string): string {
-		switch (parseInt(code)) {
-			case ServerError.Arguments:
+	function error_msg(string: string): string {
+		switch (string) {
+			case "Arguments":
 				return ".error.input";
-			case ServerError.Logic:
+			case "Logic":
 				return ".error.update";
-			case ServerError.FileNotFound:
+			case "FileNotFound":
 				return ".error.file-open";
-			case ServerError.FileOpen:
+			case "FileOpen":
 				return ".error.file-open";
-			case ServerError.SQL:
+			case "SQL":
 				return ".error.sql";
-			case ServerError.Network:
+			case "Network":
 				return ".error.network";
-			case ServerError.InvalidFormat:
+			case "InvalidFormat":
 				return ".error.format";
-			case ServerError.NothingFound:
+			case "NothingFound":
 				return ".error.none";
-			case ServerError.InvalidBook:
+			case "InvalidBook":
 				return ".book.invalid";
-			case ServerError.InvalidUser:
+			case "InvalidUser":
 				return ".user.invalid";
-			case ServerError.LendingUserMayNotBorrow:
+			case "LendingUserMayNotBorrow":
 				return ".error.lending.user";
-			case ServerError.LendingBookNotBorrowable:
+			case "LendingBookNotBorrowable":
 				return ".error.lending.book";
-			case ServerError.LendingBookAlreadyBorrowed:
+			case "LendingBookAlreadyBorrowed":
 				return ".error.lending.already-borrowed";
-			case ServerError.LendingBookAlreadyBorrowedByUser:
+			case "LendingBookAlreadyBorrowedByUser":
 				return ".error.lending.already-borrowed-by";
-			case ServerError.LendingBookNotBorrowed:
+			case "LendingBookNotBorrowed":
 				return ".error.lending.not-borrowed";
-			case ServerError.LendingBookAlreadyReserved:
+			case "LendingBookAlreadyReserved":
 				return ".error.lending.already-reserved";
-			case ServerError.UnsupportedProjectVersion:
+			case "UnsupportedProjectVersion":
 				return ".error.update";
 			default:
 				return ".error.unknown";

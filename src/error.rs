@@ -1,4 +1,4 @@
-use axum::response::IntoResponse;
+use axum::{response::IntoResponse, Json};
 use hyper::StatusCode;
 use serde::Serialize;
 use tracing::error;
@@ -108,7 +108,7 @@ impl<ER: std::error::Error + 'static, T: oauth2::ErrorResponse + 'static>
 impl IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
         let status = StatusCode::INTERNAL_SERVER_ERROR;
-        let body = (self as usize).to_string();
+        let body = Json(self);
         (status, body).into_response()
     }
 }
