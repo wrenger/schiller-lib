@@ -141,6 +141,13 @@ impl<'de> Visitor<'de> for YearRangeVisitor {
     where
         E: serde::de::Error,
     {
+        self.visit_str(&v)
+    }
+
+    fn visit_str<E>(self, v: &str) -> std::result::Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
         let str = v.trim();
         if str.is_empty() {
             Ok(YearRange::default())
@@ -160,19 +167,14 @@ impl<'de> Visitor<'de> for YearRangeVisitor {
 }
 
 #[repr(i64)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BookState {
+    #[default]
     None = 0,
     Borrowable,
     NotBorrowable,
     Borrowed,
     Reserved,
-}
-
-impl Default for BookState {
-    fn default() -> BookState {
-        BookState::None
-    }
 }
 
 impl From<i64> for BookState {

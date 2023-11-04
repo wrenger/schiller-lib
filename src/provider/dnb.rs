@@ -23,7 +23,7 @@ pub async fn fetch(client: Client, dnb_token: &str, isbn: &str) -> Result<BookDa
     }
 
     let text = response.text().await?;
-    parse(&text, &isbn)
+    parse(&text, isbn)
 }
 
 const ISBN_COSTS_TAG: &str = "020";

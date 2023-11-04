@@ -42,7 +42,7 @@ impl Project {
         }
     }
 
-    fn db<'a>(&'a self) -> MutexGuard<'a, db::Database> {
+    fn db(&self) -> MutexGuard<'_, db::Database> {
         self.db.lock().unwrap()
     }
 }
@@ -189,7 +189,7 @@ async fn book_search_advanced(
 
 /// Adds a new book.
 async fn book_add(State(project): State<Project>, Json(book): Json<db::Book>) -> Result<()> {
-    Ok(db::book::add(&project.db(), &book)?)
+    db::book::add(&project.db(), &book)
 }
 
 /// Updates the book and all references if its id changes.
@@ -198,13 +198,13 @@ async fn book_update(
     Path(id): Path<String>,
     Json(book): Json<db::Book>,
 ) -> Result<()> {
-    Ok(db::book::update(&project.db(), &id, &book)?)
+    db::book::update(&project.db(), &id, &book)
 }
 
 /// Deletes the book including the its authors.
 /// Also borrowers & reservations for this book are removed.
 async fn book_delete(State(project): State<Project>, Path(id): Path<String>) -> Result<()> {
-    Ok(db::book::delete(&project.db(), &id)?)
+    db::book::delete(&project.db(), &id)
 }
 
 /// Generates a new book id.
@@ -255,7 +255,7 @@ async fn user_search_advanced(
 
 /// Adds a new user.
 async fn user_add(State(project): State<Project>, Json(user): Json<db::User>) -> Result<()> {
-    Ok(db::user::add(&project.db(), &user)?)
+    db::user::add(&project.db(), &user)
 }
 
 /// Updates the user and all references if its account changes.
@@ -264,13 +264,13 @@ async fn user_update(
     Path(account): Path<String>,
     Json(user): Json<db::User>,
 ) -> Result<()> {
-    Ok(db::user::update(&project.db(), &account, &user)?)
+    db::user::update(&project.db(), &account, &user)
 }
 
 /// Deletes the user.
 /// This includes all its borrows & reservations.
 async fn user_delete(State(project): State<Project>, Path(account): Path<String>) -> Result<()> {
-    Ok(db::user::delete(&project.db(), &account)?)
+    db::user::delete(&project.db(), &account)
 }
 
 /// Fetch the data of the book from the DNB an their like.
@@ -307,7 +307,7 @@ async fn category_add(
     State(project): State<Project>,
     Json(category): Json<db::Category>,
 ) -> Result<()> {
-    Ok(db::category::add(&project.db(), &category)?)
+    db::category::add(&project.db(), &category)
 }
 
 /// Updates the category and all references.
@@ -316,12 +316,12 @@ async fn category_update(
     Path(id): Path<String>,
     Json(category): Json<db::Category>,
 ) -> Result<()> {
-    Ok(db::category::update(&project.db(), &id, &category)?)
+    db::category::update(&project.db(), &id, &category)
 }
 
 /// Removes the category or returns a `Error::Logic` if it is still in use.
 async fn category_delete(State(project): State<Project>, Path(id): Path<String>) -> Result<()> {
-    Ok(db::category::delete(&project.db(), &id)?)
+    db::category::delete(&project.db(), &id)
 }
 
 /// Returns the number of books in this category.
@@ -412,33 +412,34 @@ struct Message {
 
 async fn mail_notify(
     State(project): State<Project>,
-    Json(Message {
-        account,
-        subject,
-        body,
-    }): Json<Message>,
+    Json(messages): Json<Vec<Message>>,
 ) -> Result<()> {
     let settings = db::settings::fetch(&project.db())?;
 
-    if !account_is_valid(&settings.mail_from) {
-        error!("Invalid sender {}", settings.mail_from);
-        return Err(Error::Logic);
-    }
-    let account = account.trim();
-    if !account_is_valid(account) {
-        error!("Invalid recipient {}", settings.mail_from);
-        return Err(Error::InvalidUser);
-    }
+    for Message {
+        account,
+        subject,
+        body,
+    } in messages
+    {
+        if !account_is_valid(&settings.mail_from) {
+            error!("Invalid sender {}", settings.mail_from);
+            return Err(Error::Logic);
+        }
+        let account = account.trim();
+        if !account_is_valid(account) {
+            error!("Invalid recipient {account}");
+            return Err(Error::InvalidUser);
+        }
 
-    let from = format!("{}@{}", settings.mail_from, settings.mail_host);
-    let to = format!("{account}@{}", settings.mail_host);
-
-    mail::send(
-        &settings.mail_host,
-        &settings.mail_password,
-        &from,
-        &to,
-        &subject,
-        &body,
-    )
+        mail::send(
+            &settings.mail_host,
+            &settings.mail_password,
+            &settings.mail_from,
+            account,
+            &subject,
+            &body,
+        )?;
+    }
+    Ok(())
 }

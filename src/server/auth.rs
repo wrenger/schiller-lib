@@ -253,7 +253,7 @@ where
         parts: &mut Parts,
         state: &S,
     ) -> std::result::Result<Self, Self::Rejection> {
-        let auth = Auth::from_ref(&state);
+        let auth = Auth::from_ref(state);
         let Auth::OAuth(auth) = auth else {
             return Ok(Login {
                 id: String::new(),

@@ -76,7 +76,7 @@ impl Database {
     /// This operation is only safe if called once.
     /// Stacking transactions on top of each other is not allowed!
     fn transaction(&self) -> rusqlite::Result<rusqlite::Transaction> {
-        #[allow(clippy::cast_ref_to_mut)]
+        #[allow(invalid_reference_casting)]
         let con = unsafe { &mut *(addr_of!(self.con).cast_mut()) };
         con.transaction()
     }
