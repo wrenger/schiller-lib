@@ -193,15 +193,17 @@
 		await r.request(
 			`/api/notify`,
 			"POST",
-			JSON.stringify({
-				account: reservation,
-				subject: $settingsGlobal.mail_info_subject
-					.replace(/\{booktitle\}/g, title)
-					.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : ""),
-				body: $settingsGlobal.mail_info_content
-					.replace(/\{booktitle\}/g, title)
-					.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : "")
-			})
+			JSON.stringify([
+				{
+					account: reservation,
+					subject: $settingsGlobal.mail_info_subject
+						.replace(/\{booktitle\}/g, title)
+						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : ""),
+					body: $settingsGlobal.mail_info_content
+						.replace(/\{booktitle\}/g, title)
+						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : "")
+				}
+			])
 		);
 
 		await onChange();

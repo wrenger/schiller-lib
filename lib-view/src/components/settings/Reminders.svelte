@@ -34,37 +34,33 @@
 	async function sendReminders() {
 		let overdoneBooks: [Book, User][] = await r.request("api/overdues", "GET", null);
 
+		let dataToSend: {}[] = [];
+
 		for (const [book, user] of overdoneBooks) {
 			if (-DateTime.fromISO(book.deadline ? book.deadline : "").diffNow("days").days > 14) {
-				await r.request(
-					`/api/notify`,
-					"POST",
-					JSON.stringify({
-						account: book.borrower,
-						subject: $settingsGlobal.mail_overdue2_subject
-							.replace(/\{booktitle\}/g, book.title)
-							.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : ""),
-						body: $settingsGlobal.mail_overdue2_content
-							.replace(/\{booktitle\}/g, book.title)
-							.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : "")
-					})
-				);
+				dataToSend.push({
+					account: book.borrower,
+					subject: $settingsGlobal.mail_overdue2_subject
+						.replace(/\{booktitle\}/g, book.title)
+						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : ""),
+					body: $settingsGlobal.mail_overdue2_content
+						.replace(/\{booktitle\}/g, book.title)
+						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : "")
+				});
 			} else {
-				await r.request(
-					`/api/notify`,
-					"POST",
-					JSON.stringify({
-						account: book.borrower,
-						subject: $settingsGlobal.mail_overdue_subject
-							.replace(/\{booktitle\}/g, book.title)
-							.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : ""),
-						body: $settingsGlobal.mail_overdue_content
-							.replace(/\{booktitle\}/g, book.title)
-							.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : "")
-					})
-				);
+				dataToSend.push({
+					account: book.borrower,
+					subject: $settingsGlobal.mail_overdue_subject
+						.replace(/\{booktitle\}/g, book.title)
+						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : ""),
+					body: $settingsGlobal.mail_overdue_content
+						.replace(/\{booktitle\}/g, book.title)
+						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : "")
+				});
 			}
 		}
+
+		await r.request(`/api/notify`, "POST", JSON.stringify(dataToSend));
 
 		let data = await r.request("api/settings", "GET", null);
 
