@@ -9,7 +9,7 @@
 	import Spinner from "../basic/Spinner.svelte";
 	import { onMount } from "svelte";
 
-	let mail_last_reminder = "";
+	let mail_last_reminder: DateTime = DateTime.fromISO("");
 
 	settingsGlobal.subscribe((s) => {
 		mail_last_reminder = s.mail_last_reminder;
@@ -22,12 +22,10 @@
 	onMount(() => (mounted = true));
 
 	$: if (
-		$settingsGlobal.mail_last_reminder &&
 		mounted &&
-		!DateTime.now().hasSame(DateTime.fromISO($settingsGlobal.mail_last_reminder), "day")
+		Math.ceil($settingsGlobal.mail_last_reminder.diffNow("days").days) < 0
 	) {
 		remDialog.open();
-		mounted = false;
 	}
 
 	let remResponse: Promise<any>;
@@ -66,14 +64,14 @@
 
 		settingsGlobal.set(data);
 
-		mail_last_reminder = DateTime.now().toISODate() || "";
+		mail_last_reminder = DateTime.now();
 
 		await r.request(
 			"api/settings",
 			"POST",
 			JSON.stringify({
 				...$settingsGlobal,
-				mail_last_reminder
+				mail_last_reminder: mail_last_reminder.toISODate() || ""
 			})
 		);
 

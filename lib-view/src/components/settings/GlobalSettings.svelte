@@ -10,7 +10,7 @@
 
 	let borrowing_duration = 0;
 	let dnb_token = "";
-	let mail_last_reminder: DateTime = DateTime.now();
+	let mail_last_reminder: DateTime = DateTime.fromISO("");
 	let mail_from = "";
 	let mail_host = "";
 	let mail_password = "";
