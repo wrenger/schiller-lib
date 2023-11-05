@@ -31,7 +31,9 @@
 		if (data) {
 			borrowing_duration = data.borrowing_duration ? data.borrowing_duration : 0;
 			dnb_token = data.dnb_token ? data.dnb_token : "";
-			mail_last_reminder = data.mail_last_reminder ? DateTime.fromISO(data.mail_last_reminder) : DateTime.now();
+			mail_last_reminder = data.mail_last_reminder
+				? DateTime.fromISO(data.mail_last_reminder)
+				: DateTime.now();
 			mail_from = data.mail_from ? data.mail_from : "";
 			mail_host = data.mail_host ? data.mail_host : "";
 			mail_password = data.mail_password ? data.mail_password : "";
