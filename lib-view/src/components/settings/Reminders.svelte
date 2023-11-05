@@ -21,10 +21,7 @@
 
 	onMount(() => (mounted = true));
 
-	$: if (
-		mounted &&
-		Math.ceil($settingsGlobal.mail_last_reminder.diffNow("days").days) < 0
-	) {
+	$: if (mounted && Math.ceil($settingsGlobal.mail_last_reminder.diffNow("days").days) < 0) {
 		remDialog.open();
 	}
 
