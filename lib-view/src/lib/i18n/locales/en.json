@@ -167,6 +167,7 @@
 	".pref.database.warning": "Advanced SQL knowledge is needed for maintaining the database. Please ask a teacher or developer if you want to proceed.",
 	".pref.global": "Global",
 	".pref.local": "Local",
+	".pref.mail.last-reminder": "Last Time Reminded",
 	".pref.mail.account.from": "From",
 	".pref.mail.account.header": "Mail Account",
 	".pref.mail.account.host": "Hostname",

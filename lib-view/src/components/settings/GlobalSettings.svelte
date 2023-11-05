@@ -5,10 +5,12 @@
 	import { onMount } from "svelte";
 	import Spinner from "../basic/Spinner.svelte";
 	import EditCategories from "./EditCategories.svelte";
+	import DateField from "../basic/DateField.svelte";
+	import { DateTime } from "luxon";
 
 	let borrowing_duration = 0;
 	let dnb_token = "";
-	let mail_last_reminder = "";
+	let mail_last_reminder: DateTime = DateTime.now();
 	let mail_from = "";
 	let mail_host = "";
 	let mail_password = "";
@@ -29,7 +31,7 @@
 		if (data) {
 			borrowing_duration = data.borrowing_duration ? data.borrowing_duration : 0;
 			dnb_token = data.dnb_token ? data.dnb_token : "";
-			mail_last_reminder = data.mail_last_reminder ? data.mail_last_reminder : "";
+			mail_last_reminder = data.mail_last_reminder ? DateTime.fromISO(data.mail_last_reminder) : DateTime.now();
 			mail_from = data.mail_from ? data.mail_from : "";
 			mail_host = data.mail_host ? data.mail_host : "";
 			mail_password = data.mail_password ? data.mail_password : "";
@@ -99,7 +101,7 @@
 				JSON.stringify({
 					borrowing_duration,
 					dnb_token,
-					mail_last_reminder,
+					mail_last_reminder: mail_last_reminder ? mail_last_reminder?.toISODate() || "" : "",
 					mail_from,
 					mail_host,
 					mail_password,
@@ -197,6 +199,10 @@
 	<div class="pt-1">
 		<label class="form-label" for="password">{$_(".pref.mail.account.password")}</label>
 		<input bind:value={mail_password} class="form-control" type="password" id="password" />
+	</div>
+	<div class="pt-1">
+		<label class="form-label" for="last-reminder">{$_(".pref.mail.last-reminder")}</label>
+		<DateField id={"last-reminder"} bind:date={mail_last_reminder} min={false} />
 	</div>
 </div>
 <h5 class="mb-2 mt-2">{$_(".pref.mail.templates.header")}</h5>

@@ -167,6 +167,7 @@
 	".pref.database.warning": "Zur Datenbankwartung werden SQL-Kenntnisse benötigt. Bitte wende dich an einen Informatiklehrer oder Entwickler.",
 	".pref.global": "Global",
 	".pref.local": "Lokal",
+	".pref.mail.last-reminder": "Letztes Mal Erinnert",
 	".pref.mail.account.from": "Absender",
 	".pref.mail.account.header": "Email Account",
 	".pref.mail.account.host": "Host",

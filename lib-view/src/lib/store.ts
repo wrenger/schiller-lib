@@ -1,9 +1,10 @@
+import { DateTime } from "luxon";
 import { writable } from "svelte/store";
 
 interface GlobalSettings {
 	borrowing_duration: number;
 	dnb_token: string;
-	mail_last_reminder: string;
+	mail_last_reminder: DateTime;
 	mail_from: string;
 	mail_host: string;
 	mail_password: string;
@@ -18,7 +19,7 @@ interface GlobalSettings {
 export const settingsGlobal = writable<GlobalSettings>({
 	borrowing_duration: 0,
 	dnb_token: "",
-	mail_last_reminder: "",
+	mail_last_reminder: DateTime.now(),
 	mail_from: "",
 	mail_host: "",
 	mail_password: "",

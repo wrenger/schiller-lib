@@ -3,6 +3,7 @@
 	import { DateTime } from "luxon";
 	export let date: DateTime;
 	export let id = "";
+	export let min = true;
 	let minDate = DateTime.now().toISODate();
 
 	let inputElement: HTMLInputElement | null = null;
@@ -17,7 +18,7 @@
 
 <input
 	{id}
-	min={minDate}
+	min={min ? minDate : ""}
 	type="date"
 	class="form-control"
 	placeholder={$_(".book.lend.period")}
