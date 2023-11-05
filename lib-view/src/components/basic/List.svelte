@@ -7,8 +7,6 @@
 	export let active: any | null;
 	export let isNew: boolean;
 
-	const scrollThreshold = 2000;
-
 	let items: any[] | undefined = undefined;
 	let loadingMore = false;
 	let listLoaded = false;
@@ -59,7 +57,7 @@
 		const target = event.target;
 		const distanceToBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
 
-		if (distanceToBottom <= scrollThreshold) {
+		if (distanceToBottom <= target.scrollHeight * 0.15) {
 			loadMore();
 		}
 	}
