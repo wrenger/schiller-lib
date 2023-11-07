@@ -101,6 +101,7 @@
 	".error.book.none": "Kein Buch gefunden.",
 	".error.category.existing": "Die Abkürzung '{0}' existiert bereits.",
 	".error.config.default": "Die Voreinstellungen konnten nicht geladen werden.",
+	".error.date": "Das Datum konnte nicht richtig geladen werden.\nAktualiseren Sie diese in den Einstellungen unter dem Punkt \"Letztes Mal Erinnert\"!",
 	".error.db": "Die Datenbank konnte nicht geöffnet werden.",
 	".error.file-open": "Die Datei konnte nicht geöffnet werden.",
 	".error.format": "Invalides Dateiformat",

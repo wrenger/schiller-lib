@@ -23,7 +23,7 @@
 	class="form-control"
 	placeholder={$_(".book.lend.period")}
 	aria-label={$_(".book.lend.period")}
-	value={date.toISODate()}
+	value={date.isValid ? date.toISODate() : ""}
 	bind:this={inputElement}
 	on:input={updateDate}
 />

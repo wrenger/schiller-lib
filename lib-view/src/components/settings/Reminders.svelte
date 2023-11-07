@@ -16,13 +16,20 @@
 	});
 
 	let remDialog: Dialog;
+	let errDialog: Dialog;
 	let mounted = false;
 	let r: Request;
 
 	onMount(() => (mounted = true));
 
-	$: if (mounted && Math.ceil($settingsGlobal.mail_last_reminder.diffNow("days").days) < 0) {
+	$: if (
+		mounted &&
+		mail_last_reminder.isValid &&
+		Math.ceil(mail_last_reminder.diffNow("days").days) < 0
+	) {
 		remDialog.open();
+	} else if (!mail_last_reminder.isValid) {
+		errDialog.open();
 	}
 
 	let remResponse: Promise<any>;
@@ -94,4 +101,9 @@
 			{$_(".action.ok")}
 		</button>
 	</span>
+</Dialog>
+
+<Dialog bind:this={errDialog}>
+	<span slot="header"><h5 class="mb-0">{$_(".alert.error")}</h5></span>
+	<span slot="body">{$_(".error.date")}</span>
 </Dialog>

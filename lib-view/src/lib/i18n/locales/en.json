@@ -101,6 +101,7 @@
 	".error.book.none": "No book found.",
 	".error.category.existing": "The category id '{0}' already exists.",
 	".error.config.default": "Could not access the default preferences.",
+	".error.date": "The date could not be loaded correctly.\nPlease update this in the settings under the section \"Last Time Reminded!\"",
 	".error.db": "The database could not be opened.",
 	".error.file-open": "The file could not be opened",
 	".error.format": "Invalid file format",

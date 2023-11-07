@@ -33,12 +33,16 @@
 			}
 		} catch (error) {
 			if (dialog) dialog.open();
-			err = error_msg(JSON.parse(error as string));
+			try {
+				err = error_msg(JSON.parse(error as string));
+			} catch {
+				err = error_msg(undefined);
+			}
 			throw error;
 		}
 	}
 
-	function error_msg(string: string): string {
+	function error_msg(string: string | undefined): string {
 		switch (string) {
 			case "Arguments":
 				return ".error.input";

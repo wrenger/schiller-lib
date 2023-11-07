@@ -24,6 +24,21 @@
 	let r: Request;
 	let editDialog: EditCategories;
 
+	settingsGlobal.subscribe((s) => {
+		dnb_token = s.dnb_token;
+		borrowing_duration = s.borrowing_duration;
+		mail_last_reminder = s.mail_last_reminder;
+		mail_from = s.mail_from;
+		mail_host = s.mail_host;
+		mail_password = s.mail_password;
+		mail_info_subject = s.mail_info_subject;
+		mail_info_content = s.mail_info_content;
+		mail_overdue_subject = s.mail_overdue_subject;
+		mail_overdue_content = s.mail_overdue_content;
+		mail_overdue2_subject = s.mail_overdue2_subject;
+		mail_overdue2_content = s.mail_overdue2_content;
+	});
+
 	async function update() {
 		// get settings
 		let data = await r.request("api/settings", "GET", null);
@@ -33,7 +48,7 @@
 			dnb_token = data.dnb_token ? data.dnb_token : "";
 			mail_last_reminder = data.mail_last_reminder
 				? DateTime.fromISO(data.mail_last_reminder)
-				: DateTime.now();
+				: DateTime.fromISO("");
 			mail_from = data.mail_from ? data.mail_from : "";
 			mail_host = data.mail_host ? data.mail_host : "";
 			mail_password = data.mail_password ? data.mail_password : "";
