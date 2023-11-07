@@ -37,7 +37,7 @@
 	}
 </script>
 
-<h5 class="mb-2 mt-2">{$_(".pref.appearance.title")}</h5>
+<h5 class="mb-2">{$_(".pref.appearance.title")}</h5>
 <div class="form-check">
 	<input
 		bind:group={theme}

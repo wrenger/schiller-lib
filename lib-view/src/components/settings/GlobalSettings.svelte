@@ -177,7 +177,7 @@
 
 <EditCategories bind:this={editDialog} />
 
-<h5 class="mb-2 mt-2">{$_(".pref.database.header")}</h5>
+<h5 class="mb-2">{$_(".pref.database.header")}</h5>
 <div class="form">
 	<button type="button" class="btn btn-secondary" on:click={() => editDialog.open()}
 		>{$_(".category.edit")}</button
@@ -283,10 +283,8 @@
 					bind:value={mail_info_subject}
 				/>
 			</div>
-			<div class="mb-3">
-				<label for="infoCon" class="form-label">{$_(".mail.label.content")}</label>
-				<textarea class="form-control" id="infoCon" rows="6" bind:value={mail_info_content} />
-			</div>
+			<label for="infoCon" class="form-label">{$_(".mail.label.content")}</label>
+			<textarea class="form-control" id="infoCon" rows="6" bind:value={mail_info_content} />
 		</div>
 		<div
 			class="tab-pane fade"
@@ -305,10 +303,8 @@
 					bind:value={mail_overdue_subject}
 				/>
 			</div>
-			<div class="mb-3">
-				<label for="overCon" class="form-label">{$_(".mail.label.content")}</label>
-				<textarea class="form-control" id="overCon" rows="6" bind:value={mail_overdue_content} />
-			</div>
+			<label for="overCon" class="form-label">{$_(".mail.label.content")}</label>
+			<textarea class="form-control" id="overCon" rows="6" bind:value={mail_overdue_content} />
 		</div>
 		<div
 			class="tab-pane fade"
@@ -327,10 +323,8 @@
 					bind:value={mail_overdue2_subject}
 				/>
 			</div>
-			<div class="mb-3">
-				<label for="overCon2" class="form-label">{$_(".mail.label.content")}</label>
-				<textarea class="form-control" id="overCon2" rows="6" bind:value={mail_overdue2_content} />
-			</div>
+			<label for="overCon2" class="form-label">{$_(".mail.label.content")}</label>
+			<textarea class="form-control" id="overCon2" rows="6" bind:value={mail_overdue2_content} />
 		</div>
 	</div>
 </div>
