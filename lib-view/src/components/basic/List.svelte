@@ -49,7 +49,9 @@
 		listLoaded = false;
 
 		promise.then(() => {
-			requestAnimationFrame(() => ul.scrollTo(0, scrollPosition));
+			requestAnimationFrame(() => {
+				if (ul) ul.scrollTo(0, scrollPosition);
+			});
 		});
 	}
 

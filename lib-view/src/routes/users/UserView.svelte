@@ -94,9 +94,9 @@
 			role,
 			may_borrow
 		};
+		if (reload) await reload();
 		editable = false;
 		isNew = false;
-		if (reload) await reload();
 	}
 </script>
 

@@ -85,7 +85,7 @@
 			publisher = "";
 			authors = "";
 			costs = 0;
-			year = 2023;
+			year = DateTime.now().year;
 			category = "None";
 			note = "";
 			borrowable = true;
