@@ -15,6 +15,14 @@
 
 <label for="select-{label}" class="form-label">{label}</label>
 <div class="input-group mb-3" id="select-{label}">
+	<input
+		type="text"
+		class="form-control"
+		{placeholder}
+		aria-label={placeholder}
+		readonly={!editable}
+		bind:value
+	/>
 	<button
 		id="select-button"
 		class="btn btn-outline-secondary dropdown-toggle hide-arrow"
@@ -49,14 +57,6 @@
 			{/each}
 		{/await}
 	</ul>
-	<input
-		type="text"
-		class="form-control"
-		{placeholder}
-		aria-label={placeholder}
-		readonly={!editable}
-		bind:value
-	/>
 </div>
 
 <style>
