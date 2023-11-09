@@ -103,7 +103,7 @@
 	</span>
 </Dialog>
 
-<Dialog bind:this={errDialog}>
-	<span slot="header"><h5 class="mb-0">{$_(".alert.error")}</h5></span>
-	<span slot="body">{$_(".error.date")}</span>
+<Dialog bind:this={errDialog} min={"fit"} size={"small"}>
+	<h5 slot="header" class="mb-0">{$_(".alert.error")}</h5>
+	<span slot="body"><p class="m-0 fs-6">{$_(".error.date")}</p></span>
 </Dialog>

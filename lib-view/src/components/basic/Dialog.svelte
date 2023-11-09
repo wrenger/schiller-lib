@@ -59,7 +59,7 @@
 		height: 100%;
 	}
 	.custom-dialog.small {
-		width: 20rem;
+		width: 25rem;
 	}
 	.custom-dialog.medium {
 		width: 50rem;
