@@ -26,7 +26,7 @@
 	<div class="card mb-2">
 		{#await session}
 			<div class="card-header">{$_(".action.load")}...</div>
-			<div class="d-flex justify-content-center">
+			<div class="card-body d-flex justify-content-center">
 				<div class="spinner-grow" role="status">
 					<span class="visually-hidden">Loading...</span>
 				</div>
@@ -46,7 +46,7 @@
 			<div class="card h-100">
 				{#await stats}
 					<div class="card-header">{$_(".action.load")}...</div>
-					<div class="d-flex justify-content-center">
+					<div class="card-body d-flex justify-content-center">
 						<div class="spinner-grow" role="status">
 							<span class="visually-hidden">Loading...</span>
 						</div>
@@ -69,7 +69,7 @@
 			<div class="card h-100">
 				{#await about}
 					<div class="card-header">{$_(".action.load")}...</div>
-					<div class="d-flex justify-content-center">
+					<div class="card-body d-flex justify-content-center">
 						<div class="spinner-grow" role="status">
 							<span class="visually-hidden">Loading...</span>
 						</div>
