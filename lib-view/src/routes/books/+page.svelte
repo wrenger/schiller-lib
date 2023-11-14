@@ -9,19 +9,18 @@
 	let params: BookParams;
 	let active: Book | null;
 	let isNew: boolean;
-	let promise: Promise<any>;
+	let promise: Promise<Book[]>;
 	let list: BookList;
 	let r: Request;
 
-	$: if (params != undefined)
-		promise = r.request(
-			`api/book?query=${params?.input}${
-				params?.category != null ? `&category=${params?.category}` : ""
-			}${params?.status ? `&state=${params?.status}` : ""}
-			&limit=250`,
-			"GET",
-			null
-		);
+	$: if (params != undefined) {
+		promise = r.get<Book[]>("api/book", {
+			query: params.input,
+			category: params.category,
+			state: params.status,
+			limit: 250
+		});
+	}
 </script>
 
 <svelte:head>

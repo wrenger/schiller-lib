@@ -5,6 +5,20 @@
 	let dialog: Dialog;
 	let err: string;
 
+	/** Safely create a valid query string from the provided query parameters */
+	function query_str(params: Record<string, any>): string {
+		if (params) {
+			let data: Record<string, string> = {};
+			for (let key in params) {
+				if (params[key] != undefined && params[key] != null) data[key] = params[key].toString();
+			}
+			// the URLSearchParams escapes any problematic values
+			return "?" + new URLSearchParams(data).toString();
+		}
+		return "";
+	}
+
+	/** @deprecated Use get/post/del instead! */
 	export async function request(
 		url: string,
 		type: string,
@@ -42,7 +56,55 @@
 		}
 	}
 
-	function error_msg(string: string | undefined): string {
+	/** Fetches the data, throwing an exception if something went wrong */
+	export async function get<T>(url: string, query: Record<string, any>): Promise<T> {
+		try {
+			let response = await fetch(url + query_str(query), { method: "GET" });
+			if (response.ok) return (await response.json()) as T;
+
+			throw await response.json();
+		} catch (error) {
+			if (dialog) dialog.open();
+			err = error_msg(error);
+			throw error;
+		}
+	}
+
+	/** Posts/updates the data, throwing an exception if something went wrong */
+	export async function post(data: any, url: string, query: Record<string, any>): Promise<void> {
+		try {
+			let response = await fetch(url + query_str(query), {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json; charset=utf-8"
+				},
+				body: JSON.stringify(data)
+			});
+			if (response.ok) return;
+
+			throw await response.json();
+		} catch (error) {
+			if (dialog) dialog.open();
+			err = error_msg(error);
+			throw error;
+		}
+	}
+
+	/** Deletes the data, throwing an exception if something went wrong */
+	export async function del(url: string, query: Record<string, any>): Promise<void> {
+		try {
+			let response = await fetch(url + query_str(query), { method: "DELETE" });
+			if (response.ok) return;
+
+			throw await response.json();
+		} catch (error) {
+			if (dialog) dialog.open();
+			err = error_msg(error);
+			throw error;
+		}
+	}
+
+	function error_msg(string: any): string {
 		switch (string) {
 			case "Arguments":
 				return ".error.input";
