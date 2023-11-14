@@ -1,9 +1,9 @@
-use serde::{de::Visitor, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::error::{Error, Result};
 
-use super::{DBIter, Database, FromRow};
+use super::{collect_rows, Database, FromRow};
 
 /// Data object for book.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -77,95 +77,6 @@ impl Default for BookSearch {
     }
 }
 
-/// Book advanced search parameters
-#[derive(Debug, Clone, Deserialize)]
-#[serde(default)]
-pub struct BookAdvancedSearch {
-    id: String,
-    isbn: String,
-    title: String,
-    publisher: String,
-    authors: String,
-    year: YearRange,
-    category: String,
-    note: String,
-    user: String,
-    state: BookState,
-    offset: usize,
-    limit: usize,
-}
-
-impl Default for BookAdvancedSearch {
-    fn default() -> Self {
-        Self {
-            id: Default::default(),
-            isbn: Default::default(),
-            title: Default::default(),
-            publisher: Default::default(),
-            authors: Default::default(),
-            year: Default::default(),
-            category: Default::default(),
-            note: Default::default(),
-            user: Default::default(),
-            state: Default::default(),
-            offset: 0,
-            limit: 100,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-struct YearRange(u16, u16);
-
-impl Default for YearRange {
-    fn default() -> Self {
-        Self(0, u16::MAX)
-    }
-}
-
-impl<'i> Deserialize<'i> for YearRange {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'i>,
-    {
-        deserializer.deserialize_string(YearRangeVisitor)
-    }
-}
-
-struct YearRangeVisitor;
-
-impl<'de> Visitor<'de> for YearRangeVisitor {
-    type Value = YearRange;
-
-    fn visit_string<E>(self, v: String) -> std::result::Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        self.visit_str(&v)
-    }
-
-    fn visit_str<E>(self, v: &str) -> std::result::Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        let str = v.trim();
-        if str.is_empty() {
-            Ok(YearRange::default())
-        } else if let Some((start, end)) = str.split_once('-') {
-            let start = start.trim().parse().unwrap_or_default();
-            let end = end.trim().parse().unwrap_or(u16::MAX);
-            Ok(YearRange(start, end))
-        } else {
-            let year = str.trim().parse().unwrap_or_default();
-            Ok(YearRange(year, year))
-        }
-    }
-
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        formatter.write_str("two years divided by a minus")
-    }
-}
-
 #[repr(i64)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BookState {
@@ -217,7 +128,7 @@ pub fn fetch(db: &Database, id: &str) -> Result<Book> {
 }
 
 /// Performs a simple media search with the given `text`.
-pub fn search(db: &Database, params: &BookSearch) -> Result<Vec<Book>> {
+pub fn search(db: &Database, params: &BookSearch) -> Result<(usize, Vec<Book>)> {
     let mut stmt = db.con.prepare(
         "SELECT \
         id, \
@@ -229,32 +140,35 @@ pub fn search(db: &Database, params: &BookSearch) -> Result<Vec<Book>> {
         note, \
         borrowable, \
         category, \
-        IFNULL(GROUP_CONCAT(author.name), '') as authors, \
+        ifnull(group_concat(author.name), '') as authors, \
         borrower, \
         deadline, \
-        reservation \
+        reservation, \
+        count(*) over() as total_count \
         \
-        FROM medium \
-        LEFT JOIN author ON author.medium = id \
-        GROUP BY id \
-        HAVING (title LIKE '%' || ?1 || '%' \
-            OR id LIKE '%' || ?1 || '%' \
-            OR isbn LIKE '%' || ?1 || '%' \
-            OR publisher LIKE '%' || ?1 || '%' \
-            OR note LIKE '%' || ?1 || '%' \
-            OR authors LIKE '%' || ?1 || '%' \
-            OR borrower LIKE ?1 \
-            OR reservation LIKE ?1) \
-            and category LIKE ?2 \
-            and borrowable LIKE ?3 \
-            and (borrower != '') LIKE ?4 \
-            and (reservation != '') LIKE ?5 \
-        ORDER BY CASE \
-            WHEN title LIKE ?1 || '%' THEN 0 \
-            WHEN title LIKE '%' || ?1 || '%' THEN 1 \
-            ELSE 2 \
-        END ASC, LOWER(title) ASC \
-        LIMIT ?6 OFFSET ?7",
+        from medium \
+        left join author on author.medium=id \
+        group by id \
+        having (title like '%'||?1||'%' \
+            or id like '%' || ?1 || '%' \
+            or isbn like '%' || ?1 || '%' \
+            or publisher like '%' || ?1 || '%' \
+            or note like '%' || ?1 || '%' \
+            or authors like '%' || ?1 || '%' \
+            or borrower like ?1 \
+            or reservation like ?1) \
+            and category like ?2 \
+            and borrowable like ?3 \
+            and (borrower != '') like ?4 \
+            and (reservation != '') like ?5 \
+        order by \
+            case \
+                when title like ?1||'%' then 0 \
+                when title like '%'||?1||'%' then 1 \
+                else 2 \
+            end asc, \
+            lower(title) asc \
+        limit ?6 offset ?7",
     )?;
 
     let rows = stmt.query(rusqlite::params![
@@ -277,71 +191,7 @@ pub fn search(db: &Database, params: &BookSearch) -> Result<Vec<Book>> {
         params.offset,
     ])?;
 
-    DBIter::new(rows).collect()
-}
-
-/// Performs an advanced media search with the given search parameters.
-pub fn search_advanced(db: &Database, params: &BookAdvancedSearch) -> Result<Vec<Book>> {
-    let mut stmt = db.con.prepare(
-        "select \
-        id, \
-        isbn, \
-        title, \
-        publisher, \
-        year, \
-        costs, \
-        note, \
-        borrowable, \
-        category, \
-        ifnull(group_concat(author.name),'') as authors, \
-        borrower, \
-        deadline, \
-        reservation \
-        \
-        from medium \
-        left join author on author.medium=id \
-        group by id \
-        having id like '%'||?||'%' \
-        and isbn like '%'||?||'%' \
-        and title like '%'||?||'%' \
-        and publisher like '%'||?||'%' \
-        and authors like '%'||?||'%' \
-        and year between ? and ? \
-        and category like ? \
-        and note like '%'||?||'%' \
-        and (borrower like '%'||?||'%' or reservation like '%'||?||'%') \
-        and borrowable like ? \
-        limit ? offset ?",
-    )?;
-    let user = params.user.trim();
-    let user = if !user.is_empty() {
-        user
-    } else if params.state == BookState::Borrowed || params.state == BookState::Reserved {
-        "_%"
-    } else {
-        "%"
-    };
-    let rows = stmt.query(rusqlite::params![
-        params.id.trim(),
-        params.isbn.trim(),
-        params.title.trim(),
-        params.publisher.trim(),
-        params.authors.trim(),
-        params.year.0,
-        params.year.1,
-        params.category.trim(),
-        params.note.trim(),
-        user,
-        user,
-        match params.state {
-            BookState::Borrowable => "1",
-            BookState::NotBorrowable => "0",
-            _ => "%",
-        },
-        params.limit,
-        params.offset,
-    ])?;
-    DBIter::new(rows).collect()
+    collect_rows(rows)
 }
 
 /// Adds a new book.
@@ -507,6 +357,8 @@ fn id_prefix(author: &str, category: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use crate::logging;
+
     use super::super::*;
     use super::*;
 
@@ -527,6 +379,8 @@ mod tests {
 
     #[test]
     fn add_update_remove_book() {
+        logging();
+
         let db = Database::memory().unwrap();
         structure::create(&db, PKG_VERSION).unwrap();
 
@@ -539,7 +393,7 @@ mod tests {
                 }
             )
             .unwrap()
-            .len(),
+            .0,
             0
         );
 
@@ -567,7 +421,8 @@ mod tests {
                 ..BookSearch::default()
             },
         )
-        .unwrap()[0];
+        .unwrap()
+        .1[0];
         assert_eq!(&book, db_book);
 
         // Update book
@@ -588,7 +443,8 @@ mod tests {
                 ..BookSearch::default()
             },
         )
-        .unwrap()[0];
+        .unwrap()
+        .1[0];
         assert_eq!(db_book.title, "Another Title");
 
         // Remove book
@@ -603,7 +459,7 @@ mod tests {
                 }
             )
             .unwrap()
-            .len(),
+            .0,
             0
         );
     }

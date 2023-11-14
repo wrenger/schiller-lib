@@ -5,17 +5,18 @@ use std::ptr::addr_of;
 use crate::error::{Error, Result};
 
 pub mod book;
-pub use book::{Book, BookAdvancedSearch, BookSearch, BookState};
+pub use book::{Book, BookSearch, BookState};
 pub mod category;
 pub use category::Category;
 pub mod lending;
 pub mod settings;
+use serde::Serialize;
 pub use settings::Settings;
 pub mod stats;
 pub use stats::Stats;
 pub mod structure;
 pub mod user;
-pub use user::{User, UserAdvancedSearch, UserSearch};
+pub use user::{User, UserSearch};
 
 use super::PKG_VERSION;
 
@@ -110,4 +111,17 @@ impl<'a, T: FromRow> Iterator for DBIter<'a, T> {
             Err(e) => Some(Err(e.into())),
         }
     }
+}
+
+/// Collect the rows into a vector and extract the total number of rows (column named 'total_count')
+pub fn collect_rows<T: FromRow + Serialize>(mut rows: rusqlite::Rows) -> Result<(usize, Vec<T>)> {
+    let mut items = Vec::new();
+    let mut total_count = 0;
+    while let Some(next) = rows.next()? {
+        if total_count == 0 {
+            total_count = next.get("total_count").unwrap_or(1);
+        }
+        items.push(T::from_row(next)?);
+    }
+    Ok((total_count, items))
 }

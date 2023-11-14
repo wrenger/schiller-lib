@@ -297,13 +297,10 @@ fn unix_secs() -> u64 {
 
 #[cfg(test)]
 mod test {
-    use crate::logging;
-
     use super::Session;
 
     #[test]
     fn session() {
-        logging();
         let session = Session::new();
         let cookie = session.to_cookie();
         let parsed = Session::from_cookie(&cookie).unwrap();

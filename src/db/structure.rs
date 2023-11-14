@@ -194,7 +194,7 @@ mod tests {
         let db = Database::memory().unwrap();
         structure::create(&db, PKG_VERSION).unwrap();
 
-        let books = book::search(
+        let (_, books) = book::search(
             &db,
             &BookSearch {
                 query: "".to_owned(),
@@ -203,7 +203,7 @@ mod tests {
         )
         .unwrap();
         assert!(books.is_empty());
-        let users = user::search(
+        let (_, users) = user::search(
             &db,
             &UserSearch {
                 query: "".to_owned(),

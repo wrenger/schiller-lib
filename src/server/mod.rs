@@ -6,7 +6,7 @@ use axum::error_handling::HandleErrorLayer;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::middleware::from_extractor_with_state;
-use axum::response::{IntoResponse, Redirect, Response};
+use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
 use axum_server::tls_rustls::RustlsConfig;

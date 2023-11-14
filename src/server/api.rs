@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex, MutexGuard};
 
 use axum::extract::{FromRef, Path, Query, State};
 use axum::middleware::from_extractor_with_state;
-use axum::routing::{get, patch, post};
+use axum::routing::{get, post};
 use axum::{Json, Router};
 use hyper::StatusCode;
 use reqwest::Client;
@@ -58,32 +58,30 @@ pub fn routes(state: Project) -> Router {
         .route("/book", get(book_search).post(book_add))
         .route(
             "/book/:id",
-            get(book_fetch).patch(book_update).delete(book_delete),
+            get(book_fetch).post(book_update).delete(book_delete),
         )
-        .route("/book-search", get(book_search_advanced))
         .route("/book-id", post(book_generate_id))
         .route("/book-fetch/:isbn", get(book_fetch_data))
         // user
         .route("/user", get(user_search).post(user_add))
         .route(
             "/user/:account",
-            get(user_fetch).patch(user_update).delete(user_delete),
+            get(user_fetch).post(user_update).delete(user_delete),
         )
-        .route("/user-search", get(user_search_advanced))
         .route("/user-fetch/:account", get(user_fetch_data))
-        .route("/user-update-roles", patch(user_update_roles))
+        .route("/user-update-roles", post(user_update_roles))
         // category
         .route("/category", get(category_list).post(category_add))
         .route(
             "/category/:id",
-            patch(category_update).delete(category_delete),
+            post(category_update).delete(category_delete),
         )
         .route("/category-refs/:id", get(category_references))
         // lending
-        .route("/lending/lend", patch(lending_lend))
-        .route("/lending/return", patch(lending_return))
-        .route("/lending/reserve", patch(lending_reserve))
-        .route("/lending/release", patch(lending_release))
+        .route("/lending/lend", post(lending_lend))
+        .route("/lending/return", post(lending_return))
+        .route("/lending/reserve", post(lending_reserve))
+        .route("/lending/release", post(lending_release))
         .route("/overdues", get(lending_overdues))
         // mail
         .route("/notify", post(mail_notify))
@@ -171,20 +169,28 @@ impl Default for SimpleSearch {
     }
 }
 
+/// Search result containting the total number of found records.
+#[derive(Serialize)]
+struct SearchResult<T: Serialize> {
+    /// Total number of results (without limit)
+    total_count: usize,
+    rows: Vec<T>,
+}
+impl<T: Serialize> From<(usize, Vec<T>)> for SearchResult<T> {
+    fn from(value: (usize, Vec<T>)) -> Self {
+        SearchResult {
+            total_count: value.0,
+            rows: value.1,
+        }
+    }
+}
+
 /// Preforms a simple media search with the given `query`.
 async fn book_search(
     State(project): State<Project>,
     Query(params): Query<db::BookSearch>,
-) -> Result<Json<Vec<db::book::Book>>> {
-    Ok(Json(db::book::search(&project.db(), &params)?))
-}
-
-// /// Performs an advanced media search with the given search parameters.
-async fn book_search_advanced(
-    State(project): State<Project>,
-    Query(params): Query<db::BookAdvancedSearch>,
-) -> Result<Json<Vec<db::book::Book>>> {
-    Ok(Json(db::book::search_advanced(&project.db(), &params)?))
+) -> Result<Json<SearchResult<db::Book>>> {
+    Ok(Json(db::book::search(&project.db(), &params)?.into()))
 }
 
 /// Adds a new book.
@@ -241,16 +247,8 @@ async fn user_fetch(
 async fn user_search(
     State(project): State<Project>,
     Query(params): Query<UserSearch>,
-) -> Result<Json<Vec<db::user::User>>> {
-    Ok(Json(db::user::search(&project.db(), &params)?))
-}
-
-/// Performs a simple user search with the given `text`.
-async fn user_search_advanced(
-    State(project): State<Project>,
-    Query(params): Query<db::UserAdvancedSearch>,
-) -> Result<Json<Vec<db::user::User>>> {
-    Ok(Json(db::user::search_advanced(&project.db(), &params)?))
+) -> Result<Json<SearchResult<db::User>>> {
+    Ok(Json(db::user::search(&project.db(), &params)?.into()))
 }
 
 /// Adds a new user.
