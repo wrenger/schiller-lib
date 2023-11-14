@@ -2,17 +2,18 @@
 	import { _, date } from "svelte-i18n";
 	import Request from "../../components/basic/Request.svelte";
 	import { onMount } from "svelte";
+	import api from "$lib/api";
 
 	let r: Request;
 
-	let stats: Promise<any>;
-	let session: Promise<any>;
-	let about: Promise<any>;
+	let stats: Promise<api.Stats>;
+	let session: Promise<api.Session>;
+	let about: Promise<api.About>;
 
 	onMount(() => {
-		session = r.request("api/session", "GET", null);
-		stats = r.request("api/stats", "GET", null);
-		about = r.request("api/about", "GET", null);
+		session = api.session();
+		stats = api.stats();
+		about = api.about();
 	});
 </script>
 
@@ -55,7 +56,7 @@
 					{#if data}
 						<div class="card-header">{$_(".info.stats")}</div>
 						<ul class="list-group list-group-flush">
-							{#each Object.keys(data) as key (key)}
+							{#each api.keys(data) as key (key)}
 								<li class="list-group-item">
 									{$_(`.info.${key}`, { values: { "0": data[key] } })}
 								</li>
