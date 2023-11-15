@@ -203,6 +203,7 @@
 			type="button"
 			aria-expanded="false"
 			title={$_(".action.edit")}
+			disabled={!book}
 			on:click={() => {
 				editable = true;
 				isNew = false;
@@ -216,7 +217,7 @@
 			type="button"
 			aria-expanded="false"
 			title={$_(".action.close")}
-			on:click={async () => {
+			on:click={() => {
 				book = null;
 				isNew = false;
 				editable = false;
