@@ -28,17 +28,17 @@
 			</div>
 			<div class="offcanvas-body">
 				<div class="navbar-nav flex-grow-1 pe-3">
-					<a class={$page.url.pathname === "/books" ? "nav-link active" : "nav-link"} href="/books"
+					<a class={"nav-link"} class:active={$page.url.pathname === "/books"} href="/books"
 						>{$_(".search.book")}</a
 					>
-					<a class={$page.url.pathname === "/users" ? "nav-link active" : "nav-link"} href="/users"
+					<a class={"nav-link"} class:active={$page.url.pathname === "/users"} href="/users"
 						>{$_(".search.user")}</a
 					>
 					<a
-						class={$page.url.pathname === "/overdues" ? "nav-link active" : "nav-link"}
+						class={"nav-link"} class:active={$page.url.pathname === "/overdues"}
 						href="/overdues">{$_(".book.overdues")}</a
 					>
-					<a class={$page.url.pathname === "/info" ? "nav-link active" : "nav-link"} href="/info"
+					<a class={"nav-link"} class:active={$page.url.pathname === "/info"} href="/info"
 						>{$_(".alert.info")}</a
 					>
 				</div>

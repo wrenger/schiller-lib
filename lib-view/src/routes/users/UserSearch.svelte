@@ -1,31 +1,17 @@
 <script lang="ts">
-	import { goto } from "$app/navigation";
 	import { page } from "$app/stores";
+	import { _ } from "svelte-i18n";
 	import type api from "$lib/api";
 
-	import { _ } from "svelte-i18n";
+	let input: string = $page.url.searchParams.get("search") || "";
 
-	export let params: api.UserSearch = {};
-
-	let input: string;
-	let permission: boolean;
-
-	input = $page.url.searchParams.get("i") || "";
-	params.query = input;
+	export let params: api.UserSearch = { query: input };
 
 	let timer: NodeJS.Timeout | null = null;
 
 	function handleInputDelayed() {
-		if (timer) {
-			clearTimeout(timer);
-		}
-		timer = setTimeout(() => {
-			params.query = input;
-			goto(`/users${params.query.trim() ? `?i=${params.query}` : ""}`, {
-				replaceState: false,
-				keepFocus: true
-			});
-		}, 500);
+		if (timer) clearTimeout(timer);
+		timer = setTimeout(() => (params.query = input), 500);
 	}
 </script>
 
@@ -59,8 +45,7 @@
 					id="select"
 					class="form-select"
 					aria-label={$_(".search.advanced")}
-					bind:value={permission}
-					on:change={() => (params.may_borrow = permission)}
+					bind:value={params.may_borrow}
 				>
 					<option value={null} selected>{$_(".action.select")}</option>
 					<option value={true}>{$_(".user.may-borrow")}</option>

@@ -193,59 +193,56 @@
 			<label class="form-check-label" for="may_borrow">{$_(".user.may-borrow")}</label>
 		</div>
 	</div>
-
-	{#if editable}
-		<button
-			id="user-abort-button"
-			type="button"
-			class="btn btn-outline-secondary mt-2"
-			on:click={() => {
-				setUser(user);
-				editable = false;
-				isNew = false;
-			}}
-		>
-			{$_(".action.cancel")}
-		</button>
-		{#if isNew}
-			<button
-				id="user-add-button"
-				class="btn btn-outline-primary mt-2"
-				type="button"
-				on:click={() => (addResponse = add())}
-			>
-				<Spinner response={addResponse} />
-				{$_(".action.add")}
-			</button>
-		{:else}
-			<button
-				id="user-confirm-button"
-				type="button"
-				class="btn btn-outline-primary mt-2"
-				on:click={() => (editResponse = edit())}
-			>
-				<Spinner response={editResponse} />
-				{$_(".action.apply")}
-			</button>
-			<button
-				id="del"
-				class="btn btn-outline-danger mt-2"
-				type="button"
-				aria-expanded="false"
-				on:click={async () => (deleteResponse = del())}
-			>
-				<Spinner response={deleteResponse} />
-				{$_(".action.delete")}</button
-			>
-		{/if}
-	{:else}
-		<a
-			id="del"
-			class="btn btn-outline-primary mt-2"
-			type="button"
-			aria-expanded="false"
-			hidden={!(!editable && !isNew)}
-			href="/books?i={account}">{$_(".user.books")}</a
-		>
-	{/if}
+	<button
+		id="user-abort-button"
+		type="button"
+		class="btn btn-outline-secondary mt-2"
+		hidden={!editable}
+		on:click={() => {
+			setUser(user);
+			editable = false;
+			isNew = false;
+		}}
+	>
+		{$_(".action.cancel")}
+	</button>
+	<button
+		id="user-add-button"
+		class="btn btn-outline-primary mt-2"
+		type="button"
+		hidden={!(editable && isNew)}
+		on:click={() => (addResponse = add())}
+	>
+		<Spinner response={addResponse} />
+		{$_(".action.add")}
+	</button>
+	<button
+		id="user-confirm-button"
+		type="button"
+		class="btn btn-outline-primary mt-2"
+		hidden={!(editable && !isNew)}
+		on:click={() => (editResponse = edit())}
+	>
+		<Spinner response={editResponse} />
+		{$_(".action.apply")}
+	</button>
+	<button
+		id="del"
+		class="btn btn-outline-danger mt-2"
+		type="button"
+		aria-expanded="false"
+		hidden={!(editable && !isNew)}
+		on:click={async () => (deleteResponse = del())}
+	>
+		<Spinner response={deleteResponse} />
+		{$_(".action.delete")}</button
+	>
+	<a
+		id="del"
+		class="btn btn-outline-primary mt-2"
+		type="button"
+		aria-expanded="false"
+		hidden={!(!editable && !isNew)}
+		href="/books?{new URLSearchParams({ search: account })}">{$_(".user.books")}</a
+	>
 {/if}

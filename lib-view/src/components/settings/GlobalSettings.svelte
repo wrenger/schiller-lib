@@ -75,7 +75,7 @@
 		});
 
 		// get categories
-		let data2 = await api.category_list();
+		let data2 = await api.categories();
 
 		if (data2) category.set(data2);
 	}

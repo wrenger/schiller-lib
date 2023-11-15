@@ -126,10 +126,6 @@ namespace api {
 		await post(settings, "api/settings");
 	}
 
-	export async function loadMore(url: string, query: Record<string, any>): Promise<Limited<any>> {
-		return get(url, query);
-	}
-
 	// -------------------------------------------------------------------------
 	// Book
 	// -------------------------------------------------------------------------
@@ -186,7 +182,7 @@ namespace api {
 	// Category
 	// -------------------------------------------------------------------------
 
-	export async function category_list(): Promise<Category[]> {
+	export async function categories(): Promise<Category[]> {
 		return get("api/category");
 	}
 	export async function category_add(category: Category) {
@@ -206,7 +202,7 @@ namespace api {
 	export async function lend(id: string, account: string, deadline: string) {
 		await post({}, "api/lending/lend", { id, account, deadline });
 	}
-	export async function ret(id: string) {
+	export async function return_back(id: string) {
 		await post({}, "api/lending/return", { id });
 	}
 	export async function reserve(id: string, account: string) {

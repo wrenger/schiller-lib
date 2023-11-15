@@ -49,7 +49,7 @@
 				isbn = book.isbn;
 				title = book.title;
 				publisher = book.publisher;
-				authors = book.authors.join(",");
+				authors = book.authors.join(", ");
 				costs = book.costs;
 				year = book.year;
 				category = book.category;
@@ -76,43 +76,33 @@
 		}
 	}
 
-	let addResponse: Promise<any>;
-	async function add() {
-		await api.book_add({
+	function getBook(): api.Book {
+		return {
 			id,
 			isbn,
 			title,
 			publisher,
-			authors: authors.split(","),
+			authors: authors.split(",").map((a) => a.trim()),
 			costs,
 			year,
 			category,
 			note,
 			borrowable,
-			borrower: borrower ? borrower : "",
+			borrower: borrower ?? "",
 			deadline: deadline ? deadline?.toISODate() || "" : "",
-			reservation: reservation ? reservation : ""
-		});
+			reservation: reservation ?? ""
+		};
+	}
+
+	let addResponse: Promise<any>;
+	async function add() {
+		await api.book_add(getBook());
 		await onChange();
 	}
 
 	let editResponse: Promise<any>;
 	async function edit() {
-		await api.book_update(id, {
-			id,
-			isbn,
-			title,
-			publisher,
-			authors: authors.split(","),
-			costs,
-			year,
-			category,
-			note,
-			borrowable,
-			borrower: borrower ? borrower : "",
-			deadline: deadline ? deadline?.toISODate() || "" : "",
-			reservation: reservation ? reservation : ""
-		});
+		await api.book_update(id, getBook());
 		await onChange();
 	}
 
@@ -132,8 +122,8 @@
 	}
 
 	let retResponse: Promise<any>;
-	async function ret() {
-		await api.ret(id);
+	async function return_back() {
+		await api.return_back(id);
 		borrower = undefined;
 		deadline = undefined;
 		await onChange();
@@ -174,21 +164,7 @@
 	}
 
 	async function onChange() {
-		book = {
-			id,
-			isbn,
-			title,
-			publisher,
-			authors: authors.split(","),
-			costs,
-			year,
-			category,
-			note,
-			borrowable,
-			borrower: borrower || "",
-			deadline: deadline?.toISODate() || "",
-			reservation: reservation || ""
-		};
+		book = getBook();
 		if (reload) await reload();
 		editable = false;
 		isNew = false;
@@ -199,7 +175,8 @@
 	<div class="card-header d-flex justify-content-between">
 		<button
 			id="edit"
-			class="btn btn-outline-primary {editable && !isNew ? 'active' : ''}"
+			class="btn btn-outline-primary"
+			class:active={editable && !isNew}
 			type="button"
 			aria-expanded="false"
 			title={$_(".action.edit")}
@@ -245,21 +222,7 @@
 					title={$_(".book.id.action")}
 					disabled={!editable}
 					on:click={async () => {
-						id = await api.book_id({
-							id,
-							isbn,
-							title,
-							publisher,
-							authors: authors.split(","),
-							costs,
-							year,
-							category,
-							note,
-							borrowable,
-							borrower: borrower ? borrower : "",
-							deadline: deadline ? deadline?.toISODate() || "" : "",
-							reservation: reservation ? reservation : ""
-						});
+						id = await api.book_id(getBook());
 					}}
 				>
 					<i class="bi bi-arrow-repeat" />
@@ -531,7 +494,7 @@
 				class="btn btn-outline-danger mt-2"
 				type="button"
 				aria-expanded="false"
-				on:click={() => (retResponse = ret())}
+				on:click={() => (retResponse = return_back())}
 			>
 				<Spinner response={retResponse} />
 				{$_(".book.revoke")}

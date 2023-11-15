@@ -23,7 +23,7 @@
 >
 	<option selected value={null}>{$_(".action.select")}</option>
 	<option value={""}>{$_(".category.none")}</option>
-	{#each items as item}
+	{#each items as item (item.id)}
 		<option value={item.id}>{item.id} - {item.name} - {item.section}</option>
 	{/each}
 </select>

@@ -1,23 +1,18 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
+	import api from "$lib/api";
 	import Container from "../../components/basic/Container.svelte";
-	import BookList from "./BookList.svelte";
+	import List from "../../components/basic/List.svelte";
 	import BookView from "./BookView.svelte";
 	import BookSearch from "./BookSearch.svelte";
-	import api from "$lib/api";
+	import BookItem from "./BookItem.svelte";
 
 	let params: api.BookSearch;
 	let active: api.Book | null;
 	let isNew: boolean;
-	let promise: Promise<api.Limited<api.Book>>;
-	let list: BookList;
+	let list: List<api.Book> | null = null;
 
-	$: if (params != undefined) {
-		promise = api.book_search({
-			...params,
-			limit: 250
-		});
-	}
+	$: if (params) list?.reload();
 </script>
 
 <svelte:head>
@@ -28,7 +23,25 @@
 <Container>
 	<span slot="list">
 		<BookSearch bind:params />
-		<BookList bind:this={list} bind:active bind:isNew {promise} {params} />
+		<List
+			bind:this={list}
+			bind:active
+			bind:isNew
+			load={(offset, limit) => api.book_search({ ...params, offset, limit })}
+			key={(book) => book.id}
+		>
+			<div slot="header" class="card-header d-flex justify-content-between">
+				{$_(".book.title")} / {$_(".book.authors")}
+				<span>{$_(".book.id")} / {$_(".book.state")}</span>
+			</div>
+			<BookItem
+				slot="item"
+				let:item
+				book={item}
+				active={active?.id === item.id}
+				onClick={() => (active = item)}
+			/>
+		</List>
 	</span>
-	<BookView slot="view" bind:book={active} bind:isNew reload={list ? list.reload : undefined} />
+	<BookView slot="view" bind:book={active} bind:isNew reload={list?.reload} />
 </Container>

@@ -61,7 +61,7 @@
 	}
 
 	async function reload() {
-		let data: any = await api.category_list();
+		let data: any = await api.categories();
 		category.set(data);
 		selected = data.find((t: { id: any }) => t.id == selected.id) || null;
 		state.set({});

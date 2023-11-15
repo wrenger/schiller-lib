@@ -1,32 +1,18 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { page } from "$app/stores";
-	import CategorySelect from "../../components/basic/CategorySelect.svelte";
-	import { goto } from "$app/navigation";
 	import type api from "$lib/api";
+	import CategorySelect from "../../components/basic/CategorySelect.svelte";
 
-	export let params: api.BookSearch = {};
+	let input: string = $page.url.searchParams.get("search") || "";
 
-	let input: string = "";
-	let category: undefined | string = undefined;
-	let state: "None" | "Borrowable" | "NotBorrowable" | "Borrowed" | "Reserved" = "None";
+	export let params: api.BookSearch = { query: input };
 
-	input = $page.url.searchParams.get("i") || "";
-	params.query = input;
-
-	let timer: NodeJS.Timeout | null = null;
+	let timer: NodeJS.Timeout | undefined = undefined;
 
 	function handleInputDelayed() {
-		if (timer) {
-			clearTimeout(timer);
-		}
-		timer = setTimeout(() => {
-			params.query = input;
-			goto(`/books${params.query.trim() ? `?i=${params.query}` : ""}`, {
-				replaceState: false,
-				keepFocus: true
-			});
-		}, 500);
+		clearTimeout(timer);
+		timer = setTimeout(() => (params.query = input), 500);
 	}
 </script>
 
@@ -57,7 +43,7 @@
 			</li>
 			<form class="px-3 py-1" action="javascript:handleAdvanced()">
 				<div class="mb-2">
-					<CategorySelect bind:value={category} onChange={() => (params.category = category)} />
+					<CategorySelect bind:value={params.category} />
 				</div>
 			</form>
 			<li>
@@ -69,8 +55,7 @@
 						id="select"
 						class="form-select"
 						aria-label={$_(".search.advanced")}
-						bind:value={state}
-						on:change={() => (params.state = state)}
+						bind:value={params.state}
 					>
 						<option value={"None"} selected>{$_(".action.select")}</option>
 						<option value={"Borrowable"}>{$_(".book.borrowable")}</option>

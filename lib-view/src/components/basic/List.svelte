@@ -1,62 +1,67 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import api from "$lib/api";
+	import type api from "$lib/api";
 
-	export let promise: Promise<api.Limited<any>>;
-	export let url: string;
-	export let query: Record<string, any> = {};
-	export let active: any | null;
+	type T = $$Generic<{}>;
+
+	const CHUNK_SIZE: number = 250;
+
+	export let active: T | null;
 	export let isNew: boolean;
+	export let load: (offset: number, limit: number) => Promise<api.Limited<T>>;
+	export let key: (t: T) => string;
 
-	let items: api.Limited<any> | undefined = undefined;
-	let loadingMore = false;
-	let listLoaded = false;
-	let startLoading = false;
-	let scrollPosition = 0;
+	let items: T[] = [];
+	let total_count: number = 1;
 	let ul: HTMLUListElement;
 
+	let loading = false;
+	let needsReload = false;
+
 	async function loadMore() {
-		if (!loadingMore && !listLoaded && !startLoading) {
-			loadingMore = true;
-			const offset = items?.rows.length || 0;
-			try {
-				const newItems = await api.loadMore(url, { ...query, offset, limit: 250 });
-				if (newItems.rows.length === 0) {
-					listLoaded = true;
-				} else {
-					if (items) {
-						items.rows = items?.rows.concat(newItems.rows) || [];
-						items.total_count = newItems.total_count;
-					}
-					promise = items as unknown as Promise<api.Limited<any>>;
-				}
-			} catch (error) {
-				throw error;
-			} finally {
-				loadingMore = false;
+		if (!loading && items.length < total_count) {
+			loading = true;
+
+			const offset = items.length;
+			let result = await load(offset, CHUNK_SIZE);
+			total_count = result.total_count;
+			items = [...items, ...result.rows];
+
+			if (active != null) {
+				let a = active;
+				active = items.find((item) => key(a) == key(item)) || null;
 			}
+
+			if (needsReload) doReload();
+			loading = false;
 		}
 	}
 
-	export async function reloadList() {
-		scrollPosition = ul.scrollTop;
+	async function doReload() {
+		let scrollPosition = ul.scrollTop;
 
-		promise = api.loadMore(url, {
-			...query,
-			limit:
-				(Math.ceil((items?.rows.length ? items?.rows.length : 0) / 250) == 0
-					? 1
-					: Math.ceil((items?.rows.length ? items?.rows.length : 0) / 250)) * 250
+		let result = await load(0, Math.max(Math.ceil(items.length / CHUNK_SIZE) * CHUNK_SIZE, CHUNK_SIZE));
+		total_count = result.total_count;
+		items = result.rows;
+
+		if (active != null) {
+			let a = active;
+			active = items.find((item) => key(a) == key(item)) || null;
+		}
+
+		requestAnimationFrame(() => {
+			if (ul) ul.scrollTo(0, scrollPosition);
 		});
+	}
 
-		items = undefined;
-		listLoaded = false;
-
-		promise.then(() => {
-			requestAnimationFrame(() => {
-				if (ul) ul.scrollTo(0, scrollPosition);
-			});
-		});
+	export async function reload() {
+		if (loading) {
+			needsReload = true;
+		} else {
+			loading = true;
+			doReload();
+			loading = false;
+		}
 	}
 
 	function handleScroll(event: { target: any }) {
@@ -67,65 +72,19 @@
 			loadMore();
 		}
 	}
-
-	$: if (query || !query) {
-		items = undefined;
-		listLoaded = false;
-	}
-
-	$: if (promise instanceof Promise) {
-		startLoading = true;
-		promise.then((val) => {
-			then(val);
-		});
-	}
-
-	function then(val: any) {
-		items = val;
-		startLoading = false;
-		active =
-			val.rows.find(
-				(item: { id: string; account: any }) =>
-					(item.id && item.id == active?.id.trim()) ||
-					(item.account && item.account == active?.account.trim())
-			) || null;
-	}
 </script>
 
 <div class="card list">
 	<slot name="header" />
 	<ul bind:this={ul} class="list-group list-group-flush list-body" on:scroll={handleScroll}>
-		{#await promise}
-			<li class="list-group-item">
-				<div class="d-flex justify-content-center">
-					<div class="spinner-grow" role="status">
-						<span class="visually-hidden">Loading...</span>
-					</div>
-				</div>
-			</li>
-		{:then data}
-			{#if data && data.rows}
-				{#each data.rows as item (item.id ? item.id : item.account)}
-					<slot name="item" {item} class="list-group-item list-group-item-action" />
-				{:else}
-					<li class="list-group-item disabled">{$_(".error.none")}</li>
-				{/each}
-			{/if}
-			{#if loadingMore}
-				<li class="list-group-item">
-					<div class="d-flex justify-content-center">
-						<div class="spinner-grow" role="status">
-							<span class="visually-hidden">Loading...</span>
-						</div>
-					</div>
-				</li>
-			{/if}
-		{/await}
+		{#each items as item (key(item))}
+			<slot name="item" {item} class="list-group-item list-group-item-action" />
+		{:else}
+			<li class="list-group-item disabled">{$_(".error.none")}</li>
+		{/each}
 	</ul>
 	<div class="card-footer d-flex justify-content-between align-items-center">
-		{Array.isArray(items?.rows)
-			? $_(".search.results", { values: { 0: items?.rows.length, 1: items?.total_count } })
-			: `${$_(".action.load")}... `}
+		{$_(".search.results", { values: { 0: items.length, 1: total_count } })}
 		<button
 			class="btn btn-outline-primary {isNew ? 'active' : ''}"
 			type="button"
