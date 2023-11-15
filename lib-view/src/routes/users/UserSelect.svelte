@@ -41,16 +41,18 @@
 				</div>
 			</li>
 		{:then data}
-			{#each data.rows as entry}
-				<button
-					class="dropdown-item"
-					on:click={() => {
-						value = entry.account;
-					}}>{entry.account}</button
-				>
-			{:else}
-				<button class="dropdown-item" disabled>{$_(".error.none")}</button>
-			{/each}
+			{#if data && data.rows}
+				{#each data.rows as entry}
+					<button
+						class="dropdown-item"
+						on:click={() => {
+							value = entry.account;
+						}}>{entry.account}</button
+					>
+				{:else}
+					<button class="dropdown-item" disabled>{$_(".error.none")}</button>
+				{/each}
+			{/if}
 		{/await}
 	</ul>
 </div>

@@ -204,24 +204,16 @@ namespace api {
 	// -------------------------------------------------------------------------
 
 	export async function lend(id: string, account: string, deadline: string) {
-		await post(
-			{},
-			`/api/lending/lend?id=${encodeURIComponent(id)}&account=${encodeURIComponent(
-				account
-			)}&deadline=${encodeURIComponent(deadline)}`
-		);
+		await post({}, "api/lending/lend", { id, account, deadline });
 	}
 	export async function ret(id: string) {
-		await post({}, `/api/lending/return?id=${encodeURIComponent(id)}`);
+		await post({}, "api/lending/return", { id });
 	}
 	export async function reserve(id: string, account: string) {
-		await post(
-			{},
-			`/api/lending/reserve?id=${encodeURIComponent(id)}&account=${encodeURIComponent(account)}`
-		);
+		await post({}, "api/lending/reserve", { id, account });
 	}
 	export async function release(id: string) {
-		await post({}, `/api/lending/release?id=${encodeURIComponent(id)}`);
+		await post({}, "api/lending/release", { id });
 	}
 
 	// -------------------------------------------------------------------------
@@ -239,8 +231,6 @@ namespace api {
 	export async function overdues(): Promise<[Book, User][]> {
 		return get("api/overdues");
 	}
-
-	// TODO: add other routes
 
 	/** Fetches the data, throwing an exception if something went wrong */
 	async function get<T>(url: string, query: Record<string, any> = {}): Promise<T> {

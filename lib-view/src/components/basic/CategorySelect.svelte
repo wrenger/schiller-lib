@@ -2,7 +2,7 @@
 	import { _ } from "svelte-i18n";
 	import { category } from "$lib/store";
 
-	export let value: string | null = "";
+	export let value: string | null = null;
 	export let label: string | undefined = undefined;
 	export let disabled = false;
 	export var onChange: (() => void) | undefined = undefined;
