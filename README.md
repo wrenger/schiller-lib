@@ -13,7 +13,7 @@ This project is currently in a highly unstable stage due to a fundamental rework
 - [x] Server Requests -> Error Modal
 - [x] Borrowed Page
 - [x] Infos Page
-- [ ] Show total amount of Infos
+- [x] Show total amount of Infos
 - [x] Reminders Modal
 - [x] Borrow/Reserve/Extend Modal
 - [x] Books/User List with Search and Adding Button -> Set Up a Grid and Generalize
@@ -42,14 +42,19 @@ The latest builds can be downloaded from the [releases page](https://github.com/
 
 The webserver uses [Rust](https://www.rust-lang.org/learn/get-started), which has to be installed first.
 
+The frontend uses [Svelte](https://svelte.dev) and Typescript, which also have to be installed first.
+As a Package manager we would recommend using [bun](https://bun.sh/).
+
 Using cargo, the project can be built and executed:
 
 ```sh
 # generate TLS certificates with OpenSSL
 ./test/data/cert/gen.sh
 # prepare the auth.json with client_id, client_secret, auth_url, token_url, user_url
+# build the frontend in the lib-view directory
+bun run build
 # start the webserver on port 5000
-cargo run -- 127.0.0.1:5000 -d lib.db --cert test/data/cert/cert.pem --key test/data/cert/key.pem --user-file users.txt --auth auth.json
+cargo run -- 127.0.0.1:5000 -d test/data/lib.db --cert test/data/cert/cert.pem --key test/data/cert/key.pem --user-file test/data/users.txt --auth test/data/auth.json --assets lib-view/build
 ```
 
 > A new database is created if the provided path to the database is non-existent.
@@ -58,20 +63,18 @@ cargo run -- 127.0.0.1:5000 -d lib.db --cert test/data/cert/cert.pem --key test/
 
 This application follows the 3-tier principle.
 
-- **UI Layer:** This is implemented in svelte and TypeScript.
+- **UI Layer:** This is implemented in Svelte and TypeScript.
 - **Application Layer:** This is implemented in Rust using the [axum](https://github.com/tokio-rs/axum) webserver.
 It contains the business logic; most of the computation is done in this layer.
 - **Database Layer:** The SQLite database that stores the persistent data specific to a project.
 
 ### UI Layer
 
-> **TODO:** Update description
-
-The [UI](ui) is developed in Godot with GDScript for interactions and
-interfacing with the GDNative application layer.
+The [UI](lib-view) is developed in Svelte and TypeScript using
+Bootstrap with Sass to keep the size of the UI Layer as small as possible.
 
 This layer is also responsible for internationalization
-([translations.csv](translations/translations.csv)).
+([locales](lib-view/src/lib/i18n/locales/)).
 Currently, there are only two languages supported (English and German).
 Contributions for new languages or improved translations are very welcome.
 
@@ -91,6 +94,8 @@ The [SQLite](https://sqlite.org/index.html) database has the following schema:
 It contains any project-specific data and settings and can be distributed as such.
 
 ## Package & Distribute
+
+> **TODO:** Update Description
 
 After building the GDNative library, the project can be exported within the Godot editor.
 
