@@ -2,34 +2,27 @@
 	import { _ } from "svelte-i18n";
 	import Container from "../../components/basic/Container.svelte";
 	import UserList from "./UserList.svelte";
-	import UserSearch, { UserParams } from "./UserSearch.svelte";
-	import type { User } from "./UserView.svelte";
+	import UserSearch from "./UserSearch.svelte";
 	import UserView from "./UserView.svelte";
-	import Request from "../../components/basic/Request.svelte";
+	import api from "$lib/api";
 
-	let params: UserParams;
-	let active: User | null;
+	let params: api.BookSearch;
+	let active: api.User | null;
 	let isNew: boolean;
 	let promise: Promise<any>;
 	let list: UserList;
-	let r: Request;
 
 	$: if (params != undefined)
-		promise = r.request(
-			`api/user?query=${params?.input}${
-				params?.permission != null ? `&may_borrow=${params?.permission}` : ""
-			}&limit=250`,
-			"GET",
-			null
-		);
+		promise = api.user_search({
+			...params,
+			limit: 250
+		});
 </script>
 
 <svelte:head>
 	<title>{$_(".user")}</title>
 	<meta name="description" content={$_(".user")} />
 </svelte:head>
-
-<Request bind:this={r} />
 
 <Container>
 	<span slot="list">

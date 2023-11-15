@@ -1,16 +1,13 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import type { Book } from "../books/BookView.svelte";
 	import { onMount } from "svelte";
-	import Request from "../../components/basic/Request.svelte";
-	import type { User } from "../users/UserView.svelte";
 	import { DateTime } from "luxon";
+	import api from "$lib/api";
 
-	let overdoneBooks: Promise<[Book, User][]>;
-	let r: Request;
+	let overdoneBooks: Promise<[api.Book, api.User][]>;
 
 	onMount(() => {
-		overdoneBooks = r.request("api/overdues", "GET", null);
+		overdoneBooks = api.overdues();
 	});
 </script>
 
@@ -18,8 +15,6 @@
 	<title>{$_(".book.overdues")}</title>
 	<meta name="description" content={$_(".book.overdues")} />
 </svelte:head>
-
-<Request bind:this={r} />
 
 <div class="card h-100">
 	<div class="card-header d-flex justify-content-between">

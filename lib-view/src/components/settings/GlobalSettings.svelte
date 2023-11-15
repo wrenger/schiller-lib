@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { category, settingsGlobal, state } from "$lib/store";
-	import Request from "../basic/Request.svelte";
 	import { onMount } from "svelte";
 	import Spinner from "../basic/Spinner.svelte";
 	import EditCategories from "./EditCategories.svelte";
 	import DateField from "../basic/DateField.svelte";
 	import { DateTime } from "luxon";
+	import api from "$lib/api";
 
 	let borrowing_duration = 0;
 	let dnb_token = "";
@@ -21,7 +21,6 @@
 	let mail_overdue2_subject = "";
 	let mail_overdue2_content = "";
 
-	let r: Request;
 	let editDialog: EditCategories;
 
 	settingsGlobal.subscribe((s) => {
@@ -41,7 +40,7 @@
 
 	async function update() {
 		// get settings
-		let data = await r.request("api/settings", "GET", null);
+		let data = await api.settings();
 
 		if (data) {
 			borrowing_duration = data.borrowing_duration ? data.borrowing_duration : 0;
@@ -76,7 +75,7 @@
 		});
 
 		// get categories
-		let data2 = await r.request("api/category", "GET", null);
+		let data2 = await api.category_list();
 
 		if (data2) category.set(data2);
 	}
@@ -112,24 +111,20 @@
 			mail_overdue2_subject !== $settingsGlobal.mail_overdue2_subject ||
 			mail_overdue2_content !== $settingsGlobal.mail_overdue2_content
 		) {
-			await r.request(
-				"api/settings",
-				"POST",
-				JSON.stringify({
-					borrowing_duration,
-					dnb_token,
-					mail_last_reminder: mail_last_reminder ? mail_last_reminder?.toISODate() || "" : "",
-					mail_from,
-					mail_host,
-					mail_password,
-					mail_info_subject,
-					mail_info_content,
-					mail_overdue_subject,
-					mail_overdue_content,
-					mail_overdue2_subject,
-					mail_overdue2_content
-				})
-			);
+			await api.settings_update({
+				borrowing_duration,
+				dnb_token,
+				mail_last_reminder: mail_last_reminder ? mail_last_reminder?.toISODate() || "" : "",
+				mail_from,
+				mail_host,
+				mail_password,
+				mail_info_subject,
+				mail_info_content,
+				mail_overdue_subject,
+				mail_overdue_content,
+				mail_overdue2_subject,
+				mail_overdue2_content
+			});
 
 			settingsGlobal.set({
 				borrowing_duration,
@@ -168,12 +163,10 @@
 
 	let userResponse: Promise<any>;
 	async function userUpdate() {
-		await r.request("api/user-update-roles", "PATCH", null);
+		await api.user_update_roles();
 		state.set({});
 	}
 </script>
-
-<Request bind:this={r} />
 
 <EditCategories bind:this={editDialog} />
 

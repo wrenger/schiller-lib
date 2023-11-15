@@ -1,21 +1,3 @@
-<script lang="ts" context="module">
-	export class Book {
-		id!: string;
-		isbn!: string;
-		title!: string;
-		publisher!: string;
-		authors!: string[];
-		costs!: number;
-		year!: number;
-		category!: string;
-		note!: string;
-		borrowable!: boolean;
-		borrower?: string;
-		deadline?: string;
-		reservation?: string;
-	}
-</script>
-
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import Spinner from "../../components/basic/Spinner.svelte";
@@ -24,15 +6,14 @@
 	import DateField from "../../components/basic/DateField.svelte";
 	import { DateTime } from "luxon";
 	import { settingsGlobal } from "$lib/store";
-	import Request from "../../components/basic/Request.svelte";
 	import CategorySelect from "../../components/basic/CategorySelect.svelte";
+	import api from "$lib/api";
 
-	export let book: Book | null;
+	export let book: api.Book | null;
 	export let isNew: boolean = false;
 	export var reload: (() => Promise<void>) | undefined;
 
 	let editable: boolean = false;
-	let r: Request;
 
 	let lendDialog: Dialog;
 	let reserveDialog: Dialog;
@@ -61,7 +42,7 @@
 	$: if (editable || isNew || !editable || !isNew) setBook(book);
 	$: if (isNew) editable = true;
 
-	function setBook(book: Book | null) {
+	function setBook(book: api.Book | null) {
 		if (!isNew) {
 			if (book) {
 				id = book.id;
@@ -97,67 +78,53 @@
 
 	let addResponse: Promise<any>;
 	async function add() {
-		await r.request(
-			"/api/book",
-			"POST",
-			JSON.stringify({
-				id,
-				isbn,
-				title,
-				publisher,
-				authors: authors.split(","),
-				costs,
-				year,
-				category,
-				note,
-				borrowable,
-				borrower: borrower ? borrower : "",
-				deadline: deadline ? deadline?.toISODate() || "" : "",
-				reservation: reservation ? reservation : ""
-			})
-		);
+		await api.book_add({
+			id,
+			isbn,
+			title,
+			publisher,
+			authors: authors.split(","),
+			costs,
+			year,
+			category,
+			note,
+			borrowable,
+			borrower: borrower ? borrower : "",
+			deadline: deadline ? deadline?.toISODate() || "" : "",
+			reservation: reservation ? reservation : ""
+		});
 		await onChange();
 	}
 
 	let editResponse: Promise<any>;
 	async function edit() {
-		await r.request(
-			`/api/book/${book?.id}`,
-			"PATCH",
-			JSON.stringify({
-				id,
-				isbn,
-				title,
-				publisher,
-				authors: authors.split(","),
-				costs,
-				year,
-				category,
-				note,
-				borrowable,
-				borrower: borrower ? borrower : "",
-				deadline: deadline ? deadline?.toISODate() || "" : "",
-				reservation: reservation ? reservation : ""
-			})
-		);
+		await api.book_update(id, {
+			id,
+			isbn,
+			title,
+			publisher,
+			authors: authors.split(","),
+			costs,
+			year,
+			category,
+			note,
+			borrowable,
+			borrower: borrower ? borrower : "",
+			deadline: deadline ? deadline?.toISODate() || "" : "",
+			reservation: reservation ? reservation : ""
+		});
 		await onChange();
 	}
 
 	let deleteResponse: Promise<any>;
 	async function del() {
-		await r.request(`/api/book/${book?.id}`, "DELETE", null);
+		await api.book_delete(book?.id || "");
 		await onChange();
 	}
 
 	let lendResponse: Promise<any>;
 	async function lend() {
-		await r.request(
-			`/api/lending/lend?id=${id}&account=${gonnaBorrow ? gonnaBorrow : ""}&deadline=${
-				period ? period?.toISODate() || "" : ""
-			}`,
-			"PATCH",
-			null
-		);
+		await api.lend(id, gonnaBorrow ? gonnaBorrow : "", period ? period?.toISODate() || "" : "");
 		period = DateTime.local().plus({ days: $settingsGlobal.borrowing_duration });
 		reservation = "";
 		lendDialog.close();
@@ -166,7 +133,7 @@
 
 	let retResponse: Promise<any>;
 	async function ret() {
-		await r.request(`/api/lending/return?id=${id}`, "PATCH", null);
+		await api.ret(id);
 		borrower = undefined;
 		deadline = undefined;
 		await onChange();
@@ -175,36 +142,32 @@
 
 	let reserveResponse: Promise<any>;
 	async function reserve() {
-		await r.request(`/api/lending/reserve?id=${id}&account=${gonnaReserve}`, "PATCH", null);
+		await api.reserve(id, gonnaReserve || "");
 		await onChange();
 		reserveDialog.close();
 	}
 
 	let releaseResponse: Promise<any>;
 	async function release() {
-		await r.request(`/api/lending/release?id=${id}`, "PATCH", null);
+		await api.release(id);
 		await onChange();
 	}
 
 	let mailResponse: Promise<any>;
 	async function mail() {
-		let user = await r.request(`/api/user-fetch/${reservation}`, "GET", null);
+		let user = await api.user_fetch(reservation || "");
 
-		await r.request(
-			`/api/notify`,
-			"POST",
-			JSON.stringify([
-				{
-					account: reservation,
-					subject: $settingsGlobal.mail_info_subject
-						.replace(/\{booktitle\}/g, title)
-						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : ""),
-					body: $settingsGlobal.mail_info_content
-						.replace(/\{booktitle\}/g, title)
-						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : "")
-				}
-			])
-		);
+		await api.mail([
+			{
+				account: reservation || "",
+				subject: $settingsGlobal.mail_info_subject
+					.replace(/\{booktitle\}/g, title)
+					.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : ""),
+				body: $settingsGlobal.mail_info_content
+					.replace(/\{booktitle\}/g, title)
+					.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : "")
+			}
+		]);
 
 		await onChange();
 		mailDialog.close();
@@ -222,17 +185,15 @@
 			category,
 			note,
 			borrowable,
-			borrower,
-			deadline: deadline?.toISODate() || undefined,
-			reservation
+			borrower: borrower || "",
+			deadline: deadline?.toISODate() || "",
+			reservation: reservation || ""
 		};
 		if (reload) await reload();
 		editable = false;
 		isNew = false;
 	}
 </script>
-
-<Request bind:this={r} />
 
 {#if book || isNew}
 	<div class="card-header d-flex justify-content-between">
@@ -283,25 +244,21 @@
 					title={$_(".book.id.action")}
 					disabled={!editable}
 					on:click={async () => {
-						id = await r.request(
-							`/api/book-id`,
-							"POST",
-							JSON.stringify({
-								id,
-								isbn,
-								title,
-								publisher,
-								authors: authors.split(","),
-								costs,
-								year,
-								category,
-								note,
-								borrowable,
-								borrower: borrower ? borrower : "",
-								deadline: deadline ? deadline?.toISODate() || "" : "",
-								reservation: reservation ? reservation : ""
-							})
-						);
+						id = await api.book_id({
+							id,
+							isbn,
+							title,
+							publisher,
+							authors: authors.split(","),
+							costs,
+							year,
+							category,
+							note,
+							borrowable,
+							borrower: borrower ? borrower : "",
+							deadline: deadline ? deadline?.toISODate() || "" : "",
+							reservation: reservation ? reservation : ""
+						});
 					}}
 				>
 					<i class="bi bi-arrow-repeat" />
@@ -325,11 +282,11 @@
 					title={$_(".book.request")}
 					disabled={!editable}
 					on:click={async () => {
-						let data = await r.request(`/api/book-fetch/${isbn}`, "GET", null);
-						title = data.title;
-						publisher = data.publisher;
-						authors = data.authors.join(",");
-						costs = data.costs;
+						let data = await api.book_fetch(isbn);
+						title = data.title || "";
+						publisher = data.publisher || "";
+						authors = data.authors?.join(",") || "";
+						costs = data.costs || 0;
 					}}
 				>
 					<i class="bi bi-upload" />

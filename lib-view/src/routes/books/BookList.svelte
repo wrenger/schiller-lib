@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import type { Book } from "./BookView.svelte";
-	import type { BookParams } from "./BookSearch.svelte";
 	import List from "../../components/basic/List.svelte";
+	import type api from "$lib/api";
 
-	export let promise: Promise<Book[]>;
-	export let params: BookParams;
-	export let active: Book | null;
+	export let promise: Promise<api.Limited<api.Book>>;
+	export let params: api.BookSearch;
+	export let active: api.Book | null;
 	export let isNew: boolean;
 
 	let list: List;
@@ -16,15 +15,7 @@
 	}
 </script>
 
-<List
-	bind:this={list}
-	bind:active
-	bind:isNew
-	{promise}
-	req={`api/book?query=${params?.input}${
-		params?.category != null ? `&category=${params?.category}` : ""
-	}${params?.status ? `&state=${params?.status}` : ""}`}
->
+<List bind:this={list} bind:active bind:isNew {promise} url="api/book" query={params}>
 	<div slot="header" class="card-header d-flex justify-content-between">
 		{$_(".book.title")} / {$_(".book.authors")}
 		<span>{$_(".book.id")} / {$_(".book.state")}</span>

@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { DateTime } from "luxon";
-	import type { Book } from "../../routes/books/BookView.svelte";
-	import type { User } from "../../routes/users/UserView.svelte";
-	import Request from "../basic/Request.svelte";
 	import Dialog from "../basic/Dialog.svelte";
 	import { settingsGlobal, state } from "$lib/store";
 	import Spinner from "../basic/Spinner.svelte";
 	import { onMount } from "svelte";
+	import api from "$lib/api";
 
 	let mail_last_reminder: DateTime = DateTime.fromISO("");
 
@@ -18,7 +16,6 @@
 	let remDialog: Dialog;
 	let errDialog: Dialog;
 	let mounted = false;
-	let r: Request;
 
 	onMount(() => (mounted = true));
 
@@ -34,14 +31,14 @@
 
 	let remResponse: Promise<any>;
 	async function sendReminders() {
-		let overdoneBooks: [Book, User][] = await r.request("api/overdues", "GET", null);
+		let overdoneBooks: [api.Book, api.User][] = await api.overdues();
 
-		let dataToSend: {}[] = [];
+		let dataToSend: api.MailBody[] = [];
 
 		for (const [book, user] of overdoneBooks) {
 			if (-DateTime.fromISO(book.deadline ? book.deadline : "").diffNow("days").days > 14) {
 				dataToSend.push({
-					account: book.borrower,
+					account: book.borrower || "",
 					subject: $settingsGlobal.mail_overdue2_subject
 						.replace(/\{booktitle\}/g, book.title)
 						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : ""),
@@ -51,7 +48,7 @@
 				});
 			} else {
 				dataToSend.push({
-					account: book.borrower,
+					account: book.borrower || "",
 					subject: $settingsGlobal.mail_overdue_subject
 						.replace(/\{booktitle\}/g, book.title)
 						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : ""),
@@ -62,22 +59,18 @@
 			}
 		}
 
-		await r.request(`/api/notify`, "POST", JSON.stringify(dataToSend));
+		await api.mail(dataToSend);
 
-		let data = await r.request("api/settings", "GET", null);
+		let data = await api.settings();
 
-		settingsGlobal.set(data);
+		settingsGlobal.set({ ...data, mail_last_reminder: DateTime.fromISO(data.mail_last_reminder) });
 
 		mail_last_reminder = DateTime.now();
 
-		await r.request(
-			"api/settings",
-			"POST",
-			JSON.stringify({
-				...$settingsGlobal,
-				mail_last_reminder: mail_last_reminder.toISODate() || ""
-			})
-		);
+		await api.settings_update({
+			...$settingsGlobal,
+			mail_last_reminder: mail_last_reminder.toISODate() || ""
+		});
 
 		settingsGlobal.set({
 			...$settingsGlobal,
@@ -89,8 +82,6 @@
 		remDialog.close();
 	}
 </script>
-
-<Request bind:this={r} />
 
 <Dialog bind:this={remDialog}>
 	<span slot="header"><h5 class="mb-0">{$_(".alert.confirm")}</h5></span>

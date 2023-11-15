@@ -1,31 +1,37 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import Request from "./Request.svelte";
+	import api from "$lib/api";
 
-	export let promise: Promise<any[]>;
-	export let req: string;
+	export let promise: Promise<api.Limited<any>>;
+	export let url: string;
+	export let query: Record<string, any> = {};
 	export let active: any | null;
 	export let isNew: boolean;
 
-	let items: any[] | undefined = undefined;
+	let items: api.Limited<any> | undefined = undefined;
 	let loadingMore = false;
 	let listLoaded = false;
 	let startLoading = false;
 	let scrollPosition = 0;
 	let ul: HTMLUListElement;
-	let r: Request;
 
 	async function loadMore() {
 		if (!loadingMore && !listLoaded && !startLoading) {
 			loadingMore = true;
-			const offset = items?.length || 0;
+			const offset = items?.rows.length || 0;
 			try {
-				const newItems = await r.request(`${req}&offset=${offset}&limit=250`, "GET", null);
-				items = items?.concat(newItems);
-				promise = (items || []) as unknown as Promise<any[]>;
-				if (newItems?.length === 0) listLoaded = true;
+				const newItems = await api.loadMore(url, { ...query, offset, limit: 250 });
+				if (newItems.rows.length === 0) {
+					listLoaded = true;
+				} else {
+					if (items) {
+						items.rows = items?.rows.concat(newItems.rows) || [];
+						items.total_count = newItems.total_count;
+					}
+					promise = items as unknown as Promise<api.Limited<any>>;
+				}
 			} catch (error) {
-				console.error("Error loading more items", error);
+				throw error;
 			} finally {
 				loadingMore = false;
 			}
@@ -35,15 +41,13 @@
 	export async function reloadList() {
 		scrollPosition = ul.scrollTop;
 
-		promise = r.request(
-			`${req}&limit=${
-				(Math.ceil((items?.length ? items?.length : 0) / 250) == 0
+		promise = api.loadMore(url, {
+			...query,
+			limit:
+				(Math.ceil((items?.rows.length ? items?.rows.length : 0) / 250) == 0
 					? 1
-					: Math.ceil((items?.length ? items?.length : 0) / 250)) * 250
-			}`,
-			"GET",
-			null
-		);
+					: Math.ceil((items?.rows.length ? items?.rows.length : 0) / 250)) * 250
+		});
 
 		items = undefined;
 		listLoaded = false;
@@ -64,7 +68,7 @@
 		}
 	}
 
-	$: if (req || !req) {
+	$: if (query || !query) {
 		items = undefined;
 		listLoaded = false;
 	}
@@ -80,15 +84,13 @@
 		items = val;
 		startLoading = false;
 		active =
-			val.find(
+			val.rows.find(
 				(item: { id: string; account: any }) =>
 					(item.id && item.id == active?.id.trim()) ||
 					(item.account && item.account == active?.account.trim())
 			) || null;
 	}
 </script>
-
-<Request bind:this={r} />
 
 <div class="card list">
 	<slot name="header" />
@@ -102,8 +104,8 @@
 				</div>
 			</li>
 		{:then data}
-			{#if data}
-				{#each data as item (item.id ? item.id : item.account)}
+			{#if data && data.rows}
+				{#each data.rows as item (item.id ? item.id : item.account)}
 					<slot name="item" {item} class="list-group-item list-group-item-action" />
 				{:else}
 					<li class="list-group-item disabled">{$_(".error.none")}</li>
@@ -121,8 +123,8 @@
 		{/await}
 	</ul>
 	<div class="card-footer d-flex justify-content-between align-items-center">
-		{Array.isArray(items)
-			? $_(".search.results", { values: { 0: items?.length } })
+		{Array.isArray(items?.rows)
+			? $_(".search.results", { values: { 0: items?.rows.length, 1: items?.total_count } })
 			: `${$_(".action.load")}... `}
 		<button
 			class="btn btn-outline-primary {isNew ? 'active' : ''}"

@@ -1,19 +1,9 @@
-<script lang="ts" context="module">
-	export class User {
-		account!: string;
-		forename!: string;
-		surname!: string;
-		role!: string;
-		may_borrow!: boolean;
-	}
-</script>
-
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import Request from "../../components/basic/Request.svelte";
 	import Spinner from "../../components/basic/Spinner.svelte";
+	import api from "$lib/api";
 
-	export let user: User | null;
+	export let user: api.User | null;
 	export let isNew: boolean = false;
 	export var reload: (() => Promise<void>) | undefined;
 
@@ -25,12 +15,10 @@
 	let role: string = "";
 	let may_borrow: boolean = true;
 
-	let r: Request;
-
 	$: if (editable || isNew || !editable || !isNew) setUser(user);
 	$: if (isNew) editable = true;
 
-	function setUser(user: User | null) {
+	function setUser(user: api.User | null) {
 		if (!isNew) {
 			if (user) {
 				account = user.account;
@@ -50,39 +38,31 @@
 
 	let addResponse: Promise<any>;
 	async function add() {
-		await r.request(
-			"/api/user",
-			"POST",
-			JSON.stringify({
-				account,
-				forename,
-				surname,
-				role: role ? role : "-",
-				may_borrow
-			})
-		);
+		await api.user_add({
+			account,
+			forename,
+			surname,
+			role: role ? role : "-",
+			may_borrow
+		});
 		await onChange();
 	}
 
 	let editResponse: Promise<any>;
 	async function edit() {
-		await r.request(
-			`/api/user/${user?.account}`,
-			"PATCH",
-			JSON.stringify({
-				account,
-				forename,
-				surname,
-				role: role ? role : "-",
-				may_borrow
-			})
-		);
+		await api.user_update(user?.account || "", {
+			account,
+			forename,
+			surname,
+			role: role ? role : "-",
+			may_borrow
+		});
 		await onChange();
 	}
 
 	let deleteResponse: Promise<any>;
 	async function del() {
-		await r.request(`/api/user/${user?.account}`, "DELETE", null);
+		await api.user_delete(user?.account || "");
 		await onChange();
 	}
 
@@ -99,8 +79,6 @@
 		isNew = false;
 	}
 </script>
-
-<Request bind:this={r} />
 
 {#if user || isNew}
 	<div class="card-header d-flex justify-content-between">
@@ -178,7 +156,7 @@
 					title={$_(".user.request")}
 					disabled={!editable}
 					on:click={async () => {
-						let data = await r.request(`/api/user-fetch/${account}`, "GET", null);
+						let data = await api.user_fetch(account);
 						forename = data.forename;
 						surname = data.surname;
 						account = data.account;

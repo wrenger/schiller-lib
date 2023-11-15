@@ -3,10 +3,9 @@
 	import { category, state } from "$lib/store";
 	import Dialog from "../basic/Dialog.svelte";
 	import Spinner from "../basic/Spinner.svelte";
-	import Request from "../basic/Request.svelte";
+	import api from "$lib/api";
 
 	let dialog: Dialog;
-	let r: Request;
 	let items = $category;
 	let selected: any;
 
@@ -36,19 +35,19 @@
 
 	let addResponse: Promise<any>;
 	async function add() {
-		await r.request("api/category", "POST", JSON.stringify({ id, name, section }));
+		await api.category_add({ id, name, section });
 		await onChange();
 	}
 
 	let editResponse: Promise<any>;
 	async function edit() {
-		await r.request(`api/category/${selected?.id}`, "PATCH", JSON.stringify({ id, name, section }));
+		await api.category_update(selected?.id, { id, name, section });
 		await onChange();
 	}
 
 	let deleteResponse: Promise<any>;
 	async function del() {
-		await r.request(`api/category/${selected?.id}`, "DELETE", null);
+		await api.category_delete(selected?.id);
 		await onChange();
 	}
 
@@ -62,14 +61,12 @@
 	}
 
 	async function reload() {
-		let data: any = await r.request("api/category", "GET", null);
+		let data: any = await api.category_list();
 		category.set(data);
 		selected = data.find((t: { id: any }) => t.id == selected.id) || null;
 		state.set({});
 	}
 </script>
-
-<Request bind:this={r} />
 
 <Dialog bind:this={dialog}>
 	<h5 slot="header" class="m-0">{$_(".category.edit")}</h5>

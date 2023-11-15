@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { _, date } from "svelte-i18n";
-	import Request from "../../components/basic/Request.svelte";
+	import { _ } from "svelte-i18n";
 	import { onMount } from "svelte";
 	import api from "$lib/api";
-
-	let r: Request;
 
 	let stats: Promise<api.Stats>;
 	let session: Promise<api.Session>;
@@ -23,7 +20,6 @@
 </svelte:head>
 
 <section class="h-100" style="overflow: scroll;">
-	<Request bind:this={r} />
 	<div class="card mb-2">
 		{#await session}
 			<div class="card-header">{$_(".action.load")}...</div>

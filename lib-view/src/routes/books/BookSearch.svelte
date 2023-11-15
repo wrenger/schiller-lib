@@ -1,37 +1,18 @@
-<script lang="ts" context="module">
-	export class BookParams {
-		input: string;
-		category: null | string;
-		status!: "None" | "Borrowable" | "NotBorrowable" | "Borrowed" | "Reserved";
-
-		constructor(
-			params: {
-				input?: string;
-				category?: null | string;
-				status?: "None" | "Borrowable" | "NotBorrowable" | "Borrowed" | "Reserved";
-			} = {}
-		) {
-			this.input = params.input || "";
-			this.category = params.category || null;
-			this.status = params.status || "None";
-		}
-	}
-</script>
-
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { page } from "$app/stores";
 	import CategorySelect from "../../components/basic/CategorySelect.svelte";
 	import { goto } from "$app/navigation";
+	import type api from "$lib/api";
 
-	export let params: BookParams = new BookParams();
+	export let params: api.BookSearch = {};
 
 	let input: string = "";
-	let category: null | string = null;
-	let status: "None" | "Borrowable" | "NotBorrowable" | "Borrowed" | "Reserved" = "None";
+	let category: undefined | string = undefined;
+	let state: "None" | "Borrowable" | "NotBorrowable" | "Borrowed" | "Reserved" = "None";
 
 	input = $page.url.searchParams.get("i") || "";
-	params.input = input;
+	params.query = input;
 
 	let timer: NodeJS.Timeout | null = null;
 
@@ -40,8 +21,8 @@
 			clearTimeout(timer);
 		}
 		timer = setTimeout(() => {
-			params.input = input;
-			goto(`/books${params.input.trim() ? `?i=${params.input}` : ""}`, {
+			params.query = input;
+			goto(`/books${params.query.trim() ? `?i=${params.query}` : ""}`, {
 				replaceState: false,
 				keepFocus: true
 			});
@@ -88,8 +69,8 @@
 						id="select"
 						class="form-select"
 						aria-label={$_(".search.advanced")}
-						bind:value={status}
-						on:change={() => (params.status = status)}
+						bind:value={state}
+						on:change={() => (params.state = state)}
 					>
 						<option value={"None"} selected>{$_(".action.select")}</option>
 						<option value={"Borrowable"}>{$_(".book.borrowable")}</option>

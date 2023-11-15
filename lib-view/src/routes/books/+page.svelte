@@ -2,22 +2,19 @@
 	import { _ } from "svelte-i18n";
 	import Container from "../../components/basic/Container.svelte";
 	import BookList from "./BookList.svelte";
-	import type { BookParams } from "./BookSearch.svelte";
-	import BookView, { Book } from "./BookView.svelte";
+	import BookView from "./BookView.svelte";
 	import BookSearch from "./BookSearch.svelte";
-	import Request from "../../components/basic/Request.svelte";
-	let params: BookParams;
-	let active: Book | null;
+	import api from "$lib/api";
+
+	let params: api.BookSearch;
+	let active: api.Book | null;
 	let isNew: boolean;
-	let promise: Promise<Book[]>;
+	let promise: Promise<api.Limited<api.Book>>;
 	let list: BookList;
-	let r: Request;
 
 	$: if (params != undefined) {
-		promise = r.get<Book[]>("api/book", {
-			query: params.input,
-			category: params.category,
-			state: params.status,
+		promise = api.book_search({
+			...params,
 			limit: 250
 		});
 	}
@@ -27,8 +24,6 @@
 	<title>{$_(".search.book")}</title>
 	<meta name="description" content={$_(".book")} />
 </svelte:head>
-
-<Request bind:this={r} />
 
 <Container>
 	<span slot="list">

@@ -1,29 +1,17 @@
-<script lang="ts" context="module">
-	export class UserParams {
-		input!: string;
-		permission!: null | boolean;
-
-		constructor(input: string = "", permission: null | boolean = null) {
-			this.input = input;
-			this.permission = permission;
-		}
-	}
-</script>
-
 <script lang="ts">
 	import { goto } from "$app/navigation";
-
 	import { page } from "$app/stores";
+	import type api from "$lib/api";
 
 	import { _ } from "svelte-i18n";
 
-	export let params: UserParams = new UserParams();
+	export let params: api.UserSearch = {};
 
 	let input: string;
-	let permission!: null | boolean;
+	let permission: boolean;
 
 	input = $page.url.searchParams.get("i") || "";
-	params.input = input;
+	params.query = input;
 
 	let timer: NodeJS.Timeout | null = null;
 
@@ -32,8 +20,8 @@
 			clearTimeout(timer);
 		}
 		timer = setTimeout(() => {
-			params.input = input;
-			goto(`/users${params.input.trim() ? `?i=${params.input}` : ""}`, {
+			params.query = input;
+			goto(`/users${params.query.trim() ? `?i=${params.query}` : ""}`, {
 				replaceState: false,
 				keepFocus: true
 			});
@@ -72,7 +60,7 @@
 					class="form-select"
 					aria-label={$_(".search.advanced")}
 					bind:value={permission}
-					on:change={() => (params.permission = permission)}
+					on:change={() => (params.may_borrow = permission)}
 				>
 					<option value={null} selected>{$_(".action.select")}</option>
 					<option value={true}>{$_(".user.may-borrow")}</option>

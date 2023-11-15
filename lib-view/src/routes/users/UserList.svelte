@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import type { User } from "./UserView.svelte";
-	import type { UserParams } from "./UserSearch.svelte";
 	import List from "../../components/basic/List.svelte";
+	import type api from "$lib/api";
 
-	export let promise: Promise<User[]>;
-	export let params: UserParams;
-	export let active: User | null;
+	export let promise: Promise<api.Limited<api.User>>;
+	export let params: api.UserSearch;
+	export let active: api.User | null;
 	export let isNew: boolean;
 
 	let list: List;
@@ -16,15 +15,7 @@
 	}
 </script>
 
-<List
-	bind:this={list}
-	bind:active
-	bind:isNew
-	{promise}
-	req={`api/user?query=${params?.input}${
-		params?.permission != null ? `&may_borrow=${params?.permission}` : ""
-	}`}
->
+<List bind:this={list} bind:active bind:isNew {promise} url="api/user" query={params}>
 	<div slot="header" class="card-header d-flex justify-content-between">
 		{$_(".user.name")} / {$_(".user.account")}
 		<span>{$_(".user.role")} </span>

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import Request from "../../components/basic/Request.svelte";
 	import { category } from "$lib/store";
 
 	export let value: string | null = "";
@@ -10,10 +9,7 @@
 
 	let items = $category;
 	$: items = $category;
-	let r: Request;
 </script>
-
-<Request bind:this={r} />
 
 {#if label}
 	<label for="select-{label}" class="form-label">{label}</label>
