@@ -12,7 +12,7 @@
 	export let key: (t: T) => string;
 
 	let items: T[] = [];
-	let total_count: number = 1;
+	let total_count: number = 0;
 	let ul: HTMLUListElement;
 
 	let loading = false;
