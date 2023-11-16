@@ -13,7 +13,9 @@
 
 	let items: T[] = [];
 	let total_count: number = 0;
-	let ul: HTMLUListElement;
+	let row_height: number;
+	let element: HTMLDivElement;
+	let body: HTMLDivElement;
 
 	let loading = false;
 	let needsReload = false;
@@ -38,7 +40,7 @@
 	}
 
 	async function doReload() {
-		let scrollPosition = ul.scrollTop;
+		let scrollPosition = element.scrollTop;
 
 		let result = await load(
 			0,
@@ -53,7 +55,9 @@
 		}
 
 		requestAnimationFrame(() => {
-			if (ul) ul.scrollTo(0, scrollPosition);
+			row_height = body.clientHeight / items.length;
+			console.log("row-height", row_height);
+			if (element) element.scrollTo(0, scrollPosition);
 		});
 	}
 
@@ -67,11 +71,11 @@
 		}
 	}
 
-	function handleScroll(event: { target: any }) {
-		const target = event.target;
-		const distanceToBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
+	function handleScroll(event: UIEvent & { currentTarget: EventTarget & HTMLDivElement; }) {
+		const target = event.currentTarget;
+		const scrollBottom = target.scrollTop + target.clientHeight;
 
-		if (distanceToBottom <= target.scrollHeight * 0.15) {
+		if (scrollBottom > items.length * row_height * 0.8) {
 			loadMore();
 		}
 	}
@@ -79,13 +83,15 @@
 
 <div class="card list">
 	<slot name="header" />
-	<ul bind:this={ul} class="list-group list-group-flush list-body" on:scroll={handleScroll}>
-		{#each items as item (key(item))}
-			<slot name="item" {item} class="list-group-item list-group-item-action" />
-		{:else}
-			<li class="list-group-item disabled">{$_(".error.none")}</li>
-		{/each}
-	</ul>
+	<div bind:this={element} class="list-group list-group-flush list-body" on:scroll={handleScroll}>
+		<div bind:this={body} style="min-height: {row_height * total_count}px;">
+			{#each items as item (key(item))}
+				<slot name="item" {item} class="list-group-item list-group-item-action" style="height: {row_height}px;" />
+			{:else}
+				<div class="list-group-item disabled">{$_(".error.none")}</div>
+			{/each}
+		</div>
+	</div>
 	<div class="card-footer d-flex justify-content-between align-items-center">
 		{$_(".search.results", { values: { 0: items.length, 1: total_count } })}
 		<button
