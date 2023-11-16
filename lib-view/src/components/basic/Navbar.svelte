@@ -34,9 +34,8 @@
 					<a class={"nav-link"} class:active={$page.url.pathname === "/users"} href="/users"
 						>{$_(".search.user")}</a
 					>
-					<a
-						class={"nav-link"} class:active={$page.url.pathname === "/overdues"}
-						href="/overdues">{$_(".book.overdues")}</a
+					<a class={"nav-link"} class:active={$page.url.pathname === "/overdues"} href="/overdues"
+						>{$_(".book.overdues")}</a
 					>
 					<a class={"nav-link"} class:active={$page.url.pathname === "/info"} href="/info"
 						>{$_(".alert.info")}</a

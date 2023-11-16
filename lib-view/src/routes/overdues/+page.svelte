@@ -37,7 +37,7 @@
 				{#each data as [book, user] (book.id)}
 					<a
 						class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-						href={`books?${new URLSearchParams({search: book.id})}`}
+						href={`books?${new URLSearchParams({ search: book.id })}`}
 					>
 						<div class="d-flex flex-column">
 							<p class="mb-0 text-truncate h">{book.title}</p>

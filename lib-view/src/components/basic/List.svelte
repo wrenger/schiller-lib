@@ -40,7 +40,10 @@
 	async function doReload() {
 		let scrollPosition = ul.scrollTop;
 
-		let result = await load(0, Math.max(Math.ceil(items.length / CHUNK_SIZE) * CHUNK_SIZE, CHUNK_SIZE));
+		let result = await load(
+			0,
+			Math.max(Math.ceil(items.length / CHUNK_SIZE) * CHUNK_SIZE, CHUNK_SIZE)
+		);
 		total_count = result.total_count;
 		items = result.rows;
 
