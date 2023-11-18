@@ -71,7 +71,7 @@
 		}
 	}
 
-	function handleScroll(event: UIEvent & { currentTarget: EventTarget & HTMLDivElement; }) {
+	function handleScroll(event: UIEvent & { currentTarget: EventTarget & HTMLDivElement }) {
 		const target = event.currentTarget;
 		const scrollBottom = target.scrollTop + target.clientHeight;
 
@@ -86,7 +86,12 @@
 	<div bind:this={element} class="list-group list-group-flush list-body" on:scroll={handleScroll}>
 		<div bind:this={body} style="min-height: {row_height * total_count}px;">
 			{#each items as item (key(item))}
-				<slot name="item" {item} class="list-group-item list-group-item-action" style="height: {row_height}px;" />
+				<slot
+					name="item"
+					{item}
+					class="list-group-item list-group-item-action"
+					style="height: {row_height}px;"
+				/>
 			{:else}
 				<div class="list-group-item disabled">{$_(".error.none")}</div>
 			{/each}
