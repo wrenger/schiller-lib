@@ -9,10 +9,13 @@
 
 	let params: api.BookSearch;
 	let active: api.User | null;
-	let isNew: boolean;
 	let list: List<api.User> | null = null;
 
 	$: if (params) list?.reload();
+
+	function add() {
+
+	}
 </script>
 
 <svelte:head>
@@ -26,7 +29,7 @@
 		<List
 			bind:this={list}
 			bind:active
-			bind:isNew
+			{add}
 			load={(offset, limit) => api.user_search({ ...params, offset, limit })}
 			key={(user) => user.account}
 		>
@@ -43,5 +46,5 @@
 			/>
 		</List>
 	</span>
-	<UserView slot="view" bind:user={active} bind:isNew reload={list ? list.reload : undefined} />
+	<UserView slot="view" bind:user={active} reload={list?.reload} />
 </Container>

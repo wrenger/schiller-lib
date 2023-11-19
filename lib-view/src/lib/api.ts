@@ -199,17 +199,17 @@ namespace api {
 	// Lending
 	// -------------------------------------------------------------------------
 
-	export async function lend(id: string, account: string, deadline: string) {
-		await post({}, "api/lending/lend", { id, account, deadline });
+	export async function lend(id: string, account: string, deadline: string): Promise<Book> {
+		return post_get({}, "api/lending/lend", { id, account, deadline });
 	}
-	export async function return_back(id: string) {
-		await post({}, "api/lending/return", { id });
+	export async function return_back(id: string): Promise<Book> {
+		return post_get({}, "api/lending/return", { id });
 	}
-	export async function reserve(id: string, account: string) {
-		await post({}, "api/lending/reserve", { id, account });
+	export async function reserve(id: string, account: string): Promise<Book> {
+		return post_get({}, "api/lending/reserve", { id, account });
 	}
-	export async function release(id: string) {
-		await post({}, "api/lending/release", { id });
+	export async function release(id: string): Promise<Book> {
+		return post_get({}, "api/lending/release", { id });
 	}
 
 	// -------------------------------------------------------------------------

@@ -1,19 +1,20 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import type api from "$lib/api";
+	import { afterUpdate } from "svelte";
 
 	type T = $$Generic<{}>;
 
 	const CHUNK_SIZE: number = 250;
 
 	export let active: T | null;
-	export let isNew: boolean;
+	export let add: () => void;
 	export let load: (offset: number, limit: number) => Promise<api.Limited<T>>;
 	export let key: (t: T) => string;
 
 	let items: T[] = [];
 	let total_count: number = 0;
-	let row_height: number;
+	let row_height: number = 0;
 	let element: HTMLDivElement;
 	let body: HTMLDivElement;
 
@@ -40,8 +41,6 @@
 	}
 
 	async function doReload() {
-		let scrollPosition = element.scrollTop;
-
 		let result = await load(
 			0,
 			Math.max(Math.ceil(items.length / CHUNK_SIZE) * CHUNK_SIZE, CHUNK_SIZE)
@@ -53,13 +52,17 @@
 			let a = active;
 			active = items.find((item) => key(a) == key(item)) || null;
 		}
-
-		requestAnimationFrame(() => {
-			row_height = body.clientHeight / items.length;
-			console.log("row-height", row_height);
-			if (element) element.scrollTo(0, scrollPosition);
-		});
 	}
+
+	afterUpdate(() => {
+		if (row_height === 0 && items.length > 0) {
+			let child = body.children.item(0);
+			if (child !== null) {
+				row_height = child.clientHeight;
+				if (element) element.scrollTo(0, element.scrollTop);
+			}
+		}
+	});
 
 	export async function reload() {
 		if (loading) {
@@ -99,11 +102,8 @@
 	</div>
 	<div class="card-footer d-flex justify-content-between align-items-center">
 		{$_(".search.results", { values: { 0: items.length, 1: total_count } })}
-		<button
-			class="btn btn-outline-primary {isNew ? 'active' : ''}"
-			type="button"
-			title={$_(".book.new")}
-			on:click={() => (isNew = true)}><i class="bi bi-plus-lg" /></button
+		<button class="btn btn-outline-primary" type="button" title={$_(".book.new")} on:click={add}
+			><i class="bi bi-plus-lg" /></button
 		>
 	</div>
 </div>
