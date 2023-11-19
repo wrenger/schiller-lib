@@ -107,9 +107,25 @@ impl<ER: std::error::Error + 'static, T: oauth2::ErrorResponse + 'static>
 
 impl IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
-        let status = StatusCode::INTERNAL_SERVER_ERROR;
-        let body = Json(self);
-        (status, body).into_response()
+        let status = match self {
+            Error::Arguments
+            | Error::Logic
+            | Error::InvalidFormat
+            | Error::InvalidBook
+            | Error::InvalidUser
+            | Error::LendingUserMayNotBorrow
+            | Error::LendingBookNotBorrowable
+            | Error::LendingBookAlreadyBorrowed
+            | Error::LendingBookAlreadyBorrowedByUser
+            | Error::LendingBookNotBorrowed
+            | Error::LendingBookAlreadyReserved => StatusCode::BAD_REQUEST,
+            Error::FileNotFound | Error::NothingFound => StatusCode::NOT_FOUND,
+            Error::FileOpen | Error::SQL | Error::UnsupportedProjectVersion => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+            Error::Network => StatusCode::SERVICE_UNAVAILABLE,
+        };
+        (status, Json(self)).into_response()
     }
 }
 
