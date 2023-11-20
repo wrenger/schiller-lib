@@ -86,8 +86,8 @@
 
 <div class="card list">
 	<slot name="header" />
-	<div bind:this={element} class="list-group list-group-flush list-body" on:scroll={handleScroll}>
-		<div bind:this={body} style="min-height: {row_height * total_count}px;">
+	<div bind:this={element} class="list-body" on:scroll={handleScroll}>
+		<div bind:this={body} class="list-group list-group-flush" style="min-height: {row_height * total_count}px;">
 			{#each items as item (key(item))}
 				<slot
 					name="item"
