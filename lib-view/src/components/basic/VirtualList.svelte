@@ -94,7 +94,7 @@
 		>
 			{#each chunks as chunk, i (i)}
 				{#if chunk}
-					<div style="position: absolute; top: {i * rowHeight * CHUNK_SIZE}px; left: 0; right: 0;">
+					<div style="position: absolute; top: {i * rowHeight * CHUNK_SIZE}px; left: 0; right: 0;" class="list-group list-group-flush">
 						{#each chunk as item (key(item))}
 							<slot name="item" {item} class="list-group-item list-group-item-action" />
 						{/each}
