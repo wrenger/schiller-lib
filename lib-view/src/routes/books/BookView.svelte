@@ -8,21 +8,6 @@
 	import MailDialog from "./MailDialog.svelte";
 	import BookDisplay from "./BookDisplay.svelte";
 
-	// look what they need to mimic a fraction of our power
-	enum State {
-		Display,
-		Adding
-	}
-	interface Display {
-		kind: State.Display;
-		book: api.Book;
-		editing: boolean;
-	}
-	interface Adding {
-		kind: State.Adding;
-	}
-	let state: Display | Adding = { kind: State.Adding };
-
 	export var onChange: ((b: api.Book | null) => void) | undefined;
 
 	export function display(b: api.Book) {
@@ -32,9 +17,25 @@
 			editing: false
 		};
 	}
-	export function adding() {
-		state = { kind: State.Adding };
+	export function create() {
+		state = { kind: State.Create };
 	}
+
+	// look what they need to mimic a fraction of our power
+	enum State {
+		Display,
+		Create
+	}
+	interface Display {
+		kind: State.Display;
+		book: api.Book;
+		editing: boolean;
+	}
+	interface Create {
+		kind: State.Create;
+	}
+
+	let state: Display | Create = { kind: State.Create };
 
 	let lendDialog: LendDialog;
 	let reserveDialog: ReserveDialog;
@@ -42,19 +43,15 @@
 	let bookDisplay: BookDisplay;
 
 	$: if (state.kind == State.Display) {
-		if (bookDisplay) {
-			bookDisplay.setBook(state.book);
-		}
+		if (bookDisplay) bookDisplay.setBook(state.book);
 	}
-	$: if (state.kind == State.Adding) {
-		if (bookDisplay) {
-			bookDisplay.setBook(null);
-		}
+	$: if (state.kind == State.Create) {
+		if (bookDisplay) bookDisplay.setBook(null);
 	}
 
 	let addResponse: Promise<any>;
 	async function add() {
-		if (state.kind === State.Adding) {
+		if (state.kind === State.Create) {
 			let book = bookDisplay.getBook();
 			await api.book_add(book);
 			onChangeInner(book);
@@ -70,7 +67,7 @@
 		}
 	}
 
-	let deleteResponse: Promise<any>;
+	let delResponse: Promise<any>;
 	async function del() {
 		if (state.kind == State.Display) {
 			await api.book_delete(state.book.id);
@@ -78,8 +75,8 @@
 		}
 	}
 
-	let retResponse: Promise<any>;
-	async function return_back() {
+	let returnResponse: Promise<any>;
+	async function returnBack() {
 		if (state.kind == State.Display) {
 			let book = await api.return_back(state.book.id);
 			onChangeInner(book);
@@ -96,14 +93,12 @@
 	}
 
 	function onChangeInner(book: api.Book | null) {
-		if (book != null) {
-			if (state.kind === State.Display) {
-				state.book = book;
-				state.editing = false;
-				bookDisplay.setBook(book);
-			}
-			if (onChange) onChange(book);
+		if (book != null && state.kind === State.Display) {
+			state.book = book;
+			state.editing = false;
+			bookDisplay.setBook(book);
 		}
+		if (onChange) onChange(book);
 	}
 </script>
 
@@ -115,7 +110,7 @@
 		type="button"
 		aria-expanded="false"
 		title={$_(".action.edit")}
-		disabled={state.kind === State.Adding}
+		disabled={state.kind === State.Create}
 		on:click={() => {
 			if (state.kind === State.Display) state.editing = true;
 		}}
@@ -128,18 +123,16 @@
 		type="button"
 		aria-expanded="false"
 		title={$_(".action.close")}
-		on:click={() => {
-			if (onChange) onChange(null);
-		}}
+		on:click={() => onChangeInner(null)}
 	>
 		<i class="bi bi-x-lg" />
 	</button>
 </div>
 
-<BookDisplay bind:this={bookDisplay} editable={state.kind === State.Adding || state.editing} />
+<BookDisplay bind:this={bookDisplay} editable={state.kind === State.Create || state.editing} />
 
 <div class="card-footer text-center">
-	{#if state.kind === State.Adding || (state.kind === State.Display && state.editing)}
+	{#if state.kind === State.Create || (state.kind === State.Display && state.editing)}
 		<button
 			id="book-abort-button"
 			type="button"
@@ -149,7 +142,7 @@
 					state.editing = false;
 					bookDisplay.setBook(state.book);
 				} else {
-					if (onChange) onChange(null);
+					onChangeInner(null);
 				}
 			}}
 		>
@@ -157,7 +150,7 @@
 		</button>
 	{/if}
 
-	{#if state.kind === State.Adding}
+	{#if state.kind === State.Create}
 		<button
 			id="book-add-button"
 			class="btn btn-outline-primary mt-2"
@@ -181,9 +174,9 @@
 			class="btn btn-outline-danger mt-2"
 			type="button"
 			aria-expanded="false"
-			on:click={() => (deleteResponse = del())}
+			on:click={() => (delResponse = del())}
 		>
-			<Spinner response={deleteResponse} />
+			<Spinner response={delResponse} />
 			{$_(".action.delete")}
 		</button>
 	{:else if state.kind === State.Display && !state.editing}
@@ -243,9 +236,9 @@
 				class="btn btn-outline-danger mt-2"
 				type="button"
 				aria-expanded="false"
-				on:click={() => (retResponse = return_back())}
+				on:click={() => (returnResponse = returnBack())}
 			>
-				<Spinner response={retResponse} />
+				<Spinner response={returnResponse} />
 				{$_(".book.revoke")}
 			</button>
 		{/if}
