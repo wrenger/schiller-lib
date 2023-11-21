@@ -6,7 +6,7 @@
 	import api from "$lib/api";
 
 	export let bookId: string;
-	export let onChange: (b: api.Book) => Promise<void>;
+	export let onChange: (b: api.Book | null) => void;
 
 	export function open() {
 		dialog.open();
@@ -22,7 +22,7 @@
 
 	async function reserve() {
 		let book = await api.reserve(bookId, gonnaReserve);
-		await onChange(book);
+		onChange(book);
 		close();
 	}
 </script>

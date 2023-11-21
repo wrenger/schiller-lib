@@ -7,14 +7,33 @@
 	import BookSearch from "./BookSearch.svelte";
 	import BookItem from "./BookItem.svelte";
 
-	let params: api.BookSearch;
 	let active: api.Book | null;
+	let search: api.BookSearch;
+	let adding = false;
+
 	let list: List<api.Book> | null = null;
+	let view: BookView | null = null;
 
-	$: if (params) list?.reload();
+	$: if (search) list?.reload();
+    $: if (!adding) list?.stopAdding();
+	$: if (active != null) {
+        view?.display(active);
+        adding = false;
+	}
 
+	// using a callback here, because two bidirectional bindings (active and adding) lead to race conditions.
 	function add() {
-		active = null;
+		adding = true;
+		view?.adding();
+	}
+
+	function onChange(book: api.Book | null) {
+		// don't deselect when closing adding
+		if (!(adding && book == null)) {
+			active = book;
+		}
+		adding = false;
+		list?.reload();
 	}
 </script>
 
@@ -25,12 +44,12 @@
 
 <Container>
 	<span slot="list">
-		<BookSearch bind:params />
+		<BookSearch bind:params={search} />
 		<List
 			bind:this={list}
 			bind:active
 			{add}
-			load={(offset, limit) => api.book_search({ ...params, offset, limit })}
+			load={(offset, limit) => api.book_search({ ...search, offset, limit })}
 			key={(book) => book.id}
 		>
 			<div slot="header" class="card-header d-flex justify-content-between">
@@ -46,5 +65,7 @@
 			/>
 		</List>
 	</span>
-	<BookView slot="view" {active} reload={list?.reload} />
+	<div slot="view" hidden={!(active != null || adding)}>
+		<BookView bind:this={view} {onChange} />
+	</div>
 </Container>

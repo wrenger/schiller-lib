@@ -9,7 +9,7 @@
 	import api from "$lib/api";
 
 	export let bookId: string;
-	export let onChange: (b: api.Book) => Promise<void>;
+	export let onChange: (b: api.Book | null) => void;
 
 	export function open(account: string | undefined = undefined) {
         borrower = account ?? "";
@@ -28,7 +28,7 @@
 
 	async function lend() {
 		let book = await api.lend(bookId, borrower, period?.toISODate() ?? "");
-		await onChange(book);
+		onChange(book);
 		close();
 	}
 </script>

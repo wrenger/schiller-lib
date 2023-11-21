@@ -18,6 +18,12 @@
 	let element: HTMLDivElement;
 	let body: HTMLDivElement;
 
+	let adding = false;
+
+	export function stopAdding() {
+		adding = false;
+	}
+
 	let loading = false;
 	let needsReload = false;
 
@@ -87,7 +93,11 @@
 <div class="card list">
 	<slot name="header" />
 	<div bind:this={element} class="list-body" on:scroll={handleScroll}>
-		<div bind:this={body} class="list-group list-group-flush" style="min-height: {row_height * total_count}px;">
+		<div
+			bind:this={body}
+			class="list-group list-group-flush"
+			style="min-height: {row_height * total_count}px;"
+		>
 			{#each items as item (key(item))}
 				<slot
 					name="item"
@@ -102,9 +112,18 @@
 	</div>
 	<div class="card-footer d-flex justify-content-between align-items-center">
 		{$_(".search.results", { values: { 0: items.length, 1: total_count } })}
-		<button class="btn btn-outline-primary" type="button" title={$_(".book.new")} on:click={add}
-			><i class="bi bi-plus-lg" /></button
+		<button
+			class="btn btn-outline-primary"
+			class:active={adding}
+			type="button"
+			title={$_(".book.new")}
+			on:click={() => {
+				adding = true;
+				add();
+			}}
 		>
+			<i class="bi bi-plus-lg" />
+		</button>
 	</div>
 </div>
 

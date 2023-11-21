@@ -8,79 +8,143 @@
 	import MailDialog from "./MailDialog.svelte";
 	import BookDisplay from "./BookDisplay.svelte";
 
-	export let active: api.Book | null;
-	export let editable: boolean = true;
-	export var reload: (() => Promise<void>) | undefined;
+	// look what they need to mimic a fraction of our power
+	enum State {
+		Display,
+		Adding
+	}
+	interface Display {
+		kind: State.Display;
+		book: api.Book;
+		editing: boolean;
+	}
+	interface Adding {
+		kind: State.Adding;
+	}
+	let state: Display | Adding = { kind: State.Adding };
+
+	export var onChange: ((b: api.Book | null) => void) | undefined;
+
+	export function display(b: api.Book) {
+		state = {
+			kind: State.Display,
+			book: b,
+			editing: false
+		};
+	}
+	export function adding() {
+		state = { kind: State.Adding };
+	}
+	export function editing() {
+		if (state.kind == State.Display) {
+			state.editing = true;
+		}
+	}
 
 	let lendDialog: LendDialog;
 	let reserveDialog: ReserveDialog;
 	let mailDialog: MailDialog;
-
 	let bookDisplay: BookDisplay;
 
-	$: if (active || !active) {
+	$: if (state.kind == State.Display) {
 		if (bookDisplay) {
-			bookDisplay.setBook(active);
-			if (active) editable = false;
+			bookDisplay.setBook(state.book);
 		}
 	}
-	$: if (active === null) editable = true;
+	$: if (state.kind == State.Adding) {
+		if (bookDisplay) {
+			bookDisplay.setBook(null);
+		}
+	}
 
 	let addResponse: Promise<any>;
 	async function add() {
-		if (active === null) {
+		if (state.kind === State.Adding) {
 			let book = bookDisplay.getBook();
 			await api.book_add(book);
-			await onChange(book);
+			onChangeInner(book);
 		}
 	}
 
 	let editResponse: Promise<any>;
 	async function edit() {
-		if (active !== null) {
+		if (state.kind == State.Display) {
 			let book = bookDisplay.getBook();
-			await api.book_update(active.id, book);
-			await onChange(book);
+			await api.book_update(state.book.id, book);
+			onChangeInner(book);
 		}
 	}
 
 	let deleteResponse: Promise<any>;
 	async function del() {
-		if (active !== null) {
-			await api.book_delete(active.id);
-			await onChange(null);
+		if (state.kind == State.Display) {
+			await api.book_delete(state.book.id);
+			onChangeInner(null);
 		}
 	}
 
 	let retResponse: Promise<any>;
 	async function return_back() {
-		if (active !== null) {
-			let book = await api.return_back(active.id);
-			await onChange(book);
+		if (state.kind == State.Display) {
+			let book = await api.return_back(state.book.id);
+			onChangeInner(book);
 			if (book.reservation) mailDialog.open(book);
 		}
 	}
 
 	let releaseResponse: Promise<any>;
 	async function release() {
-		if (active !== null) {
-			let book = await api.release(active.id);
-			await onChange(book);
+		if (state.kind == State.Display) {
+			let book = await api.release(state.book.id);
+			onChangeInner(book);
 		}
 	}
 
-	async function onChange(book: api.Book | null) {
-		active = book;
-		bookDisplay.setBook(book);
-		if (reload) await reload();
-		editable = false;
+	function onChangeInner(book: api.Book | null) {
+		if (book != null) {
+			if (state.kind === State.Display) {
+				state.book = book;
+				state.editing = false;
+				bookDisplay.setBook(book);
+			}
+			if (onChange) onChange(book);
+		}
 	}
 </script>
 
-<BookDisplay bind:this={bookDisplay} {editable} />
+<div class="card-header d-flex justify-content-between">
+	<button
+		id="edit"
+		class="btn btn-outline-primary"
+		class:active={state.kind === State.Display && state.editing}
+		type="button"
+		aria-expanded="false"
+		title={$_(".action.edit")}
+		disabled={state.kind === State.Adding}
+		on:click={() => {
+			if (state.kind === State.Display) state.editing = true;
+		}}
+	>
+		<i class="bi bi-pencil-square" />
+	</button>
+	<button
+		id="cancel"
+		class="btn btn-outline-secondary"
+		type="button"
+		aria-expanded="false"
+		title={$_(".action.close")}
+		on:click={() => {
+			if (onChange) onChange(null);
+		}}
+	>
+		<i class="bi bi-x-lg" />
+	</button>
+</div>
 
-{#if editable}
-	{#if !active}
+<BookDisplay bind:this={bookDisplay} editable={state.kind === State.Adding || state.editing} />
+
+<div class="card-footer text-center">
+	{#if state.kind === State.Adding}
 		<button
 			id="book-add-button"
 			class="btn btn-outline-primary mt-2"
@@ -90,15 +154,16 @@
 			<Spinner response={addResponse} />
 			{$_(".action.add")}
 		</button>
-	{:else}
+	{:else if state.kind === State.Display && state.editing}
 		<button
 			id="book-abort-button"
 			type="button"
 			class="btn btn-outline-secondary mt-2"
-			hidden={!editable}
 			on:click={() => {
-				editable = active == null;
-				bookDisplay.setBook(active);
+				if (state.kind === State.Display) {
+					state.editing = false;
+					bookDisplay.setBook(state.book);
+				}
 			}}
 		>
 			{$_(".action.cancel")}
@@ -121,81 +186,80 @@
 			<Spinner response={deleteResponse} />
 			{$_(".action.delete")}
 		</button>
-	{/if}
-{:else if active}
-	<button
-		id="edit"
-		class="btn btn-outline-primary mt-2"
-		class:active={editable}
-		type="button"
-		aria-expanded="false"
-		title={$_(".action.edit")}
-		disabled={!active}
-		on:click={() => (editable = !editable)}
-	>
-		<i class="bi bi-pencil-square" />
-	</button>
-
-	{#if active.reservation}
-		{#if !active.borrower}
+	{:else if state.kind === State.Display && !state.editing}
+		{#if state.book.reservation}
+			{#if !state.book.borrower}
+				<button
+					class="btn btn-outline-primary mt-2"
+					type="button"
+					aria-expanded="false"
+					on:click={() => {
+						if (state.kind === State.Display) lendDialog.open(state.book.reservation);
+					}}
+				>
+					{$_(".book.lend.to", { values: { "0": state.book.reservation } })}
+				</button>
+			{/if}
+			<button
+				class="btn btn-outline-danger mt-2"
+				type="button"
+				aria-expanded="false"
+				on:click={() => (releaseResponse = release())}
+			>
+				<Spinner response={releaseResponse} />
+				{$_(".book.delete-reservation")}
+			</button>
+		{:else if state.book.borrower}
 			<button
 				class="btn btn-outline-primary mt-2"
 				type="button"
 				aria-expanded="false"
-				on:click={() => lendDialog.open(active?.reservation)}
+				on:click={() => reserveDialog.open()}
 			>
-				{$_(".book.lend.to", { values: { "0": active.reservation } })}
+				{$_(".book.reserve")}
+			</button>
+			<button
+				class="btn btn-outline-primary mt-2"
+				type="button"
+				aria-expanded="false"
+				on:click={() => {
+					if (state.kind === State.Display) lendDialog.open(state.book.borrower);
+				}}
+			>
+				{$_(".book.renew")}
+			</button>
+		{:else if state.book.borrowable}
+			<button
+				class="btn btn-outline-primary mt-2"
+				type="button"
+				aria-expanded="false"
+				on:click={() => lendDialog.open()}
+			>
+				{$_(".book.lend")}
 			</button>
 		{/if}
-		<button
-			class="btn btn-outline-danger mt-2"
-			type="button"
-			aria-expanded="false"
-			on:click={() => (releaseResponse = release())}
-		>
-			<Spinner response={releaseResponse} />
-			{$_(".book.delete-reservation")}
-		</button>
-	{:else if active.borrower}
-		<button
-			class="btn btn-outline-primary mt-2"
-			type="button"
-			aria-expanded="false"
-			on:click={() => reserveDialog.open()}
-		>
-			{$_(".book.reserve")}
-		</button>
-		<button
-			class="btn btn-outline-primary mt-2"
-			type="button"
-			aria-expanded="false"
-			on:click={() => lendDialog.open(active?.borrower)}
-		>
-			{$_(".book.renew")}
-		</button>
-	{:else if active.borrowable}
-		<button
-			class="btn btn-outline-primary mt-2"
-			type="button"
-			aria-expanded="false"
-			on:click={() => lendDialog.open()}
-		>
-			{$_(".book.lend")}
-		</button>
+		{#if state.book.borrower}
+			<button
+				class="btn btn-outline-danger mt-2"
+				type="button"
+				aria-expanded="false"
+				on:click={() => (retResponse = return_back())}
+			>
+				<Spinner response={retResponse} />
+				{$_(".book.revoke")}
+			</button>
+		{/if}
 	{/if}
-	{#if active.borrower}
-		<button
-			class="btn btn-outline-danger mt-2"
-			type="button"
-			aria-expanded="false"
-			on:click={() => (retResponse = return_back())}
-		>
-			<Spinner response={retResponse} />
-			{$_(".book.revoke")}
-		</button>
-	{/if}
-{/if}
+</div>
 
-<LendDialog bind:this={lendDialog} bookId={active?.id ?? ""} {onChange} />
-<ReserveDialog bind:this={reserveDialog} bookId={active?.id ?? ""} {onChange} />
+<LendDialog
+	bind:this={lendDialog}
+	bookId={state.kind === State.Display ? state.book.id : ""}
+	onChange={onChangeInner}
+/>
+<ReserveDialog
+	bind:this={reserveDialog}
+	bookId={state.kind === State.Display ? state.book.id : ""}
+	onChange={onChangeInner}
+/>
 <MailDialog bind:this={mailDialog} />
