@@ -35,11 +35,6 @@
 	export function adding() {
 		state = { kind: State.Adding };
 	}
-	export function editing() {
-		if (state.kind == State.Display) {
-			state.editing = true;
-		}
-	}
 
 	let lendDialog: LendDialog;
 	let reserveDialog: ReserveDialog;
@@ -144,6 +139,24 @@
 <BookDisplay bind:this={bookDisplay} editable={state.kind === State.Adding || state.editing} />
 
 <div class="card-footer text-center">
+	{#if state.kind === State.Adding || (state.kind === State.Display && state.editing)}
+		<button
+			id="book-abort-button"
+			type="button"
+			class="btn btn-outline-secondary mt-2"
+			on:click={() => {
+				if (state.kind === State.Display) {
+					state.editing = false;
+					bookDisplay.setBook(state.book);
+				} else {
+					if (onChange) onChange(null);
+				}
+			}}
+		>
+			{$_(".action.cancel")}
+		</button>
+	{/if}
+
 	{#if state.kind === State.Adding}
 		<button
 			id="book-add-button"
@@ -155,19 +168,6 @@
 			{$_(".action.add")}
 		</button>
 	{:else if state.kind === State.Display && state.editing}
-		<button
-			id="book-abort-button"
-			type="button"
-			class="btn btn-outline-secondary mt-2"
-			on:click={() => {
-				if (state.kind === State.Display) {
-					state.editing = false;
-					bookDisplay.setBook(state.book);
-				}
-			}}
-		>
-			{$_(".action.cancel")}
-		</button>
 		<button
 			id="book-confirm-button"
 			type="button"
