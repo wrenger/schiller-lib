@@ -2,23 +2,23 @@
 	import { _ } from "svelte-i18n";
 	import api from "$lib/api";
 	import Container from "../../components/basic/Container.svelte";
-	import List from "../../components/basic/List.svelte";
 	import BookView from "./BookView.svelte";
 	import BookSearch from "./BookSearch.svelte";
-	import BookItem from "./BookItem.svelte";
+	import BookItem, { HEIGHT } from "./BookItem.svelte";
+	import VirtualList from "../../components/basic/VirtualList.svelte";
 
 	let active: api.Book | null;
 	let search: api.BookSearch;
 	let adding = false;
 
-	let list: List<api.Book> | null = null;
+	let list: VirtualList<api.Book> | null = null;
 	let view: BookView | null = null;
 
 	$: if (search) list?.reload();
-    $: if (!adding) list?.stopAdding();
+	$: if (!adding) list?.stopAdding();
 	$: if (active != null) {
-        view?.display(active);
-        adding = false;
+		view?.display(active);
+		adding = false;
 	}
 
 	// using a callback here, because two bidirectional bindings (active and adding) lead to race conditions.
@@ -45,9 +45,10 @@
 <Container>
 	<span slot="list">
 		<BookSearch bind:params={search} />
-		<List
+		<VirtualList
 			bind:this={list}
 			bind:active
+			rowHeight={HEIGHT}
 			{add}
 			load={(offset, limit) => api.book_search({ ...search, offset, limit })}
 			key={(book) => book.id}
@@ -63,7 +64,7 @@
 				active={active?.id === item.id}
 				onClick={() => (active = item)}
 			/>
-		</List>
+		</VirtualList>
 	</span>
 	<div slot="view" hidden={!(active != null || adding)}>
 		<BookView bind:this={view} {onChange} />

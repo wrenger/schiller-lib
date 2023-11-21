@@ -188,7 +188,7 @@
 	".search.base": "Basic",
 	".search.book": "Books",
 	".search.book.entry": "Keyword (e.g. Author, Title, ID, ISBN or User)",
-	".search.results": "{0} of {1} Results",
+	".search.results": "{0} Results",
 	".search.user": "Users",
 	".search.user.entry": "Keyword (e.g. Name, Account or Role)",
 	".sql.title": "Maintain Database",

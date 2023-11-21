@@ -1,3 +1,7 @@
+<script lang="ts" context="module">
+	export const HEIGHT: number = 62;
+</script>
+
 <script lang="ts">
 	import type api from "$lib/api";
 	import { _ } from "svelte-i18n";
@@ -17,6 +21,7 @@
 <button
 	class="list-group-item list-group-item-action d-flex justify-content-between"
 	class:active
+	style="height: {HEIGHT}px;"
 	id={book.id}
 	on:click={onClick}
 >
