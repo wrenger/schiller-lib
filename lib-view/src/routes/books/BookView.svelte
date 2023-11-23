@@ -49,7 +49,7 @@
 		if (bookDisplay) bookDisplay.setBook(null);
 	}
 
-	let addResponse: Promise<any>;
+	let addResponse: Promise<void>;
 	async function add() {
 		if (state.kind === State.Create) {
 			let book = bookDisplay.getBook();
@@ -58,7 +58,7 @@
 		}
 	}
 
-	let editResponse: Promise<any>;
+	let editResponse: Promise<void>;
 	async function edit() {
 		if (state.kind == State.Display) {
 			let book = bookDisplay.getBook();
@@ -67,7 +67,7 @@
 		}
 	}
 
-	let delResponse: Promise<any>;
+	let delResponse: Promise<void>;
 	async function del() {
 		if (state.kind == State.Display) {
 			await api.book_delete(state.book.id);
@@ -75,7 +75,7 @@
 		}
 	}
 
-	let returnResponse: Promise<any>;
+	let returnResponse: Promise<void>;
 	async function returnBack() {
 		if (state.kind == State.Display) {
 			let book = await api.return_back(state.book.id);
@@ -84,7 +84,7 @@
 		}
 	}
 
-	let releaseResponse: Promise<any>;
+	let releaseResponse: Promise<void>;
 	async function release() {
 		if (state.kind == State.Display) {
 			let book = await api.release(state.book.id);

@@ -14,7 +14,7 @@
 		if (global) global.cancel();
 	}
 
-	let safeResponse: Promise<any>;
+	let safeResponse: Promise<void>;
 	async function onSave() {
 		if (local) local.save();
 		if (global) await global.save();

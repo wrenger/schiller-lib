@@ -18,7 +18,7 @@
 
 	let dialog: Dialog;
 	let gonnaReserve: string = "";
-	let reserveResponse: Promise<any>;
+	let reserveResponse: Promise<void>;
 
 	async function reserve() {
 		let book = await api.reserve(bookId, gonnaReserve);

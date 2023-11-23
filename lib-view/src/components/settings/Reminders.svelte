@@ -29,7 +29,7 @@
 		errDialog.open();
 	}
 
-	let remResponse: Promise<any>;
+	let remResponse: Promise<void>;
 	async function sendReminders() {
 		let overdoneBooks: [api.Book, api.User][] = await api.overdues();
 

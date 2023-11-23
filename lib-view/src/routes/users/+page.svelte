@@ -21,7 +21,7 @@
         adding = false;
     }
 
-    function add() {
+    function onAdd() {
         adding = true;
         view?.create();
     }
@@ -48,7 +48,7 @@
             bind:this={list}
             bind:active
             rowHeight={HEIGHT}
-            {add}
+            {onAdd}
             load={(offset, limit) => api.user_search({ ...params, offset, limit })}
             key={(user) => user.account}
         >

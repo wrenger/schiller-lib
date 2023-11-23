@@ -22,7 +22,7 @@
     }
 
     // using a callback here, because two bidirectional bindings (active and adding) lead to race conditions.
-    function add() {
+    function onAdd() {
         adding = true;
         view?.create();
     }
@@ -49,7 +49,7 @@
             bind:this={list}
             bind:active
             rowHeight={HEIGHT}
-            {add}
+            {onAdd}
             load={(offset, limit) => api.book_search({ ...search, offset, limit })}
             key={(book) => book.id}
         >

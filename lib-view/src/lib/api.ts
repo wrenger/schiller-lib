@@ -1,5 +1,4 @@
 import { _ } from "svelte-i18n";
-import type { DateTime } from "luxon";
 
 namespace api {
     export interface About {
@@ -101,6 +100,8 @@ namespace api {
         subject: string;
         body: string;
     }
+
+    export type QueryParam = Record<string, any>;
 
     export function keys<T extends object>(obj: T) {
         return Object.keys(obj) as Array<keyof T>;
@@ -230,7 +231,7 @@ namespace api {
     }
 
     /** Fetches the data, throwing an exception if something went wrong */
-    async function get<T>(url: string, query: Record<string, any> = {}): Promise<T> {
+    async function get<T>(url: string, query: QueryParam = {}): Promise<T> {
         let response = await fetch(url + query_str(query), { method: "GET" });
         if (response.ok) return (await response.json()) as T;
 
@@ -238,7 +239,7 @@ namespace api {
     }
 
     /** Posts/updates the data, throwing an exception if something went wrong */
-    async function post(data: any, url: string, query: Record<string, any> = {}) {
+    async function post(data: any, url: string, query: QueryParam = {}) {
         let response = await fetch(url + query_str(query), {
             method: "POST",
             headers: {
@@ -252,7 +253,7 @@ namespace api {
     }
 
     /** Posts/updates the data, throwing an exception if something went wrong */
-    async function post_get<T>(data: any, url: string, query: Record<string, any> = {}): Promise<T> {
+    async function post_get<T>(data: any, url: string, query: QueryParam = {}): Promise<T> {
         let response = await fetch(url + query_str(query), {
             method: "POST",
             headers: {
@@ -266,7 +267,7 @@ namespace api {
     }
 
     /** Deletes the data, throwing an exception if something went wrong */
-    async function del(url: string, query: Record<string, any> = {}) {
+    async function del(url: string, query: QueryParam = {}) {
         let response = await fetch(url + query_str(query), { method: "DELETE" });
         if (response.ok) return;
 
@@ -274,7 +275,7 @@ namespace api {
     }
 
     /** Safely create a valid query string from the provided query parameters */
-    function query_str(params: Record<string, any>): string {
+    function query_str(params: QueryParam): string {
         if (params) {
             let data: Record<string, string> = {};
             for (let key in params) {

@@ -9,10 +9,7 @@
 	let inputElement: HTMLInputElement | null = null;
 
 	const updateDate = () => {
-		if (inputElement) {
-			const inputValue = inputElement.value;
-			date = DateTime.fromFormat(inputValue, "yyyy-MM-dd");
-		}
+		if (inputElement) date = DateTime.fromISO(inputElement.value);
 	};
 </script>
 

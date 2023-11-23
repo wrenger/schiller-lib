@@ -7,7 +7,7 @@
 
 	let dialog: Dialog;
 	let items = $category;
-	let selected: any;
+	let selected: api.Category | null = null;
 
 	let id: string;
 	let name: string;
@@ -19,7 +19,7 @@
 		dialog.open();
 	}
 
-	function selectCategory(item: any) {
+	function selectCategory(item: api.Category | null) {
 		if (item) {
 			id = item.id;
 			name = item.name;
@@ -33,22 +33,26 @@
 
 	$: selectCategory(selected);
 
-	let addResponse: Promise<any>;
+	let addResponse: Promise<void>;
 	async function add() {
 		await api.category_add({ id, name, section });
 		await onChange();
 	}
 
-	let editResponse: Promise<any>;
+	let editResponse: Promise<void>;
 	async function edit() {
-		await api.category_update(selected?.id, { id, name, section });
-		await onChange();
+		if (selected != null) {
+			await api.category_update(selected.id, { id, name, section });
+			await onChange();
+		}
 	}
 
-	let deleteResponse: Promise<any>;
+	let deleteResponse: Promise<void>;
 	async function del() {
-		await api.category_delete(selected?.id);
-		await onChange();
+		if (selected != null) {
+			await api.category_delete(selected.id);
+			await onChange();
+		}
 	}
 
 	async function onChange() {
@@ -61,9 +65,12 @@
 	}
 
 	async function reload() {
-		let data: any = await api.categories();
+		let data = await api.categories();
 		category.set(data);
-		selected = data.find((t: { id: any }) => t.id == selected.id) || null;
+		if (selected != null) {
+			let sid = selected.id;
+			selected = data.find((t) => t.id == sid) || null;
+		}
 		state.set({});
 	}
 </script>
@@ -75,11 +82,11 @@
 		<div class="row">
 			<div class="col">
 				<select class="form-select" id="categorySelect" bind:value={selected}>
-					<option selected={!selected} value={null}>{$_(".action.add")}</option>
+					<option selected={selected == null} value={null}>{$_(".action.add")}</option>
 					{#each items as category (category.id)}
-						<option selected={category == selected} value={category}
-							>{category.id} - {category.name} - {category.section}</option
-						>
+						<option selected={category.id === selected?.id} value={category}>
+							{category.id} - {category.name} - {category.section}
+						</option>
 					{/each}
 				</select>
 			</div>
@@ -118,7 +125,7 @@
 			id="book-add-button"
 			class="btn btn-outline-primary mt-2"
 			type="button"
-			hidden={selected}
+			hidden={selected != null}
 			on:click={() => (addResponse = add())}
 		>
 			<Spinner response={addResponse} />
@@ -128,7 +135,7 @@
 			id="book-confirm-button"
 			type="button"
 			class="btn btn-outline-primary mt-2"
-			hidden={!selected}
+			hidden={selected == null}
 			on:click={() => (editResponse = edit())}
 		>
 			<Spinner response={editResponse} />
@@ -138,7 +145,7 @@
 			class="btn btn-outline-danger mt-2"
 			type="button"
 			aria-expanded="false"
-			hidden={!selected}
+			hidden={selected == null}
 			on:click={() => (deleteResponse = del())}
 		>
 			<Spinner response={deleteResponse} />

@@ -99,7 +99,7 @@
         set($settingsGlobal);
     }
 
-    let userResponse: Promise<any>;
+    let userResponse: Promise<void>;
     async function userUpdate() {
         await api.user_update_roles();
         state.set({});

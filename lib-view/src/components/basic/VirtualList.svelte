@@ -8,7 +8,7 @@
 
     export let rowHeight: number;
     export let active: T | null;
-    export let add: () => void;
+    export let onAdd: () => void;
     export let load: (offset: number, limit: number) => Promise<api.Limited<T>>;
     export let key: (t: T) => string;
 
@@ -34,8 +34,10 @@
     async function updateChunks() {
         if (scroller == null) return;
 
-        const top = scroller.scrollTop;
-        const bottom = scroller.scrollTop + scroller.clientHeight;
+        // calculate viewport
+        const border = rowHeight * CHUNK_SIZE / 2;
+        const top = Math.max(scroller.scrollTop - border, 0);
+        const bottom = scroller.scrollTop + scroller.clientHeight + border;
 
         let first = rowHeight === 0 ? 0 : Math.floor(top / (CHUNK_SIZE * rowHeight));
         let last = rowHeight === 0 ? 0 : Math.floor(bottom / (CHUNK_SIZE * rowHeight));
@@ -45,10 +47,12 @@
         firstChunk = first;
         lastChunk = last;
 
+        // add at least one
         if (chunks.length === 0) {
             chunks = [null];
         }
 
+        // load chunks, grow if too short
         for (let i = 0; i < chunks.length; i++) {
             if (firstChunk <= i && i <= lastChunk) {
                 if (chunks[i] == null || needsReload) {
@@ -66,6 +70,13 @@
             }
         }
 
+        // truncate if too long
+        let maxLen = Math.ceil(totalCount / CHUNK_SIZE);
+        if (chunks.length > maxLen) {
+            chunks = chunks.slice(0, maxLen);
+        }
+
+        // update active element
         if (needsReload) {
             if (active != null) {
                 let a = key(active);
@@ -112,7 +123,7 @@
             title={$_(".book.new")}
             on:click={() => {
                 adding = true;
-                add();
+                onAdd();
             }}
         >
             <i class="bi bi-plus-lg" />
