@@ -41,7 +41,7 @@
 	<meta name="description" content={$_(".user")} />
 </svelte:head>
 
-<Container>
+<Container isActive={(active != null ?? true) || (adding ?? true)}>
 	<span slot="list">
 		<UserSearch bind:params />
 		<VirtualList

@@ -108,6 +108,16 @@
 
 <div class="card-header d-flex justify-content-between">
 	<button
+		id="cancel"
+		class="btn btn-outline-secondary"
+		type="button"
+		aria-expanded="false"
+		title={$_(".action.close")}
+		on:click={() => onChangeInner(null)}
+	>
+		<i class="bi bi-caret-left-fill" />
+	</button>
+	<button
 		id="edit"
 		class="btn btn-outline-primary"
 		class:active={state.kind === State.Display && state.editing}
@@ -120,16 +130,6 @@
 		}}
 	>
 		<i class="bi bi-pencil-square" />
-	</button>
-	<button
-		id="cancel"
-		class="btn btn-outline-secondary"
-		type="button"
-		aria-expanded="false"
-		title={$_(".action.close")}
-		on:click={() => onChangeInner(null)}
-	>
-		<i class="bi bi-x-lg" />
 	</button>
 </div>
 

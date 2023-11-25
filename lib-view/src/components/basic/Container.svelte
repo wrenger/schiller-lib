@@ -1,8 +1,12 @@
+<script lang="ts">
+	export var isActive: boolean;
+</script>
+
 <section class="main">
-	<div class="list">
+	<div class="list" class:shown={isActive}>
 		<slot name="list" />
 	</div>
-	<div class="view">
+	<div class="view" class:shown={!isActive}>
 		<slot name="view" />
 	</div>
 </section>
@@ -27,17 +31,21 @@
 	}
 	@media only screen and (max-width: 768px) {
 		.main {
-			grid-template-areas: "list" "view";
-			grid-template-rows: 50% auto;
-			grid-template-columns: auto;
+			display: flex;
 		}
 		.list {
-			margin-right: 0px;
-			padding-bottom: 5px;
+			width: 100%;
+			margin: 0;
 		}
 		.view {
-			padding-top: 5px;
-			margin-left: 0px;
+			width: 100%;
+			margin: 0;
+		}
+		.list.shown {
+			display: none;
+		}
+		.view.shown {
+			display: none;
 		}
 	}
 </style>
