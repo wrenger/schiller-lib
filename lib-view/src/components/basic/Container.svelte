@@ -3,10 +3,10 @@
 </script>
 
 <section class="main">
-	<div class="list" class:shown={isActive}>
+	<div class="list" class:hidden={isActive}>
 		<slot name="list" />
 	</div>
-	<div class="view" class:shown={!isActive}>
+	<div class="view" class:hidden={!isActive}>
 		<slot name="view" />
 	</div>
 </section>
@@ -41,10 +41,10 @@
 			width: 100%;
 			margin: 0;
 		}
-		.list.shown {
+		.list.hidden {
 			display: none;
 		}
-		.view.shown {
+		.view.hidden {
 			display: none;
 		}
 	}
