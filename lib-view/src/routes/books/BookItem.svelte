@@ -21,7 +21,6 @@
 <button
 	class="list-group-item list-group-item-action d-flex justify-content-between"
 	class:active
-	style="height: {HEIGHT}px;"
 	id={book.id}
 	on:click={onClick}
 >

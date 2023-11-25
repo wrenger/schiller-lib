@@ -12,7 +12,7 @@
 	export let onChange: (b: api.Book | null) => void;
 
 	export function open(account: string | undefined = undefined) {
-        borrower = account ?? "";
+		borrower = account ?? "";
 		period = DateTime.local().plus({ days: $settingsGlobal.borrowing_duration });
 		dialog.open();
 	}
