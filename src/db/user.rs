@@ -2,9 +2,9 @@ use std::collections::{btree_map::Entry, BTreeMap};
 
 use serde::{Deserialize, Serialize};
 
+use super::Books;
 use crate::error::{Error, Result};
 use crate::mail::account_is_valid;
-use super::Books;
 
 /// Data object for a user.
 #[derive(Debug, Clone, Deserialize, Serialize)]

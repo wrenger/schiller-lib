@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::path::Path;
 use std::ptr::addr_of;
 
-use chrono::{NaiveDate, Local};
+use chrono::{Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
@@ -185,8 +185,6 @@ impl FromRow for (String, String) {
     }
 }
 
-
-
 impl From<Settings> for super::Settings {
     fn from(value: Settings) -> Self {
         Self {
@@ -297,8 +295,6 @@ impl FromRow for User {
     }
 }
 
-
-
 impl From<User> for super::User {
     fn from(value: User) -> Self {
         Self {
@@ -310,7 +306,6 @@ impl From<User> for super::User {
         }
     }
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Category {

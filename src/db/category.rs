@@ -2,8 +2,8 @@ use std::collections::{btree_map::Entry, BTreeMap};
 
 use serde::{Deserialize, Serialize};
 
-use crate::error::{Error, Result};
 use super::Books;
+use crate::error::{Error, Result};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Category {

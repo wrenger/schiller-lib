@@ -40,9 +40,13 @@
 	}
 </script>
 
-<Dialog bind:this={dialog}>
+<Dialog bind:this={dialog} size="small" min="fit">
 	<span slot="header"><h5 class="mb-0">{$_(".alert.confirm")}</h5></span>
-	<span slot="body">{$_(".book.revoke.reminder", { values: { "0": book?.reservation } })}</span>
+	<span slot="body"
+		><p class="m-0 fs-6">
+			{$_(".book.revoke.reminder", { values: { "0": book?.reservation } })}
+		</p></span
+	>
 	<span slot="footer">
 		<button type="button" class="btn btn-primary" on:click={() => (response = mail())}>
 			<Spinner {response} />

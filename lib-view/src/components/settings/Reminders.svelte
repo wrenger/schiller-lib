@@ -83,9 +83,9 @@
 	}
 </script>
 
-<Dialog bind:this={remDialog}>
+<Dialog bind:this={remDialog} size="small" min="fit">
 	<span slot="header"><h5 class="mb-0">{$_(".alert.confirm")}</h5></span>
-	<span slot="body">{$_(".alert.mail.overdue")}</span>
+	<span slot="body"><p class="m-0 fs-6">{$_(".alert.mail.overdue")}</p></span>
 	<span slot="footer">
 		<button type="button" class="btn btn-primary" on:click={() => (remResponse = sendReminders())}>
 			<Spinner response={remResponse} />
@@ -94,7 +94,7 @@
 	</span>
 </Dialog>
 
-<Dialog bind:this={errDialog} min={"fit"} size={"small"}>
+<Dialog bind:this={errDialog} size="small" min="fit">
 	<h5 slot="header" class="mb-0">{$_(".alert.error")}</h5>
 	<span slot="body"><p class="m-0 fs-6">{$_(".error.date")}</p></span>
 </Dialog>

@@ -16,7 +16,7 @@
 	{/key}
 </div>
 
-<Dialog id="error-modal" min={"fit"} size={"small"}>
+<Dialog id="error-modal" size="small" min="fit">
 	<h5 slot="header" class="m-0">{$_(".alert.error")}</h5>
 	<span slot="body">
 		<p class="m-0 fs-6" />
