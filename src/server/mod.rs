@@ -17,7 +17,7 @@ use tower_http::services::{ServeDir, ServeFile};
 use tower_http::trace::TraceLayer;
 use tracing::{debug, error};
 
-use crate::db;
+use crate::db::AtomicDatabase;
 use crate::provider;
 use crate::server::auth::Login;
 
@@ -31,7 +31,7 @@ pub async fn start(
     host: SocketAddr,
     domain: &str,
     auth: Option<AuthConfig>,
-    db: db::Database,
+    db: AtomicDatabase,
     dir: PathBuf,
     user_file: PathBuf,
     user_delimiter: u8,

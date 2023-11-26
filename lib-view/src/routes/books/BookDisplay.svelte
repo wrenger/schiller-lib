@@ -27,14 +27,14 @@
 			isbn: "",
 			title: "",
 			publisher: "",
-			authors: [],
+			authors: "",
 			costs: 0,
 			year: DateTime.now().year,
 			category: "None",
 			note: "",
 			borrowable: true,
 			borrower: "",
-			deadline: "",
+			deadline: null,
 			reservation: ""
 		};
 	}
@@ -46,14 +46,14 @@
 		isbn = b.isbn;
 		title = b.title;
 		publisher = b.publisher;
-		authors = b.authors.join(", ");
+		authors = b.authors;
 		costs = b.costs;
 		year = b.year;
 		category = b.category;
 		note = b.note;
 		borrowable = b.borrowable;
 		borrower = b.borrower;
-		deadline = DateTime.fromISO(b.deadline || "");
+		deadline = b.deadline ? DateTime.fromISO(b.deadline) : null;
 		reservation = b.reservation;
 	}
 
@@ -63,14 +63,14 @@
 			isbn,
 			title,
 			publisher,
-			authors: authors.split(",").map((a) => a.trim()),
+			authors,
 			costs,
 			year,
 			category,
 			note,
 			borrowable,
 			borrower: borrower ?? "",
-			deadline: deadline ? deadline?.toISODate() || "" : "",
+			deadline: deadline?.toISODate() ?? null,
 			reservation: reservation ?? ""
 		};
 	}
@@ -133,10 +133,10 @@
 				disabled={!editable}
 				on:click={async () => {
 					let data = await api.book_fetch(isbn);
-					title = data.title || "";
-					publisher = data.publisher || "";
-					authors = data.authors?.join(",") || "";
-					costs = data.costs || 0;
+					title = data.title ?? "";
+					publisher = data.publisher ?? "";
+					authors = data.authors ?? "";
+					costs = data.costs ?? 0;
 				}}
 			>
 				<i class="bi bi-upload" />

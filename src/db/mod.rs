@@ -1,127 +1,414 @@
-use std::borrow::Cow;
-use std::path::Path;
-use std::ptr::addr_of;
+use std::collections::BinaryHeap;
+use std::fmt;
+use std::io::BufReader;
+use std::ops::{Deref, DerefMut};
+use std::path::{Path, PathBuf};
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::{fs::File, io::BufWriter};
+
+use chrono::{Local, NaiveDate};
+use serde::{Deserialize, Serialize};
+use tracing::info;
 
 use crate::error::{Error, Result};
+use crate::mail::account_is_valid;
 
-pub mod book;
-pub use book::{Book, BookSearch, BookState};
-pub mod category;
-pub use category::Category;
-pub mod lending;
-pub mod settings;
-use serde::Serialize;
-pub use settings::Settings;
-pub mod stats;
-pub use stats::Stats;
-pub mod structure;
-pub mod user;
-pub use user::{User, UserSearch};
+mod book;
+pub use book::*;
+mod user;
+pub use user::*;
+mod category;
+pub use category::*;
+mod migrate;
+pub use migrate::Version;
+#[deprecated]
+mod legacy;
+mod sorted;
 
-use super::PKG_VERSION;
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+pub struct Settings {
+    // Borrowing
+    pub borrowing_duration: i64,
+    // DNB
+    pub dnb_token: String,
+    // Mail
+    pub mail_last_reminder: NaiveDate,
+    pub mail_from: String,
+    pub mail_host: String,
+    pub mail_password: String,
+    // Mail Templates
+    pub mail_info_subject: String,
+    pub mail_info_content: String,
+    pub mail_overdue_subject: String,
+    pub mail_overdue_content: String,
+    pub mail_overdue2_subject: String,
+    pub mail_overdue2_content: String,
+}
 
-#[derive(Debug)]
+impl Settings {
+    fn validate(&mut self) -> bool {
+        self.dnb_token = self.dnb_token.trim().to_string();
+        self.mail_from = self.mail_from.trim().to_string();
+        self.mail_host = self.mail_host.trim().to_string();
+        self.mail_password = self.mail_password.trim().to_string();
+        self.mail_info_subject = self.mail_info_subject.trim().to_string();
+        self.mail_info_content = self.mail_info_content.trim().to_string();
+        self.mail_overdue_subject = self.mail_overdue_subject.trim().to_string();
+        self.mail_overdue_content = self.mail_overdue_content.trim().to_string();
+        self.mail_overdue2_subject = self.mail_overdue2_subject.trim().to_string();
+        self.mail_overdue2_content = self.mail_overdue2_content.trim().to_string();
+        self.mail_from.is_empty() || account_is_valid(&self.mail_from)
+    }
+}
+
+impl Default for Settings {
+    fn default() -> Settings {
+        Settings {
+            borrowing_duration: 28,
+            dnb_token: String::new(),
+            mail_last_reminder: Local::now().naive_local().date(),
+            mail_from: String::new(),
+            mail_host: String::new(),
+            mail_password: String::new(),
+            mail_info_subject: String::new(),
+            mail_info_content: String::new(),
+            mail_overdue_subject: String::new(),
+            mail_overdue_content: String::new(),
+            mail_overdue2_subject: String::new(),
+            mail_overdue2_content: String::new(),
+        }
+    }
+}
+
+/// Data object for book.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Default))]
+pub struct Stats {
+    pub books: usize,
+    pub users: usize,
+    pub categories: usize,
+    pub borrows: usize,
+    pub reservations: usize,
+    pub overdues: usize,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct Database {
-    con: rusqlite::Connection,
+    version: Version,
+    pub books: Books,
+    pub users: Users,
+    pub categories: Categories,
+    settings: Settings,
+}
+
+impl Default for Database {
+    fn default() -> Self {
+        Self {
+            version: crate::PKG_VERSION.parse().unwrap(),
+            books: Default::default(),
+            users: Default::default(),
+            categories: Default::default(),
+            settings: Default::default(),
+        }
+    }
 }
 
 impl Database {
-    /// Creates a new database at the given path.
-    pub fn create(path: Cow<'_, Path>) -> Result<Database> {
-        if !path.exists() {
-            let database = Database {
-                con: rusqlite::Connection::open_with_flags(
-                    &path,
-                    rusqlite::OpenFlags::SQLITE_OPEN_CREATE
-                        | rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
-                )
-                .map_err(|_| Error::FileOpen)?,
-            };
-            structure::create(&database, PKG_VERSION)?;
-            Ok(database)
+    pub fn load(file: &Path) -> Result<Self> {
+        // TODO: Migration
+        let reader = BufReader::new(File::open(file)?);
+        Ok(serde_json::from_reader(reader)?)
+    }
+
+    pub fn save(&self, file: &Path) -> Result<()> {
+        let writer = BufWriter::new(File::create(file)?);
+        serde_json::to_writer_pretty(writer, self)?;
+        Ok(())
+    }
+
+    pub fn settings(&self) -> Settings {
+        self.settings.clone()
+    }
+
+    pub fn settings_update(&mut self, mut settings: Settings) -> Result<Settings> {
+        if settings.validate() {
+            self.settings = settings.clone();
+            Ok(settings)
         } else {
-            Err(Error::FileOpen)
+            Err(Error::Arguments)
         }
     }
 
-    /// Opens a database connection to the given project database.
-    pub fn open(path: Cow<'_, Path>) -> Result<(Database, bool)> {
-        if path.exists() {
-            let database = Database {
-                con: rusqlite::Connection::open_with_flags(
-                    &path,
-                    rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
-                )
-                .map_err(|_| Error::FileOpen)?,
-            };
-            let updated = structure::migrate(&database, PKG_VERSION)?;
-            Ok((database, updated))
-        } else {
-            Err(Error::FileNotFound)
-        }
-    }
+    pub fn stats(&self) -> Result<Stats> {
+        let mut borrows = 0;
+        let mut reservations = 0;
+        let mut overdues = 0;
+        for book in self.books.data.values() {
+            if !book.borrower.is_empty() {
+                borrows += 1;
+            }
+            if !book.reservation.is_empty() {
+                reservations += 1;
+            }
 
-    /// In memory database for testing purposes.
-    #[cfg(test)]
-    fn memory() -> Result<Database> {
-        Ok(Database {
-            con: rusqlite::Connection::open_in_memory()?,
+            let now = Local::now().naive_local().date();
+            if let Some(deadline) = book.deadline {
+                if now > deadline {
+                    overdues += 1;
+                }
+            }
+        }
+
+        Ok(Stats {
+            books: self.books.data.len(),
+            users: self.users.data.len(),
+            categories: self.categories.data.len(),
+            borrows,
+            reservations,
+            overdues,
         })
     }
 
-    /// Creates a rollback point.
-    /// If any statement on a transaction fails, all changes are rolled back
-    /// to the point before this function is called.
-    ///
-    /// ## Safety
-    /// This operation is only safe if called once.
-    /// Stacking transactions on top of each other is not allowed!
-    fn transaction(&self) -> rusqlite::Result<rusqlite::Transaction> {
-        #[allow(invalid_reference_casting)]
-        let con = unsafe { &mut *(addr_of!(self.con).cast_mut()) };
-        con.transaction()
-    }
-}
+    pub fn lend(&mut self, id: &str, account: &str, deadline: NaiveDate) -> Result<Book> {
+        let mut book = self.books.fetch(id)?;
+        let user = self.users.fetch(account)?;
 
-/// Iterator over database results.
-pub struct DBIter<'a, T> {
-    rows: rusqlite::Rows<'a>,
-    ty: std::marker::PhantomData<T>,
-}
-
-impl<'a, T> DBIter<'a, T> {
-    pub fn new(rows: rusqlite::Rows<'a>) -> Self {
-        DBIter {
-            rows,
-            ty: std::marker::PhantomData,
+        if !user.may_borrow {
+            return Err(Error::LendingUserMayNotBorrow);
         }
-    }
-}
-
-/// Conversion from database entries.
-pub trait FromRow: Sized {
-    fn from_row(stmt: &rusqlite::Row) -> rusqlite::Result<Self>;
-}
-
-impl<'a, T: FromRow> Iterator for DBIter<'a, T> {
-    type Item = Result<T>;
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.rows.next() {
-            Ok(row) => Some(T::from_row(row?).map_err(Into::into)),
-            Err(e) => Some(Err(e.into())),
+        if !book.borrowable {
+            return Err(Error::LendingBookNotBorrowable);
         }
+        // Allow renewal
+        if !book.borrower.is_empty() && book.borrower != user.account {
+            return Err(Error::LendingBookAlreadyBorrowed);
+        }
+        if !book.reservation.is_empty() {
+            if book.reservation == user.account {
+                self.release(id)?; // Allow lending to reserver
+            } else {
+                return Err(Error::LendingBookAlreadyReserved);
+            }
+        }
+
+        book.borrower = user.account.clone();
+        book.deadline = Some(deadline);
+        self.books.update(id, book, &mut self.categories)
+    }
+
+    /// Returns the book.
+    pub fn return_back(&mut self, id: &str) -> Result<Book> {
+        let mut book = self.books.fetch(id)?;
+
+        if book.borrower.is_empty() {
+            return Err(Error::Logic);
+        }
+
+        book.borrower = String::new();
+        book.deadline = None;
+        self.books.update(id, book, &mut self.categories)
+    }
+
+    /// Creates a reservation for the borrowed book.
+    pub fn reserve(&mut self, id: &str, account: &str) -> Result<Book> {
+        let mut book = self.books.fetch(id)?;
+        let user = self.users.fetch(account)?;
+
+        if !user.may_borrow {
+            return Err(Error::LendingUserMayNotBorrow);
+        }
+        if !book.borrowable {
+            return Err(Error::LendingBookNotBorrowable);
+        }
+        if !book.reservation.is_empty() {
+            return Err(Error::LendingBookAlreadyReserved);
+        }
+        if book.borrower.is_empty() {
+            return Err(Error::LendingBookNotBorrowed);
+        }
+        if book.borrower == user.account {
+            return Err(Error::LendingBookAlreadyBorrowedByUser);
+        }
+
+        book.reservation = user.account.clone();
+        self.books.update(id, book, &mut self.categories)
+    }
+    /// Removes the reservation from the specified book.
+    pub fn release(&mut self, id: &str) -> Result<Book> {
+        let mut book = self.books.fetch(id)?;
+
+        if book.reservation.is_empty() {
+            return Err(Error::Logic);
+        }
+
+        book.reservation = String::new();
+        self.books.update(id, book, &mut self.categories)
+    }
+
+    /// Return the list of expired loan periods.
+    pub fn overdues(&self) -> Result<Vec<(Book, User)>> {
+        struct DayOrd(usize, Book, User);
+        impl Eq for DayOrd {}
+        impl PartialEq for DayOrd {
+            fn eq(&self, other: &Self) -> bool {
+                self.0 == other.0 && self.1.id == other.1.id
+            }
+        }
+        impl Ord for DayOrd {
+            fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+                match self.0.cmp(&other.0) {
+                    std::cmp::Ordering::Equal => self.1.id.cmp(&other.1.id),
+                    ord => ord,
+                }
+            }
+        }
+        impl PartialOrd for DayOrd {
+            fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+                self.0.partial_cmp(&other.0)
+            }
+        }
+
+        let mut result = BinaryHeap::<DayOrd>::new();
+
+        let now = Local::now().naive_local().date();
+        for book in self.books.data.values() {
+            if let Some(deadline) = book.deadline {
+                let days = (now - deadline).num_days();
+                if days > 0 {
+                    let user = self.users.fetch(&book.borrower)?;
+                    result.push(DayOrd(days as usize, book.clone(), user));
+                }
+            }
+        }
+        Ok(result.into_iter().map(|d| (d.1, d.2)).collect())
     }
 }
 
-/// Collect the rows into a vector and extract the total number of rows (column named 'total_count')
-pub fn collect_rows<T: FromRow + Serialize>(mut rows: rusqlite::Rows) -> Result<(usize, Vec<T>)> {
-    let mut items = Vec::new();
-    let mut total_count = 0;
-    while let Some(next) = rows.next()? {
-        if total_count == 0 {
-            total_count = next.get("total_count").unwrap_or(1);
-        }
-        items.push(T::from_row(next)?);
+/// Synchronized Wrapper, that automatically saves changes
+pub struct AtomicDatabase {
+    file: PathBuf,
+    data: RwLock<Database>,
+}
+
+impl AtomicDatabase {
+    pub fn load(file: &Path) -> Result<Self> {
+        let (file, data) = migrate::import(file)?;
+        Ok(Self {
+            file,
+            data: RwLock::new(data),
+        })
     }
-    Ok((total_count, items))
+
+    pub fn create(file: &Path) -> Result<Self> {
+        let data = Database::default();
+        data.save(file)?;
+        Ok(Self {
+            file: file.into(),
+            data: RwLock::new(data),
+        })
+    }
+
+    pub fn read(&self) -> RwLockReadGuard<'_, Database> {
+        self.data.read().unwrap()
+    }
+    pub fn write(&self) -> AtomicDatabaseWrite<'_> {
+        AtomicDatabaseWrite(self.data.write().unwrap(), &self.file)
+    }
+}
+pub struct AtomicDatabaseWrite<'a>(RwLockWriteGuard<'a, Database>, &'a Path);
+impl Deref for AtomicDatabaseWrite<'_> {
+    type Target = Database;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl DerefMut for AtomicDatabaseWrite<'_> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+impl Drop for AtomicDatabaseWrite<'_> {
+    fn drop(&mut self) {
+        info!("Saving database");
+        self.0.save(self.1).unwrap()
+    }
+}
+impl fmt::Debug for AtomicDatabase {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("AtomicDatabase")
+            .field("file", &self.file)
+            .finish()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    #[allow(deprecated)]
+    #[test]
+    fn compare_times() {
+        use std::hint::black_box;
+        use std::path::Path;
+        use std::time::Instant;
+
+        use super::legacy as d1;
+        use crate::db as d2;
+        use tracing::info;
+
+        crate::logging();
+        let file = Path::new("test/data/schillerbib.db");
+
+        let db1 = d1::Database::open(file.into()).unwrap().0;
+        let db2 = super::migrate::import(file).unwrap().1;
+
+        let timer = Instant::now();
+        let results = db1.books().unwrap();
+        info!(
+            "all d1: {}us for {:?}",
+            timer.elapsed().as_micros(),
+            results.len()
+        );
+        black_box(results);
+
+        let timer = Instant::now();
+        let results = db1.books().unwrap();
+        info!(
+            "all d1: {}us for {:?}",
+            timer.elapsed().as_micros(),
+            results.len()
+        );
+        black_box(results);
+
+        let params = d2::BookSearch {
+            query: String::new(),
+            category: String::new(),
+            state: d2::BookState::None,
+            offset: 0,
+            limit: usize::MAX,
+        };
+
+        let timer = Instant::now();
+        let results = db2.books.search(black_box(&params)).unwrap();
+        info!(
+            "all d2: {}us for {}",
+            timer.elapsed().as_micros(),
+            results.0
+        );
+        assert_eq!(results.0, results.1.len());
+        black_box(results);
+
+        let timer = Instant::now();
+        let results = db2.books.search(black_box(&params)).unwrap();
+        info!(
+            "all d2: {}us for {}",
+            timer.elapsed().as_micros(),
+            results.0
+        );
+        assert_eq!(results.0, results.1.len());
+        black_box(results);
+
+        db2.save(&file.with_extension("json")).unwrap();
+
+        info!("db2: {:?}", db2.stats());
+    }
 }

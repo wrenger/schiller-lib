@@ -26,7 +26,7 @@
 >
 	<div class="d-flex flex-column">
 		<p class="mb-0 text-truncate q">{book.title}</p>
-		<small class="text-muted text-truncate q">{book.authors.join(", ")}</small>
+		<small class="text-muted text-truncate q">{book.authors}</small>
 	</div>
 	<div class="d-flex flex-column align-items-end">
 		<small class="text-muted text-truncate q">{book.id}</small>

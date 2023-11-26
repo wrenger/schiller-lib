@@ -2,8 +2,9 @@ use std::path::PathBuf;
 use std::{fs::File, net::SocketAddr};
 
 use clap::Parser;
-use db::Database;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+
+use crate::db::AtomicDatabase;
 
 // mod api;
 mod db;
@@ -53,7 +54,6 @@ struct Args {
 
 #[tokio::main]
 async fn main() {
-    // initialize tracing
     logging();
 
     let Args {
@@ -77,9 +77,9 @@ async fn main() {
     let domain = domain.unwrap_or_else(|| host.to_string());
 
     let db = if db.exists() {
-        Database::open(db.into()).unwrap().0
+        AtomicDatabase::load(&db).unwrap()
     } else {
-        Database::create(db.into()).unwrap()
+        AtomicDatabase::create(&db).unwrap()
     };
 
     server::start(
@@ -96,6 +96,7 @@ async fn main() {
     .await;
 }
 
+/// initialize tracing
 fn logging() {
     tracing_subscriber::registry()
         .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()))

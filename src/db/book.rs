@@ -1,9 +1,14 @@
+use std::collections::{btree_map::Entry, BTreeMap};
+
+use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
+use tracing::info;
 use unicode_normalization::UnicodeNormalization;
 
+use super::Categories;
+use crate::db::sorted::Sorted;
 use crate::error::{Error, Result};
-
-use super::{collect_rows, Database, FromRow};
+use crate::isbn;
 
 /// Data object for book.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -18,39 +23,24 @@ pub struct Book {
     pub note: String,
     pub borrowable: bool,
     pub category: String,
-    pub authors: Vec<String>,
+    pub authors: String,
     pub borrower: String,
-    pub deadline: String,
+    pub deadline: Option<NaiveDate>,
     pub reservation: String,
 }
 
 impl Book {
-    fn is_valid(&self) -> bool {
-        !self.id.trim().is_empty() && !self.title.trim().is_empty()
-    }
-}
-
-impl FromRow for Book {
-    fn from_row(row: &rusqlite::Row) -> rusqlite::Result<Book> {
-        Ok(Book {
-            id: row.get("id")?,
-            isbn: row.get("isbn")?,
-            title: row.get("title")?,
-            publisher: row.get("publisher")?,
-            year: row.get("year")?,
-            costs: row.get("costs")?,
-            note: row.get("note")?,
-            borrowable: row.get("borrowable")?,
-            category: row.get("category")?,
-            authors: row
-                .get::<&str, String>("authors")?
-                .split(',')
-                .map(ToString::to_string)
-                .collect(),
-            borrower: row.get("borrower")?,
-            deadline: row.get("deadline")?,
-            reservation: row.get("reservation")?,
-        })
+    fn validate(&mut self) -> bool {
+        self.id = self.id.trim().to_string();
+        self.isbn = isbn::parse(&self.isbn).unwrap_or_else(|invalid| invalid);
+        self.title = self.title.trim().to_string();
+        self.publisher = self.publisher.trim().to_string();
+        self.note = self.note.trim().to_string();
+        self.category = self.category.trim().to_string();
+        self.authors = self.authors.trim().to_string();
+        self.borrower = self.borrower.trim().to_string();
+        self.reservation = self.reservation.trim().to_string();
+        !self.id.is_empty() && !self.title.is_empty()
     }
 }
 
@@ -69,7 +59,7 @@ impl Default for BookSearch {
     fn default() -> Self {
         Self {
             query: Default::default(),
-            category: '%'.to_string(),
+            category: Default::default(),
             state: Default::default(),
             offset: 0,
             limit: 100,
@@ -88,245 +78,192 @@ pub enum BookState {
     Reserved,
 }
 
-impl From<i64> for BookState {
-    fn from(value: i64) -> Self {
-        match value {
-            1 => BookState::Borrowable,
-            2 => BookState::NotBorrowable,
-            3 => BookState::Borrowed,
-            4 => BookState::Reserved,
-            _ => BookState::None,
+#[derive(Serialize, Deserialize, Default)]
+pub struct Books {
+    #[serde(flatten)]
+    pub data: BTreeMap<String, Book>,
+}
+
+impl Books {
+    pub fn fetch(&self, id: &str) -> Result<Book> {
+        self.data.get(id).cloned().ok_or(Error::NothingFound)
+    }
+
+    pub fn add(&mut self, mut book: Book, categories: &Categories) -> Result<Book> {
+        if !book.validate() || !categories.data.contains_key(&book.category) {
+            return Err(Error::InvalidBook);
+        }
+
+        match self.data.entry(book.id.clone()) {
+            Entry::Vacant(v) => {
+                v.insert(book.clone());
+                Ok(book)
+            }
+            _ => Err(Error::InvalidBook),
         }
     }
-}
 
-/// Returns the book with the given `id`.
-pub fn fetch(db: &Database, id: &str) -> Result<Book> {
-    Ok(db.con.query_row(
-        "select \
-        id, \
-        isbn, \
-        title, \
-        publisher, \
-        year, \
-        costs, \
-        note, \
-        borrowable, \
-        category, \
-        ifnull(group_concat(author.name),'') as authors, \
-        borrower, \
-        deadline, \
-        reservation \
-        \
-        from medium \
-        left join author on author.medium=id \
-        where id=? \
-        group by id",
-        [id],
-        Book::from_row,
-    )?)
-}
+    pub fn update(&mut self, id: &str, mut book: Book, categories: &Categories) -> Result<Book> {
+        let id = id.trim();
+        if id.is_empty() || !book.validate() || !categories.data.contains_key(&book.category) {
+            return Err(Error::InvalidBook);
+        }
 
-/// Performs a simple media search with the given `text`.
-pub fn search(db: &Database, params: &BookSearch) -> Result<(usize, Vec<Book>)> {
-    let mut stmt = db.con.prepare(
-        "SELECT \
-        id, \
-        isbn, \
-        title, \
-        publisher, \
-        year, \
-        costs, \
-        note, \
-        borrowable, \
-        category, \
-        ifnull(group_concat(author.name), '') as authors, \
-        borrower, \
-        deadline, \
-        reservation, \
-        count(*) over() as total_count \
-        \
-        from medium \
-        left join author on author.medium=id \
-        group by id \
-        having (title like '%'||?1||'%' \
-            or id like '%' || ?1 || '%' \
-            or isbn like '%' || ?1 || '%' \
-            or publisher like '%' || ?1 || '%' \
-            or note like '%' || ?1 || '%' \
-            or authors like '%' || ?1 || '%' \
-            or borrower like ?1 \
-            or reservation like ?1) \
-            and category like ?2 \
-            and borrowable like ?3 \
-            and (borrower != '') like ?4 \
-            and (reservation != '') like ?5 \
-        order by \
-            case \
-                when title like ?1||'%' then 0 \
-                when title like '%'||?1||'%' then 1 \
-                else 2 \
-            end asc, \
-            lower(title) asc \
-        limit ?6 offset ?7",
-    )?;
+        if id == book.id {
+            if let Some(entry) = self.data.get_mut(id) {
+                *entry = book.clone();
+                return Ok(book);
+            }
+        } else {
+            if self.data.remove(id).is_some() {
+                return match self.data.entry(book.id.clone()) {
+                    Entry::Vacant(v) => {
+                        v.insert(book.clone());
+                        Ok(book)
+                    }
+                    _ => Err(Error::InvalidBook),
+                };
+            }
+        }
 
-    let rows = stmt.query(rusqlite::params![
-        params.query.trim(),
-        params.category.trim(),
-        match params.state {
-            BookState::Borrowable => "1",
-            BookState::NotBorrowable => "0",
-            _ => "%",
-        },
-        match params.state {
-            BookState::Borrowed => "1",
-            _ => "%",
-        },
-        match params.state {
-            BookState::Reserved => "1",
-            _ => "%",
-        },
-        params.limit,
-        params.offset,
-    ])?;
-
-    collect_rows(rows)
-}
-
-/// Adds a new book.
-pub fn add(db: &Database, book: &Book) -> Result<()> {
-    if !book.is_valid() {
-        return Err(Error::InvalidBook);
+        Err(Error::NothingFound)
     }
-    let isbn = if !book.isbn.trim().is_empty() {
-        crate::isbn::parse(&book.isbn).unwrap_or_else(|invalid_isbn| invalid_isbn)
-    } else {
-        String::new()
-    };
-    let transaction = db.transaction()?;
-    transaction.execute(
-        "insert into medium values (?, ?, ?, ?, ?, ?, ?, ?, ?, '', '', '')",
-        rusqlite::params![
-            book.id.trim(),
-            isbn.trim(),
-            book.title.trim(),
-            book.publisher.trim(),
-            book.year,
-            book.costs,
-            book.note.trim(),
-            book.borrowable,
+
+    pub fn delete(&mut self, id: &str) -> Result<()> {
+        self.data
+            .remove(id.trim())
+            .map(|_| ())
+            .ok_or(Error::NothingFound)
+    }
+
+    /// Search specific books
+    pub fn search(&self, search: &BookSearch) -> Result<(usize, Vec<Book>)> {
+        fn sort_title(a: &(String, &Book), b: &(String, &Book)) -> std::cmp::Ordering {
+            match a.0.cmp(&b.0) {
+                std::cmp::Ordering::Equal => a.1.id.cmp(&b.1.id),
+                ord => ord,
+            }
+        }
+
+        // Result classes (how good they match the query)
+        let mut primary = Sorted::new(sort_title);
+        let mut secondary = Sorted::new(sort_title);
+        let mut tertiary = Sorted::new(sort_title);
+
+        let query = search.query.to_lowercase();
+
+        // just a very basic brute-force search
+        for book in self.data.values() {
+            // filter by category
+            if !search.category.is_empty() && search.category != book.category {
+                continue;
+            }
+
+            // filter by borrowing state
+            match search.state {
+                BookState::Borrowable if !book.borrowable => continue,
+                BookState::NotBorrowable if book.borrowable => continue,
+                BookState::Borrowed if book.borrower.is_empty() => continue,
+                BookState::Reserved if book.reservation.is_empty() => continue,
+                _ => {}
+            }
+
+            let lower_title = book.title.to_ascii_lowercase();
+
+            if query.is_empty() || lower_title.starts_with(&query) {
+                primary.push((lower_title, &book));
+            } else if lower_title.contains(&query) {
+                secondary.push((lower_title, &book));
+            } else if book.id.to_lowercase().contains(&query)
+                || book.isbn.to_lowercase().contains(&query)
+                || book.publisher.to_lowercase().contains(&query)
+                || book.note.to_lowercase().contains(&query)
+                || book.authors.to_lowercase().contains(&query)
+                || book.borrower.to_lowercase().contains(&query)
+                || book.reservation.to_lowercase().contains(&query)
+            {
+                tertiary.push((lower_title, &book));
+            }
+        }
+
+        let total = primary.len() + secondary.len() + tertiary.len();
+        info!(
+            "primary={}, secondary={}, tertiary={}",
+            primary.len(),
+            secondary.len(),
+            tertiary.len()
+        );
+
+        let books = primary
+            .into_iter()
+            .chain(secondary)
+            .chain(tertiary)
+            .skip(search.offset)
+            .take(search.limit)
+            .map(|(_, b)| b.clone())
+            .collect();
+
+        Ok((total, books))
+    }
+
+    pub fn in_category(&self, id: &str) -> Result<usize> {
+        let mut count = 0;
+        for book in self.data.values() {
+            if book.category == id {
+                count += 1;
+            }
+        }
+        Ok(count)
+    }
+
+    /// Generates a new unique id based on the authors surname and the category.
+    pub fn generate_id(&self, book: &Book) -> Result<String> {
+        let prefix = id_prefix(
+            book.authors.split_once(',').map_or(&book.authors, |a| a.0),
             book.category.trim(),
-        ],
-    )?;
+        );
+        let id = book.id.trim();
+        if id.starts_with(&prefix)
+            && id.len() > prefix.len() + 1
+            && &id[prefix.len()..=prefix.len()] == " "
+        {
+            return Ok(id.to_string());
+        }
 
-    // Add authors
-    for author in &book.authors {
-        transaction.execute(
-            "insert or ignore into author values (?, ?)",
-            [author.trim(), book.id.trim()],
-        )?;
-    }
-    transaction.commit()?;
-    Ok(())
-}
+        // query smallest unused id
+        let mut last_id = None;
+        for key in self.data.keys() {
+            if let Some(suffix) = key.strip_prefix(&prefix) {
+                if let Ok(id) = suffix.trim().parse::<usize>() {
+                    last_id = Some(id);
+                }
+            }
+        }
 
-/// Updates the book and all references if its id changes.
-pub fn update(db: &Database, previous_id: &str, book: &Book) -> Result<()> {
-    let previous_id = previous_id.trim();
-    if previous_id.is_empty() || !book.is_valid() {
-        return Err(Error::InvalidBook);
-    }
-    let isbn = if !book.isbn.trim().is_empty() {
-        crate::isbn::parse(&book.isbn).unwrap_or_else(|invalid_isbn| invalid_isbn)
-    } else {
-        String::new()
-    };
-    let transaction = db.transaction()?;
-    // update book
-    transaction.execute(
-        "update medium \
-        set id=?, isbn=?, title=?, publisher=?, year=?, costs=?, note=?, borrowable=?, category=? \
-        where id=?",
-        rusqlite::params![
-            book.id.trim(),
-            isbn.trim(),
-            book.title.trim(),
-            book.publisher.trim(),
-            book.year,
-            book.costs,
-            book.note.trim(),
-            book.borrowable,
-            book.category.trim(),
-            previous_id
-        ],
-    )?;
-
-    if previous_id != book.id {
-        // update authors on id change
-        transaction.execute(
-            "update author set medium=? where medium=?",
-            [book.id.trim(), previous_id],
-        )?;
+        let id = last_id.unwrap_or(1);
+        Ok(format!("{prefix} {id}"))
     }
 
-    // update authors
-    transaction.execute("delete from author where medium=?", [book.id.trim()])?;
-
-    for author in &book.authors {
-        transaction.execute(
-            "insert or replace into author values (?, ?)",
-            [author.trim(), book.id.trim()],
-        )?;
+    pub fn update_user_ref(&mut self, from: &str, to: &str) -> Result<()> {
+        for book in self.data.values_mut() {
+            if book.borrower == from {
+                book.borrower = to.to_string();
+            }
+            if book.reservation == from {
+                book.reservation = to.to_string();
+            }
+        }
+        Ok(())
     }
 
-    transaction.commit()?;
-    Ok(())
-}
-
-/// Deletes the book including the its authors.
-/// Also borrowers & reservations for this book are removed.
-pub fn delete(db: &Database, id: &str) -> Result<()> {
-    let id = id.trim();
-    if id.is_empty() {
-        return Err(Error::InvalidBook);
+    pub fn update_category_ref(&mut self, from: &str, to: &str) -> Result<()> {
+        for book in self.data.values_mut() {
+            if book.category == from {
+                book.category = to.to_string();
+            }
+        }
+        Ok(())
     }
-
-    let transaction = db.transaction()?;
-    transaction.execute("delete from medium where id=?", [id])?;
-
-    // delete missing authors
-    transaction.execute(
-        "delete from author where medium not in (select id from medium)",
-        [],
-    )?;
-    transaction.commit()?;
-    Ok(())
-}
-
-/// Generates a new unique id based on the authors surname and the category.
-pub fn generate_id(db: &Database, book: &Book) -> Result<String> {
-    let prefix = id_prefix(
-        book.authors.first().map(|s| s.trim()).unwrap_or_default(),
-        book.category.trim(),
-    );
-    let id = book.id.trim();
-    if id.starts_with(&prefix)
-        && id.len() > prefix.len() + 1
-        && &id[prefix.len()..=prefix.len()] == " "
-    {
-        return Ok(id.to_string());
-    }
-
-    // query smallest unused id
-    let id = db.con.query_row(
-        "select ifnull(max(cast(substr(id, length(?1) + 1) as integer)), 0) \
-        from medium where id like ?1||'%' \
-        order by id",
-        rusqlite::params![prefix.as_str()],
-        |v| v.get::<usize, usize>(0).map(|v| v + 1),
-    )?;
-    Ok(format!("{prefix} {id}"))
 }
 
 fn id_prefix(author: &str, category: &str) -> String {
@@ -357,8 +294,6 @@ fn id_prefix(author: &str, category: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::logging;
-
     use super::super::*;
     use super::*;
 
@@ -379,23 +314,26 @@ mod tests {
 
     #[test]
     fn add_update_remove_book() {
-        logging();
-
-        let db = Database::memory().unwrap();
-        structure::create(&db, PKG_VERSION).unwrap();
+        let mut db = Database::default();
 
         assert_eq!(
-            book::search(
-                &db,
-                &BookSearch {
+            db.books
+                .search(&BookSearch {
                     query: "".to_owned(),
                     ..BookSearch::default()
-                }
-            )
-            .unwrap()
-            .0,
+                })
+                .unwrap()
+                .0,
             0
         );
+
+        db.categories
+            .add(Category {
+                id: "FANT".into(),
+                name: "Fantasy".into(),
+                section: "General".into(),
+            })
+            .unwrap();
 
         // New book
         let book = Book {
@@ -408,58 +346,57 @@ mod tests {
             note: "Not a real book".into(),
             borrowable: true,
             category: "FANT".into(),
-            authors: vec!["John Doe".into()],
+            authors: "John Doe".into(),
             ..Book::default()
         };
 
-        book::add(&db, &book).unwrap();
+        db.books.add(book.clone(), &db.categories).unwrap();
 
-        let db_book = &book::search(
-            &db,
-            &BookSearch {
+        let db_book = db
+            .books
+            .search(&BookSearch {
                 query: "".to_owned(),
                 ..BookSearch::default()
-            },
-        )
-        .unwrap()
-        .1[0];
-        assert_eq!(&book, db_book);
+            })
+            .unwrap()
+            .1;
+        assert_eq!(1, db_book.len());
+        assert_eq!(book, db_book[0]);
 
         // Update book
-        book::update(
-            &db,
-            &book.id,
-            &Book {
-                title: "Another Title".into(),
-                ..book.clone()
-            },
-        )
-        .unwrap();
+        db.books
+            .update(
+                &book.id,
+                Book {
+                    title: "Another Title".into(),
+                    ..book.clone()
+                },
+                &db.categories,
+            )
+            .unwrap();
 
-        let db_book = &book::search(
-            &db,
-            &BookSearch {
+        let db_book = db
+            .books
+            .search(&BookSearch {
                 query: "".to_owned(),
                 ..BookSearch::default()
-            },
-        )
-        .unwrap()
-        .1[0];
-        assert_eq!(db_book.title, "Another Title");
+            })
+            .unwrap()
+            .1;
+        assert_eq!(1, db_book.len());
+        assert_eq!(db_book[0].title, "Another Title");
 
         // Remove book
-        book::delete(&db, &book.id).unwrap();
+        db.books.delete(&book.id).unwrap();
 
         assert_eq!(
-            book::search(
-                &db,
-                &BookSearch {
+            db.books
+                .search(&BookSearch {
                     query: "".to_owned(),
                     ..BookSearch::default()
-                }
-            )
-            .unwrap()
-            .0,
+                })
+                .unwrap()
+                .0,
             0
         );
     }

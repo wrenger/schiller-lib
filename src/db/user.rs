@@ -1,11 +1,10 @@
-use crate::{
-    error::{Error, Result},
-    mail::account_is_valid,
-};
-
-use super::{collect_rows, Database, FromRow};
+use std::collections::{btree_map::Entry, BTreeMap};
 
 use serde::{Deserialize, Serialize};
+
+use crate::error::{Error, Result};
+use crate::mail::account_is_valid;
+use super::Books;
 
 /// Data object for a user.
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -19,40 +18,16 @@ pub struct User {
 }
 
 impl User {
-    fn is_valid(&self) -> bool {
-        account_is_valid(self.account.trim())
-            && !self.forename.trim().is_empty()
-            && !self.surname.trim().is_empty()
-            && !self.role.trim().is_empty()
+    fn validate(&mut self) -> bool {
+        self.account = self.account.trim().to_string();
+        self.forename = self.forename.trim().to_string();
+        self.surname = self.surname.trim().to_string();
+        self.role = self.role.trim().to_string();
+        account_is_valid(&self.account)
+            && !self.forename.is_empty()
+            && !self.surname.is_empty()
+            && !self.role.is_empty()
     }
-}
-
-impl FromRow for User {
-    fn from_row(row: &rusqlite::Row) -> rusqlite::Result<User> {
-        Ok(User {
-            account: row.get("account")?,
-            forename: row.get("forename")?,
-            surname: row.get("surname")?,
-            role: row.get("role")?,
-            may_borrow: row.get("may_borrow")?,
-        })
-    }
-}
-
-/// Returns the user with the given `id`.
-pub fn fetch(db: &Database, id: &str) -> Result<User> {
-    Ok(db.con.query_row(
-        "select \
-        account, \
-        forename, \
-        surname, \
-        role, \
-        may_borrow \
-        from user \
-        where account=?",
-        [id],
-        User::from_row,
-    )?)
 }
 
 /// Parameters for the normal search
@@ -76,138 +51,128 @@ impl Default for UserSearch {
     }
 }
 
-/// Performes a simple user search with the given `text`.
-pub fn search(db: &Database, params: &UserSearch) -> Result<(usize, Vec<User>)> {
-    let mut stmt = db.con.prepare(
-        "select \
-        account, \
-        forename, \
-        surname, \
-        role, \
-        may_borrow, \
-        count(*) over() as total_count \
-        \
-        from user \
-        where (account like '%'||?1||'%' \
-        or forename like '%'||?1||'%' \
-        or surname like '%'||?1||'%' \
-        or role like '%'||?1||'%') \
-        and may_borrow like '%'||?2||'%' \
-        order by \
-            case \
-                when account like ?1||'%' then 0 \
-                else 1 \
-            end asc, \
-            account asc \
-        limit ?3 offset ?4",
-    )?;
-    let rows = stmt.query(rusqlite::params![
-        &params.query.trim(),
-        match params.may_borrow {
-            Some(true) => "1",
-            Some(false) => "0",
-            None => "%",
-        },
-        params.limit,
-        params.offset
-    ])?;
-
-    collect_rows(rows)
+#[derive(Default, Serialize, Deserialize)]
+pub struct Users {
+    #[serde(flatten)]
+    pub data: BTreeMap<String, User>,
 }
 
-/// Adds a new user.
-pub fn add(db: &Database, user: &User) -> Result<()> {
-    if !user.is_valid() {
-        return Err(Error::InvalidUser);
+impl Users {
+    pub fn fetch(&self, account: &str) -> Result<User> {
+        self.data.get(account).cloned().ok_or(Error::NothingFound)
     }
-    db.con.execute(
-        "insert into user values (?, ?, ?, ?, ?)",
-        rusqlite::params![
-            user.account.trim(),
-            user.forename.trim(),
-            user.surname.trim(),
-            user.role.trim(),
-            user.may_borrow as i64,
-        ],
-    )?;
-    Ok(())
-}
 
-/// Updates the user and all references if its account changes.
-pub fn update(db: &Database, previous_account: &str, user: &User) -> Result<()> {
-    let previous_account = previous_account.trim();
-    if previous_account.is_empty() || !user.is_valid() {
-        return Err(Error::InvalidUser);
-    }
-    let transaction = db.transaction()?;
-    // update user
-    transaction.execute(
-        "update user set account=?, forename=?, surname=?, role=?, may_borrow=? where account=?",
-        rusqlite::params![
-            user.account.trim(),
-            user.forename.trim(),
-            user.surname.trim(),
-            user.role.trim(),
-            user.may_borrow as i64,
-            previous_account,
-        ],
-    )?;
+    pub fn add(&mut self, mut user: User) -> Result<User> {
+        if !user.validate() {
+            return Err(Error::InvalidBook);
+        }
 
-    // update borrows
-    transaction.execute(
-        "update medium set borrower=? where borrower=?",
-        [user.account.trim(), previous_account],
-    )?;
-
-    // update reservations
-    transaction.execute(
-        "update medium set reservation=? where reservation=?",
-        [user.account.trim(), previous_account],
-    )?;
-    transaction.commit()?;
-    Ok(())
-}
-
-/// Deletes the user.
-/// This includes all its borrows & reservations.
-pub fn delete(db: &Database, account: &str) -> Result<()> {
-    let account = account.trim();
-    if account.is_empty() {
-        return Err(Error::InvalidUser);
-    }
-    let transaction = db.transaction()?;
-    // remove user
-    transaction.execute("delete from user where account=?", [account])?;
-
-    // remove borrows & reservations
-    transaction.execute(
-        "update medium set reservation='' \
-        where reservation not in (select account from user); \
-        update medium set borrower='' \
-        where borrower not in (select account from user);",
-        [],
-    )?;
-    transaction.commit()?;
-    Ok(())
-}
-
-/// Deletes the roles from all users and inserts the new roles.
-///
-/// The roles of all users not contained in the given list are cleared.
-pub fn update_roles(db: &Database, users: &[(String, String)]) -> Result<()> {
-    let transaction = db.transaction()?;
-    transaction.execute("update user set role='-'", [])?;
-
-    let mut stmt = transaction.prepare("update user set role=? where account=?")?;
-    for (account, role) in users {
-        let account = account.trim();
-        if !account.is_empty() {
-            stmt.execute([role.trim(), account])?;
+        match self.data.entry(user.account.clone()) {
+            Entry::Vacant(v) => {
+                v.insert(user.clone());
+                Ok(user)
+            }
+            _ => Err(Error::InvalidBook),
         }
     }
-    drop(stmt);
-    transaction.commit()?;
-    Ok(())
+
+    pub fn update(&mut self, account: &str, mut user: User, books: &mut Books) -> Result<User> {
+        let account = account.trim();
+        if account.is_empty() || !user.validate() {
+            return Err(Error::InvalidBook);
+        }
+
+        if account == user.account {
+            if let Some(entry) = self.data.get_mut(account) {
+                *entry = user.clone();
+                return Ok(user);
+            }
+        } else {
+            if self.data.remove(account).is_some() {
+                return match self.data.entry(user.account.clone()) {
+                    Entry::Vacant(v) => {
+                        v.insert(user.clone());
+                        books.update_user_ref(account, &user.account)?;
+                        Ok(user)
+                    }
+                    _ => Err(Error::InvalidBook),
+                };
+            }
+        }
+
+        Err(Error::NothingFound)
+    }
+
+    pub fn delete(&mut self, account: &str) -> Result<()> {
+        self.data
+            .remove(account.trim())
+            .map(|_| ())
+            .ok_or(Error::NothingFound)
+    }
+
+    /// Performes a simple user search with the given `text`.
+    pub fn search(&self, search: &UserSearch) -> Result<(usize, Vec<User>)> {
+        let mut primary = Vec::new();
+        let mut secondary = Vec::new();
+        let mut tertiary = Vec::new();
+
+        let limits = search.offset..search.offset + search.limit;
+        let query = search.query.to_lowercase();
+
+        // just a very basic brute-force search
+        let mut results = 0;
+        for user in self.data.values() {
+            match search.may_borrow {
+                Some(true) if !user.may_borrow => continue,
+                Some(false) if user.may_borrow => continue,
+                _ => {}
+            }
+
+            if user.account.to_lowercase().starts_with(&query) {
+                results += 1;
+                if limits.contains(&results) {
+                    primary.push(user.clone());
+                }
+            } else if user.account.to_lowercase().contains(&query) {
+                results += 1;
+                if limits.contains(&results) {
+                    secondary.push(user.clone());
+                }
+            } else if user.forename.to_lowercase().contains(&query)
+                || user.surname.to_lowercase().contains(&query)
+                || user.role.to_lowercase().contains(&query)
+            {
+                results += 1;
+                if limits.contains(&results) {
+                    tertiary.push(user.clone());
+                }
+            }
+        }
+
+        primary.reserve(secondary.len() + tertiary.len());
+        primary.append(&mut secondary);
+        primary.append(&mut tertiary);
+        Ok((results, primary))
+    }
+
+    /// Deletes the roles from all users and inserts the new roles.
+    ///
+    /// The roles of all users not contained in the given list are cleared.
+    pub fn update_roles(&mut self, users: &[(String, String)]) -> Result<()> {
+        for user in self.data.values_mut() {
+            user.role = "-".into();
+        }
+
+        for (account, role) in users {
+            let account = account.trim();
+            if !account.is_empty() {
+                if let Some(entry) = self.data.get_mut(account) {
+                    entry.role = role.clone();
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -217,8 +182,7 @@ mod tests {
 
     #[test]
     fn add_update_remove_users() {
-        let db = Database::memory().unwrap();
-        structure::create(&db, PKG_VERSION).unwrap();
+        let mut db = Database::default();
 
         let user = User {
             account: "foo.bar".into(),
@@ -227,61 +191,58 @@ mod tests {
             role: "Demo".into(),
             may_borrow: true,
         };
-        user::add(&db, &user).unwrap();
+        db.users.add(user.clone()).unwrap();
 
-        let (count, users) = user::search(
-            &db,
-            &UserSearch {
+        let (count, users) = db
+            .users
+            .search(&UserSearch {
                 query: "".to_owned(),
                 may_borrow: None,
                 offset: 0,
                 limit: 100,
-            },
-        )
-        .unwrap();
+            })
+            .unwrap();
         assert_eq!(count, 1);
         assert_eq!(users[0], user);
 
-        user::update(
-            &db,
-            &user.account,
-            &User {
-                role: "Teacher".into(),
-                ..user.clone()
-            },
-        )
-        .unwrap();
-        let (count, users) = user::search(
-            &db,
-            &UserSearch {
+        db.users
+            .update(
+                &user.account,
+                User {
+                    role: "Teacher".into(),
+                    ..user.clone()
+                },
+                &mut db.books,
+            )
+            .unwrap();
+        let (count, users) = db
+            .users
+            .search(&UserSearch {
                 query: "".to_owned(),
                 may_borrow: None,
                 offset: 0,
                 limit: 100,
-            },
-        )
-        .unwrap();
+            })
+            .unwrap();
         assert_eq!(count, 1);
         assert_eq!(users[0].role, "Teacher");
 
-        user::delete(&db, &user.account).unwrap();
-        let (count, _) = user::search(
-            &db,
-            &UserSearch {
+        db.users.delete(&user.account).unwrap();
+        let (count, _) = db
+            .users
+            .search(&UserSearch {
                 query: "".to_owned(),
                 may_borrow: None,
                 offset: 0,
                 limit: 100,
-            },
-        )
-        .unwrap();
+            })
+            .unwrap();
         assert_eq!(count, 0);
     }
 
     #[test]
     fn update_user_roles() {
-        let db = Database::memory().unwrap();
-        structure::create(&db, PKG_VERSION).unwrap();
+        let mut db = Database::default();
 
         let mut user1 = User {
             account: "foo.bar".into(),
@@ -297,38 +258,38 @@ mod tests {
             role: "Demo".into(),
             may_borrow: true,
         };
-        user::add(&db, &user1).unwrap();
-        user::add(&db, &user2).unwrap();
+        db.users.add(user1.clone()).unwrap();
+        db.users.add(user2.clone()).unwrap();
 
-        let (count, users) = user::search(
-            &db,
-            &UserSearch {
+        let (count, users) = db
+            .users
+            .search(&UserSearch {
                 query: "".to_owned(),
                 may_borrow: None,
                 offset: 0,
                 limit: 100,
-            },
-        )
-        .unwrap();
+            })
+            .unwrap();
         assert_eq!(count, 2);
         assert_eq!(users[0], user2);
         assert_eq!(users[1], user1);
 
-        user::update_roles(&db, &[("foo.bar".into(), "Teacher".into())]).unwrap();
+        db.users
+            .update_roles(&[("foo.bar".into(), "Teacher".into())])
+            .unwrap();
 
         user1.role = "Teacher".into();
         user2.role = "-".into();
 
-        let (count, users) = user::search(
-            &db,
-            &UserSearch {
+        let (count, users) = db
+            .users
+            .search(&UserSearch {
                 query: "".to_owned(),
                 may_borrow: None,
                 offset: 0,
                 limit: 100,
-            },
-        )
-        .unwrap();
+            })
+            .unwrap();
         assert_eq!(count, 2);
         assert_eq!(users[0], user2);
         assert_eq!(users[1], user1);

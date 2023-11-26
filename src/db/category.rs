@@ -1,8 +1,9 @@
+use std::collections::{btree_map::Entry, BTreeMap};
+
 use serde::{Deserialize, Serialize};
 
 use crate::error::{Error, Result};
-
-use super::{DBIter, Database, FromRow};
+use super::Books;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Category {
@@ -12,108 +13,81 @@ pub struct Category {
 }
 
 impl Category {
-    fn is_valid(&self) -> bool {
-        !self.id.trim().is_empty()
-            && !self.name.trim().is_empty()
-            && !self.section.trim().is_empty()
+    fn validate(&mut self) -> bool {
+        self.id = self.id.trim().to_string();
+        self.name = self.name.trim().to_string();
+        self.section = self.section.trim().to_string();
+        !self.id.is_empty()
     }
 }
 
-impl FromRow for Category {
-    fn from_row(rows: &rusqlite::Row) -> rusqlite::Result<Category> {
-        Ok(Category {
-            id: rows.get("id")?,
-            name: rows.get("name")?,
-            section: rows.get("section")?,
-        })
-    }
+#[derive(Default, Serialize, Deserialize)]
+pub struct Categories {
+    #[serde(flatten)]
+    pub data: BTreeMap<String, Category>,
 }
 
-/// Returns all categories.
-pub fn list(db: &Database) -> Result<Vec<Category>> {
-    let mut stmt = db
-        .con
-        .prepare("select id, name, section from category order by section, id")?;
-    let rows = stmt.query([])?;
-    DBIter::new(rows).collect()
-}
-
-/// Adds a new category.
-pub fn add(db: &Database, category: &Category) -> Result<()> {
-    if !category.is_valid() {
-        return Err(Error::Arguments);
+impl Categories {
+    pub fn list(&self) -> Result<Vec<Category>> {
+        Ok(self.data.values().cloned().collect())
     }
 
-    db.con.execute(
-        "insert into category values (?, ?, ?)",
-        [
-            category.id.trim(),
-            category.name.trim(),
-            category.section.trim(),
-        ],
-    )?;
-    Ok(())
-}
+    pub fn add(&mut self, mut category: Category) -> Result<Category> {
+        if !category.validate() {
+            return Err(Error::Arguments);
+        }
 
-/// Updates the category and all references.
-pub fn update(db: &Database, id: &str, category: &Category) -> Result<()> {
-    if !category.is_valid() {
-        return Err(Error::Arguments);
+        match self.data.entry(category.id.clone()) {
+            Entry::Vacant(v) => {
+                v.insert(category.clone());
+                Ok(category)
+            }
+            _ => Err(Error::InvalidBook),
+        }
     }
 
-    let transaction = db.transaction()?;
-    // Update category
-    transaction.execute(
-        "update category set id=?, name=?, section=? where id=?",
-        [
-            category.id.trim(),
-            category.name.trim(),
-            category.section.trim(),
-            id,
-        ],
-    )?;
+    pub fn update(
+        &mut self,
+        id: &str,
+        mut category: Category,
+        books: &mut Books,
+    ) -> Result<Category> {
+        let id = id.trim();
+        if id.is_empty() || !category.validate() {
+            return Err(Error::Arguments);
+        }
 
-    if id != category.id {
-        // Update category ids of related media
-        transaction.execute(
-            "update medium set category=? where category=?",
-            [category.id.trim(), id],
-        )?;
+        if id == category.id {
+            if let Some(entry) = self.data.get_mut(id) {
+                *entry = category.clone();
+                return Ok(category);
+            }
+        } else {
+            if self.data.remove(id).is_some() {
+                return match self.data.entry(category.id.clone()) {
+                    Entry::Vacant(v) => {
+                        v.insert(category.clone());
+                        books.update_category_ref(id, &category.id)?;
+                        Ok(category)
+                    }
+                    _ => Err(Error::Arguments),
+                };
+            }
+        }
+
+        Err(Error::NothingFound)
     }
 
-    transaction.commit()?;
-    Ok(())
-}
-
-/// Removes the category, assuming it is not referenced anywhere.
-pub fn delete(db: &Database, id: &str) -> Result<()> {
-    let id = id.trim();
-    if id.is_empty() {
-        return Err(Error::Arguments);
+    pub fn delete(&mut self, id: &str, books: &Books) -> Result<()> {
+        // Check for books with the category
+        for book in books.data.values() {
+            if book.category == id {
+                return Err(Error::Logic);
+            }
+        }
+        self.data
+            .remove(id.trim())
+            .map(|_| ())
+            .ok_or(Error::NothingFound)
     }
-
-    let transaction = db.transaction()?;
-    // Do not allow the removal of used categories
-    if references(db, id)? > 0 {
-        return Err(Error::Logic);
-    }
-
-    transaction.execute("delete from category where id=?", [id])?;
-
-    transaction.commit()?;
-    Ok(())
-}
-
-/// Returns the number of books in this category.
-pub fn references(db: &Database, id: &str) -> Result<i64> {
-    let id = id.trim();
-    if id.is_empty() {
-        return Err(Error::Arguments);
-    }
-
-    Ok(db.con.query_row(
-        "select count(id) from medium where category=?",
-        [id],
-        |row| row.get::<usize, i64>(0),
-    )?)
 }

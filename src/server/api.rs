@@ -1,24 +1,25 @@
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::Arc;
 
 use axum::extract::{FromRef, Path, Query, State};
 use axum::middleware::from_extractor_with_state;
 use axum::routing::{get, post};
 use axum::{Json, Router};
+use chrono::NaiveDate;
 use hyper::StatusCode;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
 use super::auth::{Auth, Login};
-use crate::db::{self, UserSearch};
+use crate::db::*;
 use crate::error::{Error, Result};
 use crate::mail::{self, account_is_valid};
 use crate::provider;
 
 #[derive(Debug, Clone)]
 pub struct Project {
-    db: Arc<Mutex<db::Database>>,
+    db: Arc<AtomicDatabase>,
     user_file: Arc<PathBuf>,
     user_delimiter: u8,
     client: Client,
@@ -32,18 +33,14 @@ impl FromRef<Project> for Auth {
 }
 
 impl Project {
-    pub fn new(db: db::Database, user_file: PathBuf, user_delimiter: u8, auth: Auth) -> Self {
+    pub fn new(db: AtomicDatabase, user_file: PathBuf, user_delimiter: u8, auth: Auth) -> Self {
         Self {
-            db: Arc::new(Mutex::new(db)),
+            db: Arc::new(db),
             user_file: Arc::new(user_file),
             user_delimiter,
             client: Client::new(),
             auth,
         }
-    }
-
-    fn db(&self) -> MutexGuard<'_, db::Database> {
-        self.db.lock().unwrap()
     }
 }
 
@@ -117,23 +114,22 @@ async fn about() -> Json<About> {
 /// Returns the project settings.
 /// They are fetched when opening a project, so that this function only
 /// returns copies of the cached version.
-async fn settings_get(State(project): State<Project>) -> Result<Json<db::Settings>> {
-    Ok(Json(db::settings::fetch(&project.db())?))
+async fn settings_get(State(project): State<Project>) -> Result<Json<Settings>> {
+    Ok(Json(project.db.read().settings()))
 }
 
 /// Updates project settings.
 async fn settings_update(
     State(project): State<Project>,
-    Json(settings): Json<db::Settings>,
+    Json(settings): Json<Settings>,
 ) -> Result<()> {
-    let db = project.db();
-    db::settings::update(&db, &settings)?;
+    project.db.write().settings_update(settings)?;
     Ok(())
 }
 
 /// Returns the project statistics.
-async fn stats(State(project): State<Project>) -> Result<Json<db::Stats>> {
-    Ok(Json(db::stats::fetch(&project.db())?))
+async fn stats(State(project): State<Project>) -> Result<Json<Stats>> {
+    Ok(Json(project.db.read().stats()?))
 }
 
 /// Returns the project statistics.
@@ -144,11 +140,8 @@ async fn session(login: Login) -> Result<Json<Login>> {
 // Book
 
 /// Returns the book with the given `id`.
-async fn book_fetch(
-    State(project): State<Project>,
-    Path(id): Path<String>,
-) -> Result<Json<db::Book>> {
-    Ok(Json(db::book::fetch(&project.db(), &id)?))
+async fn book_fetch(State(project): State<Project>, Path(id): Path<String>) -> Result<Json<Book>> {
+    Ok(Json(project.db.read().books.fetch(&id)?))
 }
 
 #[derive(Debug, Deserialize)]
@@ -188,37 +181,41 @@ impl<T: Serialize> From<(usize, Vec<T>)> for SearchResult<T> {
 /// Preforms a simple media search with the given `query`.
 async fn book_search(
     State(project): State<Project>,
-    Query(params): Query<db::BookSearch>,
-) -> Result<Json<SearchResult<db::Book>>> {
-    Ok(Json(db::book::search(&project.db(), &params)?.into()))
+    Query(params): Query<BookSearch>,
+) -> Result<Json<SearchResult<Book>>> {
+    Ok(Json(project.db.read().books.search(&params)?.into()))
 }
 
 /// Adds a new book.
-async fn book_add(State(project): State<Project>, Json(book): Json<db::Book>) -> Result<()> {
-    db::book::add(&project.db(), &book)
+async fn book_add(State(project): State<Project>, Json(book): Json<Book>) -> Result<Json<Book>> {
+    let mut db = project.db.write();
+    let db = &mut *db;
+    Ok(Json(db.books.add(book, &db.categories)?))
 }
 
 /// Updates the book and all references if its id changes.
 async fn book_update(
     State(project): State<Project>,
     Path(id): Path<String>,
-    Json(book): Json<db::Book>,
-) -> Result<()> {
-    db::book::update(&project.db(), &id, &book)
+    Json(book): Json<Book>,
+) -> Result<Json<Book>> {
+    let mut db = project.db.write();
+    let db = &mut *db;
+    Ok(Json(db.books.update(&id, book, &db.categories)?))
 }
 
 /// Deletes the book including the its authors.
 /// Also borrowers & reservations for this book are removed.
 async fn book_delete(State(project): State<Project>, Path(id): Path<String>) -> Result<()> {
-    db::book::delete(&project.db(), &id)
+    project.db.write().books.delete(&id)
 }
 
 /// Generates a new book id.
 async fn book_generate_id(
     State(project): State<Project>,
-    Json(book): Json<db::Book>,
+    Json(book): Json<Book>,
 ) -> Result<Json<String>> {
-    Ok(Json(db::book::generate_id(&project.db(), &book)?))
+    Ok(Json(project.db.write().books.generate_id(&book)?))
 }
 
 /// Fetch the data of the book from the DNB an their like.
@@ -226,8 +223,7 @@ async fn book_fetch_data(
     State(project): State<Project>,
     Path(isbn): Path<String>,
 ) -> Result<Json<provider::dnb::BookData>> {
-    let settings = db::settings::fetch(&project.db())?;
-
+    let settings = project.db.read().settings();
     Ok(Json(
         provider::dnb::fetch(project.client, &settings.dnb_token, &isbn).await?,
     ))
@@ -239,43 +235,45 @@ async fn book_fetch_data(
 async fn user_fetch(
     State(project): State<Project>,
     Path(account): Path<String>,
-) -> Result<Json<db::User>> {
-    Ok(Json(db::user::fetch(&project.db(), &account)?))
+) -> Result<Json<User>> {
+    Ok(Json(project.db.read().users.fetch(&account)?))
 }
 
 /// Performs a simple user search with the given `text`.
 async fn user_search(
     State(project): State<Project>,
     Query(params): Query<UserSearch>,
-) -> Result<Json<SearchResult<db::User>>> {
-    Ok(Json(db::user::search(&project.db(), &params)?.into()))
+) -> Result<Json<SearchResult<User>>> {
+    Ok(Json(project.db.read().users.search(&params)?.into()))
 }
 
 /// Adds a new user.
-async fn user_add(State(project): State<Project>, Json(user): Json<db::User>) -> Result<()> {
-    db::user::add(&project.db(), &user)
+async fn user_add(State(project): State<Project>, Json(user): Json<User>) -> Result<Json<User>> {
+    Ok(Json(project.db.write().users.add(user)?))
 }
 
 /// Updates the user and all references if its account changes.
 async fn user_update(
     State(project): State<Project>,
     Path(account): Path<String>,
-    Json(user): Json<db::User>,
-) -> Result<()> {
-    db::user::update(&project.db(), &account, &user)
+    Json(user): Json<User>,
+) -> Result<Json<User>> {
+    let mut db = project.db.write();
+    let db = &mut *db;
+    Ok(Json(db.users.update(&account, user, &mut db.books)?))
 }
 
 /// Deletes the user.
 /// This includes all its borrows & reservations.
 async fn user_delete(State(project): State<Project>, Path(account): Path<String>) -> Result<()> {
-    db::user::delete(&project.db(), &account)
+    project.db.write().users.delete(&account)
 }
 
 /// Fetch the data of the book from the DNB an their like.
 async fn user_fetch_data(
     State(project): State<Project>,
     Path(account): Path<String>,
-) -> Result<Json<db::User>> {
+) -> Result<Json<User>> {
     Ok(Json(super::provider::user::search(
         &project.user_file,
         project.user_delimiter,
@@ -288,46 +286,48 @@ async fn user_fetch_data(
 /// The roles of all users not contained in the given list are cleared.
 async fn user_update_roles(State(project): State<Project>) -> Result<()> {
     let users = super::provider::user::load_roles(&project.user_file, project.user_delimiter)?;
-    db::user::update_roles(&project.db(), &users)
+    project.db.write().users.update_roles(&users)
 }
 
 // Category
 
 /// Fetches and returns all categories.
-async fn category_list(
-    State(project): State<Project>,
-) -> Result<Json<Vec<db::category::Category>>> {
-    Ok(Json(db::category::list(&project.db())?))
+async fn category_list(State(project): State<Project>) -> Result<Json<Vec<Category>>> {
+    Ok(Json(project.db.read().categories.list()?))
 }
 
 /// Adds a new category.
 async fn category_add(
     State(project): State<Project>,
-    Json(category): Json<db::Category>,
-) -> Result<()> {
-    db::category::add(&project.db(), &category)
+    Json(category): Json<Category>,
+) -> Result<Json<Category>> {
+    Ok(Json(project.db.write().categories.add(category)?))
 }
 
 /// Updates the category and all references.
 async fn category_update(
     State(project): State<Project>,
     Path(id): Path<String>,
-    Json(category): Json<db::Category>,
-) -> Result<()> {
-    db::category::update(&project.db(), &id, &category)
+    Json(category): Json<Category>,
+) -> Result<Json<Category>> {
+    let mut db = project.db.write();
+    let db = &mut *db;
+    Ok(Json(db.categories.update(&id, category, &mut db.books)?))
 }
 
 /// Removes the category or returns a `Error::Logic` if it is still in use.
 async fn category_delete(State(project): State<Project>, Path(id): Path<String>) -> Result<()> {
-    db::category::delete(&project.db(), &id)
+    let mut db = project.db.write();
+    let db = &mut *db;
+    db.categories.delete(&id, &db.books)
 }
 
 /// Returns the number of books in this category.
 async fn category_references(
     State(project): State<Project>,
     Path(id): Path<String>,
-) -> Result<Json<i64>> {
-    Ok(Json(db::category::references(&project.db(), &id)?))
+) -> Result<Json<usize>> {
+    Ok(Json(project.db.read().books.in_category(&id)?))
 }
 
 // Lending
@@ -337,19 +337,18 @@ struct LendParams {
     id: String,
     account: String,
     /// ISO date format: YYYY-MM-DD
-    deadline: String,
+    deadline: NaiveDate,
 }
 
 /// Lends the book to the specified user.
 async fn lending_lend(
     State(project): State<Project>,
     Query(params): Query<LendParams>,
-) -> Result<Json<db::Book>> {
-    Ok(Json(db::lending::lend(
-        &project.db(),
+) -> Result<Json<Book>> {
+    Ok(Json(project.db.write().lend(
         &params.id,
         &params.account,
-        &params.deadline,
+        params.deadline,
     )?))
 }
 
@@ -362,8 +361,8 @@ struct ReturnParams {
 async fn lending_return(
     State(project): State<Project>,
     Query(params): Query<ReturnParams>,
-) -> Result<Json<db::Book>> {
-    Ok(Json(db::lending::return_back(&project.db(), &params.id)?))
+) -> Result<Json<Book>> {
+    Ok(Json(project.db.write().return_back(&params.id)?))
 }
 
 #[derive(Debug, Deserialize)]
@@ -376,27 +375,23 @@ struct ReserveParams {
 async fn lending_reserve(
     State(project): State<Project>,
     Query(params): Query<ReserveParams>,
-) -> Result<Json<db::Book>> {
-    Ok(Json(db::lending::reserve(
-        &project.db(),
-        &params.id,
-        &params.account,
-    )?))
+) -> Result<Json<Book>> {
+    Ok(Json(
+        project.db.write().reserve(&params.id, &params.account)?,
+    ))
 }
 
 /// Removes the reservation from the specified book.
 async fn lending_release(
     State(project): State<Project>,
     Query(params): Query<ReturnParams>,
-) -> Result<Json<db::Book>> {
-    Ok(Json(db::lending::release(&project.db(), &params.id)?))
+) -> Result<Json<Book>> {
+    Ok(Json(project.db.write().release(&params.id)?))
 }
 
 /// Returns the list of expired borrowing periods.
-async fn lending_overdues(
-    State(project): State<Project>,
-) -> Result<Json<Vec<(db::book::Book, db::user::User)>>> {
-    Ok(Json(db::lending::overdues(&project.db())?))
+async fn lending_overdues(State(project): State<Project>) -> Result<Json<Vec<(Book, User)>>> {
+    Ok(Json(project.db.read().overdues()?))
 }
 
 // Mail Notifications
@@ -412,7 +407,7 @@ async fn mail_notify(
     State(project): State<Project>,
     Json(messages): Json<Vec<Message>>,
 ) -> Result<()> {
-    let settings = db::settings::fetch(&project.db())?;
+    let settings = project.db.read().settings();
 
     for Message {
         account,

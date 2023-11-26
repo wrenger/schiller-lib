@@ -27,7 +27,7 @@
 	let response: Promise<void>;
 
 	async function lend() {
-		let book = await api.lend(bookId, borrower, period?.toISODate() ?? "");
+		let book = await api.lend(bookId, borrower, period?.toISODate());
 		onChange(book);
 		close();
 	}
