@@ -1,5 +1,5 @@
 <script lang="ts">
-	export var isActive: boolean;
+	export let isActive: boolean;
 </script>
 
 <section class="main">
@@ -33,17 +33,12 @@
 		.main {
 			display: flex;
 		}
-		.list {
-			width: 100%;
-			margin: 0;
-		}
+		.list,
 		.view {
 			width: 100%;
 			margin: 0;
 		}
-		.list.hidden {
-			display: none;
-		}
+		.list.hidden,
 		.view.hidden {
 			display: none;
 		}
