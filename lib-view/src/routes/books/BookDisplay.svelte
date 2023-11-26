@@ -135,7 +135,7 @@
 					let data = await api.book_fetch(isbn);
 					title = data.title ?? "";
 					publisher = data.publisher ?? "";
-					authors = data.authors ?? "";
+					authors = Array.isArray(data.authors) ? data.authors.join(", ") : data.authors ?? "";
 					costs = data.costs ?? 0;
 				}}
 			>
