@@ -42,7 +42,7 @@
 	<meta name="description" content={$_(".book")} />
 </svelte:head>
 
-<Container isActive={(active != null ?? true) || (adding ?? true)}>
+<Container isActive={active != null || adding}>
 	<span slot="list">
 		<BookSearch bind:params={search} />
 		<VirtualList
