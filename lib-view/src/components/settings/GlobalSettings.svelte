@@ -7,6 +7,7 @@
 	import DateField from "../basic/DateField.svelte";
 	import { DateTime } from "luxon";
 	import api from "$lib/api";
+	import { areObjectsEqual } from "$lib/util";
 
 	let borrowing_duration = 0;
 	let dnb_token = "";
@@ -90,9 +91,11 @@
 		let settings = get();
 		let data = { ...settings, mail_last_reminder: settings.mail_last_reminder.toISODate() ?? "" };
 
-		await api.settings_update(data);
-		settingsGlobal.set(settings);
-		state.set({});
+		if (!areObjectsEqual(settings, $settingsGlobal)) {
+			await api.settings_update(data);
+			settingsGlobal.set(settings);
+			state.set({});
+		}
 	}
 
 	export function cancel() {
