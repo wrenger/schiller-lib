@@ -1,6 +1,5 @@
 use std::collections::BinaryHeap;
 use std::fmt;
-use std::io::BufReader;
 use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
@@ -114,10 +113,8 @@ impl Default for Database {
 }
 
 impl Database {
-    pub fn load(file: &Path) -> Result<Self> {
-        // TODO: Migration
-        let reader = BufReader::new(File::open(file)?);
-        Ok(serde_json::from_reader(reader)?)
+    pub fn load(s: &str) -> Result<Self> {
+        Ok(serde_json::from_str(s)?)
     }
 
     pub fn save(&self, file: &Path) -> Result<()> {

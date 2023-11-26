@@ -31,7 +31,7 @@ pub fn import(file: &Path) -> Result<(PathBuf, Database)> {
         let new_version: Version = crate::PKG_VERSION.parse().unwrap();
         if MIN_VERSION <= data_version && data_version <= new_version {
             // TODO: Migration routines
-            Ok((file.into(), Database::load(file)?))
+            Ok((file.into(), Database::load(&data)?))
         } else {
             Err(Error::UnsupportedProjectVersion)
         }
