@@ -12,12 +12,12 @@
 	export let load: (offset: number, limit: number) => Promise<api.Limited<T>>;
 	export let key: (t: T) => string;
 
-	let chunks: (T[] | null)[] = [];
+	// we cannot use promises here, as we resize the list and the references get out of sync
+	let chunks: (T[] | "loading" | null)[] = [];
 	let firstChunk = -1;
 	let lastChunk = -1;
 	let totalCount: number = 0;
 
-	let needsReload = false;
 	let adding = false;
 
 	let scroller: HTMLDivElement | null;
@@ -27,11 +27,37 @@
 	}
 
 	export async function reload() {
-		needsReload = true;
-		updateChunks();
+		updateChunks(true);
 	}
 
-	async function updateChunks() {
+	async function loadChunk(i: number): Promise<void> {
+		let { rows, total_count } = await load(i * CHUNK_SIZE, CHUNK_SIZE);
+
+		// Grow list
+		if (totalCount !== total_count) {
+			totalCount = total_count;
+			for (let j = chunks.length; j < totalCount / CHUNK_SIZE; j++) {
+				chunks.push(null);
+			}
+		}
+
+		if (chunks[i] == "loading")
+			chunks[i] = rows;
+
+		// Update active
+		if (active != null) {
+			let a = key(active);
+			let row = rows.find((v) => key(v) == a);
+			if (row != null) {
+				active = row;
+			}
+		}
+
+		// trigger update
+		chunks = chunks;
+	}
+
+	async function updateChunks(needsReload = false) {
 		if (scroller == null) return;
 
 		// calculate viewport
@@ -56,14 +82,8 @@
 		for (let i = 0; i < chunks.length; i++) {
 			if (firstChunk <= i && i <= lastChunk) {
 				if (chunks[i] == null || needsReload) {
-					let { rows, total_count } = await load(i * CHUNK_SIZE, CHUNK_SIZE);
-					if (totalCount !== total_count) {
-						totalCount = total_count;
-						for (let j = chunks.length; j < totalCount / CHUNK_SIZE; j++) {
-							chunks.push(null);
-						}
-					}
-					chunks[i] = rows;
+					chunks[i] = "loading";
+					await loadChunk(i);
 				}
 			} else if (chunks[i] != null) {
 				chunks[i] = null;
@@ -75,34 +95,19 @@
 		if (chunks.length > maxLen) {
 			chunks = chunks.slice(0, maxLen);
 		}
-
-		// update active element
-		if (needsReload) {
-			if (active != null) {
-				let a = key(active);
-				for (let i = firstChunk; i <= lastChunk; i++) {
-					let row = chunks[i]?.find((v) => key(v) == a);
-					if (row) {
-						active = row;
-						break;
-					}
-				}
-			}
-			needsReload = false;
-		}
 	}
 </script>
 
 <div class="card list">
 	<slot name="header" />
-	<div bind:this={scroller} class="list-body" on:scroll={updateChunks}>
+	<div bind:this={scroller} class="list-body" on:scroll={() => updateChunks()}>
 		<div
 			class="list-group list-group-flush"
 			style="min-height: {rowHeight * totalCount}px; max-height: {rowHeight *
 				totalCount}px; position: relative;"
 		>
 			{#each chunks as chunk, i (i)}
-				{#if chunk}
+				{#if chunk != null && chunk != "loading"}
 					<div
 						style="position: absolute; top: {i * rowHeight * CHUNK_SIZE}px; left: 0; right: 0;"
 						class="list-group list-group-flush"
