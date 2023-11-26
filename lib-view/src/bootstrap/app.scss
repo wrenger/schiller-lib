@@ -18,9 +18,7 @@
 @import "bootstrap/scss/card";
 @import "bootstrap/scss/alert";
 @import "bootstrap/scss/spinners";
-@import "bootstrap/scss/close";
 @import "bootstrap/scss/tooltip";
-@import "bootstrap/scss/offcanvas";
 
 @import "bootstrap/scss/helpers";
 @import "bootstrap/scss/utilities/api";
@@ -42,5 +40,9 @@ $bootstrap-icons-font-src: url("bootstrap-icons/font/fonts/bootstrap-icons.woff2
 @media only screen and (max-width: 768px) {
 	.text-truncate.q {
 		max-width: 45dvw;
+	}
+
+	.text-mobile {
+		max-width: 10dvw;
 	}
 }
