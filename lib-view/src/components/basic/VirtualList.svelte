@@ -41,8 +41,7 @@
 			}
 		}
 
-		if (chunks[i] == "loading")
-			chunks[i] = rows;
+		if (chunks[i] != null) chunks[i] = rows;
 
 		// Update active
 		if (active != null) {
@@ -82,7 +81,7 @@
 		for (let i = 0; i < chunks.length; i++) {
 			if (firstChunk <= i && i <= lastChunk) {
 				if (chunks[i] == null || needsReload) {
-					chunks[i] = "loading";
+					if (chunks[i] == null) chunks[i] = "loading";
 					await loadChunk(i);
 				}
 			} else if (chunks[i] != null) {
