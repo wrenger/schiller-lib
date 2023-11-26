@@ -14,7 +14,7 @@
 	let authors = "";
 	let costs = 0;
 	let year = DateTime.now().year;
-	let category = "None";
+	let category = "";
 	let note = "";
 	let borrowable = true;
 	let borrower = "";
@@ -30,7 +30,7 @@
 			authors: "",
 			costs: 0,
 			year: DateTime.now().year,
-			category: "None",
+			category: "",
 			note: "",
 			borrowable: true,
 			borrower: "",

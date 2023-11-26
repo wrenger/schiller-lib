@@ -2,7 +2,7 @@
 	import { _ } from "svelte-i18n";
 	import { category } from "$lib/store";
 
-	export let value: string | null = null;
+	export let value: string = "";
 	export let label: string | undefined = undefined;
 	export let disabled = false;
 	export var onChange: (() => void) | undefined = undefined;
@@ -21,8 +21,7 @@
 	{disabled}
 	on:change={onChange}
 >
-	<option selected value={null}>{$_(".action.select")}</option>
-	<option value={""}>{$_(".category.none")}</option>
+	<option selected value={""}>{$_(".action.select")}</option>
 	{#each items as item (item.id)}
 		<option value={item.id}>{item.id} - {item.name} - {item.section}</option>
 	{/each}

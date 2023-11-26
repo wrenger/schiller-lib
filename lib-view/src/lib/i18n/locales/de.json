@@ -58,7 +58,7 @@
 	".book.id.action": "Vorschlagen",
 	".book.id.format": "Die Signatur muss aus der Kategorie, dem Autor und einer ID bestehen.",
 	".book.invalid-isbn": "Die angegebene ISBN is fehlerhaft",
-	".book.invalid": "ID und Titel dürfen nicht leer bleiben.",
+	".book.invalid": "ID, Titel und Kategorie dürfen nicht leer bleiben.",
 	".book.isbn": "ISBN",
 	".book.lend": "Ausleihen",
 	".book.lend.period": "Dauer",
