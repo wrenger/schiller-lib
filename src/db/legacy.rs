@@ -29,7 +29,7 @@ impl Database {
             let updated = migrate(&database, PKG_VERSION)?;
             Ok((database, updated))
         } else {
-            Err(Error::FileNotFound)
+            Err(Error::FileOpen)
         }
     }
 

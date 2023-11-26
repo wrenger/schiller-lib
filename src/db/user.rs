@@ -92,7 +92,7 @@ impl Users {
                 return match self.data.entry(user.account.clone()) {
                     Entry::Vacant(v) => {
                         v.insert(user.clone());
-                        books.update_user_ref(account, &user.account)?;
+                        books.update_user(account, &user.account)?;
                         Ok(user)
                     }
                     _ => Err(Error::InvalidBook),
@@ -103,7 +103,11 @@ impl Users {
         Err(Error::NothingFound)
     }
 
-    pub fn delete(&mut self, account: &str) -> Result<()> {
+    pub fn delete(&mut self, account: &str, books: &Books) -> Result<()> {
+        if books.is_user_referenced(account) {
+            return Err(Error::ReferencedUser);
+        }
+
         self.data
             .remove(account.trim())
             .map(|_| ())
@@ -227,7 +231,7 @@ mod tests {
         assert_eq!(count, 1);
         assert_eq!(users[0].role, "Teacher");
 
-        db.users.delete(&user.account).unwrap();
+        db.users.delete(&user.account, &mut db.books).unwrap();
         let (count, _) = db
             .users
             .search(&UserSearch {

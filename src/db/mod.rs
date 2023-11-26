@@ -198,7 +198,7 @@ impl Database {
         let mut book = self.books.fetch(id)?;
 
         if book.borrower.is_empty() {
-            return Err(Error::Logic);
+            return Err(Error::LendingBookNotBorrowed);
         }
 
         book.borrower = String::new();
@@ -235,7 +235,7 @@ impl Database {
         let mut book = self.books.fetch(id)?;
 
         if book.reservation.is_empty() {
-            return Err(Error::Logic);
+            return Err(Error::LendingBookNotReserved);
         }
 
         book.reservation = String::new();

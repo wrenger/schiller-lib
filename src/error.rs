@@ -11,28 +11,46 @@ use tracing::error;
 #[repr(i64)]
 #[derive(Debug, Clone, Copy, Serialize)]
 pub enum Error {
+    /// The user provided arguments are malformed
     Arguments,
-    Logic,
-    FileNotFound,
+    /// A file could not be found or opened
     FileOpen,
-    SQL,
+    /// Could not connect to server
     Network,
+    /// Invalid file format
     InvalidFormat,
+    /// No matching results
     NothingFound,
-    // Specific errors
+    /// Deletion not possible as the user is still referenced
+    ReferencedUser,
+    /// Deletion not possible as the category is still referenced
+    ReferencedCategory,
+    /// The book has invalid or missing fields
     InvalidBook,
+    /// The user has invalid or missing fields
     InvalidUser,
-    // Lending errors
+    /// User may not borrow
     LendingUserMayNotBorrow,
+    /// Book cannot be borrowed
     LendingBookNotBorrowable,
+    /// Book is already borrowed
     LendingBookAlreadyBorrowed,
+    /// Book cannot be reserved as the user already borrows it
     LendingBookAlreadyBorrowedByUser,
+    /// The book cannot be reserved or returned as it is not borrowed
     LendingBookNotBorrowed,
+    /// The book is already reserved
     LendingBookAlreadyReserved,
-    // Migration
+    /// The book is not reserved
+    LendingBookNotReserved,
+    /// The database version is too old
     UnsupportedProjectVersion,
+    /// SQL error
+    #[deprecated]
+    SQL,
 }
 
+#[allow(deprecated)]
 impl From<rusqlite::Error> for Error {
     fn from(e: rusqlite::Error) -> Self {
         match e {
@@ -56,7 +74,6 @@ impl From<std::io::Error> for Error {
 
         error!("File Error: {e}");
         match e.kind() {
-            ErrorKind::NotFound => Self::FileNotFound,
             ErrorKind::ConnectionRefused
             | ErrorKind::ConnectionReset
             | ErrorKind::ConnectionAborted
@@ -109,8 +126,9 @@ impl IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
         let status = match self {
             Error::Arguments
-            | Error::Logic
             | Error::InvalidFormat
+            | Error::ReferencedUser
+            | Error::ReferencedCategory
             | Error::InvalidBook
             | Error::InvalidUser
             | Error::LendingUserMayNotBorrow
@@ -118,11 +136,10 @@ impl IntoResponse for Error {
             | Error::LendingBookAlreadyBorrowed
             | Error::LendingBookAlreadyBorrowedByUser
             | Error::LendingBookNotBorrowed
-            | Error::LendingBookAlreadyReserved => StatusCode::BAD_REQUEST,
-            Error::FileNotFound | Error::NothingFound => StatusCode::NOT_FOUND,
-            Error::FileOpen | Error::SQL | Error::UnsupportedProjectVersion => {
-                StatusCode::INTERNAL_SERVER_ERROR
-            }
+            | Error::LendingBookAlreadyReserved
+            | Error::LendingBookNotReserved => StatusCode::BAD_REQUEST,
+            Error::FileOpen | Error::NothingFound => StatusCode::NOT_FOUND,
+            Error::SQL | Error::UnsupportedProjectVersion => StatusCode::INTERNAL_SERVER_ERROR,
             Error::Network => StatusCode::SERVICE_UNAVAILABLE,
         };
         (status, Json(self)).into_response()

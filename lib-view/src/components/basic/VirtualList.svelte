@@ -31,11 +31,11 @@
 	}
 
 	async function loadChunk(i: number): Promise<void> {
-		let { rows, total_count } = await load(i * CHUNK_SIZE, CHUNK_SIZE);
+		let { rows, total } = await load(i * CHUNK_SIZE, CHUNK_SIZE);
 
 		// Grow list
-		if (totalCount !== total_count) {
-			totalCount = total_count;
+		if (totalCount !== total) {
+			totalCount = total;
 			for (let j = chunks.length; j < totalCount / CHUNK_SIZE; j++) {
 				chunks.push(null);
 			}

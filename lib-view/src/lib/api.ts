@@ -44,7 +44,7 @@ namespace api {
 	}
 
 	export interface Limited<T> {
-		total_count: number;
+		total: number;
 		rows: T[];
 	}
 
@@ -312,20 +312,18 @@ namespace api {
 		switch (string) {
 			case "Arguments":
 				return ".error.input";
-			case "Logic":
-				return ".error.update";
-			case "FileNotFound":
-				return ".error.file-open";
 			case "FileOpen":
 				return ".error.file-open";
-			case "SQL":
-				return ".error.sql";
 			case "Network":
 				return ".error.network";
 			case "InvalidFormat":
 				return ".error.format";
 			case "NothingFound":
 				return ".error.none";
+			case "ReferencedUser":
+				return ".user.referenced.del";
+			case "ReferencedCategory":
+				return ".category.not-empty.del";
 			case "InvalidBook":
 				return ".book.invalid";
 			case "InvalidUser":
@@ -342,8 +340,12 @@ namespace api {
 				return ".error.lending.not-borrowed";
 			case "LendingBookAlreadyReserved":
 				return ".error.lending.already-reserved";
+			case "LendingBookNotReserved":
+				return ".error.lending.not-reserved";
 			case "UnsupportedProjectVersion":
 				return ".error.update";
+			case "SQL":
+				return ".error.sql";
 			default:
 				return ".error.unknown";
 		}

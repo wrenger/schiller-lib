@@ -35,7 +35,6 @@ impl<T, F: Fn(&T, &T) -> Ordering + Copy> Sorted<T, F> {
 
 impl<T, F: Fn(&T, &T) -> Ordering + Copy> IntoIterator for Sorted<T, F> {
     type Item = T;
-
     type IntoIter = IntoIterSorted<T, F>;
 
     fn into_iter(self) -> Self::IntoIter {

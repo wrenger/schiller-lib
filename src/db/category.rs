@@ -67,7 +67,7 @@ impl Categories {
                 return match self.data.entry(category.id.clone()) {
                     Entry::Vacant(v) => {
                         v.insert(category.clone());
-                        books.update_category_ref(id, &category.id)?;
+                        books.update_category(id, &category.id)?;
                         Ok(category)
                     }
                     _ => Err(Error::Arguments),
@@ -82,7 +82,7 @@ impl Categories {
         // Check for books with the category
         for book in books.data.values() {
             if book.category == id {
-                return Err(Error::Logic);
+                return Err(Error::ReferencedCategory);
             }
         }
         self.data

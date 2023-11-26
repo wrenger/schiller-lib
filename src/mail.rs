@@ -17,7 +17,7 @@ pub fn send(
     _body: &str,
 ) -> Result<()> {
     error!("Mail sending is disabled for debug builds");
-    Err(Error::Logic)
+    Err(Error::Network)
 }
 
 #[cfg(not(debug_assertions))]

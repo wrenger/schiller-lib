@@ -2,7 +2,6 @@ use std::collections::{btree_map::Entry, BTreeMap};
 
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
-use tracing::info;
 use unicode_normalization::UnicodeNormalization;
 
 use super::Categories;
@@ -138,22 +137,24 @@ impl Books {
 
     /// Search specific books
     pub fn search(&self, search: &BookSearch) -> Result<(usize, Vec<Book>)> {
-        fn sort_title(a: &(String, &Book), b: &(String, &Book)) -> std::cmp::Ordering {
-            match a.0.cmp(&b.0) {
-                std::cmp::Ordering::Equal => a.1.id.cmp(&b.1.id),
-                ord => ord,
-            }
+        fn sort(a: &(usize, String, &Book), b: &(usize, String, &Book)) -> std::cmp::Ordering {
+            a.0.cmp(&b.0)
+                .reverse()
+                .then_with(|| a.1.cmp(&b.1))
+                .then_with(|| a.2.id.cmp(&b.2.id))
         }
 
         // Result classes (how good they match the query)
-        let mut primary = Sorted::new(sort_title);
-        let mut secondary = Sorted::new(sort_title);
-        let mut tertiary = Sorted::new(sort_title);
+        let mut results = Sorted::new(sort);
 
-        let query = search.query.to_lowercase();
+        let keywords = search
+            .query
+            .split_whitespace()
+            .map(str::to_lowercase)
+            .collect::<Vec<_>>();
 
-        // just a very basic brute-force search
-        for book in self.data.values() {
+        // just a very basic keyword search
+        'books: for book in self.data.values() {
             // filter by category
             if !search.category.is_empty() && search.category != book.category {
                 continue;
@@ -170,37 +171,42 @@ impl Books {
 
             let lower_title = book.title.to_ascii_lowercase();
 
-            if query.is_empty() || lower_title.starts_with(&query) {
-                primary.push((lower_title, &book));
-            } else if lower_title.contains(&query) {
-                secondary.push((lower_title, &book));
-            } else if book.id.to_lowercase().contains(&query)
-                || book.isbn.to_lowercase().contains(&query)
-                || book.publisher.to_lowercase().contains(&query)
-                || book.note.to_lowercase().contains(&query)
-                || book.authors.to_lowercase().contains(&query)
-                || book.borrower.to_lowercase().contains(&query)
-                || book.reservation.to_lowercase().contains(&query)
-            {
-                tertiary.push((lower_title, &book));
+            if keywords.is_empty() {
+                results.push((0, lower_title, &book));
+                continue;
+            }
+
+            let mut score = 0;
+            for keyword in &keywords {
+                if lower_title.starts_with(keyword) {
+                    score += 3;
+                } else if lower_title.contains(keyword) {
+                    score += 2;
+                } else if book.id.to_lowercase().contains(keyword)
+                    || book.isbn.to_lowercase().contains(keyword)
+                    || book.publisher.to_lowercase().contains(keyword)
+                    || book.note.to_lowercase().contains(keyword)
+                    || book.authors.to_lowercase().contains(keyword)
+                    || book.borrower.to_lowercase().contains(keyword)
+                    || book.reservation.to_lowercase().contains(keyword)
+                {
+                    score += 1;
+                } else {
+                    continue 'books;
+                }
+            }
+            if score > 0 {
+                results.push((score, lower_title, &book));
             }
         }
 
-        let total = primary.len() + secondary.len() + tertiary.len();
-        info!(
-            "primary={}, secondary={}, tertiary={}",
-            primary.len(),
-            secondary.len(),
-            tertiary.len()
-        );
+        let total = results.len();
 
-        let books = primary
+        let books = results
             .into_iter()
-            .chain(secondary)
-            .chain(tertiary)
             .skip(search.offset)
             .take(search.limit)
-            .map(|(_, b)| b.clone())
+            .map(|b| b.2.clone())
             .collect();
 
         Ok((total, books))
@@ -244,7 +250,14 @@ impl Books {
         Ok(format!("{prefix} {id}"))
     }
 
-    pub fn update_user_ref(&mut self, from: &str, to: &str) -> Result<()> {
+    // Is the user borrowing or reserving by any books
+    pub fn is_user_referenced(&self, account: &str) -> bool {
+        self.data
+            .values()
+            .any(|b| b.borrower == account || b.reservation == account)
+    }
+
+    pub fn update_user(&mut self, from: &str, to: &str) -> Result<()> {
         for book in self.data.values_mut() {
             if book.borrower == from {
                 book.borrower = to.to_string();
@@ -256,7 +269,7 @@ impl Books {
         Ok(())
     }
 
-    pub fn update_category_ref(&mut self, from: &str, to: &str) -> Result<()> {
+    pub fn update_category(&mut self, from: &str, to: &str) -> Result<()> {
         for book in self.data.values_mut() {
             if book.category == from {
                 book.category = to.to_string();

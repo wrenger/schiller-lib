@@ -146,13 +146,13 @@ async fn book_fetch(State(project): State<Project>, Path(id): Path<String>) -> R
 
 #[derive(Debug, Deserialize)]
 #[serde(default)]
-struct SimpleSearch {
+struct Search {
     query: String,
     offset: usize,
     limit: usize,
 }
 
-impl Default for SimpleSearch {
+impl Default for Search {
     fn default() -> Self {
         Self {
             query: Default::default(),
@@ -164,15 +164,15 @@ impl Default for SimpleSearch {
 
 /// Search result containting the total number of found records.
 #[derive(Serialize)]
-struct SearchResult<T: Serialize> {
+struct Limited<T: Serialize> {
     /// Total number of results (without limit)
-    total_count: usize,
+    total: usize,
     rows: Vec<T>,
 }
-impl<T: Serialize> From<(usize, Vec<T>)> for SearchResult<T> {
+impl<T: Serialize> From<(usize, Vec<T>)> for Limited<T> {
     fn from(value: (usize, Vec<T>)) -> Self {
-        SearchResult {
-            total_count: value.0,
+        Limited {
+            total: value.0,
             rows: value.1,
         }
     }
@@ -182,14 +182,13 @@ impl<T: Serialize> From<(usize, Vec<T>)> for SearchResult<T> {
 async fn book_search(
     State(project): State<Project>,
     Query(params): Query<BookSearch>,
-) -> Result<Json<SearchResult<Book>>> {
+) -> Result<Json<Limited<Book>>> {
     Ok(Json(project.db.read().books.search(&params)?.into()))
 }
 
 /// Adds a new book.
 async fn book_add(State(project): State<Project>, Json(book): Json<Book>) -> Result<Json<Book>> {
-    let mut db = project.db.write();
-    let db = &mut *db;
+    let db = &mut *project.db.write();
     Ok(Json(db.books.add(book, &db.categories)?))
 }
 
@@ -199,8 +198,7 @@ async fn book_update(
     Path(id): Path<String>,
     Json(book): Json<Book>,
 ) -> Result<Json<Book>> {
-    let mut db = project.db.write();
-    let db = &mut *db;
+    let db = &mut *project.db.write();
     Ok(Json(db.books.update(&id, book, &db.categories)?))
 }
 
@@ -243,7 +241,7 @@ async fn user_fetch(
 async fn user_search(
     State(project): State<Project>,
     Query(params): Query<UserSearch>,
-) -> Result<Json<SearchResult<User>>> {
+) -> Result<Json<Limited<User>>> {
     Ok(Json(project.db.read().users.search(&params)?.into()))
 }
 
@@ -258,15 +256,16 @@ async fn user_update(
     Path(account): Path<String>,
     Json(user): Json<User>,
 ) -> Result<Json<User>> {
-    let mut db = project.db.write();
-    let db = &mut *db;
+    let db = &mut *project.db.write();
     Ok(Json(db.users.update(&account, user, &mut db.books)?))
 }
 
 /// Deletes the user.
-/// This includes all its borrows & reservations.
+///
+/// Returns a `Error::StillReferenced` if there are any borrows or reservations left.
 async fn user_delete(State(project): State<Project>, Path(account): Path<String>) -> Result<()> {
-    project.db.write().users.delete(&account)
+    let db = &mut *project.db.write();
+    db.users.delete(&account, &db.books)
 }
 
 /// Fetch the data of the book from the DNB an their like.
@@ -310,15 +309,13 @@ async fn category_update(
     Path(id): Path<String>,
     Json(category): Json<Category>,
 ) -> Result<Json<Category>> {
-    let mut db = project.db.write();
-    let db = &mut *db;
+    let db = &mut *project.db.write();
     Ok(Json(db.categories.update(&id, category, &mut db.books)?))
 }
 
-/// Removes the category or returns a `Error::Logic` if it is still in use.
+/// Removes the category or returns a `Error::StillReferenced` if it is still in use.
 async fn category_delete(State(project): State<Project>, Path(id): Path<String>) -> Result<()> {
-    let mut db = project.db.write();
-    let db = &mut *db;
+    let db = &mut *project.db.write();
     db.categories.delete(&id, &db.books)
 }
 
@@ -417,7 +414,7 @@ async fn mail_notify(
     {
         if !account_is_valid(&settings.mail_from) {
             error!("Invalid sender {}", settings.mail_from);
-            return Err(Error::Logic);
+            return Err(Error::Arguments);
         }
         let account = account.trim();
         if !account_is_valid(account) {
