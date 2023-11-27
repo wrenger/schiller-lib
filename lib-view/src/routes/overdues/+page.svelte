@@ -51,12 +51,10 @@
 							<p class="mb-0 text-truncate h">
 								{$_(".book.period", {
 									values: {
-										"0": DateTime.fromISO(book.deadline ? book.deadline : "").toLocaleString(),
+										"0": DateTime.fromISO(book.deadline ?? "").toLocaleString(),
 										"1": parseInt(
-											(-DateTime.fromISO(book.deadline ? book.deadline : "").diff(
-												DateTime.now(),
-												"days"
-											).days).toLocaleString()
+											(-DateTime.fromISO(book.deadline ?? "").diff(DateTime.now(), "days")
+												.days).toLocaleString()
 										)
 									}
 								})}

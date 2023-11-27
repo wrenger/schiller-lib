@@ -1,4 +1,4 @@
-use std::collections::BinaryHeap;
+use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
@@ -9,6 +9,7 @@ use chrono::{Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
+use crate::db::sorted::Sorted;
 use crate::error::{Error, Result};
 use crate::mail::account_is_valid;
 
@@ -244,40 +245,24 @@ impl Database {
 
     /// Return the list of expired loan periods.
     pub fn overdues(&self) -> Result<Vec<(Book, User)>> {
-        struct DayOrd(usize, Book, User);
-        impl Eq for DayOrd {}
-        impl PartialEq for DayOrd {
-            fn eq(&self, other: &Self) -> bool {
-                self.0 == other.0 && self.1.id == other.1.id
-            }
-        }
-        impl Ord for DayOrd {
-            fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-                match self.0.cmp(&other.0) {
-                    std::cmp::Ordering::Equal => self.1.id.cmp(&other.1.id),
-                    ord => ord,
-                }
-            }
-        }
-        impl PartialOrd for DayOrd {
-            fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-                self.0.partial_cmp(&other.0)
-            }
+        fn sort(a: &(Book, User), b: &(Book, User)) -> Ordering {
+            a.0.deadline
+                .cmp(&b.0.deadline)
+                .then_with(|| a.0.id.cmp(&b.0.id))
         }
 
-        let mut result = BinaryHeap::<DayOrd>::new();
+        let mut results = Sorted::new(sort);
 
         let now = Local::now().naive_local().date();
         for book in self.books.data.values() {
             if let Some(deadline) = book.deadline {
-                let days = (now - deadline).num_days();
-                if days > 0 {
+                if now > deadline {
                     let user = self.users.fetch(&book.borrower)?;
-                    result.push(DayOrd(days as usize, book.clone(), user));
+                    results.push((book.clone(), user));
                 }
             }
         }
-        Ok(result.into_iter().map(|d| (d.1, d.2)).collect())
+        Ok(results.into_iter().collect())
     }
 }
 

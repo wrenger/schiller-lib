@@ -144,7 +144,6 @@ impl Books {
                 .then_with(|| a.2.id.cmp(&b.2.id))
         }
 
-        // Result classes (how good they match the query)
         let mut results = Sorted::new(sort);
 
         let keywords = search
