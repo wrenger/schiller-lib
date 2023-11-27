@@ -264,13 +264,15 @@
 	<Spinner response={delResponse} />
 	{$_(".action.delete")}</button
 >
-<a
-	id="del"
-	class="btn btn-outline-primary mt-2"
-	type="button"
-	aria-expanded="false"
-	hidden={!(state.kind === State.Display && !state.editing)}
-	href="/books?{new URLSearchParams({ search: account })}"
->
-	{$_(".user.books")}
-</a>
+<div class="card-footer text-center">
+	<a
+		id="del"
+		class="btn btn-outline-primary mt-2"
+		type="button"
+		aria-expanded="false"
+		hidden={!(state.kind === State.Display && !state.editing)}
+		href="/books?{new URLSearchParams({ search: account })}"
+	>
+		{$_(".user.books")}
+	</a>
+</div>
