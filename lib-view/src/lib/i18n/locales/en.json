@@ -58,7 +58,7 @@
 	".book.id.action": "Suggest",
 	".book.id.format": "The Book ID has to consist of the category, author and a numeric id.",
 	".book.invalid-isbn": "The given ISBN is not valid",
-	".book.invalid": "ID, Title and Category are mandatory.",
+	".book.invalid": "Title, ID and Category are mandatory.",
 	".book.isbn": "ISBN",
 	".book.lend": "Lend",
 	".book.lend.period": "Period",
