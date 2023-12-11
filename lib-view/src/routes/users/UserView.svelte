@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { _ } from "svelte-i18n";
-	import Spinner from "../../components/basic/Spinner.svelte";
-	import api from "$lib/api";
+	import { _ } from 'svelte-i18n';
+	import Spinner from '../../components/basic/Spinner.svelte';
+	import api from '$lib/api';
 
 	export var onChange: ((b: api.User | null) => void) | undefined;
 	export function display(u: api.User) {
@@ -29,11 +29,13 @@
 	}
 	let state: Display | Create = { kind: State.Create };
 
-	let account: string = "";
-	let forename: string = "";
-	let surname: string = "";
-	let role: string = "";
+	let account: string = '';
+	let forename: string = '';
+	let surname: string = '';
+	let role: string = '';
 	let may_borrow: boolean = true;
+
+	let userInfoResponse: Promise<any>;
 
 	$: if (state.kind == State.Display) setUser(state.user);
 	$: if (state.kind == State.Create) setUser(null);
@@ -46,10 +48,10 @@
 			role = user.role;
 			may_borrow = user.may_borrow;
 		} else {
-			account = "";
-			forename = "";
-			surname = "";
-			role = "";
+			account = '';
+			forename = '';
+			surname = '';
+			role = '';
 			may_borrow = true;
 		}
 	}
@@ -59,7 +61,7 @@
 			account,
 			forename,
 			surname,
-			role: role ? role : "-",
+			role: role ? role : '-',
 			may_borrow
 		};
 	}
@@ -77,7 +79,7 @@
 	async function edit() {
 		if (state.kind == State.Display) {
 			let user = getUser();
-			await api.user_update(user?.account ?? "", user);
+			await api.user_update(user?.account ?? '', user);
 			onChangeInner(user);
 		}
 	}
@@ -106,173 +108,171 @@
 	}
 </script>
 
-<div class="card-header d-flex justify-content-between">
-	<button
-		id="cancel"
-		class="btn btn-outline-secondary"
-		type="button"
-		aria-expanded="false"
-		title={$_(".action.close")}
-		on:click={() => onChangeInner(null)}
-	>
-		<i class="bi bi-caret-left-fill" />
-	</button>
-	<button
-		id="edit"
-		class="btn btn-outline-primary"
-		class:active={state.kind === State.Display && state.editing}
-		type="button"
-		aria-expanded="false"
-		title={$_(".action.edit")}
-		disabled={state.kind === State.Create}
-		on:click={() => {
-			if (state.kind === State.Display) state.editing = true;
-		}}
-	>
-		<i class="bi bi-pencil-square" />
-	</button>
-</div>
-
-<div class="row pt-1 m-0">
-	<div class="col ps-0">
-		<label for="forename" class="form-label">{$_(".user.forename")}</label>
-		<input
-			id="forename"
-			type="text"
-			class="form-control"
-			placeholder={$_(".user.forename")}
-			aria-label={$_(".user.forename")}
-			readonly={!(state.kind === State.Create || state.editing)}
-			bind:value={forename}
-		/>
-	</div>
-	<div class="col ps-0 pe-0">
-		<label for="surname" class="form-label">{$_(".user.surname")}</label>
-		<input
-			id="surname"
-			type="text"
-			class="form-control"
-			placeholder={$_(".user.surname")}
-			aria-label={$_(".user.surname")}
-			readonly={!(state.kind === State.Create || state.editing)}
-			bind:value={surname}
-		/>
-	</div>
-</div>
-<div class="row m-0">
-	<div class="col ps-0">
-		<label for="account" class="form-label">{$_(".user.account")}</label>
-		<div class="input-group" id="account">
-			<input
-				type="text"
-				class="form-control"
-				placeholder={$_(".user.account")}
-				aria-label={$_(".user.account")}
-				readonly={!(state.kind === State.Create || state.editing)}
-				bind:value={account}
-			/>
+<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll">
+	<div class="flex p-2 pb-0">
+		<span class="flex-auto">
 			<button
+				id="cancel"
+				class="btn-icon variant-filled"
 				type="button"
-				class="btn btn-outline-secondary"
-				title={$_(".user.request")}
-				disabled={!(state.kind === State.Create || state.editing)}
-				on:click={async () => {
-					let data = await api.user_fetch(account);
-					forename = data.forename;
-					surname = data.surname;
-					account = data.account;
-					role = data.role;
+				aria-expanded="false"
+				title={$_('.action.close')}
+				on:click={() => onChangeInner(null)}
+			>
+				<i class="fa-solid fa-angle-left"></i>
+			</button>
+		</span>
+		<span>
+			<button
+				id="edit"
+				class="btn-icon variant-filled{state.kind === State.Display && state.editing
+					? '-primary'
+					: ''}"
+				type="button"
+				aria-expanded="false"
+				title={$_('.action.edit')}
+				disabled={state.kind === State.Create}
+				on:click={() => {
+					if (state.kind === State.Display) state.editing = true;
 				}}
 			>
-				<i class="bi bi-upload" />
+				<i class="fa-solid fa-pen-to-square"></i>
 			</button>
-		</div>
+		</span>
 	</div>
-	<div class="col ps-0 pe-0">
-		<label for="role" class="form-label">{$_(".user.role")}</label>
-		<input
-			id="role"
-			type="text"
-			class="form-control"
-			placeholder={$_(".user.role")}
-			aria-label={$_(".user.role")}
-			readonly={!(state.kind === State.Create || state.editing)}
-			bind:value={role}
-		/>
+	<div class="w-full grid grid-cols-2 gap-4">
+		<label class="label">
+			<span>{$_('.user.forename')}</span>
+			<input
+				class="input"
+				type="text"
+				placeholder={$_('.user.forename')}
+				readonly={!(state.kind === State.Create || state.editing)}
+				bind:value={forename}
+			/>
+		</label>
+
+		<label class="label">
+			<span>{$_('.user.surname')}</span>
+			<input
+				class="input"
+				type="text"
+				placeholder={$_('.user.surname')}
+				readonly={!(state.kind === State.Create || state.editing)}
+				bind:value={surname}
+			/>
+		</label>
+
+		<label class="label">
+			<span>{$_('.user.account')}</span>
+			<div class="input-group grid-cols-[1fr_auto] mb-2">
+				<input
+					class="input"
+					type="text"
+					placeholder={$_('.user.account')}
+					readonly={!(state.kind === State.Create || state.editing)}
+					bind:value={account}
+				/>
+				<button
+					class="variant-soft"
+					type="button"
+					title={$_('.user.request')}
+					disabled={!(state.kind === State.Create || state.editing)}
+					on:click={async () => {
+						userInfoResponse = api.user_fetch(account);
+						let data = await userInfoResponse;
+						forename = data.forename;
+						surname = data.surname;
+						account = data.account;
+						role = data.role;
+					}}
+				>
+					<Spinner response={userInfoResponse} />
+					<i class="fa-solid fa-download"></i>
+				</button>
+			</div>
+		</label>
+
+		<label class="label">
+			<span>{$_('.user.role')}</span>
+			<input
+				class="input"
+				type="text"
+				placeholder={$_('.user.role')}
+				readonly={!(state.kind === State.Create || state.editing)}
+				bind:value={role}
+			/>
+		</label>
+		<label class="flex items-center space-x-2">
+			<input
+				class="checkbox"
+				type="checkbox"
+				bind:checked={may_borrow}
+				disabled={!(state.kind === State.Create || state.editing)}
+			/>
+			<p>{$_('.user.may-borrow')}</p>
+		</label>
 	</div>
-</div>
-<div class="row m-0 pt-1">
-	<div class="form-check">
-		<input
-			class="form-check-input"
-			type="checkbox"
-			value=""
-			id="may_borrow"
-			bind:checked={may_borrow}
-			disabled={!(state.kind === State.Create || state.editing)}
-		/>
-		<label class="form-check-label" for="may_borrow">{$_(".user.may-borrow")}</label>
+
+	<div class="p-2 pt-0 flex space-x-2 justify-center">
+		{#if state.kind === State.Create || (state.kind === State.Display && state.editing)}
+			<button
+				id="user-abort-button"
+				type="button"
+				class="btn variant-filled mt-2"
+				on:click={() => {
+					if (state.kind === State.Display) {
+						state.editing = false;
+						setUser(state.user);
+					} else {
+						onChangeInner(null);
+					}
+				}}
+			>
+				{$_('.action.cancel')}
+			</button>
+		{/if}
+
+		{#if state.kind === State.Create}
+			<button
+				id="user-add-button"
+				class="btn variant-filled-primary mt-2"
+				type="button"
+				on:click={() => (addResponse = add())}
+			>
+				<Spinner response={addResponse} />
+				{$_('.action.add')}
+			</button>
+		{:else if state.kind === State.Display && state.editing}
+			<button
+				id="user-confirm-button"
+				type="button"
+				class="btn variant-filled-primary mt-2"
+				on:click={() => (editResponse = edit())}
+			>
+				<Spinner response={editResponse} />
+				{$_('.action.apply')}
+			</button>
+			<button
+				id="del"
+				class="btn variant-filled-error mt-2"
+				type="button"
+				aria-expanded="false"
+				on:click={async () => (delResponse = del())}
+			>
+				<Spinner response={delResponse} />
+				{$_('.action.delete')}</button
+			>
+		{:else}
+			<a
+				id="del"
+				class="btn variant-filled-primary mt-2"
+				type="button"
+				aria-expanded="false"
+				href="/books?{new URLSearchParams({ search: account })}"
+			>
+				{$_('.user.books')}
+			</a>
+		{/if}
 	</div>
-</div>
-
-<button
-	id="user-abort-button"
-	type="button"
-	class="btn btn-outline-secondary mt-2"
-	hidden={!(state.kind === State.Create || state.editing)}
-	on:click={() => {
-		if (state.kind === State.Display) {
-			state.editing = false;
-			setUser(state.user);
-		} else {
-			onChangeInner(null);
-		}
-	}}
->
-	{$_(".action.cancel")}
-</button>
-
-<button
-	id="user-add-button"
-	class="btn btn-outline-primary mt-2"
-	type="button"
-	hidden={state.kind !== State.Create}
-	on:click={() => (addResponse = add())}
->
-	<Spinner response={addResponse} />
-	{$_(".action.add")}
-</button>
-
-<button
-	id="user-confirm-button"
-	type="button"
-	class="btn btn-outline-primary mt-2"
-	hidden={!(state.kind === State.Display && state.editing)}
-	on:click={() => (editResponse = edit())}
->
-	<Spinner response={editResponse} />
-	{$_(".action.apply")}
-</button>
-<button
-	id="del"
-	class="btn btn-outline-danger mt-2"
-	type="button"
-	aria-expanded="false"
-	hidden={!(state.kind === State.Display && state.editing)}
-	on:click={async () => (delResponse = del())}
->
-	<Spinner response={delResponse} />
-	{$_(".action.delete")}</button
->
-<div class="card-footer text-center">
-	<a
-		id="del"
-		class="btn btn-outline-primary mt-2"
-		type="button"
-		aria-expanded="false"
-		hidden={!(state.kind === State.Display && !state.editing)}
-		href="/books?{new URLSearchParams({ search: account })}"
-	>
-		{$_(".user.books")}
-	</a>
 </div>

@@ -1,11 +1,9 @@
 <script lang="ts">
-	import { _ } from "svelte-i18n";
-	import { category, state } from "$lib/store";
-	import Dialog from "../basic/Dialog.svelte";
-	import Spinner from "../basic/Spinner.svelte";
-	import api from "$lib/api";
+	import { _ } from 'svelte-i18n';
+	import { category } from '$lib/store';
+	import api from '../../lib/api';
+	import Spinner from '../basic/Spinner.svelte';
 
-	let dialog: Dialog;
 	let items = $category;
 	let selected: api.Category | null = null;
 
@@ -15,19 +13,15 @@
 
 	$: items = $category;
 
-	export function open() {
-		dialog.open();
-	}
-
 	function selectCategory(item: api.Category | null) {
 		if (item) {
 			id = item.id;
 			name = item.name;
 			section = item.section;
 		} else {
-			id = "";
-			name = "";
-			section = "";
+			id = '';
+			name = '';
+			section = '';
 		}
 	}
 
@@ -71,85 +65,65 @@
 			let sid = selected.id;
 			selected = data.find((t) => t.id == sid) || null;
 		}
-		state.set({});
 	}
 </script>
 
-<Dialog bind:this={dialog}>
-	<h5 slot="header" class="m-0">{$_(".category.edit")}</h5>
+<label class="label">
+	<span>{$_('.category')}</span>
+	<select class="select" bind:value={selected}>
+		<option selected={selected == null} value={null}>{$_('.action.add')}</option>
+		{#each items as category (category.id)}
+			<option selected={category.id === selected?.id} value={category}>
+				{category.id} - {category.name} - {category.section}
+			</option>
+		{/each}
+	</select>
+</label>
 
-	<span slot="body">
-		<div class="row">
-			<div class="col">
-				<select class="form-select" id="categorySelect" bind:value={selected}>
-					<option selected={selected == null} value={null}>{$_(".action.add")}</option>
-					{#each items as category (category.id)}
-						<option selected={category.id === selected?.id} value={category}>
-							{category.id} - {category.name} - {category.section}
-						</option>
-					{/each}
-				</select>
-			</div>
-		</div>
-		<div class="mt-2">
-			<label for="id" class="form-label">{$_(".category.id")}</label>
-			<input
-				type="text"
-				placeholder={$_(".category.id")}
-				class="form-control"
-				id="id"
-				bind:value={id}
-			/>
-		</div>
-		<div class="mt-2">
-			<label for="name" class="form-label">{$_(".category.name")}</label>
-			<input
-				type="text"
-				placeholder={$_(".category.name")}
-				class="form-control"
-				id="name"
-				bind:value={name}
-			/>
-		</div>
-		<div class="mt-2">
-			<label for="section" class="form-label">{$_(".category.section")}</label>
-			<input
-				type="text"
-				placeholder={$_(".category.section")}
-				class="form-control"
-				id="section"
-				bind:value={section}
-			/>
-		</div>
+<label class="label">
+	<span>{$_('.category.id')}</span>
+	<input class="input" type="text" placeholder={$_('.category.id')} bind:value={id} />
+</label>
+
+<label class="label">
+	<span>{$_('.category.name')}</span>
+	<input class="input" type="text" placeholder={$_('.category.name')} bind:value={name} />
+</label>
+
+<label class="label">
+	<span>{$_('.category.section')}</span>
+	<input class="input" type="text" placeholder={$_('.category.section')} bind:value={section} />
+</label>
+
+<div class="flex space-x-2">
+	{#if selected == null}
 		<button
 			id="book-add-button"
-			class="btn btn-outline-primary mt-2"
+			class="btn variant-filled mt-2"
 			type="button"
-			hidden={selected != null}
 			on:click={() => (addResponse = add())}
 		>
 			<Spinner response={addResponse} />
-			{$_(".action.add")}
+			{$_('.action.add')}
 		</button>
+	{:else}
 		<button
 			id="book-confirm-button"
 			type="button"
-			class="btn btn-outline-primary mt-2"
-			hidden={selected == null}
+			class="btn variant-filled mt-2"
 			on:click={() => (editResponse = edit())}
 		>
 			<Spinner response={editResponse} />
-			{$_(".action.apply")}
+			{$_('.action.apply')}
 		</button>
 		<button
-			class="btn btn-outline-danger mt-2"
+			class="btn variant-filled mt-2"
 			type="button"
 			aria-expanded="false"
-			hidden={selected == null}
 			on:click={() => (deleteResponse = del())}
 		>
 			<Spinner response={deleteResponse} />
-			{$_(".action.delete")}
+			{$_('.action.delete')}
 		</button>
-	</span>
-</Dialog>
+	{/if}
+</div>

@@ -1,12 +1,16 @@
 <script lang="ts">
+	import { ProgressRadial } from '@skeletonlabs/skeleton';
 	export let response: Promise<any>;
 </script>
 
 {#await response}
-	<span
-		id="book-confirm-button-spinner"
-		class="spinner-border spinner-border-sm"
-		role="status"
-		aria-hidden="true"
+	<ProgressRadial
+		stroke={100}
+		meter="dark:stroke-surface-900 stroke-surface-50"
+		track="dark:stroke-surface-900/30 stroke-surface-50/30"
+		strokeLinecap={'round'}
+		width={'w-5'}
+		value={undefined}
+		class="me-2"
 	/>
 {/await}

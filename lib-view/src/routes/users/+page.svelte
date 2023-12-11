@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { _ } from "svelte-i18n";
-	import api from "$lib/api";
-	import Container from "../../components/basic/Container.svelte";
-	import UserSearch from "./UserSearch.svelte";
-	import UserView from "./UserView.svelte";
-	import UserItem, { HEIGHT } from "./UserItem.svelte";
-	import VirtualList from "../../components/basic/VirtualList.svelte";
+	import { _ } from 'svelte-i18n';
+	import api from '$lib/api';
+	import Container from '../../components/basic/Container.svelte';
+	import UserSearch from './UserSearch.svelte';
+	import UserView from './UserView.svelte';
+	import UserItem, { HEIGHT } from './UserItem.svelte';
+	import VirtualList from '../../components/basic/VirtualList.svelte';
 
 	let params: api.BookSearch;
 	let active: api.User | null;
@@ -37,13 +37,12 @@
 </script>
 
 <svelte:head>
-	<title>{$_(".user")}</title>
-	<meta name="description" content={$_(".user")} />
+	<title>{$_('.user')}</title>
+	<meta name="description" content={$_('.user')} />
 </svelte:head>
 
 <Container isActive={active != null || adding}>
 	<span slot="list">
-		<UserSearch bind:params />
 		<VirtualList
 			bind:this={list}
 			bind:active
@@ -52,9 +51,12 @@
 			load={(offset, limit) => api.user_search({ ...params, offset, limit })}
 			key={(user) => user.account}
 		>
-			<div slot="header" class="card-header d-flex justify-content-between">
-				{$_(".user.name")} / {$_(".user.account")}
-				<span>{$_(".user.role")} </span>
+			<div slot="header" class="p-2 pb-0">
+				<UserSearch bind:params />
+				<span class="flex">
+					<span class="flex-auto font-bold">{$_('.user.name')} / {$_('.user.account')}</span>
+					<span class="font-bold">{$_('.user.role')} </span>
+				</span>
 			</div>
 			<UserItem
 				slot="item"
@@ -65,7 +67,7 @@
 			/>
 		</VirtualList>
 	</span>
-	<div slot="view" hidden={!(active != null || adding)}>
+	<div slot="view" class="h-full" hidden={!(active != null || adding)}>
 		<UserView bind:this={view} {onChange} />
 	</div>
 </Container>

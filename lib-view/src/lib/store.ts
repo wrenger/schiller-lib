@@ -1,5 +1,5 @@
-import { DateTime } from "luxon";
-import { writable } from "svelte/store";
+import { DateTime } from 'luxon';
+import { writable } from 'svelte/store';
 
 export interface GlobalSettings {
 	borrowing_duration: number;
@@ -18,17 +18,17 @@ export interface GlobalSettings {
 
 export const settingsGlobal = writable<GlobalSettings>({
 	borrowing_duration: 0,
-	dnb_token: "",
+	dnb_token: '',
 	mail_last_reminder: DateTime.now(),
-	mail_from: "",
-	mail_host: "",
-	mail_password: "",
-	mail_info_subject: "",
-	mail_info_content: "",
-	mail_overdue_subject: "",
-	mail_overdue_content: "",
-	mail_overdue2_subject: "",
-	mail_overdue2_content: ""
+	mail_from: '',
+	mail_host: '',
+	mail_password: '',
+	mail_info_subject: '',
+	mail_info_content: '',
+	mail_overdue_subject: '',
+	mail_overdue_content: '',
+	mail_overdue2_subject: '',
+	mail_overdue2_content: ''
 });
 
 interface Category {
@@ -39,4 +39,8 @@ interface Category {
 
 export const category = writable<Category[]>([]);
 
-export const state = writable<Object>({});
+interface ErrorStore {
+	message: string | undefined;
+}
+
+export const errorStore = writable<ErrorStore>({ message: undefined });

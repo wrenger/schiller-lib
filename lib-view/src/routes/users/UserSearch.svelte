@@ -1,9 +1,12 @@
 <script lang="ts">
-	import { page } from "$app/stores";
-	import { _ } from "svelte-i18n";
-	import type api from "$lib/api";
+	import { page } from '$app/stores';
+	import { _ } from 'svelte-i18n';
+	import type api from '$lib/api';
+	import { popup } from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
 
-	let input: string = $page.url.searchParams.get("search") ?? "";
+	let input: string = '';
+	onMount(() => (input = $page.url.searchParams.get('search') ?? ''));
 
 	export let params: api.UserSearch = { query: input };
 
@@ -15,47 +18,28 @@
 	}
 </script>
 
-<div class="input-group mb-2">
+<div class="input-group grid-cols-[1fr_auto] mb-2">
 	<input
-		type="text"
-		class="form-control"
-		placeholder={$_(".search.user.entry")}
-		id="search"
+		type="search"
+		placeholder={$_('.search.user.entry')}
 		bind:value={input}
 		on:input={handleInputDelayed}
 	/>
 	<button
-		id="advanced"
-		class="btn btn-outline-secondary dropdown-toggle hide-arrow"
-		type="button"
-		aria-expanded="false"
-		data-bs-toggle="dropdown"
-		data-bs-auto-close="outside"
-		title="Advanced Params"
+		class="variant-soft"
+		title={$_('.search.advanced')}
+		use:popup={{ event: 'click', target: 'settings', placement: 'bottom-end' }}
 	>
-		<i class="bi bi-sliders" />
+		<i class="fa-solid fa-wrench"></i>
 	</button>
-	<ul class="dropdown-menu dropdown-menu-end" id="select-dropdown">
-		<h6 class="dropdown-header">{$_(".user.permission")}</h6>
-		<form class="px-3 py-1" action="javascript:handleAdvanced()">
-			<div class="mb-2">
-				<select
-					id="select"
-					class="form-select"
-					aria-label={$_(".search.advanced")}
-					bind:value={params.may_borrow}
-				>
-					<option value={null} selected>{$_(".action.select")}</option>
-					<option value={true}>{$_(".user.may-borrow")}</option>
-					<option value={false}>{$_(".user.may-not-borrow")}</option>
-				</select>
-			</div>
-		</form>
-	</ul>
 </div>
-
-<style>
-	.hide-arrow::after {
-		display: none !important;
-	}
-</style>
+<div class="card p-4 w-60 shadow-xl z-[500]" data-popup="settings">
+	<label class="label">
+		<span>{$_('.user.permission')}</span>
+		<select class="select" aria-label={$_('.search.advanced')} bind:value={params.may_borrow}>
+			<option value={null} selected>{$_('.action.select')}</option>
+			<option value={true}>{$_('.user.may-borrow')}</option>
+			<option value={false}>{$_('.user.may-not-borrow')}</option>
+		</select>
+	</label>
+</div>

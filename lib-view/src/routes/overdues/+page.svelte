@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { _ } from "svelte-i18n";
-	import { onMount } from "svelte";
-	import { DateTime } from "luxon";
-	import api from "$lib/api";
+	import { _, date } from 'svelte-i18n';
+	import { onMount } from 'svelte';
+	import { DateTime } from 'luxon';
+	import api from '$lib/api';
 
 	let overdoneBooks: Promise<[api.Book, api.User][]>;
 
@@ -12,66 +12,66 @@
 </script>
 
 <svelte:head>
-	<title>{$_(".book.overdues")}</title>
-	<meta name="description" content={$_(".book.overdues")} />
+	<title>{$_('.book.overdues')}</title>
+	<meta name="description" content={$_('.book.overdues')} />
 </svelte:head>
 
-<div class="card h-100">
-	<div class="card-header d-flex justify-content-between">
-		{$_(".book.title")}
-		<div class="d-flex align-items-center">
-			<span>{$_(".book.period.date")} / {$_(".book.period.days")}</span>
-		</div>
+<div class="w-full h-full text-token card p-2 space-y-2">
+	<div class="p-2 pb-0">
+		<span class="flex">
+			<span class="flex-auto font-bold">{$_('.book.title')}</span>
+			<span class="font-bold">{$_('.book.period.date')} / {$_('.book.period.days')}</span>
+		</span>
 	</div>
-	<ul class="list-group list-group-flush full">
-		{#await overdoneBooks}
-			<li class="list-group-item">
-				<div class="d-flex justify-content-center">
-					<div class="spinner-grow" role="status">
-						<span class="visually-hidden">Loading...</span>
-					</div>
-				</div>
-			</li>
-		{:then data}
-			{#if data}
-				{#each data as [book, user] (book.id)}
-					<a
-						class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-						href={`books?${new URLSearchParams({ search: book.id })}`}
-					>
-						<div class="d-flex flex-column">
-							<p class="mb-0 text-truncate h">{book.title}</p>
-							<small class="mb-0 text-muted text-truncate h">
-								{$_(".book.overdone.by.short", {
-									values: { "0": `${user.forename} ${user.surname}` }
-								})}
-							</small>
-						</div>
-						<div class="d-flex flex-column">
-							<p class="mb-0 text-truncate h">
-								{$_(".book.period", {
-									values: {
-										"0": DateTime.fromISO(book.deadline ?? "").toLocaleString(),
-										"1": parseInt(
-											(-DateTime.fromISO(book.deadline ?? "").diff(DateTime.now(), "days")
-												.days).toLocaleString()
-										)
-									}
-								})}
-							</p>
-						</div>
-					</a>
-				{:else}
-					<li class="list-group-item disabled">{$_(".error.none")}</li>
-				{/each}
-			{/if}
-		{/await}
-	</ul>
+
+	<nav class="list-nav overflow-y-scroll max-h">
+		<ul>
+			{#await overdoneBooks then data}
+				{#if data}
+					{#each data as [book, user] (book.id)}
+						<li>
+							<a
+								href={`books?${new URLSearchParams({ search: book.id })}`}
+								style="border-radius: 12px;"
+								class="!p-2"
+							>
+								<span class="flex-auto truncate w-[200px]"
+									><p>{book.title}</p>
+									<small class="text-sm opacity-50"
+										>{$_('.book.overdone.by.short', {
+											values: { '0': `${user.forename} ${user.surname}` }
+										})}</small
+									></span
+								>
+								<span class="text-end truncate">
+									<p>
+										{$_('.book.period', {
+											values: {
+												'0': DateTime.fromISO(book.deadline ?? '').toLocaleString(),
+												'1': parseInt(
+													(-DateTime.fromISO(book.deadline ?? '').diff(DateTime.now(), 'days')
+														.days).toLocaleString()
+												)
+											}
+										})}
+									</p>
+								</span>
+							</a>
+						</li>
+					{:else}
+						<li>
+							<span class="opacity-50 flex-auto"><dd class="p-2">{$_('.error.none')}</dd></span>
+						</li>
+					{/each}
+				{/if}
+			{/await}
+		</ul>
+	</nav>
 </div>
 
 <style>
-	.full {
-		overflow: scroll;
-		height: calc(100% - 41px);
+	.max-h {
+		--border-height: 36px;
+		height: calc(100% - var(--border-height));
 	}
 </style>

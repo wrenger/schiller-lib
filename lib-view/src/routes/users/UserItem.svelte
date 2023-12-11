@@ -1,26 +1,30 @@
 <script lang="ts" context="module">
-	export const HEIGHT: number = 62;
+	export const HEIGHT: number = 64;
 </script>
 
 <script lang="ts">
-	import type api from "$lib/api";
+	import type api from '$lib/api';
 
 	export let user: api.User;
 	export let active: boolean;
 	export let onClick: () => void;
+
+	$: classesActive = (cond: boolean) => (cond ? '!bg-primary-active-token' : '');
 </script>
 
-<button
-	class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-	class:active
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div
+	class="list-option {classesActive(active)}"
 	id={user.account}
 	on:click={onClick}
+	style="border-radius: 12px;"
 >
-	<div class="d-flex flex-column">
-		<p class="mb-0 text-truncate q">{user.forename} {user.surname}</p>
-		<small class="text-muted text-truncate q">{user.account}</small>
-	</div>
-	<div class="d-flex flex-column align-items-end">
-		<p class="mb-0 text-truncate q">{user.role}</p>
-	</div>
-</button>
+	<span class="flex-auto truncate w-[200px]"
+		><dt>{user.forename} {user.surname}</dt>
+		<dd class="text-sm opacity-50">{user.account}</dd></span
+	>
+	<span class="text-end truncate">
+		<dt>{user.role}</dt>
+	</span>
+</div>

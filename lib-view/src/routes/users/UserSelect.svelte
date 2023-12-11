@@ -1,68 +1,69 @@
 <script lang="ts">
-	import { _ } from "svelte-i18n";
-	import api from "$lib/api";
-	export let value = "";
-	export let label = "";
-	export let placeholder = "";
-	export let editable: boolean = true;
+	import { _ } from 'svelte-i18n';
+	import api from '$lib/api';
+	import {
+		Autocomplete,
+		popup,
+		type AutocompleteOption,
+		type PopupSettings
+	} from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
 
-	let items: Promise<api.Limited<api.User>>;
+	export let label = '';
+	export let placeholder = '';
+	export let readonly: boolean = false;
+	export let value = '';
+
+	let items: api.Limited<api.User>;
+	let mounted: boolean = false;
+	let popupSettings: PopupSettings = {
+		event: 'focus-click',
+		target: 'popupAutocomplete',
+		placement: 'bottom-start'
+	};
+
+	onMount(() => (mounted = true));
+
+	function toACO(
+		users: api.User[] | undefined
+	): AutocompleteOption<string, { role: string }>[] | undefined {
+		if (users)
+			return users.map((user) => ({
+				label: `${user.forename} ${user.surname} (${user.account})`,
+				value: user.account,
+				keywords: `${user.forename} ${user.surname} ${user.account}`,
+				meta: { role: user.role }
+			}));
+	}
+
+	async function onSelect(event: CustomEvent<AutocompleteOption<string>>) {
+		value = event.detail.value;
+	}
+
+	async function fetch(value: string) {
+		items = await api.user_search({ query: value, limit: 10 });
+	}
+
+	$: if (mounted) fetch(value);
 </script>
 
-<label for="select-{label}" class="form-label">{label}</label>
-<div class="input-group mb-3" id="select-{label}">
+<label class="label">
+	{#if label}
+		<span>{label}</span>
+	{/if}
 	<input
-		type="text"
-		class="form-control"
-		{placeholder}
-		aria-label={placeholder}
-		readonly={!editable}
+		class="input autocomplete"
+		type="search"
+		name="autocomplete-search"
+		{readonly}
 		bind:value
+		{placeholder}
+		use:popup={popupSettings}
 	/>
-	<button
-		id="select-button"
-		class="btn btn-outline-secondary dropdown-toggle hide-arrow"
-		type="button"
-		data-bs-toggle="dropdown"
-		aria-expanded="false"
-		title={$_(".action.select")}
-		disabled={!editable}
-		on:click={() => (items = api.user_search({ query: value, limit: 10 }))}
+	<div
+		data-popup={readonly ? '' : 'popupAutocomplete'}
+		class="card w-full max-w-sm max-h-48 p-4 overflow-y-auto z-[500]"
 	>
-		<i class="bi bi-search" />
-	</button>
-	<ul id="select-dropdown" class="dropdown-menu select" hidden={!editable}>
-		{#await items}
-			<li class="dropdown-item">
-				<div class="d-flex justify-content-center">
-					<div class="spinner-grow" role="status">
-						<span class="visually-hidden">Loading...</span>
-					</div>
-				</div>
-			</li>
-		{:then data}
-			{#if data && data.rows}
-				{#each data.rows as entry}
-					<button
-						class="dropdown-item"
-						on:click={() => {
-							value = entry.account;
-						}}>{entry.account}</button
-					>
-				{:else}
-					<button class="dropdown-item" disabled>{$_(".error.none")}</button>
-				{/each}
-			{/if}
-		{/await}
-	</ul>
-</div>
-
-<style>
-	.hide-arrow::after {
-		display: none !important;
-	}
-	.select {
-		overflow: scroll;
-		max-height: 200%;
-	}
-</style>
+		<Autocomplete bind:input={value} options={toACO(items?.rows)} on:selection={onSelect} />
+	</div>
+</label>

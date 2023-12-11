@@ -1,12 +1,18 @@
-import adapter from "@sveltejs/adapter-static";
-import { vitePreprocess } from "@sveltejs/kit/vite";
+import adapter from '@sveltejs/adapter-static';
+import { vitePreprocess } from '@sveltejs/kit/vite';
 
-/** @type {import("@sveltejs/kit").Config} */
+/** @type {import('@sveltejs/kit').Config} */
 const config = {
-	preprocess: [vitePreprocess({})],
+	extensions: ['.svelte'],
+	preprocess: [vitePreprocess()],
+
 	kit: {
-		adapter: adapter()
+		adapter: adapter({
+			strict: false
+		}),
+		prerender: {
+			handleHttpError: 'warn'
+		}
 	}
 };
-
 export default config;

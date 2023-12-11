@@ -1,4 +1,5 @@
-import { _ } from "svelte-i18n";
+import { _ } from 'svelte-i18n';
+import { errorStore } from './store';
 
 namespace api {
 	export interface About {
@@ -64,7 +65,7 @@ namespace api {
 		reservation: string;
 	}
 
-	export type BookState = "None" | "Borrowable" | "NotBorrowable" | "Borrowed" | "Reserved";
+	export type BookState = 'None' | 'Borrowable' | 'NotBorrowable' | 'Borrowed' | 'Reserved';
 
 	export interface BookSearch {
 		query?: string;
@@ -112,20 +113,20 @@ namespace api {
 	// -------------------------------------------------------------------------
 
 	export async function about(): Promise<About> {
-		return get("api/about");
+		return get('api/about');
 	}
 	export async function stats(): Promise<Stats> {
-		return get("api/stats");
+		return get('api/stats');
 	}
 	export async function session(): Promise<Session> {
-		return get("api/session");
+		return get('api/session');
 	}
 
 	export async function settings(): Promise<Settings> {
-		return get("api/settings");
+		return get('api/settings');
 	}
 	export async function settings_update(settings: Partial<Settings>) {
-		await post(settings, "api/settings");
+		await post(settings, 'api/settings');
 	}
 
 	// -------------------------------------------------------------------------
@@ -133,25 +134,25 @@ namespace api {
 	// -------------------------------------------------------------------------
 
 	export async function book_search(query: BookSearch): Promise<Limited<Book>> {
-		return get("api/book", query);
+		return get('api/book', query);
 	}
 	export async function book_add(book: Book) {
-		await post(book, "api/book");
+		await post(book, 'api/book');
 	}
 	export async function book(id: string): Promise<Book> {
-		return get("api/book/" + encodeURIComponent(id));
+		return get('api/book/' + encodeURIComponent(id));
 	}
 	export async function book_update(id: string, book: Book) {
-		await post(book, "api/book/" + encodeURIComponent(id));
+		await post(book, 'api/book/' + encodeURIComponent(id));
 	}
 	export async function book_delete(id: string) {
-		await del("api/book/" + encodeURIComponent(id));
+		await del('api/book/' + encodeURIComponent(id));
 	}
 	export async function book_id(book: Book): Promise<string> {
-		return post_get(book, "api/book-id");
+		return post_get(book, 'api/book-id');
 	}
 	export async function book_fetch(isbn: string): Promise<Partial<Book>> {
-		return get("api/book-fetch/" + encodeURIComponent(isbn));
+		return get('api/book-fetch/' + encodeURIComponent(isbn));
 	}
 
 	// -------------------------------------------------------------------------
@@ -159,25 +160,25 @@ namespace api {
 	// -------------------------------------------------------------------------
 
 	export async function user_search(query: UserSearch): Promise<Limited<User>> {
-		return get("api/user", query);
+		return get('api/user', query);
 	}
 	export async function user_add(user: User) {
-		await post(user, "api/user");
+		await post(user, 'api/user');
 	}
 	export async function user(account: string): Promise<User> {
-		return get("api/user/" + encodeURIComponent(account));
+		return get('api/user/' + encodeURIComponent(account));
 	}
 	export async function user_update(account: string, user: User) {
-		await post(user, "api/user/" + encodeURIComponent(account));
+		await post(user, 'api/user/' + encodeURIComponent(account));
 	}
 	export async function user_delete(account: string) {
-		await del("api/user/" + encodeURIComponent(account));
+		await del('api/user/' + encodeURIComponent(account));
 	}
 	export async function user_fetch(account: string): Promise<User> {
-		return get("api/user-fetch/" + encodeURIComponent(account));
+		return get('api/user-fetch/' + encodeURIComponent(account));
 	}
 	export async function user_update_roles() {
-		await post({}, "api/user-update-roles");
+		await post({}, 'api/user-update-roles');
 	}
 
 	// -------------------------------------------------------------------------
@@ -185,16 +186,16 @@ namespace api {
 	// -------------------------------------------------------------------------
 
 	export async function categories(): Promise<Category[]> {
-		return get("api/category");
+		return get('api/category');
 	}
 	export async function category_add(category: Category) {
-		await post(category, "api/category");
+		await post(category, 'api/category');
 	}
 	export async function category_update(id: string, category: Category) {
-		await post(category, "api/category/" + encodeURIComponent(id));
+		await post(category, 'api/category/' + encodeURIComponent(id));
 	}
 	export async function category_delete(id: string) {
-		await del("api/category/" + encodeURIComponent(id));
+		await del('api/category/' + encodeURIComponent(id));
 	}
 
 	// -------------------------------------------------------------------------
@@ -202,16 +203,16 @@ namespace api {
 	// -------------------------------------------------------------------------
 
 	export async function lend(id: string, account: string, deadline: string | null): Promise<Book> {
-		return post_get({}, "api/lending/lend", { id, account, deadline });
+		return post_get({}, 'api/lending/lend', { id, account, deadline });
 	}
 	export async function return_back(id: string): Promise<Book> {
-		return post_get({}, "api/lending/return", { id });
+		return post_get({}, 'api/lending/return', { id });
 	}
 	export async function reserve(id: string, account: string): Promise<Book> {
-		return post_get({}, "api/lending/reserve", { id, account });
+		return post_get({}, 'api/lending/reserve', { id, account });
 	}
 	export async function release(id: string): Promise<Book> {
-		return post_get({}, "api/lending/release", { id });
+		return post_get({}, 'api/lending/release', { id });
 	}
 
 	// -------------------------------------------------------------------------
@@ -219,7 +220,7 @@ namespace api {
 	// -------------------------------------------------------------------------
 
 	export async function mail(mails: MailBody[]) {
-		await post(mails, "api/notify");
+		await post(mails, 'api/notify');
 	}
 
 	// -------------------------------------------------------------------------
@@ -227,12 +228,12 @@ namespace api {
 	// -------------------------------------------------------------------------
 
 	export async function overdues(): Promise<[Book, User][]> {
-		return get("api/overdues");
+		return get('api/overdues');
 	}
 
 	/** Fetches the data, throwing an exception if something went wrong */
 	async function get<T>(url: string, query: QueryParam = {}): Promise<T> {
-		let response = await fetch(url + query_str(query), { method: "GET" });
+		let response = await fetch(url + query_str(query), { method: 'GET' });
 		if (response.ok) return (await response.json()) as T;
 
 		error(await response.json());
@@ -241,9 +242,9 @@ namespace api {
 	/** Posts/updates the data, throwing an exception if something went wrong */
 	async function post(data: any, url: string, query: QueryParam = {}) {
 		let response = await fetch(url + query_str(query), {
-			method: "POST",
+			method: 'POST',
 			headers: {
-				"Content-Type": "application/json; charset=utf-8"
+				'Content-Type': 'application/json; charset=utf-8'
 			},
 			body: JSON.stringify(data)
 		});
@@ -255,9 +256,9 @@ namespace api {
 	/** Posts/updates the data, throwing an exception if something went wrong */
 	async function post_get<T>(data: any, url: string, query: QueryParam = {}): Promise<T> {
 		let response = await fetch(url + query_str(query), {
-			method: "POST",
+			method: 'POST',
 			headers: {
-				"Content-Type": "application/json; charset=utf-8"
+				'Content-Type': 'application/json; charset=utf-8'
 			},
 			body: JSON.stringify(data)
 		});
@@ -268,7 +269,7 @@ namespace api {
 
 	/** Deletes the data, throwing an exception if something went wrong */
 	async function del(url: string, query: QueryParam = {}) {
-		let response = await fetch(url + query_str(query), { method: "DELETE" });
+		let response = await fetch(url + query_str(query), { method: 'DELETE' });
 		if (response.ok) return;
 
 		error(await response.json());
@@ -282,72 +283,62 @@ namespace api {
 				if (params[key] != undefined && params[key] != null) data[key] = params[key].toString();
 			}
 			// the URLSearchParams escapes any problematic values
-			return "?" + new URLSearchParams(data).toString();
+			return '?' + new URLSearchParams(data).toString();
 		}
-		return "";
+		return '';
 	}
 
-	/** For api errors, Opens a modal */
+	/** For api errors, Opens a toast */
 	function error(error: string): never {
-		const modal: HTMLDialogElement | null = document.getElementById(
-			"error-modal"
-		) as HTMLDialogElement | null;
+		let errorLocalized: string = '';
+		_.subscribe((_) => (errorLocalized = _(error_msg(error))));
 
-		if (modal) {
-			const errorTextElement: HTMLParagraphElement | null = modal.querySelector(".card-body p");
-			if (errorTextElement) {
-				let errorLocalized: string = "";
-				_.subscribe((_) => (errorLocalized = _(error_msg(error))));
-				errorTextElement.textContent = errorLocalized;
-			}
-
-			modal.showModal();
-		}
+		errorStore.set({ message: errorLocalized });
 
 		throw error;
 	}
 
 	/** Server Error translations */
-	function error_msg(string: any): string {
+	export function error_msg(string: any): string {
 		switch (string) {
-			case "Arguments":
-				return ".error.input";
-			case "FileOpen":
-				return ".error.file-open";
-			case "Network":
-				return ".error.network";
-			case "InvalidFormat":
-				return ".error.format";
-			case "NothingFound":
-				return ".error.none";
-			case "ReferencedUser":
-				return ".user.referenced.del";
-			case "ReferencedCategory":
-				return ".category.not-empty.del";
-			case "InvalidBook":
-				return ".book.invalid";
-			case "InvalidUser":
-				return ".user.invalid";
-			case "LendingUserMayNotBorrow":
-				return ".error.lending.user";
-			case "LendingBookNotBorrowable":
-				return ".error.lending.book";
-			case "LendingBookAlreadyBorrowed":
-				return ".error.lending.already-borrowed";
-			case "LendingBookAlreadyBorrowedByUser":
-				return ".error.lending.already-borrowed-by";
-			case "LendingBookNotBorrowed":
-				return ".error.lending.not-borrowed";
-			case "LendingBookAlreadyReserved":
-				return ".error.lending.already-reserved";
-			case "LendingBookNotReserved":
-				return ".error.lending.not-reserved";
-			case "UnsupportedProjectVersion":
-				return ".error.update";
-			case "SQL":
-				return ".error.sql";
+			case 'Arguments':
+				return '.error.input';
+			case 'FileOpen':
+				return '.error.file-open';
+			case 'Network':
+				return '.error.network';
+			case 'InvalidFormat':
+				return '.error.format';
+			case 'NothingFound':
+				return '.error.none';
+			case 'ReferencedUser':
+				return '.user.referenced.del';
+			case 'ReferencedCategory':
+				return '.category.not-empty.del';
+			case 'InvalidBook':
+				return '.book.invalid';
+			case 'InvalidUser':
+				return '.user.invalid';
+			case 'LendingUserMayNotBorrow':
+				return '.error.lending.user';
+			case 'LendingBookNotBorrowable':
+				return '.error.lending.book';
+			case 'LendingBookAlreadyBorrowed':
+				return '.error.lending.already-borrowed';
+			case 'LendingBookAlreadyBorrowedByUser':
+				return '.error.lending.already-borrowed-by';
+			case 'LendingBookNotBorrowed':
+				return '.error.lending.not-borrowed';
+			case 'LendingBookAlreadyReserved':
+				return '.error.lending.already-reserved';
+			case 'LendingBookNotReserved':
+				return '.error.lending.not-reserved';
+			case 'UnsupportedProjectVersion':
+				return '.error.update';
+			case 'SQL':
+				return '.error.sql';
 			default:
-				return ".error.unknown";
+				return '.error.unknown';
 		}
 	}
 }

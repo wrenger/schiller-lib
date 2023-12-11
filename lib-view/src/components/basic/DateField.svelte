@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { _ } from "svelte-i18n";
-	import { DateTime } from "luxon";
+	import { _ } from 'svelte-i18n';
+	import { DateTime } from 'luxon';
 	export let date: DateTime;
-	export let id = "";
 	export let min = true;
+	export let label = '';
 	let minDate = DateTime.now().toISODate();
 
 	let inputElement: HTMLInputElement | null = null;
@@ -13,14 +13,16 @@
 	};
 </script>
 
-<input
-	{id}
-	min={min ? minDate : ""}
-	type="date"
-	class="form-control"
-	placeholder={$_(".book.lend.period")}
-	aria-label={$_(".book.lend.period")}
-	value={date.isValid ? date.toISODate() : ""}
-	bind:this={inputElement}
-	on:input={updateDate}
-/>
+<label class="label">
+	<span>{label}</span>
+	<input
+		min={min ? minDate : ''}
+		type="date"
+		class="input"
+		placeholder={$_('.book.lend.period')}
+		aria-label={$_('.book.lend.period')}
+		value={date.isValid ? date.toISODate() : ''}
+		bind:this={inputElement}
+		on:input={updateDate}
+	/>
+</label>

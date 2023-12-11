@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { _ } from "svelte-i18n";
-	import api from "$lib/api";
+	import { _ } from 'svelte-i18n';
+	import api from '$lib/api';
 
-	import Spinner from "../../components/basic/Spinner.svelte";
-	import LendDialog from "./LendDialog.svelte";
-	import ReserveDialog from "./ReserveDialog.svelte";
-	import MailDialog from "./MailDialog.svelte";
-	import BookDisplay from "./BookDisplay.svelte";
+	import Spinner from '../../components/basic/Spinner.svelte';
+	import BookDisplay from './BookDisplay.svelte';
+	import { getModalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
+
+	const modalStore = getModalStore();
 
 	export var onChange: ((b: api.Book | null) => void) | undefined;
 
@@ -37,9 +37,6 @@
 
 	let state: Display | Create = { kind: State.Create };
 
-	let lendDialog: LendDialog;
-	let reserveDialog: ReserveDialog;
-	let mailDialog: MailDialog;
 	let bookDisplay: BookDisplay;
 
 	$: if (state.kind == State.Display) {
@@ -80,7 +77,7 @@
 		if (state.kind == State.Display) {
 			let book = await api.return_back(state.book.id);
 			onChangeInner(book);
-			if (book.reservation) mailDialog.open(book);
+			if (book.reservation) mailModalOpen(book);
 		}
 	}
 
@@ -100,159 +97,192 @@
 		}
 		if (onChange) onChange(book);
 	}
+
+	function lendModalOpen(borrower: string): void {
+		const modal: ModalSettings = {
+			type: 'component',
+			component: 'lendModal',
+			meta: {
+				borrower: borrower,
+				bookId: state.kind === State.Display ? state.book.id : '',
+				onChange: onChangeInner
+			}
+		};
+		modalStore.trigger(modal);
+	}
+
+	function reserveModalOpen(): void {
+		const modal: ModalSettings = {
+			type: 'component',
+			component: 'reserveModal',
+			meta: {
+				reservation: state.kind === State.Display ? state.book.reservation : '',
+				bookId: state.kind === State.Display ? state.book.id : '',
+				onChange: onChangeInner
+			}
+		};
+		modalStore.trigger(modal);
+	}
+
+	function mailModalOpen(book: api.Book): void {
+		const modal: ModalSettings = {
+			type: 'component',
+			component: 'mailModal',
+			meta: {
+				book,
+				onChange: onChangeInner
+			}
+		};
+		modalStore.trigger(modal);
+	}
 </script>
 
-<div class="card-header d-flex justify-content-between">
-	<button
-		id="cancel"
-		class="btn btn-outline-secondary"
-		type="button"
-		aria-expanded="false"
-		title={$_(".action.close")}
-		on:click={() => onChangeInner(null)}
-	>
-		<i class="bi bi-caret-left-fill" />
-	</button>
-	<button
-		id="edit"
-		class="btn btn-outline-primary"
-		class:active={state.kind === State.Display && state.editing}
-		type="button"
-		aria-expanded="false"
-		title={$_(".action.edit")}
-		disabled={state.kind === State.Create}
-		on:click={() => {
-			if (state.kind === State.Display) state.editing = true;
-		}}
-	>
-		<i class="bi bi-pencil-square" />
-	</button>
-</div>
+<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll">
+	<div class="flex p-2 pb-0">
+		<span class="flex-auto">
+			<button
+				id="cancel"
+				class="btn-icon variant-filled"
+				type="button"
+				aria-expanded="false"
+				title={$_('.action.close')}
+				on:click={() => onChangeInner(null)}
+			>
+				<i class="fa-solid fa-angle-left"></i>
+			</button>
+		</span>
+		<span>
+			<button
+				id="edit"
+				class="btn-icon variant-filled{state.kind === State.Display && state.editing
+					? '-primary'
+					: ''}"
+				type="button"
+				aria-expanded="false"
+				title={$_('.action.edit')}
+				disabled={state.kind === State.Create}
+				on:click={() => {
+					if (state.kind === State.Display) state.editing = true;
+				}}
+			>
+				<i class="fa-solid fa-pen-to-square"></i>
+			</button>
+		</span>
+	</div>
 
-<BookDisplay bind:this={bookDisplay} editable={state.kind === State.Create || state.editing} />
+	<BookDisplay bind:this={bookDisplay} editable={state.kind === State.Create || state.editing} />
 
-<div class="card-footer text-center">
-	{#if state.kind === State.Create || (state.kind === State.Display && state.editing)}
-		<button
-			id="book-abort-button"
-			type="button"
-			class="btn btn-outline-secondary mt-2"
-			on:click={() => {
-				if (state.kind === State.Display) {
-					state.editing = false;
-					bookDisplay.setBook(state.book);
-				} else {
-					onChangeInner(null);
-				}
-			}}
-		>
-			{$_(".action.cancel")}
-		</button>
-	{/if}
+	<div class="p-2 pt-0 flex space-x-2 justify-center">
+		{#if state.kind === State.Create || (state.kind === State.Display && state.editing)}
+			<button
+				id="book-abort-button"
+				type="button"
+				class="btn variant-filled mt-2"
+				on:click={() => {
+					if (state.kind === State.Display) {
+						state.editing = false;
+						bookDisplay.setBook(state.book);
+					} else {
+						onChangeInner(null);
+					}
+				}}
+			>
+				{$_('.action.cancel')}
+			</button>
+		{/if}
 
-	{#if state.kind === State.Create}
-		<button
-			id="book-add-button"
-			class="btn btn-outline-primary mt-2"
-			type="button"
-			on:click={() => (addResponse = add())}
-		>
-			<Spinner response={addResponse} />
-			{$_(".action.add")}
-		</button>
-	{:else if state.kind === State.Display && state.editing}
-		<button
-			id="book-confirm-button"
-			type="button"
-			class="btn btn-outline-primary mt-2"
-			on:click={() => (editResponse = edit())}
-		>
-			<Spinner response={editResponse} />
-			{$_(".action.apply")}
-		</button>
-		<button
-			class="btn btn-outline-danger mt-2"
-			type="button"
-			aria-expanded="false"
-			on:click={() => (delResponse = del())}
-		>
-			<Spinner response={delResponse} />
-			{$_(".action.delete")}
-		</button>
-	{:else if state.kind === State.Display && !state.editing}
-		{#if state.book.reservation}
-			{#if !state.book.borrower}
+		{#if state.kind === State.Create}
+			<button
+				id="book-add-button"
+				class="btn variant-filled-primary mt-2"
+				type="button"
+				on:click={() => (addResponse = add())}
+			>
+				<Spinner response={addResponse} />
+				{$_('.action.add')}
+			</button>
+		{:else if state.kind === State.Display && state.editing}
+			<button
+				id="book-confirm-button"
+				type="button"
+				class="btn variant-filled-primary mt-2"
+				on:click={() => (editResponse = edit())}
+			>
+				<Spinner response={editResponse} />
+				{$_('.action.apply')}
+			</button>
+			<button
+				class="btn variant-filled-error mt-2"
+				type="button"
+				aria-expanded="false"
+				on:click={() => (delResponse = del())}
+			>
+				<Spinner response={delResponse} />
+				{$_('.action.delete')}
+			</button>
+		{:else if state.kind === State.Display && !state.editing}
+			{#if state.book.reservation}
+				{#if !state.book.borrower}
+					<button
+						class="btn variant-filled-primary mt-2"
+						type="button"
+						aria-expanded="false"
+						on:click={() => {
+							if (state.kind === State.Display) lendModalOpen(state.book.reservation);
+						}}
+					>
+						{$_('.book.lend.to', { values: { '0': state.book.reservation } })}
+					</button>
+				{/if}
 				<button
-					class="btn btn-outline-primary mt-2"
+					class="btn variant-filled-error mt-2"
+					type="button"
+					aria-expanded="false"
+					on:click={() => (releaseResponse = release())}
+				>
+					<Spinner response={releaseResponse} />
+					{$_('.book.delete-reservation')}
+				</button>
+			{:else if state.book.borrower}
+				<button
+					class="btn variant-filled-primary mt-2"
+					type="button"
+					aria-expanded="false"
+					on:click={reserveModalOpen}
+				>
+					{$_('.book.reserve')}
+				</button>
+				<button
+					class="btn variant-filled-primary mt-2"
 					type="button"
 					aria-expanded="false"
 					on:click={() => {
-						if (state.kind === State.Display) lendDialog.open(state.book.reservation);
+						if (state.kind === State.Display) lendModalOpen(state.book.borrower);
 					}}
 				>
-					{$_(".book.lend.to", { values: { "0": state.book.reservation } })}
+					{$_('.book.renew')}
+				</button>
+			{:else if state.book.borrowable}
+				<button
+					class="btn variant-filled-primary mt-2"
+					type="button"
+					aria-expanded="false"
+					on:click={() => lendModalOpen('')}
+				>
+					{$_('.book.lend')}
 				</button>
 			{/if}
-			<button
-				class="btn btn-outline-danger mt-2"
-				type="button"
-				aria-expanded="false"
-				on:click={() => (releaseResponse = release())}
-			>
-				<Spinner response={releaseResponse} />
-				{$_(".book.delete-reservation")}
-			</button>
-		{:else if state.book.borrower}
-			<button
-				class="btn btn-outline-primary mt-2"
-				type="button"
-				aria-expanded="false"
-				on:click={() => reserveDialog.open()}
-			>
-				{$_(".book.reserve")}
-			</button>
-			<button
-				class="btn btn-outline-primary mt-2"
-				type="button"
-				aria-expanded="false"
-				on:click={() => {
-					if (state.kind === State.Display) lendDialog.open(state.book.borrower);
-				}}
-			>
-				{$_(".book.renew")}
-			</button>
-		{:else if state.book.borrowable}
-			<button
-				class="btn btn-outline-primary mt-2"
-				type="button"
-				aria-expanded="false"
-				on:click={() => lendDialog.open()}
-			>
-				{$_(".book.lend")}
-			</button>
+			{#if state.book.borrower}
+				<button
+					class="btn variant-filled-error mt-2"
+					type="button"
+					aria-expanded="false"
+					on:click={() => (returnResponse = returnBack())}
+				>
+					<Spinner response={returnResponse} />
+					{$_('.book.revoke')}
+				</button>
+			{/if}
 		{/if}
-		{#if state.book.borrower}
-			<button
-				class="btn btn-outline-danger mt-2"
-				type="button"
-				aria-expanded="false"
-				on:click={() => (returnResponse = returnBack())}
-			>
-				<Spinner response={returnResponse} />
-				{$_(".book.revoke")}
-			</button>
-		{/if}
-	{/if}
+	</div>
 </div>
-
-<LendDialog
-	bind:this={lendDialog}
-	bookId={state.kind === State.Display ? state.book.id : ""}
-	onChange={onChangeInner}
-/>
-<ReserveDialog
-	bind:this={reserveDialog}
-	bookId={state.kind === State.Display ? state.book.id : ""}
-	onChange={onChangeInner}
-/>
-<MailDialog bind:this={mailDialog} />

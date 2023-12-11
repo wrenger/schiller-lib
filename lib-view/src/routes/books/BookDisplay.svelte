@@ -1,41 +1,45 @@
 <script lang="ts">
-	import { _ } from "svelte-i18n";
-	import api from "$lib/api";
+	import { _ } from 'svelte-i18n';
+	import api from '$lib/api';
 
-	import { DateTime } from "luxon";
-	import CategorySelect from "../../components/basic/CategorySelect.svelte";
+	import { DateTime } from 'luxon';
+	import CategorySelect from '../../components/basic/CategorySelect.svelte';
+	import Spinner from '../../components/basic/Spinner.svelte';
 
 	export let editable: boolean = false;
 
-	let id = "";
-	let isbn = "";
-	let title = "";
-	let publisher = "";
-	let authors = "";
+	let id = '';
+	let isbn = '';
+	let title = '';
+	let publisher = '';
+	let authors = '';
 	let costs = 0;
 	let year = DateTime.now().year;
-	let category = "";
-	let note = "";
+	let category = '';
+	let note = '';
 	let borrowable = true;
-	let borrower = "";
+	let borrower = '';
 	let deadline: DateTime | null = null;
-	let reservation = "";
+	let reservation = '';
+
+	let bookIdResponse: Promise<any>;
+	let isbnResponse: Promise<any>;
 
 	function defaultBook(): api.Book {
 		return {
-			id: "",
-			isbn: "",
-			title: "",
-			publisher: "",
-			authors: "",
+			id: '',
+			isbn: '',
+			title: '',
+			publisher: '',
+			authors: '',
 			costs: 0,
 			year: DateTime.now().year,
-			category: "",
-			note: "",
+			category: '',
+			note: '',
 			borrowable: true,
-			borrower: "",
+			borrower: '',
 			deadline: null,
-			reservation: ""
+			reservation: ''
 		};
 	}
 
@@ -69,192 +73,169 @@
 			category,
 			note,
 			borrowable,
-			borrower: borrower ?? "",
+			borrower: borrower ?? '',
 			deadline: deadline?.toISODate() ?? null,
-			reservation: reservation ?? ""
+			reservation: reservation ?? ''
 		};
 	}
 </script>
 
-<div class="row m-1">
-	<div class="col ps-0 pe-0">
-		<label for="title" class="form-label">{$_(".book.title")}</label>
-		<input
-			id="title"
-			type="text"
-			class="form-control"
-			placeholder={$_(".book.title")}
-			aria-label={$_(".book.title")}
-			readonly={!editable}
-			bind:value={title}
-		/>
-	</div>
-</div>
-<div class="row pt-1 m-1">
-	<div class="col ps-0">
-		<label for="id" class="form-label">{$_(".book.id")}</label>
-		<div class="input-group" id="id">
+<label class="label">
+	<span>{$_('.book.title')}</span>
+	<input
+		class="input"
+		type="text"
+		placeholder={$_('.book.title')}
+		readonly={!editable}
+		bind:value={title}
+	/>
+</label>
+<div class="w-full grid grid-cols-2 gap-4">
+	<label class="label">
+		<span>{$_('.book.id')}</span>
+		<div class="input-group grid-cols-[1fr_auto] mb-2">
 			<input
+				class="input"
 				type="text"
-				class="form-control"
-				placeholder={$_(".book.id")}
-				aria-label={$_(".book.id")}
+				placeholder={$_('.book.id')}
 				readonly={!editable}
 				bind:value={id}
 			/>
 			<button
-				type="button"
-				class="btn btn-outline-secondary"
-				title={$_(".book.id.action")}
+				class="variant-soft"
+				title={$_('.book.id.action')}
 				disabled={!editable}
 				on:click={async () => {
-					id = await api.book_id(getBook());
+					bookIdResponse = api.book_id(getBook());
+					id = await bookIdResponse;
 				}}
 			>
-				<i class="bi bi-arrow-repeat" />
+				<Spinner response={bookIdResponse} />
+				<i class="fa-solid fa-rotate"></i>
 			</button>
 		</div>
-	</div>
-	<div class="col ps-0 pe-0">
-		<label for="isbn" class="form-label">{$_(".book.isbn")}</label>
-		<div class="input-group" id="isbn">
+	</label>
+
+	<label class="label">
+		<span>{$_('.book.isbn')}</span>
+		<div class="input-group grid-cols-[1fr_auto] mb-2">
 			<input
+				class="input"
 				type="text"
-				class="form-control"
-				placeholder={$_(".book.isbn")}
-				aria-label={$_(".book.isbn")}
+				placeholder={$_('.book.isbn')}
 				readonly={!editable}
 				bind:value={isbn}
 			/>
 			<button
+				class="variant-soft"
 				type="button"
-				class="btn btn-outline-secondary"
-				title={$_(".book.request")}
+				title={$_('.book.request')}
 				disabled={!editable}
 				on:click={async () => {
-					let data = await api.book_fetch(isbn);
-					title = data.title ?? "";
-					publisher = data.publisher ?? "";
-					authors = Array.isArray(data.authors) ? data.authors.join(", ") : data.authors ?? "";
+					isbnResponse = api.book_fetch(isbn);
+					let data = await isbnResponse;
+					title = data.title ?? '';
+					publisher = data.publisher ?? '';
+					authors = Array.isArray(data.authors) ? data.authors.join(', ') : data.authors ?? '';
 					costs = data.costs ?? 0;
 				}}
 			>
-				<i class="bi bi-upload" />
+				<Spinner response={isbnResponse} />
+				<i class="fa-solid fa-download"></i>
 			</button>
 		</div>
-	</div>
+	</label>
 </div>
-<div class="row m-1">
-	<div class="col ps-0 pe-0">
-		<label for="authors" class="form-label">{$_(".book.authors")}</label>
+
+<label class="label">
+	<span>{$_('.book.authors')}</span>
+	<input
+		class="input"
+		type="text"
+		placeholder={$_('.book.authors')}
+		readonly={!editable}
+		bind:value={authors}
+	/>
+</label>
+
+<div class="w-full grid grid-cols-2 gap-4">
+	<label class="label">
+		<span>{$_('.book.publisher')}</span>
 		<input
-			id="authors"
+			class="input"
 			type="text"
-			class="form-control"
-			placeholder={$_(".book.authors")}
-			aria-label={$_(".book.authors")}
-			readonly={!editable}
-			bind:value={authors}
-		/>
-	</div>
-</div>
-<div class="row m-1">
-	<div class="col ps-0">
-		<label for="publisher" class="form-label">{$_(".book.publisher")}</label>
-		<input
-			id="publisher"
-			type="text"
-			class="form-control"
-			placeholder={$_(".book.publisher")}
-			aria-label={$_(".book.publisher")}
+			placeholder={$_('.book.publisher')}
 			readonly={!editable}
 			bind:value={publisher}
 		/>
-	</div>
-	<div class="col ps-0 pe-0">
-		<label for="costs" class="form-label">{$_(".book.costs")}</label>
+	</label>
+	<label class="label">
+		<span>{$_('.book.costs')}</span>
 		<input
-			id="costs"
+			class="input"
 			type="number"
-			step="0.1"
-			class="form-control"
-			placeholder={$_(".book.costs")}
-			aria-label={$_(".book.costs")}
+			placeholder={$_('.book.costs')}
 			readonly={!editable}
 			bind:value={costs}
 		/>
-	</div>
-</div>
-<div class="row m-1">
-	<div class="col ps-0">
-		<label for="year" class="form-label">{$_(".book.year")}</label>
+	</label>
+
+	<label class="label">
+		<span>{$_('.book.year')}</span>
 		<input
-			id="year"
+			class="input"
 			type="number"
-			class="form-control"
-			placeholder={$_(".book.year")}
-			aria-label={$_(".book.year")}
+			placeholder={$_('.book.year')}
 			readonly={!editable}
 			bind:value={year}
 		/>
-	</div>
-	<div class="col ps-0 pe-0">
-		<CategorySelect bind:value={category} disabled={!editable} label={"Category"} />
-	</div>
+	</label>
+
+	<CategorySelect bind:value={category} disabled={!editable} label={$_('.category')} />
 </div>
-<div class="row m-1">
-	<div class="col ps-0 pe-0">
-		<label for="note" class="form-label">{$_(".book.note")}</label>
-		<textarea
-			id="note"
-			class="form-control"
-			aria-label={$_(".book.note")}
-			readonly={!editable}
-			bind:value={note}
-			rows="3"
-		/>
-	</div>
-</div>
-<div class="row m-1 pt-1">
-	<div class="form-check">
-		<input
-			class="form-check-input"
-			type="checkbox"
-			value=""
-			id="borrowable"
-			bind:checked={borrowable}
-			disabled={!editable}
-		/>
-		<label class="form-check-label" for="borrowable">{$_(".book.borrowable")}</label>
-	</div>
-</div>
+
+<label class="label">
+	<span>{$_('.book.note')}</span>
+	<textarea
+		class="textarea"
+		rows="3"
+		placeholder={$_('.book.note')}
+		readonly={!editable}
+		bind:value={note}
+	/>
+</label>
+
+<label class="flex items-center space-x-2">
+	<input class="checkbox" type="checkbox" bind:checked={borrowable} disabled={!editable} />
+	<p>{$_('.book.borrowable')}</p>
+</label>
 
 {#if !editable}
 	{#if borrower && deadline}
-		<div class="alert alert-light mb-0" role="alert">
-			{$_(".book.borrowed.by", {
+		<aside class="alert variant-glass-surface mt-1">
+			{$_('.book.borrowed.by', {
 				values: {
-					"0": borrower,
-					"1": deadline.toLocaleString()
+					'0': borrower,
+					'1': deadline.toLocaleString()
 				}
 			})}
-		</div>
+		</aside>
 		{#if reservation}
-			<div class="alert alert-light mb-0 mt-1" role="alert">
-				{$_(".book.reserved.by", { values: { "0": reservation } })}
-			</div>
+			<aside class="alert variant-glass-surface mt-1">
+				{$_('.book.reserved.by', { values: { '0': reservation } })}
+			</aside>
 		{/if}
 	{:else if reservation}
-		<div class="alert alert-light mb-0" role="alert">
-			{$_(".book.reserved.by", { values: { "0": reservation } })}
-		</div>
+		<aside class="alert variant-glass-surface mt-1">
+			{$_('.book.reserved.by', { values: { '0': reservation } })}
+		</aside>
 	{:else if borrowable}
-		<div class="alert alert-light mb-0" role="alert">
-			{$_(".book.available.long")}
-		</div>
+		<aside class="alert variant-glass-surface mt-1">
+			{$_('.book.available.long')}
+		</aside>
 	{:else}
-		<div class="alert alert-light mb-0" role="alert">
-			{$_(".book.not-borrowable")}
-		</div>
+		<aside class="alert variant-glass-surface mt-1">
+			{$_('.book.not-borrowable')}
+		</aside>
 	{/if}
 {/if}

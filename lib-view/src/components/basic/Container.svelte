@@ -2,19 +2,19 @@
 	export let isActive: boolean;
 </script>
 
-<section class="main">
+<div class="main">
 	<div class="list" class:hidden={isActive}>
 		<slot name="list" />
 	</div>
 	<div class="view" class:hidden={!isActive}>
 		<slot name="view" />
 	</div>
-</section>
+</div>
 
 <style>
 	.main {
 		display: grid;
-		grid-template-areas: "list view";
+		grid-template-areas: 'list view';
 		grid-template-rows: 100%;
 		grid-template-columns: 50% auto;
 		height: 100%;
@@ -25,9 +25,11 @@
 	}
 	.view {
 		grid-area: view;
-		overflow-y: scroll;
-		overflow-x: hidden;
 		margin-left: 5px;
+	}
+	.list.hidden,
+	.view.hidden {
+		display: block;
 	}
 	@media only screen and (max-width: 768px) {
 		.main {

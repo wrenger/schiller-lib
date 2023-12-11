@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { _ } from "svelte-i18n";
-	import type api from "$lib/api";
+	import { _ } from 'svelte-i18n';
+	import type api from '$lib/api';
 
 	type T = $$Generic<{}>;
 
@@ -13,7 +13,7 @@
 	export let key: (t: T) => string;
 
 	// we cannot use promises here, as we resize the list and the references get out of sync
-	let chunks: (T[] | "loading" | null)[] = [];
+	let chunks: (T[] | 'loading' | null)[] = [];
 	let firstChunk = -1;
 	let lastChunk = -1;
 	let totalCount: number = 0;
@@ -81,7 +81,7 @@
 		for (let i = 0; i < chunks.length; i++) {
 			if (firstChunk <= i && i <= lastChunk) {
 				if (chunks[i] == null || needsReload) {
-					if (chunks[i] == null) chunks[i] = "loading";
+					if (chunks[i] == null) chunks[i] = 'loading';
 					await loadChunk(i);
 				}
 			} else if (chunks[i] != null) {
@@ -97,57 +97,56 @@
 	}
 </script>
 
-<div class="card list">
+<div class="w-full h-full text-token card p-2 space-y-2">
 	<slot name="header" />
-	<div bind:this={scroller} class="list-body" on:scroll={() => updateChunks()}>
+	<div bind:this={scroller} class="list-body max-h" on:scroll={() => updateChunks()}>
 		<div
-			class="list-group list-group-flush"
 			style="min-height: {rowHeight * totalCount}px; max-height: {rowHeight *
 				totalCount}px; position: relative;"
 		>
 			{#each chunks as chunk, i (i)}
-				{#if chunk != null && chunk != "loading"}
-					<div
+				{#if chunk != null && chunk != 'loading'}
+					<dl
 						style="position: absolute; top: {i * rowHeight * CHUNK_SIZE}px; left: 0; right: 0;"
-						class="list-group list-group-flush"
+						class="list-dl"
 					>
 						{#each chunk as item (key(item))}
-							<slot name="item" {item} class="list-group-item list-group-item-action" />
+							<slot name="item" {item} />
 						{/each}
-					</div>
+					</dl>
 				{/if}
 			{:else}
-				<div class="list-group-item disabled">{$_(".error.none")}</div>
+				<span class="opacity-50 flex-auto"><dd class="p-2">{$_('.error.none')}</dd></span>
 			{/each}
 		</div>
 	</div>
-	<div class="card-footer d-flex justify-content-between align-items-center">
-		{$_(".search.results", { values: { 0: totalCount } })}
-		<button
-			class="btn btn-outline-primary"
-			class:active={adding}
-			type="button"
-			title={$_(".book.new")}
-			on:click={() => {
-				adding = true;
-				onAdd();
-			}}
-		>
-			<i class="bi bi-plus-lg" />
-		</button>
+	<div class="p-2 pt-0">
+		<span class="flex items-center">
+			<span class="flex-auto font-bold">
+				{$_('.search.results', { values: { 0: totalCount } })}
+			</span>
+			<button
+				class="btn-icon variant-filled{adding ? '-primary' : ''}"
+				class:active={adding}
+				type="button"
+				title={$_('.book.new')}
+				on:click={() => {
+					adding = true;
+					onAdd();
+				}}
+			>
+				<i class="fa-solid fa-plus"></i>
+			</button>
+		</span>
 	</div>
 </div>
 
 <style>
-	.list-group-item-action {
-		cursor: pointer;
-	}
-	.list {
-		--border-height: 45px;
+	.max-h {
+		--border-height: 150px;
 		height: calc(100% - var(--border-height));
 	}
 	.list-body {
 		overflow-y: scroll;
-		flex: 1;
 	}
 </style>
