@@ -108,7 +108,7 @@
 	}
 </script>
 
-<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll">
+<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll overflow-x-hidden">
 	<div class="flex p-2 pb-0">
 		<span class="flex-auto">
 			<button
