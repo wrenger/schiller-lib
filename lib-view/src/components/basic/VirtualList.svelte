@@ -99,6 +99,7 @@
 
 <div class="w-full h-full text-token card p-2 space-y-2">
 	<slot name="header" />
+	<hr />
 	<div bind:this={scroller} class="list-body max-h" on:scroll={() => updateChunks()}>
 		<div
 			style="min-height: {rowHeight * totalCount}px; max-height: {rowHeight *
@@ -120,6 +121,7 @@
 			{/each}
 		</div>
 	</div>
+	<hr />
 	<div class="p-2 pt-0">
 		<span class="flex items-center">
 			<span class="flex-auto font-bold">
@@ -143,7 +145,7 @@
 
 <style>
 	.max-h {
-		--border-height: 150px;
+		--border-height: 160px;
 		height: calc(100% - var(--border-height));
 	}
 	.list-body {
