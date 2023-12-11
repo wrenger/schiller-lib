@@ -64,7 +64,7 @@ impl Users {
 
     pub fn add(&mut self, mut user: User) -> Result<User> {
         if !user.validate() {
-            return Err(Error::InvalidBook);
+            return Err(Error::InvalidUser);
         }
 
         match self.data.entry(user.account.clone()) {
@@ -72,14 +72,14 @@ impl Users {
                 v.insert(user.clone());
                 Ok(user)
             }
-            _ => Err(Error::InvalidBook),
+            _ => Err(Error::InvalidUser),
         }
     }
 
     pub fn update(&mut self, account: &str, mut user: User, books: &mut Books) -> Result<User> {
         let account = account.trim();
         if account.is_empty() || !user.validate() {
-            return Err(Error::InvalidBook);
+            return Err(Error::InvalidUser);
         }
 
         if account == user.account {
@@ -95,7 +95,7 @@ impl Users {
                         books.update_user(account, &user.account)?;
                         Ok(user)
                     }
-                    _ => Err(Error::InvalidBook),
+                    _ => Err(Error::InvalidUser),
                 };
             }
         }
