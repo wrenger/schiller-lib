@@ -25,6 +25,7 @@
 	<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll">
 		{#await session}
 			<div class={header}>{$_('.action.load')}...</div>
+			<hr />
 			<div class="p-2 space-y-2">
 				<div class="placeholder animate-pulse" />
 				<div class="placeholder animate-pulse" />
@@ -32,6 +33,7 @@
 		{:then data}
 			{#if data}
 				<div class={header}>{$_('.info.session')}</div>
+				<hr />
 				<div class="p-2 space-y-2">
 					<p>{$_('.info.session.id')} {data.id}</p>
 					<p class="m-0">{$_('.info.session.username')} {data.username}</p>
@@ -43,6 +45,7 @@
 		<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll">
 			{#await stats}
 				<div class={header}>{$_('.action.load')}...</div>
+				<hr />
 				<div class="p-2 space-y-2">
 					<div class="placeholder animate-pulse" />
 					<div class="placeholder animate-pulse" />
@@ -54,6 +57,7 @@
 			{:then data}
 				{#if data}
 					<div class={header}>{$_('.info.stats')}</div>
+					<hr />
 					<ul class="list p-2">
 						{#each api.keys(data) as key, i (key)}
 							<!-- ... -->
@@ -72,6 +76,7 @@
 		<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll mb-2 md:mb-0">
 			{#await about}
 				<div class={header}>{$_('.action.load')}...</div>
+				<hr />
 				<div class="p-2 space-y-2">
 					<div class="placeholder animate-pulse" />
 					<div class="placeholder animate-pulse" />
@@ -85,6 +90,7 @@
 					<div class={header}>
 						{$_('.info.about', { values: { '0': data.name, '1': data.version } })}
 					</div>
+					<hr />
 					<div class="p-2 space-y-2">
 						<p>{$_('.info.about.name')} {data.description}</p>
 						<p>

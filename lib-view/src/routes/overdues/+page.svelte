@@ -23,7 +23,7 @@
 			<span class="font-bold">{$_('.book.period.date')} / {$_('.book.period.days')}</span>
 		</span>
 	</div>
-
+	<hr />
 	<nav class="list-nav overflow-y-scroll max-h">
 		<ul>
 			{#await overdoneBooks then data}
