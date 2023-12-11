@@ -42,7 +42,7 @@ The latest builds can be downloaded from the [releases page](https://github.com/
 
 The webserver uses [Rust](https://www.rust-lang.org/learn/get-started), which has to be installed first.
 
-The frontend uses [Svelte](https://svelte.dev) and Typescript, which also have to be installed first.
+The frontend uses [Svelte](https://svelte.dev), Typescript and [Skeleton](https://www.skeleton.dev/), which also have to be installed first.
 As a Package manager we would recommend using [bun](https://bun.sh/).
 
 Using cargo, the project can be built and executed:
@@ -71,7 +71,7 @@ It contains the business logic; most of the computation is done in this layer.
 ### UI Layer
 
 The [UI](lib-view) is developed in Svelte and TypeScript using
-Bootstrap with Sass to keep the size of the UI Layer as small as possible.
+Skeleton as a very powerful UI Framework.
 
 This layer is also responsible for internationalization
 ([locales](lib-view/src/lib/i18n/locales/)).
