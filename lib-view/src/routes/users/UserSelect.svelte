@@ -24,15 +24,13 @@
 
 	onMount(() => (mounted = true));
 
-	function toACO(
-		users: api.User[] | undefined
-	): AutocompleteOption<string, { role: string }>[] | undefined {
+	function toACO(users: api.User[] | undefined): AutocompleteOption<string, {}>[] | undefined {
 		if (users)
 			return users.map((user) => ({
-				label: `${user.forename} ${user.surname} (${user.account})`,
+				label: `${user.forename} ${user.surname}`,
 				value: user.account,
 				keywords: `${user.forename} ${user.surname} ${user.account}`,
-				meta: { role: user.role }
+				meta: {}
 			}));
 	}
 
@@ -62,7 +60,7 @@
 	/>
 	<div
 		data-popup={readonly ? '' : 'popupAutocomplete'}
-		class="card w-full max-w-sm max-h-48 p-4 overflow-y-auto z-[500]"
+		class="card w-fit max-w-sm max-h-48 p-4 overflow-y-auto z-[500]"
 	>
 		<Autocomplete bind:input={value} options={toACO(items?.rows)} on:selection={onSelect} />
 	</div>

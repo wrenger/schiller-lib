@@ -172,7 +172,7 @@
 
 	<BookDisplay bind:this={bookDisplay} editable={state.kind === State.Create || state.editing} />
 
-	<div class="p-2 pt-0 flex space-x-2 justify-center">
+	<div class="p-2 pt-0 flex flex-wrap space-x-2 justify-center">
 		{#if state.kind === State.Create || (state.kind === State.Display && state.editing)}
 			<button
 				id="book-abort-button"

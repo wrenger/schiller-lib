@@ -214,7 +214,7 @@
 		</label>
 	</div>
 
-	<div class="p-2 pt-0 flex space-x-2 justify-center">
+	<div class="p-2 pt-0 text-center inline md:flex space-x-2 md:justify-center">
 		{#if state.kind === State.Create || (state.kind === State.Display && state.editing)}
 			<button
 				id="user-abort-button"

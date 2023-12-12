@@ -7,9 +7,12 @@
 	import { onMount } from 'svelte';
 
 	let input: string = '';
-	onMount(() => (input = $page.url.searchParams.get('search') ?? ''));
-
 	export let params: api.BookSearch = { query: input };
+
+	onMount(() => {
+		input = $page.url.searchParams.get('search') ?? '';
+		params.query = input;
+	});
 
 	let timer: NodeJS.Timeout | undefined = undefined;
 
