@@ -183,7 +183,7 @@ impl Database {
         }
         if !book.reservation.is_empty() {
             if book.reservation == user.account {
-                self.release(id)?; // Allow lending to reserver
+                book = self.release(id)?; // Allow lending to reserver
             } else {
                 return Err(Error::LendingBookAlreadyReserved);
             }

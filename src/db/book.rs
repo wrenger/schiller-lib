@@ -179,7 +179,8 @@ impl Books {
             for keyword in &keywords {
                 if lower_title.starts_with(keyword) {
                     score += 3;
-                } else if lower_title.contains(keyword) {
+                } else if lower_title.contains(keyword) || book.id.to_lowercase().contains(keyword)
+                {
                     score += 2;
                 } else if book.id.to_lowercase().contains(keyword)
                     || book.isbn.to_lowercase().contains(keyword)
