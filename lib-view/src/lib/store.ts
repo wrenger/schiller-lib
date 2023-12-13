@@ -44,3 +44,5 @@ interface ErrorStore {
 }
 
 export const errorStore = writable<ErrorStore>({ message: undefined });
+
+export const state = writable<{}>({});

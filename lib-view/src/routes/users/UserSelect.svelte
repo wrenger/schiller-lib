@@ -62,6 +62,12 @@
 		data-popup={readonly ? '' : 'popupAutocomplete'}
 		class="card w-fit max-w-sm max-h-48 p-4 overflow-y-auto z-[500]"
 	>
-		<Autocomplete bind:input={value} options={toACO(items?.rows)} on:selection={onSelect} />
+		<Autocomplete
+			bind:input={value}
+			options={toACO(items?.rows)}
+			emptyState={$_('.error.none')}
+			regionEmpty="p-2 pl-4 pr-4 opacity-50"
+			on:selection={onSelect}
+		/>
 	</div>
 </label>

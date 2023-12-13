@@ -24,7 +24,7 @@
 		</span>
 	</div>
 	<hr />
-	<nav class="list-nav overflow-y-scroll max-h">
+	<nav class="list-nav overflow-y-scroll max-h mb-2">
 		<ul>
 			{#await overdoneBooks then data}
 				{#if data}
@@ -67,11 +67,12 @@
 			{/await}
 		</ul>
 	</nav>
+	<div class="p-2 pt-0"></div>
 </div>
 
 <style>
 	.max-h {
-		--border-height: 36px;
+		--border-height: 50px;
 		height: calc(100% - var(--border-height));
 	}
 </style>

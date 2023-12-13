@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { category } from '$lib/store';
+	import { category, state } from '$lib/store';
 	import api from '../../lib/api';
 	import Spinner from '../basic/Spinner.svelte';
 
@@ -61,6 +61,7 @@
 	async function reload() {
 		let data = await api.categories();
 		category.set(data);
+		state.set({});
 		if (selected != null) {
 			let sid = selected.id;
 			selected = data.find((t) => t.id == sid) || null;
@@ -95,11 +96,11 @@
 	<input class="input" type="text" placeholder={$_('.category.section')} bind:value={section} />
 </label>
 
-<div class="flex space-x-2">
+<div class="flex flex-wrap space-x-2">
 	{#if selected == null}
 		<button
 			id="book-add-button"
-			class="btn variant-filled mt-2"
+			class="btn variant-filled-primary mt-2"
 			type="button"
 			on:click={() => (addResponse = add())}
 		>
@@ -110,14 +111,14 @@
 		<button
 			id="book-confirm-button"
 			type="button"
-			class="btn variant-filled mt-2"
+			class="btn variant-filled-primary mt-2"
 			on:click={() => (editResponse = edit())}
 		>
 			<Spinner response={editResponse} />
 			{$_('.action.apply')}
 		</button>
 		<button
-			class="btn variant-filled mt-2"
+			class="btn variant-filled-error mt-2"
 			type="button"
 			aria-expanded="false"
 			on:click={() => (deleteResponse = del())}

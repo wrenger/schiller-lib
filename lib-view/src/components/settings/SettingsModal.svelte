@@ -8,7 +8,7 @@
 	import Spinner from '../basic/Spinner.svelte';
 
 	// Stores
-	import { settingsGlobal } from '$lib/store';
+	import { settingsGlobal, state } from '$lib/store';
 	import type { SvelteComponent } from 'svelte';
 
 	// Props
@@ -35,7 +35,8 @@
 
 		if (!areObjectsEqual(settings, $settingsGlobal)) {
 			await api.settings_update(data);
-			if (settings) settingsGlobal.set(settings); // Update settingsGlobal with the newly saved settings
+			if (settings) settingsGlobal.set(settings);
+			state.set({});
 		}
 	}
 </script>

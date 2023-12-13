@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { settingsGlobal, type GlobalSettings } from '$lib/store';
+	import { settingsGlobal, type GlobalSettings, state } from '$lib/store';
 	import api from '../../lib/api';
 	import { Accordion, AccordionItem, Tab, TabGroup } from '@skeletonlabs/skeleton';
 	import DateField from '../basic/DateField.svelte';
@@ -60,6 +60,7 @@
 	let userResponse: Promise<void>;
 	async function userUpdate() {
 		await api.user_update_roles();
+		state.set({});
 	}
 </script>
 

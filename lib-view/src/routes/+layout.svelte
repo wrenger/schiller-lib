@@ -45,7 +45,7 @@
 	import SettingsModal from '../components/settings/SettingsModal.svelte';
 	import api from '../lib/api';
 	import { DateTime } from 'luxon';
-	import { category, errorStore, settingsGlobal } from '$lib/store';
+	import { category, errorStore, settingsGlobal, state } from '$lib/store';
 	import { onMount } from 'svelte';
 	import LendModal from './books/LendModal.svelte';
 	import MailModal from './books/MailModal.svelte';
@@ -204,7 +204,9 @@
 			</TabAnchor>
 		</TabGroup>
 	</svelte:fragment>
-	<main class="p-2">
-		<slot />
-	</main>
+	{#key $state}
+		<main class="p-2">
+			<slot />
+		</main>
+	{/key}
 </AppShell>
