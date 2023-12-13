@@ -147,7 +147,7 @@
 				class="input"
 				type="text"
 				placeholder={$_('.user.forename')}
-				readonly={!(state.kind === State.Create || state.editing)}
+				disabled={!(state.kind === State.Create || state.editing)}
 				bind:value={forename}
 			/>
 		</label>
@@ -158,19 +158,25 @@
 				class="input"
 				type="text"
 				placeholder={$_('.user.surname')}
-				readonly={!(state.kind === State.Create || state.editing)}
+				disabled={!(state.kind === State.Create || state.editing)}
 				bind:value={surname}
 			/>
 		</label>
 
 		<label class="label">
 			<span>{$_('.user.account')}</span>
-			<div class="input-group grid-cols-[1fr_auto] mb-2">
+			<div
+				class="input-group grid-cols-[1fr_auto] mb-2 {!(
+					state.kind === State.Create || state.editing
+				)
+					? 'disabled'
+					: ''}"
+			>
 				<input
 					class="input"
 					type="text"
 					placeholder={$_('.user.account')}
-					readonly={!(state.kind === State.Create || state.editing)}
+					disabled={!(state.kind === State.Create || state.editing)}
 					bind:value={account}
 				/>
 				<button
@@ -199,7 +205,7 @@
 				class="input"
 				type="text"
 				placeholder={$_('.user.role')}
-				readonly={!(state.kind === State.Create || state.editing)}
+				disabled={!(state.kind === State.Create || state.editing)}
 				bind:value={role}
 			/>
 		</label>

@@ -7,3 +7,11 @@ html,
 body {
 	@apply h-full overflow-hidden;
 }
+
+body .input-group.disabled {
+	@apply !opacity-50 !cursor-not-allowed hover:!brightness-100;
+
+	& * {
+		opacity: 1 !important; /* Important to override any existing opacity styles */
+	}
+}

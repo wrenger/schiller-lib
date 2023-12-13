@@ -86,19 +86,19 @@
 		class="input"
 		type="text"
 		placeholder={$_('.book.title')}
-		readonly={!editable}
+		disabled={!editable}
 		bind:value={title}
 	/>
 </label>
 <div class="w-full grid grid-cols-2 gap-4">
 	<label class="label">
 		<span>{$_('.book.id')}</span>
-		<div class="input-group grid-cols-[1fr_auto] mb-2">
+		<div class="input-group grid-cols-[1fr_auto] mb-2 {!editable ? 'disabled' : ''}">
 			<input
 				class="input"
 				type="text"
 				placeholder={$_('.book.id')}
-				readonly={!editable}
+				disabled={!editable}
 				bind:value={id}
 			/>
 			<button
@@ -118,12 +118,12 @@
 
 	<label class="label">
 		<span>{$_('.book.isbn')}</span>
-		<div class="input-group grid-cols-[1fr_auto] mb-2">
+		<div class="input-group grid-cols-[1fr_auto] mb-2 {!editable ? 'disabled' : ''}">
 			<input
 				class="input"
 				type="text"
 				placeholder={$_('.book.isbn')}
-				readonly={!editable}
+				disabled={!editable}
 				bind:value={isbn}
 			/>
 			<button
@@ -153,7 +153,7 @@
 		class="input"
 		type="text"
 		placeholder={$_('.book.authors')}
-		readonly={!editable}
+		disabled={!editable}
 		bind:value={authors}
 	/>
 </label>
@@ -165,7 +165,7 @@
 			class="input"
 			type="text"
 			placeholder={$_('.book.publisher')}
-			readonly={!editable}
+			disabled={!editable}
 			bind:value={publisher}
 		/>
 	</label>
@@ -175,7 +175,7 @@
 			class="input"
 			type="number"
 			placeholder={$_('.book.costs')}
-			readonly={!editable}
+			disabled={!editable}
 			bind:value={costs}
 		/>
 	</label>
@@ -186,7 +186,7 @@
 			class="input"
 			type="number"
 			placeholder={$_('.book.year')}
-			readonly={!editable}
+			disabled={!editable}
 			bind:value={year}
 		/>
 	</label>
@@ -200,7 +200,7 @@
 		class="textarea"
 		rows="3"
 		placeholder={$_('.book.note')}
-		readonly={!editable}
+		disabled={!editable}
 		bind:value={note}
 	/>
 </label>
