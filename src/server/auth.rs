@@ -6,12 +6,13 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use crate::error::{Error, Result};
 
 use axum::extract::FromRef;
-use axum::extract::{FromRequestParts, Query, State, TypedHeader};
+use axum::extract::{FromRequestParts, Query, State};
 use axum::http::{header::SET_COOKIE, request::Parts};
 use axum::response::{IntoResponse, Redirect, Response};
 use axum::routing::get;
+use axum::RequestPartsExt;
 use axum::{async_trait, Json, Router};
-use axum::{headers::Cookie, RequestPartsExt};
+use axum_extra::{headers::Cookie, TypedHeader};
 
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;

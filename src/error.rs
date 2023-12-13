@@ -45,9 +45,6 @@ pub enum Error {
     LendingBookNotReserved,
     /// The database version is too old
     UnsupportedProjectVersion,
-    /// SQL error
-    #[deprecated]
-    SQL,
 }
 
 #[allow(deprecated)]
@@ -57,7 +54,7 @@ impl From<rusqlite::Error> for Error {
             rusqlite::Error::QueryReturnedNoRows => Self::NothingFound,
             _ => {
                 error!("SQL: {e}");
-                Self::SQL
+                Self::InvalidFormat
             }
         }
     }
@@ -139,7 +136,7 @@ impl IntoResponse for Error {
             | Error::LendingBookAlreadyReserved
             | Error::LendingBookNotReserved => StatusCode::BAD_REQUEST,
             Error::FileOpen | Error::NothingFound => StatusCode::NOT_FOUND,
-            Error::SQL | Error::UnsupportedProjectVersion => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::UnsupportedProjectVersion => StatusCode::INTERNAL_SERVER_ERROR,
             Error::Network => StatusCode::SERVICE_UNAVAILABLE,
         };
         (status, Json(self)).into_response()
