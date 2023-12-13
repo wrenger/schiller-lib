@@ -21,6 +21,7 @@ mod category;
 pub use category::*;
 mod migrate;
 pub use migrate::Version;
+#[cfg(feature = "sqlite")]
 #[deprecated]
 mod legacy;
 mod sorted;
@@ -326,6 +327,7 @@ impl fmt::Debug for AtomicDatabase {
 
 #[cfg(test)]
 mod test {
+    #[cfg(feature = "sqlite")]
     #[allow(deprecated)]
     #[test]
     fn compare_times() {

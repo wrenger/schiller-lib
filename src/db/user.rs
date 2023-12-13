@@ -283,7 +283,7 @@ mod tests {
             .unwrap();
 
         user1.role = "Teacher".into();
-        user2.role = "-".into();
+        user2.role = "".into();
 
         let (count, users) = db
             .users

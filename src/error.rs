@@ -47,6 +47,7 @@ pub enum Error {
     UnsupportedProjectVersion,
 }
 
+#[cfg(feature = "sqlite")]
 #[allow(deprecated)]
 impl From<rusqlite::Error> for Error {
     fn from(e: rusqlite::Error) -> Self {

@@ -1,10 +1,8 @@
-use std::ffi::OsStr;
 use std::fmt;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use tracing::{info, warn};
 
 use super::Database;
 use crate::error::{Error, Result};
@@ -17,29 +15,33 @@ struct DatabaseVersion {
 const MIN_VERSION: Version = Version(0, 9, 0);
 
 pub fn import(file: &Path) -> Result<(PathBuf, Database)> {
-    if file.extension() == Some(OsStr::new("db")) {
-        warn!("Try importing old database");
+    #[cfg(feature = "sqlite")]
+    if file.extension() == Some(std::ffi::OsStr::new("db")) {
+        tracing::warn!("Try importing old database");
         let data = from_db(file)?;
         let file = file.with_extension("json");
         data.save(&file)?;
-        Ok((file, data))
-    } else {
-        let data = std::fs::read_to_string(file)?;
-        let DatabaseVersion { version } = serde_json::from_str(&data)?;
+        return Ok((file, data));
+    }
 
-        let data_version: Version = version;
-        let new_version: Version = crate::PKG_VERSION.parse().unwrap();
-        if MIN_VERSION <= data_version && data_version <= new_version {
-            // TODO: Migration routines
-            Ok((file.into(), Database::load(&data)?))
-        } else {
-            Err(Error::UnsupportedProjectVersion)
-        }
+    let data = std::fs::read_to_string(file)?;
+    let DatabaseVersion { version } = serde_json::from_str(&data)?;
+
+    let data_version: Version = version;
+    let new_version: Version = crate::PKG_VERSION.parse().unwrap();
+    if MIN_VERSION <= data_version && data_version <= new_version {
+        // TODO: Migration routines
+        Ok((file.into(), Database::load(&data)?))
+    } else {
+        Err(Error::UnsupportedProjectVersion)
     }
 }
 
+#[cfg(feature = "sqlite")]
 #[allow(deprecated)]
 fn from_db(file: &Path) -> Result<Database> {
+    use tracing::{info, warn};
+
     let mut data = Database::default();
 
     let db = super::legacy::Database::open(file.into())?.0;
@@ -78,7 +80,7 @@ pub struct Version(pub u8, pub u8, pub u8);
 
 impl FromStr for Version {
     type Err = Error;
-    fn from_str(version: &str) -> std::result::Result<Self, Self::Err> {
+    fn from_str(version: &str) -> Result<Self> {
         let version_parts = version
             .splitn(3, '.')
             .map(str::parse)
@@ -86,8 +88,6 @@ impl FromStr for Version {
             .map_err(|_| Error::UnsupportedProjectVersion)?;
         if let [major, minor, patch] = version_parts[..] {
             Ok(Version(major, minor, patch))
-        } else if let [minor, patch] = version_parts[..] {
-            Ok(Version(0, minor, patch))
         } else {
             Err(Error::UnsupportedProjectVersion)
         }
@@ -154,9 +154,6 @@ mod tests {
 
     #[test]
     fn version_parsing() {
-        assert!("0.0".parse::<Version>().unwrap() == Version(0, 0, 0));
-        assert!("1.0".parse::<Version>().unwrap() == Version(0, 1, 0));
-        assert!("3.55".parse::<Version>().unwrap() == Version(0, 3, 55));
         assert!("0.0.0".parse::<Version>().unwrap() == Version(0, 0, 0));
         assert!("0.1.0".parse::<Version>().unwrap() == Version(0, 1, 0));
         assert!("0.9.22".parse::<Version>().unwrap() == Version(0, 9, 22));
