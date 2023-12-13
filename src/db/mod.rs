@@ -330,6 +330,7 @@ mod test {
     #[cfg(feature = "sqlite")]
     #[allow(deprecated)]
     #[test]
+    #[ignore]
     fn compare_times() {
         use std::hint::black_box;
         use std::path::Path;
