@@ -9,7 +9,29 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build-svelte:
+    name: Build Svelte
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Node
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14
+    - name: Install Svelte
+      run: npm install
+      working-directory: lib-view
+    - name: Build Svelte
+      run: npm run build
+      working-directory: lib-view
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: lib-view
+        path: lib-view/build
+
+  build-rust:
     name: Build ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
@@ -17,63 +39,48 @@ jobs:
       matrix:
         include:
         - os: ubuntu-latest
-          lib: libschiller_lib.so
+          exe: schiller-lib
         - os: windows-latest
-          lib: schiller_lib.dll
+          exe: schiller-lib.exe
 
     steps:
-    - name: Install LLVM and Clang # required for bindgen: https://github.com/actions/virtual-environments/issues/3316
-      if: matrix.os == 'windows-latest'
-      uses: KyleMayes/install-llvm-action@v1
-      with:
-        version: "11.0"
-        directory: ${{ runner.temp }}/llvm
-    - name: Set LIBCLANG_PATH
-      if: matrix.os == 'windows-latest'
-      run: echo "LIBCLANG_PATH=$((gcm clang).source -replace "clang.exe")" >> $env:GITHUB_ENV
-    - uses: actions/checkout@v2
     - name: Build
       run: cargo build --release
     - name: Upload
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.lib }}
-        path: target/release/${{ matrix.lib }}
+        name: ${{ matrix.exe }}
+        path: target/release/${{ matrix.exe }}
 
   package:
     name: Package ${{ matrix.platform }}
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build-svelte, build-rust]
 
     strategy:
       matrix:
         include:
-        - platform: x11
-          lib: libschiller_lib.so
-        - platform: win
-          lib: schiller_lib.dll
+        - platform: linux
+          exe: schiller-lib
+        - platform: window
+          exe: schiller-lib.exe
 
     steps:
     - uses: actions/checkout@v2
-    - name: Download build
+    - name: Setup Output
+      run: mkdir -p build
+    - name: Download lib-view
       uses: actions/download-artifact@v2
       with:
-        name: ${{ matrix.lib }}
-        path: target/release/
-    - name: Package
-      id: package
-      uses: josephbmanley/build-godot-action@v1.4.1
+        name: lib-view
+        path: build/lib-view
+    - name: Download server
+      uses: actions/download-artifact@v2
       with:
-        preset: ${{ matrix.platform }}
-        name: schiller-lib-${{ matrix.platform }}
-        package: true
-    - name: Upload
-      uses: actions/upload-artifact@v2
-      with:
-        name: schiller-lib-${{ matrix.platform }}
-        path: ${{ github.workspace }}/${{ steps.package.outputs.build }}
+        name: ${{ matrix.exe }}
+        path: build/${{ matrix.exe }}
     - name: Package
-      run: zip -r schiller-lib-${{ matrix.platform }}.zip ${{ github.workspace }}/${{ steps.package.outputs.build }}
+      run: zip -r schiller-lib-${{ matrix.platform }}.zip build
     - name: Upload Release Asset
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')

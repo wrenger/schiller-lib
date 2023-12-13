@@ -2,6 +2,7 @@
 /.cargo_home
 target
 Cargo.lock
+build
 
 # Translation
 *.translation

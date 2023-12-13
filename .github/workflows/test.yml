@@ -8,7 +8,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test-rust:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,15 +17,3 @@ jobs:
       uses: Swatinem/rust-cache@v1.2.0
     - name: Run rust tests
       run: cargo test
-
-  test-gd:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run gdscript tests
-      run: |
-        wget https://github.com/godotengine/godot/releases/download/3.4.2-stable/Godot_v3.4.2-stable_linux_headless.64.zip
-        unzip Godot_v3.4.2-stable_linux_headless.64.zip
-        ./Godot_v3.4.2-stable_linux_headless.64 -s test/TestUtil.gd
-        ./Godot_v3.4.2-stable_linux_headless.64 -s test/TestUserProvider.gd
