@@ -37,8 +37,8 @@
 </script>
 
 <svelte:head>
-	<title>{$_('.user')}</title>
-	<meta name="description" content={$_('.user')} />
+	<title>{$_('.search.user')}</title>
+	<meta name="description" content={$_('.search.user')} />
 </svelte:head>
 
 <Container isActive={active != null || adding}>
