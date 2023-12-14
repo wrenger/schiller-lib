@@ -79,7 +79,7 @@
 	async function edit() {
 		if (state.kind == State.Display) {
 			let user = getUser();
-			await api.user_update(user?.account ?? '', user);
+			await api.user_update(state.user.account ?? '', user);
 			onChangeInner(user);
 		}
 	}

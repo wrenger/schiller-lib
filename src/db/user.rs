@@ -161,10 +161,10 @@ impl Users {
 
     /// Deletes the roles from all users and inserts the new roles.
     ///
-    /// The roles of all users not contained in the given list are cleared.
+    /// The roles of all users not contained in the given list are cleared, set to "-".
     pub fn update_roles(&mut self, users: &[(String, String)]) -> Result<()> {
         for user in self.data.values_mut() {
-            user.role = String::new();
+            user.role = String::from("-");
         }
 
         for (account, role) in users {
