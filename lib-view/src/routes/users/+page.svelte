@@ -51,9 +51,9 @@
 			load={(offset, limit) => api.user_search({ ...params, offset, limit })}
 			key={(user) => user.account}
 		>
-			<div slot="header" class="p-2 pb-0">
+			<div slot="header" class="pt-2 pb-0">
 				<UserSearch bind:params />
-				<span class="flex">
+				<span class="flex pr-2 pl-2">
 					<span class="flex-auto font-bold">{$_('.user.name')} / {$_('.user.account')}</span>
 					<span class="font-bold">{$_('.user.role')} </span>
 				</span>

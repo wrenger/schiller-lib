@@ -52,9 +52,9 @@
 			load={(offset, limit) => api.book_search({ ...search, offset, limit })}
 			key={(book) => book.id}
 		>
-			<div slot="header" class="p-2 pb-0">
+			<div slot="header" class="pt-2 pb-0">
 				<BookSearch bind:params={search} />
-				<span class="flex">
+				<span class="flex pr-2 pl-2">
 					<span class="flex-auto font-bold">{$_('.book.title')} / {$_('.book.authors')}</span>
 					<span class="font-bold">{$_('.book.id')} / {$_('.book.state')}</span>
 				</span>
