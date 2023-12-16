@@ -3,6 +3,7 @@
 	import { category, state } from '$lib/store';
 	import api from '../../lib/api';
 	import Spinner from '../basic/Spinner.svelte';
+	import { areObjectsEqual } from '$lib/util';
 
 	let items = $category;
 	let selected: api.Category | null = null;
@@ -35,7 +36,7 @@
 
 	let editResponse: Promise<void>;
 	async function edit() {
-		if (selected != null) {
+		if (selected != null && !areObjectsEqual(selected, { id, name, section })) {
 			await api.category_update(selected.id, { id, name, section });
 			await onChange();
 		}
