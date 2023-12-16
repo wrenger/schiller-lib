@@ -241,7 +241,7 @@ impl Books {
         for key in self.data.keys() {
             if let Some(suffix) = key.strip_prefix(&prefix) {
                 if let Ok(id) = suffix.trim().parse::<usize>() {
-                    last_id = Some(id);
+                    last_id = Some(id + 1);
                 }
             }
         }
