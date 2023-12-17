@@ -16,7 +16,7 @@
 	<meta name="description" content={$_('.book.overdues')} />
 </svelte:head>
 
-<div class="w-full h-full text-token card p-2 md:space-y-2">
+<div class="w-full h-full text-token md:card dark:bg-surface-800 bg-surface-100 p-2 md:space-y-2">
 	<div class="p-2 pb-0">
 		<span class="flex">
 			<span class="flex-auto font-bold">{$_('.book.title')}</span>

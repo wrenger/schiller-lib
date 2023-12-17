@@ -22,7 +22,9 @@
 </svelte:head>
 
 <div class="md:space-y-2">
-	<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll">
+	<div
+		class="w-full max-h-full text-token md:card dark:bg-surface-800 bg-surface-100 p-2 space-y-2 overflow-y-scroll"
+	>
 		{#await session}
 			<div class={header}>{$_('.action.load')}...</div>
 			<hr />
@@ -42,7 +44,9 @@
 		{/await}
 	</div>
 	<div class="w-full grid grid-cols-1 md:grid-cols-2 md:gap-2">
-		<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll">
+		<div
+			class="w-full max-h-full text-token md:card dark:bg-surface-800 bg-surface-100 p-2 space-y-2 overflow-y-scroll"
+		>
 			{#await stats}
 				<div class={header}>{$_('.action.load')}...</div>
 				<hr />
@@ -60,7 +64,6 @@
 					<hr />
 					<ul class="list p-2">
 						{#each api.keys(data) as key, i (key)}
-							<!-- ... -->
 							<li>
 								<span class="badge-icon p-2 variant-soft-primary"
 									><i class="fa-solid fa-chevron-right"></i></span
@@ -73,7 +76,9 @@
 			{/await}
 		</div>
 
-		<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll md:mb-2 md:mb-0">
+		<div
+			class="w-full max-h-full text-token md:card dark:bg-surface-800 bg-surface-100 p-2 space-y-2 overflow-y-scroll md:mb-2 md:mb-0"
+		>
 			{#await about}
 				<div class={header}>{$_('.action.load')}...</div>
 				<hr />

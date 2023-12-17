@@ -97,7 +97,7 @@
 	}
 </script>
 
-<div class="w-full h-full text-token card p-2 space-y-2">
+<div class="w-full h-full text-token md:card dark:bg-surface-800 bg-surface-100 p-2 space-y-2">
 	<slot name="header" />
 	<hr />
 	<div bind:this={scroller} class="list-body max-h" on:scroll={() => updateChunks()}>
