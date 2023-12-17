@@ -137,9 +137,7 @@
 	}
 </script>
 
-<div
-	class="w-full h-fit text-token md:card dark:bg-surface-800 bg-surface-100 p-2 space-y-2"
->
+<div class="w-full h-fit text-token md:card dark:bg-surface-800 bg-surface-100 p-2 space-y-2">
 	<div class="flex p-2 pb-0">
 		<span class="flex-auto">
 			<button
