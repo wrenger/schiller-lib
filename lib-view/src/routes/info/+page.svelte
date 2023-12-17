@@ -21,7 +21,7 @@
 	<meta name="description" content={$_('.alert.info')} />
 </svelte:head>
 
-<div class="space-y-2">
+<div class="md:space-y-2">
 	<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll">
 		{#await session}
 			<div class={header}>{$_('.action.load')}...</div>
@@ -41,7 +41,7 @@
 			{/if}
 		{/await}
 	</div>
-	<div class="w-full grid grid-cols-1 md:grid-cols-2 gap-2">
+	<div class="w-full grid grid-cols-1 md:grid-cols-2 md:gap-2">
 		<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll">
 			{#await stats}
 				<div class={header}>{$_('.action.load')}...</div>
@@ -73,7 +73,7 @@
 			{/await}
 		</div>
 
-		<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll mb-2 md:mb-0">
+		<div class="w-full max-h-full text-token card p-2 space-y-2 overflow-y-scroll md:mb-2 md:mb-0">
 			{#await about}
 				<div class={header}>{$_('.action.load')}...</div>
 				<hr />

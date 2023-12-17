@@ -141,15 +141,7 @@
 				<span class="truncate w-16 inline-block">{$_('.alert.info')}</span></AppRailAnchor
 			>
 			<svelte:fragment slot="trail">
-				<AppRailAnchor
-					title={$_('.action.logout')}
-					href="/auth/logout"
-					selected={$page.url.pathname === '/auth/logout'}
-					><svelte:fragment slot="lead"
-						><i class="fa-solid fa-right-from-bracket"></i>
-					</svelte:fragment>
-					<span class="truncate w-16 inline-block">{$_('.action.logout')}</span>
-				</AppRailAnchor>
+				<hr class="opacity-30" />
 				<AppRailAnchor title={$_('.pref.title')} on:click={settings} style="user-select: none;"
 					><svelte:fragment slot="lead"><i class="fa-solid fa-gear"></i></svelte:fragment>
 					<span class="truncate w-16 inline-block">{$_('.pref.title')}</span></AppRailAnchor
@@ -191,21 +183,14 @@
 			<TabAnchor title={$_('.alert.info')} href="/info" selected={$page.url.pathname === '/info'}>
 				<svelte:fragment slot="lead"><i class="fa-solid fa-circle-info"></i></svelte:fragment>
 			</TabAnchor>
-			<TabAnchor
-				title={$_('.action.logout')}
-				href="/auth/logout"
-				selected={$page.url.pathname === '/auth/logout'}
-				><svelte:fragment slot="lead"
-					><i class="fa-solid fa-right-from-bracket"></i></svelte:fragment
-				>
-			</TabAnchor>
+			<span class="divider-vertical opacity-30" />
 			<TabAnchor title={$_('.pref.title')} on:click={settings} style="user-select: none;"
 				><svelte:fragment slot="lead"><i class="fa-solid fa-gear"></i></svelte:fragment>
 			</TabAnchor>
 		</TabGroup>
 	</svelte:fragment>
 	{#key $state}
-		<main class="p-2">
+		<main class="md:p-2">
 			<slot />
 		</main>
 	{/key}

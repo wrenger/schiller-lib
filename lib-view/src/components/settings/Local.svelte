@@ -21,3 +21,8 @@
 		<p>{$_('.lang.de')}</p>
 	</label>
 </div>
+<h5 class="h5">{$_('.info.session')}</h5>
+<a class="btn variant-filled-error" title={$_('.action.logout')} href="/auth/logout">
+	<span><i class="fa-solid fa-right-from-bracket"></i></span>
+	<span>{$_('.action.logout')}</span>
+</a>
