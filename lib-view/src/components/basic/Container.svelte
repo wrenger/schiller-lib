@@ -26,6 +26,8 @@
 	.view {
 		grid-area: view;
 		margin-left: 5px;
+		overflow-y: scroll;
+		overflow-x: hidden;
 	}
 	.list.hidden,
 	.view.hidden {
