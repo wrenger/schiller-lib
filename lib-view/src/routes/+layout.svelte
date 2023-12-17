@@ -157,7 +157,7 @@
 			flex="flex-1 lg:flex-none"
 			rounded=""
 			border=""
-			class="bg-surface-100-800-token w-full sm:hidden"
+			class="bg-surface-100-800-token w-full sm:hidden shadow-inner"
 		>
 			<TabAnchor
 				title={$_('.search.book')}
