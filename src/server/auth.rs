@@ -5,13 +5,11 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crate::error::{Error, Result};
 
-use axum::extract::FromRef;
-use axum::extract::{FromRequestParts, Query, State};
+use axum::extract::{FromRef, FromRequestParts, Query, State};
 use axum::http::{header::SET_COOKIE, request::Parts};
 use axum::response::{IntoResponse, Redirect, Response};
 use axum::routing::get;
-use axum::RequestPartsExt;
-use axum::{async_trait, Json, Router};
+use axum::{RequestPartsExt, async_trait, Json, Router};
 use axum_extra::{headers::Cookie, TypedHeader};
 
 use base64::engine::general_purpose::STANDARD as BASE64;
@@ -27,9 +25,9 @@ use tracing::error;
 
 static COOKIE_NAME: &str = "SESSION";
 const SESSION_CHECK_SEC: u64 = 24 * 60 * 60; // daily
-const SESSION_EXPIRE_SEC: u64 = 7 * 24 * 60 * 60; // 7 days
+const SESSION_EXPIRE_SEC: u64 = 3 * 24 * 60 * 60;
 
-/// The routes requires for login and logout
+/// The routes required for login and logout
 pub fn routes(auth: Auth) -> Router {
     match auth {
         Auth::None => Router::new(),
@@ -42,6 +40,7 @@ pub fn routes(auth: Auth) -> Router {
     }
 }
 
+/// Background task to clean up expired sessions
 pub async fn background(auth: Auth) {
     if let Auth::OAuth(auth) = auth {
         let mut timer = tokio::time::interval(Duration::from_secs(SESSION_CHECK_SEC));
@@ -54,21 +53,28 @@ pub async fn background(auth: Auth) {
                     .duration_since(UNIX_EPOCH)
                     .unwrap()
                     .as_secs();
-                auth.sessions.write().unwrap().retain(|_, (_, e)| *e > now);
+                auth.sessions
+                    .write()
+                    .unwrap()
+                    .retain(|_, l| l.expires > now);
             });
         }
     }
 }
 
-// The user data we'll get back from Discord.
-// https://discord.com/developers/docs/resources/user#user-object-user-structure
+/// The user data we'll get back from oauth.
+///
+/// E.g. Discord: https://discord.com/developers/docs/resources/user#user-object-user-structure
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Login {
     id: String,
     username: String,
+    /// Custom data storing how long the session is valid
+    #[serde(default)]
+    expires: u64,
 }
 
-/// The corresponding route requires authentication
+/// The authentication method used by the server
 #[derive(Debug, Clone)]
 pub enum Auth {
     None,
@@ -76,7 +82,9 @@ pub enum Auth {
 }
 
 impl Auth {
-    /// domain: Public domain of the webserver used for redirection
+    /// Initialize the authentication.
+    ///
+    /// This requires the public domain of the webserver used for redirections
     pub fn new(domain: &str, config: Option<AuthConfig>) -> Self {
         if let Some(AuthConfig {
             client_id,
@@ -108,27 +116,25 @@ impl Auth {
 }
 
 /// Configuration for OAuth
-/// - client_id: REPLACE_ME
-/// - client_secret: REPLACE_ME
-/// - auth_url: Login page from the OAuth server
-///     - https://discord.com/api/oauth2/authorize?response_type=code
-/// - token_url: Convert the login code to a token
-///     - https://discord.com/api/oauth2/token
-/// - user_url: Endpoint for user data (requires a token)
-///     - https://discordapp.com/api/users/@me
 #[derive(Debug, Deserialize)]
 pub struct AuthConfig {
+    /// The application id
     pub client_id: String,
+    /// The application secret
     pub client_secret: String,
+    /// Login page from the OAuth server
     pub auth_url: String,
+    /// Endpoint for converting the login code to a token
     pub token_url: String,
+    /// Endpoint for user data (requires a token)
     pub user_url: String,
 }
 
+/// The internal authentication state
 #[derive(Debug)]
 pub struct OAuthState {
     client: BasicClient,
-    sessions: RwLock<HashMap<Session, (Login, u64)>>,
+    sessions: RwLock<HashMap<Session, Login>>,
     user_url: String,
 }
 
@@ -209,13 +215,15 @@ async fn login_authorized(
 
     // Fetch user data from discord
     let client = reqwest::Client::new();
-    let login: Login = client
+    let mut login: Login = client
         .get(&*auth.user_url)
         .bearer_auth(token.access_token().secret())
         .send()
         .await?
         .json()
         .await?;
+
+    login.expires = unix_secs() + SESSION_EXPIRE_SEC;
 
     // Create a new session filled with user data
     let session = Session::new();
@@ -228,15 +236,7 @@ async fn login_authorized(
     let mut headers = HeaderMap::new();
     headers.insert(SET_COOKIE, cookie.parse().unwrap());
 
-    // Store session and get corresponding cookie
-    let expires = unix_secs() + SESSION_EXPIRE_SEC;
-
-    let previous = auth
-        .sessions
-        .write()
-        .unwrap()
-        .insert(session, (login, expires));
-    assert!(previous.is_none());
+    auth.sessions.write().unwrap().insert(session, login);
 
     Ok((headers, Redirect::to("/")))
 }
@@ -259,6 +259,7 @@ where
             return Ok(Login {
                 id: String::new(),
                 username: String::new(),
+                expires: 0,
             });
         };
         let sessions = &auth.sessions;
@@ -271,8 +272,8 @@ where
         let cookie = cookies.get(COOKIE_NAME).ok_or(AuthRedirect)?;
         let session = Session::from_cookie(cookie).map_err(|_| AuthRedirect)?;
         let guard = sessions.read().unwrap();
-        let (login, expires) = guard.get(&session).ok_or(AuthRedirect)?;
-        if unix_secs() > *expires {
+        let login = guard.get(&session).ok_or(AuthRedirect)?;
+        if unix_secs() > login.expires {
             sessions.write().unwrap().remove(&session);
             Err(AuthRedirect)
         } else {

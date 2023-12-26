@@ -261,13 +261,15 @@ impl From<Book> for super::Book {
             borrowable: value.borrowable,
             category: value.category,
             authors: value.authors.join(", "),
-            borrower: value.borrower,
-            deadline: if value.deadline.is_empty() {
+            borrower: if value.deadline.is_empty() {
                 None
             } else {
-                Some(value.deadline.parse().unwrap())
+                Some(super::Borrower {
+                    user: value.borrower,
+                    deadline: value.deadline.parse().unwrap(),
+                })
             },
-            reservation: value.reservation,
+            reservation: (!value.reservation.is_empty()).then_some(value.reservation),
         }
     }
 }

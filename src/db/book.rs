@@ -23,9 +23,15 @@ pub struct Book {
     pub borrowable: bool,
     pub category: String,
     pub authors: String,
-    pub borrower: String,
-    pub deadline: Option<NaiveDate>,
-    pub reservation: String,
+    pub borrower: Option<Borrower>,
+    pub reservation: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, Default))]
+pub struct Borrower {
+    pub user: String,
+    pub deadline: NaiveDate,
 }
 
 impl Book {
@@ -37,8 +43,12 @@ impl Book {
         self.note = self.note.trim().to_string();
         self.category = self.category.trim().to_string();
         self.authors = self.authors.trim().to_string();
-        self.borrower = self.borrower.trim().to_string();
-        self.reservation = self.reservation.trim().to_string();
+        if let Some(reservation) = &mut self.reservation {
+            *reservation = reservation.trim().to_string();
+        }
+        if let Some(borrower) = &mut self.borrower {
+            borrower.user = borrower.user.trim().to_string();
+        }
         !self.id.is_empty() && !self.title.is_empty()
     }
 }
@@ -163,8 +173,8 @@ impl Books {
             match search.state {
                 BookState::Borrowable if !book.borrowable => continue,
                 BookState::NotBorrowable if book.borrowable => continue,
-                BookState::Borrowed if book.borrower.is_empty() => continue,
-                BookState::Reserved if book.reservation.is_empty() => continue,
+                BookState::Borrowed if book.borrower.is_none() => continue,
+                BookState::Reserved if book.reservation.is_none() => continue,
                 _ => {}
             }
 
@@ -182,13 +192,12 @@ impl Books {
                 } else if lower_title.contains(keyword) || book.id.to_lowercase().contains(keyword)
                 {
                     score += 2;
-                } else if book.id.to_lowercase().contains(keyword)
-                    || book.isbn.to_lowercase().contains(keyword)
+                } else if book.isbn.to_lowercase().contains(keyword)
                     || book.publisher.to_lowercase().contains(keyword)
                     || book.note.to_lowercase().contains(keyword)
                     || book.authors.to_lowercase().contains(keyword)
-                    || book.borrower.to_lowercase().contains(keyword)
-                    || book.reservation.to_lowercase().contains(keyword)
+                    || matches!(&book.borrower, Some(b) if b.user.to_lowercase().contains(keyword))
+                    || matches!(&book.reservation, Some(r) if r.to_lowercase().contains(keyword))
                 {
                     score += 1;
                 } else {
@@ -252,18 +261,21 @@ impl Books {
 
     // Is the user borrowing or reserving by any books
     pub fn is_user_referenced(&self, account: &str) -> bool {
-        self.data
-            .values()
-            .any(|b| b.borrower == account || b.reservation == account)
+        self.data.values().any(|b| {
+            matches!(&b.borrower, Some(b) if b.user == account)
+                || matches!(&b.reservation, Some(r) if r == account)
+        })
     }
 
     pub fn update_user(&mut self, from: &str, to: &str) -> Result<()> {
         for book in self.data.values_mut() {
-            if book.borrower == from {
-                book.borrower = to.to_string();
+            if let Some(borrower) = &mut book.borrower {
+                if borrower.user == from {
+                    borrower.user = to.to_string();
+                }
             }
-            if book.reservation == from {
-                book.reservation = to.to_string();
+            if let Some(reservation) = &mut book.reservation {
+                *reservation = to.to_string();
             }
         }
         Ok(())

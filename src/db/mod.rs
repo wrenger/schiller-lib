@@ -142,17 +142,19 @@ impl Database {
         let mut borrows = 0;
         let mut reservations = 0;
         let mut overdues = 0;
+
+        let now = Local::now().naive_local().date();
+
         for book in self.books.data.values() {
-            if !book.borrower.is_empty() {
+            if !book.borrower.is_none() {
                 borrows += 1;
             }
-            if !book.reservation.is_empty() {
+            if !book.reservation.is_none() {
                 reservations += 1;
             }
 
-            let now = Local::now().naive_local().date();
-            if let Some(deadline) = book.deadline {
-                if now > deadline {
+            if let Some(borrower) = &book.borrower {
+                if now > borrower.deadline {
                     overdues += 1;
                 }
             }
@@ -179,19 +181,21 @@ impl Database {
             return Err(Error::LendingBookNotBorrowable);
         }
         // Allow renewal
-        if !book.borrower.is_empty() && book.borrower != user.account {
+        if book.borrower.is_some_and(|b| b.user != user.account) {
             return Err(Error::LendingBookAlreadyBorrowed);
         }
-        if !book.reservation.is_empty() {
-            if book.reservation == user.account {
+        if let Some(reservation) = &book.reservation {
+            if *reservation == user.account {
                 book = self.release(id)?; // Allow lending to reserver
             } else {
                 return Err(Error::LendingBookAlreadyReserved);
             }
         }
 
-        book.borrower = user.account.clone();
-        book.deadline = Some(deadline);
+        book.borrower = Some(Borrower {
+            user: user.account.clone(),
+            deadline: deadline,
+        });
         self.books.update(id, book, &mut self.categories)
     }
 
@@ -199,12 +203,11 @@ impl Database {
     pub fn return_back(&mut self, id: &str) -> Result<Book> {
         let mut book = self.books.fetch(id)?;
 
-        if book.borrower.is_empty() {
+        if book.borrower.is_none() {
             return Err(Error::LendingBookNotBorrowed);
         }
 
-        book.borrower = String::new();
-        book.deadline = None;
+        book.borrower = None;
         self.books.update(id, book, &mut self.categories)
     }
 
@@ -219,36 +222,43 @@ impl Database {
         if !book.borrowable {
             return Err(Error::LendingBookNotBorrowable);
         }
-        if !book.reservation.is_empty() {
+        if book.reservation.is_some() {
             return Err(Error::LendingBookAlreadyReserved);
         }
-        if book.borrower.is_empty() {
+        if book.borrower.is_none() {
             return Err(Error::LendingBookNotBorrowed);
         }
-        if book.borrower == user.account {
+        if book
+            .borrower
+            .as_ref()
+            .is_some_and(|b| b.user == user.account)
+        {
             return Err(Error::LendingBookAlreadyBorrowedByUser);
         }
 
-        book.reservation = user.account.clone();
+        book.reservation = Some(user.account.clone());
         self.books.update(id, book, &mut self.categories)
     }
     /// Removes the reservation from the specified book.
     pub fn release(&mut self, id: &str) -> Result<Book> {
         let mut book = self.books.fetch(id)?;
 
-        if book.reservation.is_empty() {
+        if book.reservation.is_none() {
             return Err(Error::LendingBookNotReserved);
         }
 
-        book.reservation = String::new();
+        book.reservation = None;
         self.books.update(id, book, &mut self.categories)
     }
 
     /// Return the list of expired loan periods.
     pub fn overdues(&self) -> Result<Vec<(Book, User)>> {
         fn sort(a: &(Book, User), b: &(Book, User)) -> Ordering {
-            a.0.deadline
-                .cmp(&b.0.deadline)
+            a.0.borrower
+                .as_ref()
+                .unwrap()
+                .deadline
+                .cmp(&b.0.borrower.as_ref().unwrap().deadline)
                 .then_with(|| a.0.id.cmp(&b.0.id))
         }
 
@@ -256,9 +266,9 @@ impl Database {
 
         let now = Local::now().naive_local().date();
         for book in self.books.data.values() {
-            if let Some(deadline) = book.deadline {
-                if now > deadline {
-                    let user = self.users.fetch(&book.borrower)?;
+            if let Some(borrower) = &book.borrower {
+                if now > borrower.deadline {
+                    let user = self.users.fetch(&borrower.user)?;
                     results.push((book.clone(), user));
                 }
             }

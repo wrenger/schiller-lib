@@ -1,26 +1,18 @@
 use crate::error::{Error, Result};
 
 use email_address::EmailAddress;
-use tracing::error;
+use lettre::message::{header::ContentType, Mailbox, SinglePartBuilder};
+use lettre::transport::smtp::authentication::Credentials;
+use lettre::{Address, Message, SmtpTransport, Transport};
+use std::time::Duration;
+use tracing::{error, info};
+use unicode_normalization::UnicodeNormalization;
 
 /// Checks if the username is valid for an email
 pub fn account_is_valid(account: &str) -> bool {
     EmailAddress::is_valid_local_part(account)
 }
-#[cfg(debug_assertions)]
-pub fn send(
-    _host: &str,
-    _password: &str,
-    _from: &str,
-    _to: &str,
-    _subject: &str,
-    _body: &str,
-) -> Result<()> {
-    error!("Mail sending is disabled for debug builds");
-    Err(Error::Network)
-}
 
-#[cfg(not(debug_assertions))]
 pub fn send(
     host: &str,
     password: &str,
@@ -29,13 +21,12 @@ pub fn send(
     subject: &str,
     body: &str,
 ) -> Result<()> {
-    use lettre::message::{header::ContentType, Mailbox, SinglePartBuilder};
-    use lettre::transport::smtp::authentication::Credentials;
-    use lettre::{Address, Message, SmtpTransport, Transport};
-    use std::time::Duration;
-    use tracing::info;
-    use unicode_normalization::UnicodeNormalization;
     info!("Send mail to {to}");
+
+    if cfg!(debug_assertions) {
+        error!("Mail sending is disabled for debug builds");
+        return Err(Error::Network);
+    }
 
     // Change encoding of äöü to ascii
     let subject = subject.nfc().collect::<String>();
