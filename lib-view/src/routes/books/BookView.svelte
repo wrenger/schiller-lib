@@ -228,7 +228,7 @@
 						type="button"
 						aria-expanded="false"
 						on:click={() => {
-							if (state.kind === State.Display) lendModalOpen(state.book.reservation);
+							if (state.kind === State.Display) lendModalOpen(state.book.reservation ?? '');
 						}}
 					>
 						{$_('.book.lend.to', { values: { '0': state.book.reservation } })}
@@ -257,7 +257,7 @@
 					type="button"
 					aria-expanded="false"
 					on:click={() => {
-						if (state.kind === State.Display) lendModalOpen(state.book.borrower);
+						if (state.kind === State.Display) lendModalOpen(state.book.borrower?.user ?? '');
 					}}
 				>
 					{$_('.book.renew')}

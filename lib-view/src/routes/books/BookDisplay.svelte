@@ -18,9 +18,9 @@
 	let category = '';
 	let note = '';
 	let borrowable = true;
-	let borrower = '';
+	let borrower: api.Borrower | null = null;
 	let deadline: DateTime | null = null;
-	let reservation = '';
+	let reservation: string | null = null;
 
 	let bookIdResponse: Promise<any>;
 	let isbnResponse: Promise<any>;
@@ -37,9 +37,8 @@
 			category: '',
 			note: '',
 			borrowable: true,
-			borrower: '',
-			deadline: null,
-			reservation: ''
+			borrower: null,
+			reservation: null
 		};
 	}
 
@@ -57,7 +56,6 @@
 		note = b.note;
 		borrowable = b.borrowable;
 		borrower = b.borrower;
-		deadline = b.deadline ? DateTime.fromISO(b.deadline) : null;
 		reservation = b.reservation;
 	}
 
@@ -73,9 +71,8 @@
 			category,
 			note,
 			borrowable,
-			borrower: borrower ?? '',
-			deadline: deadline?.toISODate() ?? null,
-			reservation: reservation ?? ''
+			borrower: borrower,
+			reservation: reservation
 		};
 	}
 </script>
@@ -107,6 +104,7 @@
 				disabled={!editable}
 				on:click={async () => {
 					bookIdResponse = api.book_id(getBook());
+					console.log(bookIdResponse);
 					id = await bookIdResponse;
 				}}
 			>
@@ -215,8 +213,8 @@
 		<aside class="alert variant-glass-surface mt-1">
 			{$_('.book.borrowed.by', {
 				values: {
-					'0': borrower,
-					'1': deadline.toLocaleString()
+					'0': borrower?.user ?? '',
+					'1': borrower?.deadline.toLocaleString()
 				}
 			})}
 		</aside>

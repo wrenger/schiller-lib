@@ -60,9 +60,13 @@ namespace api {
 		borrowable: boolean;
 		category: string;
 		authors: string;
-		borrower: string;
-		deadline: string | null;
-		reservation: string;
+		borrower: Borrower | null;
+		reservation: string | null;
+	}
+
+	export interface Borrower {
+		user: string;
+		deadline: string;
 	}
 
 	export type BookState = 'None' | 'Borrowable' | 'NotBorrowable' | 'Borrowed' | 'Reserved';

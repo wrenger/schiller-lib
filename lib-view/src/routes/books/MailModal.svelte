@@ -23,11 +23,11 @@
 	async function mail() {
 		if (book === null) return;
 
-		let user = await api.user_fetch(book.reservation);
+		let user = await api.user_fetch(book.reservation ?? '');
 
 		await api.mail([
 			{
-				account: book.reservation,
+				account: book.reservation ?? '',
 				subject: $settingsGlobal.mail_info_subject
 					.replace(/\{booktitle\}/g, book.title)
 					.replace(/\{username\}/g, `${user.forename} ${user.surname}`),
