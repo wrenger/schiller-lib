@@ -18,9 +18,9 @@
 	let category = '';
 	let note = '';
 	let borrowable = true;
-	let borrower: api.Borrower | null = null;
-	let deadline: DateTime | null = null;
-	let reservation: string | null = null;
+	let borrower: api.Borrower | undefined = undefined;
+	let deadline: DateTime | undefined = undefined;
+	let reservation: string | undefined = undefined;
 
 	let bookIdResponse: Promise<any>;
 	let isbnResponse: Promise<any>;
@@ -35,10 +35,7 @@
 			costs: 0,
 			year: DateTime.now().year,
 			category: '',
-			note: '',
 			borrowable: true,
-			borrower: null,
-			reservation: null
 		};
 	}
 
@@ -53,7 +50,7 @@
 		costs = b.costs;
 		year = b.year;
 		category = b.category;
-		note = b.note;
+		note = b.note ?? '';
 		borrowable = b.borrowable;
 		borrower = b.borrower;
 		reservation = b.reservation;
@@ -69,7 +66,7 @@
 			costs,
 			year,
 			category,
-			note,
+			note: note || undefined,
 			borrowable,
 			borrower: borrower,
 			reservation: reservation

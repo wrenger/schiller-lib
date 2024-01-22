@@ -14,12 +14,12 @@
 	let mail_from = '';
 	let mail_host = '';
 	let mail_password = '';
-	let mail_info_subject = '';
-	let mail_info_content = '';
-	let mail_overdue_subject = '';
-	let mail_overdue_content = '';
-	let mail_overdue2_subject = '';
-	let mail_overdue2_content = '';
+
+	let templates: Record<string, api.MailTemplate> = {
+		info: { subject: '', body: '' },
+		overdue: { subject: '', body: '' },
+		overdue2: { subject: '', body: '' },
+	};
 
 	export function get(): GlobalSettings {
 		return {
@@ -29,12 +29,9 @@
 			mail_from,
 			mail_host,
 			mail_password,
-			mail_info_subject,
-			mail_info_content,
-			mail_overdue_subject,
-			mail_overdue_content,
-			mail_overdue2_subject,
-			mail_overdue2_content
+			mail_info: templates.info,
+			mail_overdue: templates.overdue,
+			mail_overdue2: templates.overdue2
 		};
 	}
 
@@ -45,12 +42,13 @@
 		mail_from = s.mail_from;
 		mail_host = s.mail_host;
 		mail_password = s.mail_password;
-		mail_info_subject = s.mail_info_subject;
-		mail_info_content = s.mail_info_content;
-		mail_overdue_subject = s.mail_overdue_subject;
-		mail_overdue_content = s.mail_overdue_content;
-		mail_overdue2_subject = s.mail_overdue2_subject;
-		mail_overdue2_content = s.mail_overdue2_content;
+		// update fields directly due to bindings
+		templates.info.subject = s.mail_info.subject;
+		templates.info.body = s.mail_info.body;
+		templates.overdue.subject = s.mail_overdue.subject;
+		templates.overdue.body = s.mail_overdue.body;
+		templates.overdue2.subject = s.mail_overdue2.subject;
+		templates.overdue2.body = s.mail_overdue2.body;
 	}
 
 	settingsGlobal.subscribe(set);
@@ -158,78 +156,40 @@
 		<svelte:fragment slot="summary">{$_('.pref.mail.templates.header')}</svelte:fragment>
 		<svelte:fragment slot="content">
 			<div class="form">
-				<p>
+				<p style="white-space: pre-line;">
 					{$_('.mail.info')}
 				</p>
 				<div class="relative">
 					<TabGroup class="max-w-5xl mx-auto hide-scrollbar" style="outline: none;">
-						<Tab bind:group={tab} name="tab1" value={0}>{$_('.mail.info.title')}</Tab>
-						<Tab bind:group={tab} name="tab2" value={1}>{$_('.mail.overdue.title')}</Tab>
-						<Tab bind:group={tab} name="tab3" value={2}>{$_('.mail.overdue2.title')}</Tab>
+						{#each Object.keys(templates) as name, idx}
+							<Tab bind:group={tab} name="tab1" value={idx}>{$_(`.mail.${name}.title`)}</Tab>
+						{/each}
 					</TabGroup>
 
 					<div id="panels" class="pt-4">
-						{#if tab === 0}
-							<label class="label">
-								<span>{$_('.mail.label.title')}</span>
-								<input
-									class="input"
-									type="text"
-									placeholder={$_('.mail.label.title')}
-									bind:value={mail_info_subject}
-								/>
-							</label>
+						{#each Object.values(templates) as template, idx}
+							{#if idx === tab}
+								<label class="label">
+										<span>{$_('.mail.label.title')}</span>
+										<input
+										class="input"
+										type="text"
+										placeholder={$_('.mail.label.title')}
+										bind:value={template.subject}
+									/>
+								</label>
 
-							<label class="label">
-								<span>{$_('.mail.label.content')}</span>
-								<textarea
-									class="textarea"
-									rows="6"
-									placeholder={$_('.mail.label.content')}
-									bind:value={mail_info_content}
-								/>
-							</label>
-						{:else if tab === 1}
-							<label class="label">
-								<span>{$_('.mail.label.title')}</span>
-								<input
-									class="input"
-									type="text"
-									placeholder={$_('.mail.label.title')}
-									bind:value={mail_overdue_subject}
-								/>
-							</label>
-
-							<label class="label">
-								<span>{$_('.mail.label.content')}</span>
-								<textarea
-									class="textarea"
-									rows="6"
-									placeholder={$_('.mail.label.content')}
-									bind:value={mail_overdue_content}
-								/>
-							</label>
-						{:else if tab === 2}
-							<label class="label">
-								<span>{$_('.mail.label.title')}</span>
-								<input
-									class="input"
-									type="text"
-									placeholder={$_('.mail.label.title')}
-									bind:value={mail_overdue2_subject}
-								/>
-							</label>
-
-							<label class="label">
-								<span>{$_('.mail.label.content')}</span>
-								<textarea
-									class="textarea"
-									rows="6"
-									placeholder={$_('.mail.label.content')}
-									bind:value={mail_overdue2_content}
-								/>
-							</label>
-						{/if}
+								<label class="label">
+									<span>{$_('.mail.label.content')}</span>
+									<textarea
+										class="textarea"
+										rows="6"
+										placeholder={$_('.mail.label.content')}
+										bind:value={template.body}
+									/>
+								</label>
+							{/if}
+						{/each}
 					</div>
 				</div>
 			</div>

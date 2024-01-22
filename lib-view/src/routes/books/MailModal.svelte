@@ -21,19 +21,20 @@
 	let response: Promise<void>;
 
 	async function mail() {
-		if (book === null) return;
+		if (book == null || book.reservation == null) return;
 
-		let user = await api.user_fetch(book.reservation ?? '');
+		let user = await api.user_fetch(book.reservation);
+
+		let mail = api.mail_replace(
+			$settingsGlobal.mail_info,
+			book.title,
+			`${user.forename} ${user.surname}`
+		);
 
 		await api.mail([
 			{
-				account: book.reservation ?? '',
-				subject: $settingsGlobal.mail_info_subject
-					.replace(/\{booktitle\}/g, book.title)
-					.replace(/\{username\}/g, `${user.forename} ${user.surname}`),
-				body: $settingsGlobal.mail_info_content
-					.replace(/\{booktitle\}/g, book.title)
-					.replace(/\{username\}/g, `${user.forename} ${user.surname}`)
+				account: book.reservation,
+				...mail
 			}
 		]);
 		modalStore.close();

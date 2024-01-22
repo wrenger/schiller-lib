@@ -195,12 +195,18 @@ impl From<Settings> for super::Settings {
             mail_from: value.mail_from,
             mail_host: value.mail_host,
             mail_password: value.mail_password,
-            mail_info_subject: value.mail_info_subject,
-            mail_info_content: value.mail_info_content,
-            mail_overdue_subject: value.mail_overdue_subject,
-            mail_overdue_content: value.mail_overdue_content,
-            mail_overdue2_subject: value.mail_overdue2_subject,
-            mail_overdue2_content: value.mail_overdue2_content,
+            mail_info: super::MailTemplate {
+                subject: value.mail_info_subject,
+                body: value.mail_info_content,
+            },
+            mail_overdue: super::MailTemplate {
+                subject: value.mail_overdue_subject,
+                body: value.mail_overdue_content,
+            },
+            mail_overdue2: super::MailTemplate {
+                subject: value.mail_overdue2_subject,
+                body: value.mail_overdue2_content,
+            },
         }
     }
 }

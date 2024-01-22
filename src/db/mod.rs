@@ -21,10 +21,11 @@ mod category;
 pub use category::*;
 mod migrate;
 pub use migrate::Version;
+mod sorted;
+
 #[cfg(feature = "sqlite")]
 #[deprecated]
 mod legacy;
-mod sorted;
 
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Settings {
@@ -38,12 +39,15 @@ pub struct Settings {
     pub mail_host: String,
     pub mail_password: String,
     // Mail Templates
-    pub mail_info_subject: String,
-    pub mail_info_content: String,
-    pub mail_overdue_subject: String,
-    pub mail_overdue_content: String,
-    pub mail_overdue2_subject: String,
-    pub mail_overdue2_content: String,
+    pub mail_info: MailTemplate,
+    pub mail_overdue: MailTemplate,
+    pub mail_overdue2: MailTemplate,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, Default)]
+pub struct MailTemplate {
+    pub subject: String,
+    pub body: String,
 }
 
 impl Settings {
@@ -52,12 +56,12 @@ impl Settings {
         self.mail_from = self.mail_from.trim().to_string();
         self.mail_host = self.mail_host.trim().to_string();
         self.mail_password = self.mail_password.trim().to_string();
-        self.mail_info_subject = self.mail_info_subject.trim().to_string();
-        self.mail_info_content = self.mail_info_content.trim().to_string();
-        self.mail_overdue_subject = self.mail_overdue_subject.trim().to_string();
-        self.mail_overdue_content = self.mail_overdue_content.trim().to_string();
-        self.mail_overdue2_subject = self.mail_overdue2_subject.trim().to_string();
-        self.mail_overdue2_content = self.mail_overdue2_content.trim().to_string();
+        self.mail_info.subject = self.mail_info.subject.trim().to_string();
+        self.mail_info.body = self.mail_info.body.trim().to_string();
+        self.mail_overdue.subject = self.mail_overdue.subject.trim().to_string();
+        self.mail_overdue.body = self.mail_overdue.body.trim().to_string();
+        self.mail_overdue2.subject = self.mail_overdue2.subject.trim().to_string();
+        self.mail_overdue2.body = self.mail_overdue2.body.trim().to_string();
         self.mail_from.is_empty() || account_is_valid(&self.mail_from)
     }
 }
@@ -66,17 +70,14 @@ impl Default for Settings {
     fn default() -> Settings {
         Settings {
             borrowing_duration: 28,
-            dnb_token: String::new(),
+            dnb_token: Default::default(),
             mail_last_reminder: Local::now().naive_local().date(),
-            mail_from: String::new(),
-            mail_host: String::new(),
-            mail_password: String::new(),
-            mail_info_subject: String::new(),
-            mail_info_content: String::new(),
-            mail_overdue_subject: String::new(),
-            mail_overdue_content: String::new(),
-            mail_overdue2_subject: String::new(),
-            mail_overdue2_content: String::new(),
+            mail_from: Default::default(),
+            mail_host: Default::default(),
+            mail_password: Default::default(),
+            mail_info: Default::default(),
+            mail_overdue: Default::default(),
+            mail_overdue2: Default::default(),
         }
     }
 }
@@ -100,6 +101,35 @@ pub struct Database {
     pub users: Users,
     pub categories: Categories,
     settings: Settings,
+}
+
+#[derive(Serialize)]
+pub struct Overdue {
+    pub book: Book,
+    pub user: User,
+}
+impl PartialEq for Overdue {
+    fn eq(&self, other: &Self) -> bool {
+        self.book.id == other.book.id
+    }
+}
+impl Eq for Overdue {}
+impl PartialOrd for Overdue {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Ord for Overdue {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if let (Some(borrower), Some(other_borrower)) = (&self.book.borrower, &other.book.borrower)
+        {
+            match borrower.deadline.cmp(&other_borrower.deadline) {
+                o @ (Ordering::Greater | Ordering::Less) => return o,
+                Ordering::Equal => {}
+            }
+        }
+        self.book.id.cmp(&other.book.id)
+    }
 }
 
 impl Default for Database {
@@ -252,24 +282,18 @@ impl Database {
     }
 
     /// Return the list of expired loan periods.
-    pub fn overdues(&self) -> Result<Vec<(Book, User)>> {
-        fn sort(a: &(Book, User), b: &(Book, User)) -> Ordering {
-            a.0.borrower
-                .as_ref()
-                .unwrap()
-                .deadline
-                .cmp(&b.0.borrower.as_ref().unwrap().deadline)
-                .then_with(|| a.0.id.cmp(&b.0.id))
-        }
-
-        let mut results = Sorted::new(sort);
+    pub fn overdues(&self) -> Result<Vec<Overdue>> {
+        let mut results = Sorted::new(|a: &Overdue, b| a.cmp(b));
 
         let now = Local::now().naive_local().date();
         for book in self.books.data.values() {
             if let Some(borrower) = &book.borrower {
                 if now > borrower.deadline {
                     let user = self.users.fetch(&borrower.user)?;
-                    results.push((book.clone(), user));
+                    results.push(Overdue {
+                        book: book.clone(),
+                        user,
+                    });
                 }
             }
         }

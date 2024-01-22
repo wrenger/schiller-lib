@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { writable } from 'svelte/store';
+import type api from "./api";
 
 export interface GlobalSettings {
 	borrowing_duration: number;
@@ -8,12 +9,9 @@ export interface GlobalSettings {
 	mail_from: string;
 	mail_host: string;
 	mail_password: string;
-	mail_info_subject: string;
-	mail_info_content: string;
-	mail_overdue_subject: string;
-	mail_overdue_content: string;
-	mail_overdue2_subject: string;
-	mail_overdue2_content: string;
+	mail_info: api.MailTemplate;
+	mail_overdue: api.MailTemplate;
+	mail_overdue2: api.MailTemplate;
 }
 
 export const settingsGlobal = writable<GlobalSettings>({
@@ -23,12 +21,18 @@ export const settingsGlobal = writable<GlobalSettings>({
 	mail_from: '',
 	mail_host: '',
 	mail_password: '',
-	mail_info_subject: '',
-	mail_info_content: '',
-	mail_overdue_subject: '',
-	mail_overdue_content: '',
-	mail_overdue2_subject: '',
-	mail_overdue2_content: ''
+	mail_info: {
+		subject: '',
+		body: ''
+	},
+	mail_overdue: {
+		subject: '',
+		body: ''
+	},
+	mail_overdue2: {
+		subject: '',
+		body: ''
+	}
 });
 
 interface Category {

@@ -19,11 +19,14 @@ pub struct Book {
     pub publisher: String,
     pub year: i64,
     pub costs: f64,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub note: String,
     pub borrowable: bool,
     pub category: String,
     pub authors: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub borrower: Option<Borrower>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reservation: Option<String>,
 }
 
@@ -156,11 +159,8 @@ impl Books {
 
         let mut results = Sorted::new(sort);
 
-        let keywords = search
-            .query
-            .split_whitespace()
-            .map(str::to_lowercase)
-            .collect::<Vec<_>>();
+        let query = search.query.trim().to_lowercase();
+        let keywords = query.split_whitespace().collect::<Vec<_>>();
 
         // just a very basic keyword search
         'books: for book in self.data.values() {
@@ -185,11 +185,16 @@ impl Books {
                 continue;
             }
 
+            let lower_id = book.id.to_ascii_lowercase();
+
             let mut score = 0;
+            if query == lower_id {
+                score += 100;
+            }
             for keyword in &keywords {
                 if lower_title.starts_with(keyword) {
                     score += 3;
-                } else if lower_title.contains(keyword) || book.id.to_lowercase().contains(keyword)
+                } else if lower_title.contains(keyword) || lower_id.to_lowercase().contains(keyword)
                 {
                     score += 2;
                 } else if book.isbn.to_lowercase().contains(keyword)

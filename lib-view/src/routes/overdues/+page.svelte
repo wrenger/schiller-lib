@@ -4,7 +4,7 @@
 	import { DateTime } from 'luxon';
 	import api from '$lib/api';
 
-	let overdoneBooks: Promise<[api.Book, api.User][]>;
+	let overdoneBooks: Promise<api.Overdue[]>;
 
 	onMount(() => {
 		overdoneBooks = api.overdues();
@@ -28,7 +28,7 @@
 		<ul>
 			{#await overdoneBooks then data}
 				{#if data}
-					{#each data as [book, user] (book.id)}
+					{#each data as {book, user} (book.id)}
 						<li>
 							<a
 								href={`books?${new URLSearchParams({ search: book.id })}`}
@@ -47,10 +47,12 @@
 									<p>
 										{$_('.book.period', {
 											values: {
-												'0': DateTime.fromISO(book.deadline ?? '').toLocaleString(),
-												'1': parseInt(
-													(-DateTime.fromISO(book.deadline ?? '').diff(DateTime.now(), 'days')
-														.days).toLocaleString()
+												'0': DateTime.fromISO(book.borrower?.deadline ?? '').toLocaleString(),
+												'1': Math.round(
+													-DateTime.fromISO(book.borrower?.deadline ?? '').diff(
+														DateTime.now(),
+														'days'
+													).days
 												)
 											}
 										})}

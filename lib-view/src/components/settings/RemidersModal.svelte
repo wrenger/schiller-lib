@@ -26,31 +26,21 @@
 
 	let response: Promise<void>;
 	async function sendReminders() {
-		let overdoneBooks: [api.Book, api.User][] = await api.overdues();
+		let overdoneBooks: api.Overdue[] = await api.overdues();
 
 		let dataToSend: api.MailBody[] = [];
 
-		for (const [book, user] of overdoneBooks) {
-			if (-DateTime.fromISO(book.deadline ? book.deadline : '').diffNow('days').days > 14) {
-				dataToSend.push({
-					account: book.borrower || '',
-					subject: $settingsGlobal.mail_overdue2_subject
-						.replace(/\{booktitle\}/g, book.title)
-						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : ''),
-					body: $settingsGlobal.mail_overdue2_content
-						.replace(/\{booktitle\}/g, book.title)
-						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : '')
-				});
+		for (const {book, user} of overdoneBooks) {
+			let borrower = book.borrower;
+			if (borrower != null) {
+				let template =
+					-DateTime.fromISO(borrower.deadline).diffNow('days').days > 14
+						? $settingsGlobal.mail_overdue2
+						: $settingsGlobal.mail_overdue;
+				let mail = api.mail_replace(template, book.title, `${user.forename} ${user.surname}`);
+				dataToSend.push({ account: borrower.user, ...mail });
 			} else {
-				dataToSend.push({
-					account: book.borrower || '',
-					subject: $settingsGlobal.mail_overdue_subject
-						.replace(/\{booktitle\}/g, book.title)
-						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : ''),
-					body: $settingsGlobal.mail_overdue_content
-						.replace(/\{booktitle\}/g, book.title)
-						.replace(/\{username\}/g, user ? `${user.forename} ${user.surname}` : '')
-				});
+				console.error('No borrower found for book', book);
 			}
 		}
 

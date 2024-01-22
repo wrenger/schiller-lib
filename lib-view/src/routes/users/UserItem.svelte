@@ -20,10 +20,10 @@
 	on:click={onClick}
 	style="border-radius: 12px;"
 >
-	<span class="flex-auto truncate w-[200px]"
-		><dt>{user.forename} {user.surname}</dt>
-		<dd class="text-sm opacity-50">{user.account}</dd></span
-	>
+	<span class="flex-auto truncate w-[200px]">
+		<dt>{user.forename} {user.surname}</dt>
+		<dd class="text-sm opacity-50">{user.account}</dd>
+	</span>
 	<span class="text-end truncate">
 		<dt>{user.role}</dt>
 	</span>

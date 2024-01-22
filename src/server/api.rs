@@ -387,7 +387,7 @@ async fn lending_release(
 }
 
 /// Returns the list of expired borrowing periods.
-async fn lending_overdues(State(project): State<Project>) -> Result<Json<Vec<(Book, User)>>> {
+async fn lending_overdues(State(project): State<Project>) -> Result<Json<Vec<Overdue>>> {
     Ok(Json(project.db.read().overdues()?))
 }
 

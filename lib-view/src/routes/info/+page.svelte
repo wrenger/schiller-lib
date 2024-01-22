@@ -63,12 +63,12 @@
 					<div class={header}>{$_('.info.stats')}</div>
 					<hr />
 					<ul class="list p-2">
-						{#each api.keys(data) as key, i (key)}
+						{#each Object.entries(data) as [key, val] (key)}
 							<li>
 								<span class="badge-icon p-2 variant-soft-primary"
 									><i class="fa-solid fa-chevron-right"></i></span
 								>
-								<span class="flex-auto">{$_(`.info.${key}`, { values: { '0': data[key] } })}</span>
+								<span class="flex-auto">{$_(`.info.${key}`, { values: { '0': val } })}</span>
 							</li>
 						{/each}
 					</ul>
@@ -77,7 +77,7 @@
 		</div>
 
 		<div
-			class="w-full max-h-full text-token md:card dark:bg-surface-800 bg-surface-100 p-2 space-y-2 overflow-y-scroll md:mb-2 md:mb-0"
+			class="w-full max-h-full text-token md:card dark:bg-surface-800 bg-surface-100 p-2 space-y-2 overflow-y-scroll"
 		>
 			{#await about}
 				<div class={header}>{$_('.action.load')}...</div>

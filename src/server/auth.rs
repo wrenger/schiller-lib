@@ -70,7 +70,7 @@ pub struct Login {
     id: String,
     username: String,
     /// Custom data storing how long the session is valid
-    #[serde(default)]
+    #[serde(skip)]
     expires: u64,
 }
 
