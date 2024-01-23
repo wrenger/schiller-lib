@@ -18,7 +18,7 @@
 	let templates: Record<string, api.MailTemplate> = {
 		info: { subject: '', body: '' },
 		overdue: { subject: '', body: '' },
-		overdue2: { subject: '', body: '' },
+		overdue2: { subject: '', body: '' }
 	};
 
 	export function get(): GlobalSettings {
@@ -170,8 +170,8 @@
 						{#each Object.values(templates) as template, idx}
 							{#if idx === tab}
 								<label class="label">
-										<span>{$_('.mail.label.title')}</span>
-										<input
+									<span>{$_('.mail.label.title')}</span>
+									<input
 										class="input"
 										type="text"
 										placeholder={$_('.mail.label.title')}

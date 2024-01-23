@@ -35,7 +35,7 @@
 			costs: 0,
 			year: DateTime.now().year,
 			category: '',
-			borrowable: true,
+			borrowable: true
 		};
 	}
 

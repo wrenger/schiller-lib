@@ -30,7 +30,7 @@
 
 		let dataToSend: api.MailBody[] = [];
 
-		for (const {book, user} of overdoneBooks) {
+		for (const { book, user } of overdoneBooks) {
 			let borrower = book.borrower;
 			if (borrower != null) {
 				let template =

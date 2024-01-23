@@ -1,6 +1,6 @@
 import { _ } from 'svelte-i18n';
 import { errorStore } from './store';
-import Ajv, { type JTDParser, type JTDSchemaType } from "ajv/dist/jtd";
+import Ajv, { type JTDParser, type JTDSchemaType } from 'ajv/dist/jtd';
 
 namespace api {
 	const ajv = new Ajv();
@@ -15,13 +15,13 @@ namespace api {
 	}
 	const parse_about = ajv.compileParser<About>({
 		properties: {
-			name: { type: "string" },
-			version: { type: "string" },
-			repository: { type: "string" },
-			authors: { elements: { type: "string" } },
-			description: { type: "string" },
-			license: { type: "string" },
-		},
+			name: { type: 'string' },
+			version: { type: 'string' },
+			repository: { type: 'string' },
+			authors: { elements: { type: 'string' } },
+			description: { type: 'string' },
+			license: { type: 'string' }
+		}
 	});
 
 	export interface Stats {
@@ -34,13 +34,13 @@ namespace api {
 	}
 	const parse_stats = ajv.compileParser<Stats>({
 		properties: {
-			books: { type: "uint32" },
-			users: { type: "uint32" },
-			categories: { type: "uint32" },
-			borrows: { type: "uint32" },
-			reservations: { type: "uint32" },
-			overdues: { type: "uint32" },
-		},
+			books: { type: 'uint32' },
+			users: { type: 'uint32' },
+			categories: { type: 'uint32' },
+			borrows: { type: 'uint32' },
+			reservations: { type: 'uint32' },
+			overdues: { type: 'uint32' }
+		}
 	});
 
 	export interface Session {
@@ -49,9 +49,9 @@ namespace api {
 	}
 	const parse_session = ajv.compileParser<Session>({
 		properties: {
-			id: { type: "string" },
-			username: { type: "string" },
-		},
+			id: { type: 'string' },
+			username: { type: 'string' }
+		}
 	});
 
 	export interface MailTemplate {
@@ -60,9 +60,9 @@ namespace api {
 	}
 	const schema_mail_template: JTDSchemaType<MailTemplate> = {
 		properties: {
-			subject: { type: "string" },
-			body: { type: "string" },
-		},
+			subject: { type: 'string' },
+			body: { type: 'string' }
+		}
 	};
 
 	export interface Settings {
@@ -82,16 +82,16 @@ namespace api {
 	}
 	const parse_settings = ajv.compileParser<Settings>({
 		properties: {
-			borrowing_duration: { type: "uint32" },
-			dnb_token: { type: "string" },
-			mail_last_reminder: { type: "string" },
-			mail_from: { type: "string" },
-			mail_host: { type: "string" },
-			mail_password: { type: "string" },
+			borrowing_duration: { type: 'uint32' },
+			dnb_token: { type: 'string' },
+			mail_last_reminder: { type: 'string' },
+			mail_from: { type: 'string' },
+			mail_host: { type: 'string' },
+			mail_password: { type: 'string' },
 			mail_info: schema_mail_template,
 			mail_overdue: schema_mail_template,
-			mail_overdue2: schema_mail_template,
-		},
+			mail_overdue2: schema_mail_template
+		}
 	});
 
 	export interface Borrower {
@@ -115,34 +115,34 @@ namespace api {
 	}
 	const schema_book: JTDSchemaType<Book> = {
 		properties: {
-			id: { type: "string" },
-			isbn: { type: "string" },
-			title: { type: "string" },
-			publisher: { type: "string" },
-			year: { type: "uint32" },
-			costs: { type: "float32" },
-			borrowable: { type: "boolean" },
-			category: { type: "string" },
-			authors: { type: "string" },
+			id: { type: 'string' },
+			isbn: { type: 'string' },
+			title: { type: 'string' },
+			publisher: { type: 'string' },
+			year: { type: 'uint32' },
+			costs: { type: 'float32' },
+			borrowable: { type: 'boolean' },
+			category: { type: 'string' },
+			authors: { type: 'string' }
 		},
 		optionalProperties: {
-			note: { type: "string" },
-			reservation: { type: "string" },
+			note: { type: 'string' },
+			reservation: { type: 'string' },
 			borrower: {
 				properties: {
-					user: { type: "string" },
-					deadline: { type: "string" },
-				},
-			},
-		},
+					user: { type: 'string' },
+					deadline: { type: 'string' }
+				}
+			}
+		}
 	};
 
 	const parse_book = ajv.compileParser(schema_book);
 	const parse_partial_book = ajv.compileParser<Partial<Book>>({
 		optionalProperties: {
 			...schema_book.properties,
-			...schema_book.optionalProperties,
-		},
+			...schema_book.optionalProperties
+		}
 	});
 
 	export type BookState = 'None' | 'Borrowable' | 'NotBorrowable' | 'Borrowed' | 'Reserved';
@@ -164,12 +164,12 @@ namespace api {
 	}
 	const schema_user: JTDSchemaType<User> = {
 		properties: {
-			account: { type: "string" },
-			forename: { type: "string" },
-			surname: { type: "string" },
-			role: { type: "string" },
-			may_borrow: { type: "boolean" },
-		},
+			account: { type: 'string' },
+			forename: { type: 'string' },
+			surname: { type: 'string' },
+			role: { type: 'string' },
+			may_borrow: { type: 'boolean' }
+		}
 	};
 	const parse_user = ajv.compileParser(schema_user);
 
@@ -187,13 +187,13 @@ namespace api {
 	}
 	const schema_category: JTDSchemaType<Category> = {
 		properties: {
-			id: { type: "string" },
-			name: { type: "string" },
-			section: { type: "string" },
-		},
+			id: { type: 'string' },
+			name: { type: 'string' },
+			section: { type: 'string' }
+		}
 	};
 	const parse_categories = ajv.compileParser<Category[]>({
-		elements: schema_category,
+		elements: schema_category
 	});
 
 	export interface MailBody {
@@ -208,15 +208,15 @@ namespace api {
 	}
 	const parse_limited_books = ajv.compileParser<Limited<Book>>({
 		properties: {
-			total: { type: "uint32" },
-			rows: { elements: schema_book },
-		},
+			total: { type: 'uint32' },
+			rows: { elements: schema_book }
+		}
 	});
 	const parse_limited_users = ajv.compileParser<Limited<User>>({
 		properties: {
-			total: { type: "uint32" },
-			rows: { elements: schema_user },
-		},
+			total: { type: 'uint32' },
+			rows: { elements: schema_user }
+		}
 	});
 
 	export interface Overdue {
@@ -227,9 +227,9 @@ namespace api {
 		elements: {
 			properties: {
 				book: schema_book,
-				user: schema_user,
-			},
-		},
+				user: schema_user
+			}
+		}
 	});
 
 	export type QueryParam = Record<string, any>;
@@ -279,7 +279,7 @@ namespace api {
 		await del('api/book/' + encodeURIComponent(id));
 	}
 	export async function book_id(book: Book): Promise<string> {
-		const parse_book_id = ajv.compileParser<string>({ type: "string" });
+		const parse_book_id = ajv.compileParser<string>({ type: 'string' });
 		return post_get('api/book-id', book, parse_book_id);
 	}
 	export async function book_fetch(isbn: string): Promise<Partial<Book>> {
@@ -488,10 +488,16 @@ namespace api {
 	}
 
 	/** Replaces the placeholders in the mail templates */
-	export function mail_replace(template: MailTemplate, booktitle: string, username: string): MailTemplate {
+	export function mail_replace(
+		template: MailTemplate,
+		booktitle: string,
+		username: string
+	): MailTemplate {
 		return {
-			subject: template.subject.replaceAll("{booktitle}", booktitle).replaceAll("{username}", username),
-			body: template.body.replaceAll("{booktitle}", booktitle).replaceAll("{username}", username),
+			subject: template.subject
+				.replaceAll('{booktitle}', booktitle)
+				.replaceAll('{username}', username),
+			body: template.body.replaceAll('{booktitle}', booktitle).replaceAll('{username}', username)
 		};
 	}
 }

@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
 import { writable } from 'svelte/store';
-import type api from "./api";
+import type api from './api';
 
 export interface GlobalSettings {
 	borrowing_duration: number;

@@ -28,7 +28,7 @@
 		<ul>
 			{#await overdoneBooks then data}
 				{#if data}
-					{#each data as {book, user} (book.id)}
+					{#each data as { book, user } (book.id)}
 						<li>
 							<a
 								href={`books?${new URLSearchParams({ search: book.id })}`}

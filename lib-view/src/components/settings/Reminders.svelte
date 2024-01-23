@@ -7,21 +7,25 @@
 		type ModalSettings,
 		type ToastSettings
 	} from '@skeletonlabs/skeleton';
+	import api from '$lib/api';
 
 	const modalStore = getModalStore();
 	const toastStore = getToastStore();
 
-	settingsGlobal.subscribe((settings) => {
+	settingsGlobal.subscribe(async (settings) => {
 		if (
 			settings.mail_last_reminder.isValid &&
 			Math.ceil(settings.mail_last_reminder.diffNow('days').days) < 0
 		) {
-			const modal: ModalSettings = {
-				type: 'component',
-				component: 'remindersModal'
-			};
-			modalStore.clear();
-			modalStore.trigger(modal);
+			let overdues = await api.overdues();
+			if (overdues.length > 0) {
+				const modal: ModalSettings = {
+					type: 'component',
+					component: 'remindersModal'
+				};
+				modalStore.clear();
+				modalStore.trigger(modal);
+			}
 		} else if (!settings.mail_last_reminder.isValid) {
 			const t: ToastSettings = {
 				message: $_('.error.date'),
