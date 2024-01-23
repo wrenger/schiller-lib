@@ -9,9 +9,21 @@ body {
 }
 
 body .input-group.disabled {
-	@apply !opacity-50 !cursor-not-allowed hover:!brightness-100;
+	@apply !opacity-80 !cursor-not-allowed hover:!brightness-100;
 
 	& * {
 		opacity: 1 !important; /* Important to override any existing opacity styles */
 	}
+}
+
+body .input[disabled] {
+	@apply !opacity-80 !cursor-not-allowed hover:!brightness-100;
+}
+
+body .select[disabled] {
+	@apply !opacity-80 !cursor-not-allowed hover:!brightness-100;
+}
+
+body .textarea[disabled] {
+	@apply !opacity-80 !cursor-not-allowed hover:!brightness-100;
 }
