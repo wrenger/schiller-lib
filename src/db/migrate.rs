@@ -1,7 +1,9 @@
 use std::fmt;
-use std::path::{Path, PathBuf};
+use std::fs::File;
+use std::path::Path;
 use std::str::FromStr;
 
+use fs4::FileExt;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use super::Database;
@@ -14,24 +16,29 @@ struct DatabaseVersion {
 
 const MIN_VERSION: Version = Version(0, 9, 0);
 
-pub fn import(file: &Path) -> Result<(PathBuf, Database)> {
+pub fn import(path: &Path) -> Result<(File, Database)> {
     #[cfg(feature = "sqlite")]
-    if file.extension() == Some(std::ffi::OsStr::new("db")) {
+    if path.extension() == Some(std::ffi::OsStr::new("db")) {
         tracing::warn!("Try importing old database");
-        let data = from_db(file)?;
-        let file = file.with_extension("json");
+        let data = from_db(path)?;
+        let path = path.with_extension("json");
+        let file = File::create(&path)?;
+        file.try_lock_exclusive()?;
         data.save(&file)?;
         return Ok((file, data));
     }
 
-    let data = std::fs::read_to_string(file)?;
+    let data = std::fs::read_to_string(path)?;
     let DatabaseVersion { version } = serde_json::from_str(&data)?;
 
     let data_version: Version = version;
     let new_version: Version = crate::PKG_VERSION.parse().unwrap();
     if MIN_VERSION <= data_version && data_version <= new_version {
+        let mut file = File::open(path)?;
+        file.try_lock_exclusive()?;
         // TODO: Migration routines
-        Ok((file.into(), Database::load(&data)?))
+        let data = Database::load(&mut file)?;
+        Ok((file, data))
     } else {
         Err(Error::UnsupportedProjectVersion)
     }

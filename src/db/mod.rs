@@ -1,11 +1,12 @@
 use std::cmp::Ordering;
-use std::fmt;
 use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::{fmt, io};
 use std::{fs::File, io::BufWriter};
 
 use chrono::{Local, NaiveDate};
+use fs4::FileExt;
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
@@ -145,12 +146,12 @@ impl Default for Database {
 }
 
 impl Database {
-    pub fn load(s: &str) -> Result<Self> {
-        Ok(serde_json::from_str(s)?)
+    pub fn load(file: impl io::Read) -> Result<Self> {
+        Ok(serde_json::from_reader(file)?)
     }
 
-    pub fn save(&self, file: &Path) -> Result<()> {
-        let writer = BufWriter::new(File::create(file)?);
+    pub fn save(&self, file: impl io::Write) -> Result<()> {
+        let writer = BufWriter::new(file);
         serde_json::to_writer_pretty(writer, self)?;
         Ok(())
     }
@@ -303,59 +304,81 @@ impl Database {
 
 /// Synchronized Wrapper, that automatically saves changes
 pub struct AtomicDatabase {
-    file: PathBuf,
-    data: RwLock<Database>,
+    path: PathBuf,
+    data: RwLock<(File, Database)>,
 }
 
 impl AtomicDatabase {
-    pub fn load(file: &Path) -> Result<Self> {
-        let (file, data) = migrate::import(file)?;
+    pub fn load(path: &Path) -> Result<Self> {
+        let (file, data) = migrate::import(path)?;
         Ok(Self {
-            file,
-            data: RwLock::new(data),
+            path: path.into(),
+            data: RwLock::new((file, data)),
         })
     }
 
-    pub fn create(file: &Path) -> Result<Self> {
+    pub fn create(path: &Path) -> Result<Self> {
         let data = Database::default();
-        data.save(file)?;
+        let mut file = File::create(path)?;
+        file.try_lock_exclusive()?;
+        data.save(&mut file)?;
         Ok(Self {
-            file: file.into(),
-            data: RwLock::new(data),
+            path: path.into(),
+            data: RwLock::new((file, data)),
         })
     }
 
-    pub fn read(&self) -> RwLockReadGuard<'_, Database> {
-        self.data.read().unwrap()
+    pub fn read(&self) -> AtomicDatabaseRead<'_> {
+        AtomicDatabaseRead(self.data.read().unwrap())
     }
     pub fn write(&self) -> AtomicDatabaseWrite<'_> {
-        AtomicDatabaseWrite(self.data.write().unwrap(), &self.file)
+        AtomicDatabaseWrite(self.data.write().unwrap())
     }
 }
-pub struct AtomicDatabaseWrite<'a>(RwLockWriteGuard<'a, Database>, &'a Path);
+
+impl fmt::Debug for AtomicDatabase {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("AtomicDatabase")
+            .field("file", &self.path)
+            .finish()
+    }
+}
+
+impl Drop for AtomicDatabase {
+    fn drop(&mut self) {
+        info!("Saving database");
+        let mut guard = self.data.write().unwrap();
+        let (file, data) = &mut *guard;
+        data.save(file).unwrap()
+    }
+}
+
+pub struct AtomicDatabaseRead<'a>(RwLockReadGuard<'a, (File, Database)>);
+impl Deref for AtomicDatabaseRead<'_> {
+    type Target = Database;
+    fn deref(&self) -> &Self::Target {
+        &self.0 .1
+    }
+}
+
+pub struct AtomicDatabaseWrite<'a>(RwLockWriteGuard<'a, (File, Database)>);
 impl Deref for AtomicDatabaseWrite<'_> {
     type Target = Database;
-
     fn deref(&self) -> &Self::Target {
-        &self.0
+        &self.0 .1
     }
 }
 impl DerefMut for AtomicDatabaseWrite<'_> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+        &mut self.0 .1
     }
 }
 impl Drop for AtomicDatabaseWrite<'_> {
     fn drop(&mut self) {
         info!("Saving database");
-        self.0.save(self.1).unwrap()
-    }
-}
-impl fmt::Debug for AtomicDatabase {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("AtomicDatabase")
-            .field("file", &self.file)
-            .finish()
+        let (file, data) = &mut *self.0;
+        data.save(file).unwrap();
+        self.0 .0.unlock().unwrap();
     }
 }
 
@@ -366,6 +389,7 @@ mod test {
     #[test]
     #[ignore]
     fn compare_times() {
+        use std::fs::File;
         use std::hint::black_box;
         use std::path::Path;
         use std::time::Instant;
@@ -426,7 +450,8 @@ mod test {
         assert_eq!(results.0, results.1.len());
         black_box(results);
 
-        db2.save(&file.with_extension("json")).unwrap();
+        db2.save(File::create(file.with_extension("json")).unwrap())
+            .unwrap();
 
         info!("db2: {:?}", db2.stats());
     }
