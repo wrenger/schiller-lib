@@ -19,7 +19,6 @@
 	let note = '';
 	let borrowable = true;
 	let borrower: api.Borrower | undefined = undefined;
-	let deadline: DateTime | undefined = undefined;
 	let reservation: string | undefined = undefined;
 
 	let bookIdResponse: Promise<any>;
@@ -206,12 +205,12 @@
 </label>
 
 {#if !editable}
-	{#if borrower && deadline}
+	{#if borrower}
 		<aside class="alert variant-glass-surface mt-1">
 			{$_('.book.borrowed.by', {
 				values: {
-					'0': borrower?.user ?? '',
-					'1': borrower?.deadline.toLocaleString()
+					'0': borrower.user,
+					'1': DateTime.fromISO(borrower.deadline).toLocaleString()
 				}
 			})}
 		</aside>
