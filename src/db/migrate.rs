@@ -1,5 +1,5 @@
 use std::fmt;
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::path::Path;
 use std::str::FromStr;
 
@@ -22,7 +22,11 @@ pub fn import(path: &Path) -> Result<(File, Database)> {
         tracing::warn!("Try importing old database");
         let data = from_db(path)?;
         let path = path.with_extension("json");
-        let file = File::create(&path)?;
+        let file = OpenOptions::new()
+            .create_new(true)
+            .read(true)
+            .write(true)
+            .open(&path)?;
         file.try_lock_exclusive()?;
         data.save(&file)?;
         return Ok((file, data));
@@ -34,7 +38,11 @@ pub fn import(path: &Path) -> Result<(File, Database)> {
     let data_version: Version = version;
     let new_version: Version = crate::PKG_VERSION.parse().unwrap();
     if MIN_VERSION <= data_version && data_version <= new_version {
-        let mut file = File::open(path)?;
+        let mut file = OpenOptions::new()
+            .create(true)
+            .read(true)
+            .write(true)
+            .open(path)?;
         file.try_lock_exclusive()?;
         // TODO: Migration routines
         let data = Database::load(&mut file)?;
@@ -155,9 +163,8 @@ impl<'de> Deserialize<'de> for Version {
 
 #[cfg(test)]
 mod tests {
-    use crate::PKG_VERSION;
-
     use super::*;
+    use crate::PKG_VERSION;
 
     #[test]
     fn version_parsing() {

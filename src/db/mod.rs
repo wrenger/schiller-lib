@@ -1,9 +1,10 @@
 use std::cmp::Ordering;
+use std::fmt;
+use std::fs::File;
+use std::io::{self, BufWriter, Seek};
 use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
-use std::{fmt, io};
-use std::{fs::File, io::BufWriter};
 
 use chrono::{Local, NaiveDate};
 use fs4::FileExt;
@@ -303,6 +304,8 @@ impl Database {
 }
 
 /// Synchronized Wrapper, that automatically saves changes
+///
+/// It also locks the database file, preventing other applications from accessing it.
 pub struct AtomicDatabase {
     path: PathBuf,
     data: RwLock<(File, Database)>,
@@ -349,7 +352,12 @@ impl Drop for AtomicDatabase {
         info!("Saving database");
         let mut guard = self.data.write().unwrap();
         let (file, data) = &mut *guard;
-        data.save(file).unwrap()
+        // truncate
+        file.rewind().unwrap();
+        file.set_len(0).unwrap();
+        data.save(file).unwrap();
+        // unlock file
+        guard.0.unlock().unwrap();
     }
 }
 
@@ -377,8 +385,10 @@ impl Drop for AtomicDatabaseWrite<'_> {
     fn drop(&mut self) {
         info!("Saving database");
         let (file, data) = &mut *self.0;
+        // truncate
+        file.rewind().unwrap();
+        file.set_len(0).unwrap();
         data.save(file).unwrap();
-        self.0 .0.unlock().unwrap();
     }
 }
 
@@ -394,9 +404,10 @@ mod test {
         use std::path::Path;
         use std::time::Instant;
 
+        use tracing::info;
+
         use super::legacy as d1;
         use crate::db as d2;
-        use tracing::info;
 
         crate::logging();
         let file = Path::new("test/data/schillerbib.db");

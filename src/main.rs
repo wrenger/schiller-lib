@@ -1,8 +1,11 @@
+use std::fs::File;
+use std::net::SocketAddr;
 use std::path::PathBuf;
-use std::{fs::File, net::SocketAddr};
 
 use clap::Parser;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::EnvFilter;
 
 use crate::db::AtomicDatabase;
 

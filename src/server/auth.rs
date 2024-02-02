@@ -3,25 +3,28 @@ use std::fmt;
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use crate::error::{Error, Result};
-
 use axum::extract::{FromRef, FromRequestParts, Query, State};
-use axum::http::{header::SET_COOKIE, request::Parts};
+use axum::http::header::SET_COOKIE;
+use axum::http::request::Parts;
 use axum::response::{IntoResponse, Redirect, Response};
 use axum::routing::get;
-use axum::{RequestPartsExt, async_trait, Json, Router};
-use axum_extra::{headers::Cookie, TypedHeader};
-
+use axum::{async_trait, Json, RequestPartsExt, Router};
+use axum_extra::headers::Cookie;
+use axum_extra::TypedHeader;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
 use hyper::{HeaderMap, StatusCode};
+use oauth2::basic::BasicClient;
+use oauth2::reqwest::async_http_client;
 use oauth2::{
-    basic::BasicClient, reqwest::async_http_client, AuthUrl, AuthorizationCode, ClientId,
-    ClientSecret, CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl,
+    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
+    TokenResponse, TokenUrl,
 };
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use tracing::error;
+
+use crate::error::{Error, Result};
 
 static COOKIE_NAME: &str = "SESSION";
 const SESSION_CHECK_SEC: u64 = 24 * 60 * 60; // daily

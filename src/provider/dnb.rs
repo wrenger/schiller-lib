@@ -175,8 +175,9 @@ fn parse_costs(costs: &str) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::fs;
+
+    use super::*;
 
     #[test]
     fn parse_single_record() {

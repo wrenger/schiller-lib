@@ -1,12 +1,14 @@
-use crate::error::{Error, Result};
+use std::time::Duration;
 
 use email_address::EmailAddress;
-use lettre::message::{header::ContentType, Mailbox, SinglePartBuilder};
+use lettre::message::header::ContentType;
+use lettre::message::{Mailbox, SinglePartBuilder};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Address, Message, SmtpTransport, Transport};
-use std::time::Duration;
 use tracing::{error, info};
 use unicode_normalization::UnicodeNormalization;
+
+use crate::error::{Error, Result};
 
 /// Checks if the username is valid for an email
 pub fn account_is_valid(account: &str) -> bool {
