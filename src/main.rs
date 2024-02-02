@@ -42,10 +42,10 @@ struct Args {
     #[arg(short, long, default_value = "schillerbib.db")]
     db: PathBuf,
     /// Path to the users file
-    #[arg(long, default_value = "users.txt")]
-    user_file: PathBuf,
+    #[arg(long)]
+    user_file: Option<PathBuf>,
     /// CSV row delimiter for the users file
-    #[arg(long, default_value_t = '|')]
+    #[arg(long, default_value_t = ',')]
     user_delimiter: char,
     /// Path to the TLS certificate
     #[arg(long)]
@@ -76,6 +76,9 @@ async fn main() {
     });
 
     assert!(user_delimiter.is_ascii());
+    if let Some(user_file) = &user_file {
+        assert!(user_file.exists(), "User file not found: {user_file:?}");
+    }
 
     let domain = domain.unwrap_or_else(|| host.to_string());
 

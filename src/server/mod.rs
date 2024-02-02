@@ -43,7 +43,7 @@ pub async fn start(
     auth: Option<AuthConfig>,
     db: AtomicDatabase,
     dir: PathBuf,
-    user_file: PathBuf,
+    user_file: Option<PathBuf>,
     user_delimiter: u8,
     cert: &std::path::Path,
     key: &std::path::Path,

@@ -181,7 +181,7 @@ mod tests {
 
     #[test]
     fn parse_single_record() {
-        let response = fs::read_to_string("test/data/dnb/dnb-response_9783570303337.xml").unwrap();
+        let response = fs::read_to_string("test/dnb/dnb-response_9783570303337.xml").unwrap();
         let data = parse(&response, "9783570303337").unwrap();
         assert_eq!(
             data,
@@ -196,7 +196,7 @@ mod tests {
 
     #[test]
     fn parse_multiple_records() {
-        let response = fs::read_to_string("test/data/dnb/dnb-response_3440040585.xml").unwrap();
+        let response = fs::read_to_string("test/dnb/dnb-response_3440040585.xml").unwrap();
         let data = parse(&response, "3440040585").unwrap();
         assert_eq!(
             data,
@@ -211,7 +211,7 @@ mod tests {
 
     #[test]
     fn parse_no_authors() {
-        let response = fs::read_to_string("test/data/dnb/dnb-response_9783060016150.xml").unwrap();
+        let response = fs::read_to_string("test/dnb/dnb-response_9783060016150.xml").unwrap();
         let data = parse(&response, "9783060016150").unwrap();
         assert_eq!(
             data,

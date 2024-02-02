@@ -20,7 +20,7 @@ use crate::provider;
 #[derive(Debug, Clone)]
 pub struct Project {
     db: Arc<AtomicDatabase>,
-    user_file: Arc<PathBuf>,
+    user_file: Option<Arc<PathBuf>>,
     user_delimiter: u8,
     client: Client,
     auth: Auth,
@@ -33,10 +33,15 @@ impl FromRef<Project> for Auth {
 }
 
 impl Project {
-    pub fn new(db: AtomicDatabase, user_file: PathBuf, user_delimiter: u8, auth: Auth) -> Self {
+    pub fn new(
+        db: AtomicDatabase,
+        user_file: Option<PathBuf>,
+        user_delimiter: u8,
+        auth: Auth,
+    ) -> Self {
         Self {
             db: Arc::new(db),
-            user_file: Arc::new(user_file),
+            user_file: user_file.map(Arc::new),
             user_delimiter,
             client: Client::new(),
             auth,
@@ -273,19 +278,27 @@ async fn user_fetch_data(
     State(project): State<Project>,
     Path(account): Path<String>,
 ) -> Result<Json<User>> {
-    Ok(Json(super::provider::user::search(
-        &project.user_file,
-        project.user_delimiter,
-        &account,
-    )?))
+    if let Some(user_file) = &project.user_file {
+        Ok(Json(super::provider::user::search(
+            user_file,
+            project.user_delimiter,
+            &account,
+        )?))
+    } else {
+        Err(Error::NothingFound)
+    }
 }
 
 /// Deletes the roles from all users and inserts the new roles.
 ///
 /// The roles of all users not contained in the given list are cleared.
 async fn user_update_roles(State(project): State<Project>) -> Result<()> {
-    let users = super::provider::user::load_roles(&project.user_file, project.user_delimiter)?;
-    project.db.write().users.update_roles(&users)
+    if let Some(user_file) = &project.user_file {
+        let users = super::provider::user::load_roles(user_file, project.user_delimiter)?;
+        project.db.write().users.update_roles(&users)
+    } else {
+        Err(Error::NothingFound)
+    }
 }
 
 // Category

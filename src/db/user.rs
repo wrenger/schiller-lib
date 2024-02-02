@@ -9,13 +9,25 @@ use crate::mail::account_is_valid;
 
 /// Data object for a user.
 #[derive(Debug, Clone, Deserialize, Serialize)]
-#[cfg_attr(test, derive(PartialEq, Default))]
+#[cfg_attr(test, derive(PartialEq))]
 pub struct User {
     pub account: String,
     pub forename: String,
     pub surname: String,
     pub role: String,
     pub may_borrow: bool,
+}
+
+impl Default for User {
+    fn default() -> Self {
+        Self {
+            account: Default::default(),
+            forename: Default::default(),
+            surname: Default::default(),
+            role: Default::default(),
+            may_borrow: true,
+        }
+    }
 }
 
 impl User {
@@ -165,7 +177,7 @@ impl Users {
     /// The roles of all users not contained in the given list are cleared, set to "-".
     pub fn update_roles(&mut self, users: &[(String, String)]) -> Result<()> {
         for user in self.data.values_mut() {
-            user.role = String::from("-");
+            user.role.clear();
         }
 
         for (account, role) in users {
