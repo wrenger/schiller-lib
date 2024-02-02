@@ -15,10 +15,9 @@ use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
 use hyper::{HeaderMap, StatusCode};
 use oauth2::basic::BasicClient;
-use oauth2::reqwest::async_http_client;
 use oauth2::{
-    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
-    TokenResponse, TokenUrl,
+    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, HttpRequest, HttpResponse,
+    RedirectUrl, Scope, TokenResponse, TokenUrl,
 };
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
@@ -298,6 +297,28 @@ fn unix_secs() -> u64 {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_secs()
+}
+
+/// Asynchronous HTTP client.
+async fn async_http_client(request: HttpRequest) -> Result<HttpResponse> {
+    let client = reqwest::Client::builder()
+        // Following redirects opens the client up to SSRF vulnerabilities.
+        .redirect(reqwest::redirect::Policy::none())
+        .build()?;
+
+    let request = client
+        .request(request.method, request.url)
+        .headers(request.headers)
+        .body(request.body)
+        .build()?;
+
+    let response = client.execute(request).await?;
+
+    Ok(HttpResponse {
+        status_code: response.status(),
+        headers: response.headers().to_owned(),
+        body: response.bytes().await?.to_vec(),
+    })
 }
 
 #[cfg(test)]

@@ -1,3 +1,5 @@
+use std::fmt;
+
 use axum::response::IntoResponse;
 use axum::Json;
 use hyper::StatusCode;
@@ -46,6 +48,14 @@ pub enum Error {
     LendingBookNotReserved,
     /// The database version is too old
     UnsupportedProjectVersion,
+}
+
+impl std::error::Error for Error {}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(self, f)
+    }
 }
 
 #[cfg(feature = "sqlite")]

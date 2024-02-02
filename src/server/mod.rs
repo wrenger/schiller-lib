@@ -16,7 +16,6 @@ use axum::Router;
 use hyper::body::Incoming;
 use hyper::Request;
 use hyper_util::rt::{TokioExecutor, TokioIo};
-use rustls::{Certificate, PrivateKey};
 use tokio::net::TcpListener;
 use tokio_rustls::rustls::ServerConfig;
 use tokio_rustls::TlsAcceptor;
@@ -128,19 +127,13 @@ async fn serve(host: SocketAddr, tls: ServerConfig, app: Router) -> io::Result<(
 
 fn load_tls_config(cert: &std::path::Path, key: &std::path::Path) -> io::Result<ServerConfig> {
     let certs = rustls_pemfile::certs(&mut io::BufReader::new(File::open(cert)?))
-        .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid cert"))?
-        .into_iter()
-        .map(Certificate)
-        .collect();
+        .collect::<Result<_, io::Error>>()?;
     let key = rustls_pemfile::pkcs8_private_keys(&mut io::BufReader::new(File::open(key)?))
-        .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid key"))?
-        .into_iter()
         .next()
-        .ok_or(io::Error::new(io::ErrorKind::InvalidInput, "invalid key"))?;
+        .ok_or(io::Error::new(io::ErrorKind::InvalidInput, "invalid key"))??;
     rustls::ServerConfig::builder()
-        .with_safe_defaults()
         .with_no_client_auth()
-        .with_single_cert(certs, PrivateKey(key))
+        .with_single_cert(certs, key.into())
         .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))
 }
 
