@@ -9,6 +9,10 @@ body {
 }
 
 body .input-group.disabled {
+	@apply !opacity-80 !cursor-not-allowed hover:!brightness-100;
+}
+
+body .input-group .input[disabled] {
 	@apply !opacity-100 !cursor-not-allowed hover:!brightness-100;
 }
 
