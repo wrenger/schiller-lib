@@ -1,6 +1,6 @@
-use std::{fmt, io::Seek};
+use std::fmt;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, Seek};
 use std::path::Path;
 use std::str::FromStr;
 
