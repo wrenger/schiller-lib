@@ -72,6 +72,10 @@ pub struct Users {
 
 impl Users {
     pub fn fetch(&self, account: &str) -> Result<User> {
+        let account = account.trim();
+        if account.is_empty() {
+            return Err(Error::Arguments);
+        }
         self.data.get(account).cloned().ok_or(Error::NothingFound)
     }
 
@@ -100,29 +104,31 @@ impl Users {
                 *entry = user.clone();
                 return Ok(user);
             }
-        } else {
-            if self.data.remove(account).is_some() {
-                return match self.data.entry(user.account.clone()) {
-                    Entry::Vacant(v) => {
-                        v.insert(user.clone());
-                        books.update_user(account, &user.account)?;
-                        Ok(user)
-                    }
-                    _ => Err(Error::InvalidUser),
-                };
-            }
+        } else if self.data.remove(account).is_some() {
+            return match self.data.entry(user.account.clone()) {
+                Entry::Vacant(v) => {
+                    v.insert(user.clone());
+                    books.update_user(account, &user.account)?;
+                    Ok(user)
+                }
+                _ => Err(Error::InvalidUser),
+            };
         }
 
         Err(Error::NothingFound)
     }
 
     pub fn delete(&mut self, account: &str, books: &Books) -> Result<()> {
+        let account = account.trim();
+        if account.is_empty() {
+            return Err(Error::Arguments);
+        }
         if books.is_user_referenced(account) {
             return Err(Error::ReferencedUser);
         }
 
         self.data
-            .remove(account.trim())
+            .remove(account)
             .map(|_| ())
             .ok_or(Error::NothingFound)
     }
@@ -174,7 +180,7 @@ impl Users {
 
     /// Deletes the roles from all users and inserts the new roles.
     ///
-    /// The roles of all users not contained in the given list are cleared, set to "-".
+    /// The roles of all users not contained in the given list are cleared.
     pub fn update_roles(&mut self, users: &[(String, String)]) -> Result<()> {
         for user in self.data.values_mut() {
             user.role.clear();

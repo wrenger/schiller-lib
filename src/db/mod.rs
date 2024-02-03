@@ -178,10 +178,10 @@ impl Database {
         let now = Local::now().naive_local().date();
 
         for book in self.books.data.values() {
-            if !book.borrower.is_none() {
+            if book.borrower.is_some() {
                 borrows += 1;
             }
-            if !book.reservation.is_none() {
+            if book.reservation.is_some() {
                 reservations += 1;
             }
 
@@ -226,9 +226,9 @@ impl Database {
 
         book.borrower = Some(Borrower {
             user: user.account.clone(),
-            deadline: deadline,
+            deadline,
         });
-        self.books.update(id, book, &mut self.categories)
+        self.books.update(id, book, &self.categories)
     }
 
     /// Returns the book.
@@ -240,7 +240,7 @@ impl Database {
         }
 
         book.borrower = None;
-        self.books.update(id, book, &mut self.categories)
+        self.books.update(id, book, &self.categories)
     }
 
     /// Creates a reservation for the borrowed book.
@@ -269,7 +269,7 @@ impl Database {
         }
 
         book.reservation = Some(user.account.clone());
-        self.books.update(id, book, &mut self.categories)
+        self.books.update(id, book, &self.categories)
     }
     /// Removes the reservation from the specified book.
     pub fn release(&mut self, id: &str) -> Result<Book> {
@@ -280,7 +280,7 @@ impl Database {
         }
 
         book.reservation = None;
-        self.books.update(id, book, &mut self.categories)
+        self.books.update(id, book, &self.categories)
     }
 
     /// Return the list of expired loan periods.

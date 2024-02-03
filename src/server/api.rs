@@ -17,11 +17,18 @@ use crate::error::{Error, Result};
 use crate::mail::{self, account_is_valid};
 use crate::provider;
 
+/// User configuration.
+#[derive(Debug, Clone)]
+pub struct UserConfig {
+    pub file: PathBuf,
+    pub delimiter: u8,
+}
+
+/// Project state.
 #[derive(Debug, Clone)]
 pub struct Project {
     db: Arc<AtomicDatabase>,
-    user_file: Option<Arc<PathBuf>>,
-    user_delimiter: u8,
+    user: Option<Arc<UserConfig>>,
     client: Client,
     auth: Auth,
 }
@@ -33,16 +40,10 @@ impl FromRef<Project> for Auth {
 }
 
 impl Project {
-    pub fn new(
-        db: AtomicDatabase,
-        user_file: Option<PathBuf>,
-        user_delimiter: u8,
-        auth: Auth,
-    ) -> Self {
+    pub fn new(db: AtomicDatabase, user: Option<UserConfig>, auth: Auth) -> Self {
         Self {
             db: Arc::new(db),
-            user_file: user_file.map(Arc::new),
-            user_delimiter,
+            user: user.map(Arc::new),
             client: Client::new(),
             auth,
         }
@@ -278,10 +279,10 @@ async fn user_fetch_data(
     State(project): State<Project>,
     Path(account): Path<String>,
 ) -> Result<Json<User>> {
-    if let Some(user_file) = &project.user_file {
+    if let Some(user) = &project.user {
         Ok(Json(super::provider::user::search(
-            user_file,
-            project.user_delimiter,
+            &user.file,
+            user.delimiter,
             &account,
         )?))
     } else {
@@ -293,8 +294,8 @@ async fn user_fetch_data(
 ///
 /// The roles of all users not contained in the given list are cleared.
 async fn user_update_roles(State(project): State<Project>) -> Result<()> {
-    if let Some(user_file) = &project.user_file {
-        let users = super::provider::user::load_roles(user_file, project.user_delimiter)?;
+    if let Some(user) = &project.user {
+        let users = super::provider::user::load_roles(&user.file, user.delimiter)?;
         project.db.write().users.update_roles(&users)
     } else {
         Err(Error::NothingFound)

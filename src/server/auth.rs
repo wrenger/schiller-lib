@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::fmt;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use axum::extract::{FromRef, FromRequestParts, Query, State};
@@ -26,8 +26,11 @@ use tracing::error;
 use crate::error::{Error, Result};
 
 static COOKIE_NAME: &str = "SESSION";
-const SESSION_CHECK_SEC: u64 = 24 * 60 * 60; // daily
-const SESSION_EXPIRE_SEC: u64 = 3 * 24 * 60 * 60;
+const SESSION_CHECK_SEC: u64 = 8 * 60 * 60; // 8h
+const SESSION_EXPIRE_SEC: u64 = 3 * 24 * 60 * 60; // 3d
+
+const LOGIN_COUNT: usize = 10;
+const LOGIN_EXPIRE_SEC: u64 = 5 * 60;
 
 /// The routes required for login and logout
 pub fn routes(auth: Auth) -> Router {
@@ -59,6 +62,7 @@ pub async fn background(auth: Auth) {
                     .write()
                     .unwrap()
                     .retain(|_, l| l.expires > now);
+                auth.logins.lock().unwrap().retain(|t| t.1 > now);
             });
         }
     }
@@ -108,6 +112,7 @@ impl Auth {
             Self::OAuth(Arc::new(OAuthState {
                 client,
                 sessions: Default::default(),
+                logins: Default::default(),
                 user_url,
             }))
         } else {
@@ -137,6 +142,8 @@ pub struct AuthConfig {
 pub struct OAuthState {
     client: BasicClient,
     sessions: RwLock<HashMap<Session, Login>>,
+    /// Tokens for CSRF protection
+    logins: Mutex<VecDeque<(CsrfToken, u64)>>,
     user_url: String,
 }
 
@@ -178,11 +185,17 @@ impl fmt::Debug for Session {
 }
 
 async fn login_redirect(State(auth): State<Arc<OAuthState>>) -> impl IntoResponse {
-    let (auth_url, _csrf_token) = auth
+    let (auth_url, csrf_token) = auth
         .client
         .authorize_url(CsrfToken::new_random)
         .add_scope(Scope::new("identify".to_string()))
         .url();
+
+    // Store csrf token for later checks
+    let mut logins = auth.logins.lock().unwrap();
+    logins.push_front((csrf_token, unix_secs() + LOGIN_EXPIRE_SEC));
+    logins.truncate(LOGIN_COUNT);
+
     Redirect::to(auth_url.as_ref())
 }
 
@@ -208,6 +221,16 @@ async fn login_authorized(
     Query(query): Query<AuthRequest>,
     State(auth): State<Arc<OAuthState>>,
 ) -> Result<impl IntoResponse> {
+    {
+        // Check CSRF
+        let mut logins = auth.logins.lock().unwrap();
+        let len = logins.len();
+        logins.retain(|t| t.0.secret() != &query.state);
+        if len == logins.len() {
+            return Err(Error::Network); // CSRF token not found
+        }
+    }
+
     // Get an auth token
     let token = auth
         .client

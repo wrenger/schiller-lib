@@ -8,8 +8,8 @@ use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
 use crate::db::AtomicDatabase;
+use crate::server::{Tls, UserConfig};
 
-// mod api;
 mod db;
 mod error;
 mod isbn;
@@ -39,7 +39,7 @@ struct Args {
     #[arg(short, long, default_value = "lib-view/build")]
     assets: PathBuf,
     /// Path to the database
-    #[arg(short, long, default_value = "schillerbib.db")]
+    #[arg(short, long, default_value = "lib.json")]
     db: PathBuf,
     /// Path to the users file
     #[arg(long)]
@@ -76,9 +76,11 @@ async fn main() {
     });
 
     assert!(user_delimiter.is_ascii());
+    let delimiter = user_delimiter as u8;
     if let Some(user_file) = &user_file {
         assert!(user_file.exists(), "User file not found: {user_file:?}");
     }
+    let user = user_file.map(|file| UserConfig { file, delimiter });
 
     let domain = domain.unwrap_or_else(|| host.to_string());
 
@@ -88,18 +90,8 @@ async fn main() {
         AtomicDatabase::create(&db).unwrap()
     };
 
-    server::start(
-        host,
-        &domain,
-        auth,
-        db,
-        assets,
-        user_file,
-        user_delimiter as _,
-        &cert,
-        &key,
-    )
-    .await;
+    let tls = Tls { cert, key };
+    server::start(host, &domain, db, assets, tls, auth, user).await;
 }
 
 /// initialize tracing

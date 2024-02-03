@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io;
+use std::io::{self, BufReader};
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -35,22 +35,21 @@ use auth::Auth;
 pub use auth::AuthConfig;
 mod api;
 use api::Project;
+pub use api::UserConfig;
 
+/// Start the backend server
 pub async fn start(
     host: SocketAddr,
     domain: &str,
-    auth: Option<AuthConfig>,
     db: AtomicDatabase,
-    dir: PathBuf,
-    user_file: Option<PathBuf>,
-    user_delimiter: u8,
-    cert: &std::path::Path,
-    key: &std::path::Path,
+    assets: PathBuf,
+    tls: Tls,
+    auth: Option<AuthConfig>,
+    user: Option<UserConfig>,
 ) {
-    let config = load_tls_config(cert, key).expect("invalid TLS config");
-
+    let tls = tls.load_config().expect("invalid TLS config");
     let auth = Auth::new(domain, auth);
-    let project = Project::new(db, user_file, user_delimiter, auth.clone());
+    let project = Project::new(db, user, auth.clone());
 
     let app = Router::new()
         .nest("/auth", auth::routes(auth.clone()))
@@ -58,13 +57,13 @@ pub async fn start(
         .route(
             "/",
             get(static_index)
-                .with_state(dir.clone())
+                .with_state(assets.clone())
                 .layer(from_extractor_with_state::<Login, Auth>(auth.clone())),
         )
         .route(
             "/*file",
             get(static_assets)
-                .with_state(dir)
+                .with_state(assets)
                 .layer(from_extractor_with_state::<Login, Auth>(auth.clone())),
         )
         .layer(
@@ -85,7 +84,7 @@ pub async fn start(
 
     debug!("Listening on {host}");
 
-    let (_, r) = tokio::join!(auth::background(auth), serve(host, config, app));
+    let (_, r) = tokio::join!(auth::background(auth), serve(host, tls, app));
     r.unwrap();
 }
 
@@ -125,16 +124,25 @@ async fn serve(host: SocketAddr, tls: ServerConfig, app: Router) -> io::Result<(
     }
 }
 
-fn load_tls_config(cert: &std::path::Path, key: &std::path::Path) -> io::Result<ServerConfig> {
-    let certs = rustls_pemfile::certs(&mut io::BufReader::new(File::open(cert)?))
-        .collect::<Result<_, io::Error>>()?;
-    let key = rustls_pemfile::pkcs8_private_keys(&mut io::BufReader::new(File::open(key)?))
-        .next()
-        .ok_or(io::Error::new(io::ErrorKind::InvalidInput, "invalid key"))??;
-    rustls::ServerConfig::builder()
-        .with_no_client_auth()
-        .with_single_cert(certs, key.into())
-        .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))
+/// TLS configuration
+pub struct Tls {
+    pub cert: PathBuf,
+    pub key: PathBuf,
+}
+
+impl Tls {
+    fn load_config(self) -> io::Result<ServerConfig> {
+        use rustls_pemfile::{certs, pkcs8_private_keys};
+
+        let certs = certs(&mut BufReader::new(File::open(self.cert)?)).collect::<Result<_, _>>()?;
+        let key = pkcs8_private_keys(&mut BufReader::new(File::open(self.key)?))
+            .next()
+            .ok_or(io::Error::new(io::ErrorKind::InvalidInput, "invalid key"))??;
+        rustls::ServerConfig::builder()
+            .with_no_client_auth()
+            .with_single_cert(certs, key.into())
+            .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))
+    }
 }
 
 async fn static_index(State(dir): State<PathBuf>, req: Request<Body>) -> Response {

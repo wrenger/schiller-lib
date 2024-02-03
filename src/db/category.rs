@@ -43,7 +43,7 @@ impl Categories {
                 v.insert(category.clone());
                 Ok(category)
             }
-            _ => Err(Error::InvalidBook),
+            _ => Err(Error::Arguments),
         }
     }
 
@@ -63,32 +63,32 @@ impl Categories {
                 *entry = category.clone();
                 return Ok(category);
             }
-        } else {
-            if self.data.remove(id).is_some() {
-                return match self.data.entry(category.id.clone()) {
-                    Entry::Vacant(v) => {
-                        v.insert(category.clone());
-                        books.update_category(id, &category.id)?;
-                        Ok(category)
-                    }
-                    _ => Err(Error::Arguments),
-                };
-            }
+        } else if self.data.remove(id).is_some() {
+            return match self.data.entry(category.id.clone()) {
+                Entry::Vacant(v) => {
+                    v.insert(category.clone());
+                    books.update_category(id, &category.id)?;
+                    Ok(category)
+                }
+                _ => Err(Error::Arguments),
+            };
         }
 
         Err(Error::NothingFound)
     }
 
     pub fn delete(&mut self, id: &str, books: &Books) -> Result<()> {
+        let id = id.trim();
+        if id.is_empty() {
+            return Err(Error::Arguments);
+        }
+
         // Check for books with the category
         for book in books.data.values() {
             if book.category == id {
                 return Err(Error::ReferencedCategory);
             }
         }
-        self.data
-            .remove(id.trim())
-            .map(|_| ())
-            .ok_or(Error::NothingFound)
+        self.data.remove(id).map(|_| ()).ok_or(Error::NothingFound)
     }
 }

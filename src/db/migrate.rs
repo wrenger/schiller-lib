@@ -1,5 +1,6 @@
-use std::fmt;
-use std::fs::{File, OpenOptions};
+use std::{fmt, io::Seek};
+use std::fs::File;
+use std::io::BufReader;
 use std::path::Path;
 use std::str::FromStr;
 
@@ -22,7 +23,7 @@ pub fn import(path: &Path) -> Result<(File, Database)> {
         tracing::warn!("Try importing old database");
         let data = from_db(path)?;
         let path = path.with_extension("json");
-        let file = OpenOptions::new()
+        let file = File::options()
             .create_new(true)
             .read(true)
             .write(true)
@@ -32,20 +33,19 @@ pub fn import(path: &Path) -> Result<(File, Database)> {
         return Ok((file, data));
     }
 
-    let data = std::fs::read_to_string(path)?;
-    let DatabaseVersion { version } = serde_json::from_str(&data)?;
+    let mut file = File::options()
+        .create(true)
+        .read(true)
+        .write(true)
+        .open(path)?;
+    file.try_lock_exclusive()?;
 
-    let data_version: Version = version;
-    let new_version: Version = crate::PKG_VERSION.parse().unwrap();
-    if MIN_VERSION <= data_version && data_version <= new_version {
-        let mut file = OpenOptions::new()
-            .create(true)
-            .read(true)
-            .write(true)
-            .open(path)?;
-        file.try_lock_exclusive()?;
+    let DatabaseVersion { version } = serde_json::from_reader(BufReader::new(&file))?;
+    let pkg_version: Version = crate::PKG_VERSION.parse().unwrap();
+    if MIN_VERSION <= version && version <= pkg_version {
+        file.rewind()?;
         // TODO: Migration routines
-        let data = Database::load(&mut file)?;
+        let data = Database::load(&file)?;
         Ok((file, data))
     } else {
         Err(Error::UnsupportedProjectVersion)
@@ -138,11 +138,7 @@ impl<'de> Visitor<'de> for VersionVisitor {
     where
         E: de::Error,
     {
-        if let Ok(version) = value.parse() {
-            Ok(version)
-        } else {
-            Err(E::custom("invalid version"))
-        }
+        value.parse().map_err(E::custom)
     }
     fn visit_string<E>(self, value: String) -> std::result::Result<Self::Value, E>
     where

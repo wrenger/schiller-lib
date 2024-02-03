@@ -99,6 +99,10 @@ pub struct Books {
 
 impl Books {
     pub fn fetch(&self, id: &str) -> Result<Book> {
+        let id = id.trim();
+        if id.is_empty() {
+            return Err(Error::Arguments);
+        }
         self.data.get(id).cloned().ok_or(Error::NothingFound)
     }
 
@@ -127,26 +131,25 @@ impl Books {
                 *entry = book.clone();
                 return Ok(book);
             }
-        } else {
-            if self.data.remove(id).is_some() {
-                return match self.data.entry(book.id.clone()) {
-                    Entry::Vacant(v) => {
-                        v.insert(book.clone());
-                        Ok(book)
-                    }
-                    _ => Err(Error::InvalidBook),
-                };
-            }
+        } else if self.data.remove(id).is_some() {
+            return match self.data.entry(book.id.clone()) {
+                Entry::Vacant(v) => {
+                    v.insert(book.clone());
+                    Ok(book)
+                }
+                _ => Err(Error::InvalidBook),
+            };
         }
 
         Err(Error::NothingFound)
     }
 
     pub fn delete(&mut self, id: &str) -> Result<()> {
-        self.data
-            .remove(id.trim())
-            .map(|_| ())
-            .ok_or(Error::NothingFound)
+        let id = id.trim();
+        if id.is_empty() {
+            return Err(Error::Arguments);
+        }
+        self.data.remove(id).map(|_| ()).ok_or(Error::NothingFound)
     }
 
     /// Search specific books
@@ -228,13 +231,11 @@ impl Books {
     }
 
     pub fn in_category(&self, id: &str) -> Result<usize> {
-        let mut count = 0;
-        for book in self.data.values() {
-            if book.category == id {
-                count += 1;
-            }
+        let id = id.trim();
+        if id.is_empty() {
+            return Err(Error::Arguments);
         }
-        Ok(count)
+        Ok(self.data.values().filter(|b| b.category == id).count())
     }
 
     /// Generates a new unique id based on the authors surname and the category.
@@ -267,6 +268,11 @@ impl Books {
 
     // Is the user borrowing or reserving by any books
     pub fn is_user_referenced(&self, account: &str) -> bool {
+        let account = account.trim();
+        if account.is_empty() {
+            return false;
+        }
+
         self.data.values().any(|b| {
             matches!(&b.borrower, Some(b) if b.user == account)
                 || matches!(&b.reservation, Some(r) if r == account)
@@ -274,6 +280,11 @@ impl Books {
     }
 
     pub fn update_user(&mut self, from: &str, to: &str) -> Result<()> {
+        let (from, to) = (from.trim(), to.trim());
+        if from.is_empty() || to.is_empty() {
+            return Err(Error::Arguments);
+        }
+
         for book in self.data.values_mut() {
             if let Some(borrower) = &mut book.borrower {
                 if borrower.user == from {
@@ -288,6 +299,11 @@ impl Books {
     }
 
     pub fn update_category(&mut self, from: &str, to: &str) -> Result<()> {
+        let (from, to) = (from.trim(), to.trim());
+        if from.is_empty() || to.is_empty() {
+            return Err(Error::Arguments);
+        }
+
         for book in self.data.values_mut() {
             if book.category == from {
                 book.category = to.to_string();
@@ -298,17 +314,18 @@ impl Books {
 }
 
 fn id_prefix(author: &str, category: &str) -> String {
-    let mut author_prefix = author
+    let mut author = author
         .rsplit_once(' ') // surname
         .map_or(author, |s| s.1)
         .nfd() // decompose -> split ÄÖÜ
         .map(|c| if c == 'ß' { 'S' } else { c })
         .filter(char::is_ascii_alphabetic)
         .map(|c| c.to_ascii_uppercase())
+        .take(4)
         .collect::<String>();
 
-    if author_prefix.is_empty() {
-        author_prefix = "XXXX".into();
+    if author.is_empty() {
+        author = "XXXX".into();
     }
 
     let category = if !category.is_empty() {
@@ -317,10 +334,7 @@ fn id_prefix(author: &str, category: &str) -> String {
         "XXXX"
     };
 
-    format!(
-        "{category} {}",
-        &author_prefix[..author_prefix.len().min(4)],
-    )
+    format!("{category} {author}")
 }
 
 #[cfg(test)]
