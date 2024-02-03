@@ -118,7 +118,6 @@
 	".error.none": "Keine Ergebnisse gefunden",
 	".error.provider.none": "Kein {0} Plugin installiert",
 	".error.provider.config": "Invalider Wert für {0}",
-	".error.sql": "Datenbankzugriff fehlgeschlagen.",
 	".error.user.existing": "Ein Benutzer mit dem Account '{0}' existiert bereits.",
 	".error.user.none": "Kein Benutzer gefunden.",
 	".error.version": "Die aktuelle Projektversion wird nicht unterstützt.\nBitte kontaktieren Sie einen Entwickler.",

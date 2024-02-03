@@ -118,7 +118,6 @@
 	".error.none": "No results found",
 	".error.provider.none": "No {0} plugin installed",
 	".error.provider.config": "Invalid value for {0}",
-	".error.sql": "Database access failed.",
 	".error.user.existing": "The user account '{0}' already exists.",
 	".error.user.none": "No user found.",
 	".error.version": "The current Project Version is unsupported.\nPlease contanct a developer.",

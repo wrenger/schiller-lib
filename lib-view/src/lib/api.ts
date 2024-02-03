@@ -480,8 +480,6 @@ namespace api {
 				return '.error.lending.not-reserved';
 			case 'UnsupportedProjectVersion':
 				return '.error.update';
-			case 'SQL':
-				return '.error.sql';
 			default:
 				return '.error.unknown';
 		}
