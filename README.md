@@ -19,6 +19,7 @@ The project can be built and executed with the following commands:
 ./test/cert/gen.sh
 # build the front end
 cd lib-view
+bun i
 bun run build
 cd ..
 # start the web server
@@ -76,7 +77,7 @@ The entire project is stored and loaded from a single JSON file.
 For distribution, the following parts have to be built or configured.
 
 - **Back End:** `target/release/schiller-lib` (using `cargo build -r`)
-- **Front End:** `lib-view/build` (using `bun run build`)
+- **Front End:** `lib-view/build` (using `bun i && bun run build`)
 - **SSL Certificates:** `test/cert/(cert|key).pem` (using `test/cert/gen.sh` or your own certificates)
 - **OAuth Config:** `auth.json` (see [OAuth2](#oauth2))
 - **Database:** `lib.json` (optional, if not provided, a new database is created)
