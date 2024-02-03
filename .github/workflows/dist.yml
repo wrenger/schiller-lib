@@ -2,7 +2,7 @@ name: Dist
 
 on:
   release:
-    types: [ published ]
+    types: [published]
   workflow_dispatch: {}
 
 env:
@@ -14,22 +14,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup Node
-      uses: actions/setup-node@v2
-      with:
-        node-version: 14
-    - name: Install Svelte
-      run: npm install
-      working-directory: lib-view
-    - name: Build Svelte
-      run: npm run build
-      working-directory: lib-view
-    - name: Upload
-      uses: actions/upload-artifact@v2
-      with:
-        name: lib-view
-        path: lib-view/build
+      - uses: actions/checkout@v2
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.0.11
+      - name: Install Svelte
+        run: bun install
+        working-directory: lib-view
+      - name: Build Svelte
+        run: bun run build
+        working-directory: lib-view
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: lib-view
+          path: lib-view/build
 
   build-rust:
     name: Build ${{ matrix.os }}
@@ -38,19 +38,19 @@ jobs:
     strategy:
       matrix:
         include:
-        - os: ubuntu-latest
-          exe: schiller-lib
-        - os: windows-latest
-          exe: schiller-lib.exe
+          - os: ubuntu-latest
+            exe: schiller-lib
+          - os: windows-latest
+            exe: schiller-lib.exe
 
     steps:
-    - name: Build
-      run: cargo build --release
-    - name: Upload
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ matrix.exe }}
-        path: target/release/${{ matrix.exe }}
+      - name: Build
+        run: cargo build --release
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.exe }}
+          path: target/release/${{ matrix.exe }}
 
   package:
     name: Package ${{ matrix.platform }}
@@ -60,31 +60,31 @@ jobs:
     strategy:
       matrix:
         include:
-        - platform: linux
-          exe: schiller-lib
-        - platform: window
-          exe: schiller-lib.exe
+          - platform: linux
+            exe: schiller-lib
+          - platform: window
+            exe: schiller-lib.exe
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup Output
-      run: mkdir -p build
-    - name: Download lib-view
-      uses: actions/download-artifact@v2
-      with:
-        name: lib-view
-        path: build/lib-view
-    - name: Download server
-      uses: actions/download-artifact@v2
-      with:
-        name: ${{ matrix.exe }}
-        path: build/${{ matrix.exe }}
-    - name: Package
-      run: zip -r schiller-lib-${{ matrix.platform }}.zip build
-    - name: Upload Release Asset
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: schiller-lib-${{ matrix.platform }}.zip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
+      - name: Setup Output
+        run: mkdir -p build
+      - name: Download lib-view
+        uses: actions/download-artifact@v2
+        with:
+          name: lib-view
+          path: build/lib-view
+      - name: Download server
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.exe }}
+          path: build/${{ matrix.exe }}
+      - name: Package
+        run: zip -r schiller-lib-${{ matrix.platform }}.zip build
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: schiller-lib-${{ matrix.platform }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
