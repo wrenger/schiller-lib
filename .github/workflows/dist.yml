@@ -44,6 +44,7 @@ jobs:
             exe: schiller-lib.exe
 
     steps:
+      - uses: actions/checkout@v2
       - name: Build
         run: cargo build --release
         working-directory: ../
