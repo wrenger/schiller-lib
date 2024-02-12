@@ -18,7 +18,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
-          bun-version: 1.0.11
+          bun-version: "latest"
       - name: Install Svelte
         run: bun install
         working-directory: lib-view
@@ -46,6 +46,7 @@ jobs:
     steps:
       - name: Build
         run: cargo build --release
+        working-directory: ./
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
