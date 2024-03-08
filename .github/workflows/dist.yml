@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
@@ -26,7 +26,7 @@ jobs:
         run: bun run build
         working-directory: lib-view
       - name: Upload
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: lib-view
           path: lib-view/build
@@ -44,11 +44,11 @@ jobs:
             exe: schiller-lib.exe
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build
         run: cargo build --release
       - name: Upload
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.exe }}
           path: target/release/${{ matrix.exe }}
@@ -67,16 +67,16 @@ jobs:
             exe: schiller-lib.exe
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup Output
         run: mkdir -p build
       - name: Download lib-view
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: lib-view
           path: build/lib-view
       - name: Download server
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.exe }}
           path: build/${{ matrix.exe }}
