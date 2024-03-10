@@ -75,15 +75,11 @@
 		category.set(categories);
 	}
 
-	async function updatePeriodically() {
-		await update();
-	}
-
 	onMount(() => {
 		// Run the `update` function immediately on mount
-		updatePeriodically();
+		update();
 
-		const interval = setInterval(updatePeriodically, 300000);
+		const interval = setInterval(update, 300000);
 
 		// Cleanup the interval when the component is unmounted
 		return () => {
