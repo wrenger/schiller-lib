@@ -119,4 +119,5 @@
 			{/await}
 		</div>
 	</div>
+	<div class="md:mb-2"></div>
 </div>
