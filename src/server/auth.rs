@@ -16,7 +16,7 @@ use base64::Engine;
 use hyper::{HeaderMap, StatusCode};
 use oauth2::basic::BasicClient;
 use oauth2::{
-    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, HttpRequest, HttpResponse,
+    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, EndpointNotSet, EndpointSet,
     RedirectUrl, Scope, TokenResponse, TokenUrl,
 };
 use rand::RngCore;
@@ -101,13 +101,11 @@ impl Auth {
         }) = config
         {
             let redirect = format!("https://{domain}/auth/authorized");
-            let client = BasicClient::new(
-                ClientId::new(client_id),
-                Some(ClientSecret::new(client_secret)),
-                AuthUrl::new(auth_url).unwrap(),
-                Some(TokenUrl::new(token_url).unwrap()),
-            )
-            .set_redirect_uri(RedirectUrl::new(redirect).unwrap());
+            let client = BasicClient::new(ClientId::new(client_id))
+                .set_client_secret(ClientSecret::new(client_secret))
+                .set_auth_uri(AuthUrl::new(auth_url).unwrap())
+                .set_token_uri(TokenUrl::new(token_url).unwrap())
+                .set_redirect_uri(RedirectUrl::new(redirect).unwrap());
 
             Self::OAuth(Arc::new(OAuthState {
                 client,
@@ -138,13 +136,22 @@ pub struct AuthConfig {
 }
 
 /// The internal authentication state
-#[derive(Debug)]
 pub struct OAuthState {
-    client: BasicClient,
+    client: BasicClient<EndpointSet, EndpointNotSet, EndpointNotSet, EndpointNotSet, EndpointSet>,
     sessions: RwLock<HashMap<Session, Login>>,
     /// Tokens for CSRF protection
     logins: Mutex<VecDeque<(CsrfToken, u64)>>,
     user_url: String,
+}
+
+impl fmt::Debug for OAuthState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("OAuthState")
+            .field("sessions", &self.sessions)
+            .field("logins", &self.logins)
+            .field("user_url", &self.user_url)
+            .finish()
+    }
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -231,11 +238,16 @@ async fn login_authorized(
         }
     }
 
+    let http_client = reqwest::Client::builder()
+        // Following redirects opens the client up to SSRF vulnerabilities.
+        .redirect(reqwest::redirect::Policy::none())
+        .build()?;
+
     // Get an auth token
     let token = auth
         .client
         .exchange_code(AuthorizationCode::new(query.code.clone()))
-        .request_async(async_http_client)
+        .request_async(&http_client)
         .await?;
 
     // Fetch user data from discord
@@ -320,28 +332,6 @@ fn unix_secs() -> u64 {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_secs()
-}
-
-/// Asynchronous HTTP client.
-async fn async_http_client(request: HttpRequest) -> Result<HttpResponse> {
-    let client = reqwest::Client::builder()
-        // Following redirects opens the client up to SSRF vulnerabilities.
-        .redirect(reqwest::redirect::Policy::none())
-        .build()?;
-
-    let request = client
-        .request(request.method, request.url)
-        .headers(request.headers)
-        .body(request.body)
-        .build()?;
-
-    let response = client.execute(request).await?;
-
-    Ok(HttpResponse {
-        status_code: response.status(),
-        headers: response.headers().to_owned(),
-        body: response.bytes().await?.to_vec(),
-    })
 }
 
 #[cfg(test)]

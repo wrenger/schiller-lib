@@ -1,0 +1,18 @@
+[alias]
+serve-dev = [
+    "run",
+    "--",
+    "127.0.0.1:5000",
+    "--db=test/schillerbib.json",
+    "--cert=test/cert/cert.pem",
+    "--key=test/cert/key.pem",
+]
+serve = [
+    "run",
+    "--",
+    "127.0.0.1:5000",
+    "--db=test/schillerbib.json",
+    "--cert=test/cert/cert.pem",
+    "--key=test/cert/key.pem",
+    "--auth=test/auth.json",
+]
