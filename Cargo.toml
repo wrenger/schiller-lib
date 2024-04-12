@@ -27,17 +27,17 @@ fs4 = "0.8"
 hyper = "1.1"
 hyper-util = "0.1"
 lettre = { version = "0.11", default-features = false, features = ["builder", "smtp-transport", "rustls-tls"] }
-oauth2 = { version = "5.0.0-alpha.3" }
+oauth2 = { version = "5.0.0-alpha.4" }
 rand = "0.8"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
 roxmltree = "0.19"
 rusqlite = { version = "0.31", features = ["bundled"], optional = true }
-rustls = "0.23"
+rustls = "0.22"
 rustls-pemfile = "2.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1.36", features =  ["fs", "sync", "time", "macros", "rt-multi-thread"]}
-tokio-rustls = "0.26"
+tokio-rustls = "0.25"
 tower = { version = "0.4", features = ["util", "timeout"] }
 tower-http = { version = "0.5", features = ["fs", "trace", "compression-deflate"] }
 tower-service = "0.3"
