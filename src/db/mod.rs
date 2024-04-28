@@ -1,15 +1,15 @@
 use std::cmp::Ordering;
-use std::fmt;
+use std::ffi::{OsStr, OsString};
 use std::fs::File;
-use std::io::{self, BufWriter, Seek};
+use std::io::{self, BufWriter};
 use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::{fmt, fs};
 
 use chrono::{Local, NaiveDate};
-use fs4::FileExt;
 use serde::{Deserialize, Serialize};
-use tracing::info;
+use tracing::{error, info};
 
 use crate::db::sorted::Sorted;
 use crate::error::{Error, Result};
@@ -308,35 +308,74 @@ impl Database {
 /// It also locks the database file, preventing other applications from accessing it.
 pub struct AtomicDatabase {
     path: PathBuf,
-    data: RwLock<(File, Database)>,
+    tmp: PathBuf,
+    data: RwLock<Database>,
 }
 
 impl AtomicDatabase {
     pub fn load(path: &Path) -> Result<Self> {
-        let (file, data) = migrate::import(path)?;
+        let new_path = path.with_extension("json");
+        let tmp = Self::tmp_path(&new_path)?;
+
+        let data = migrate::import(path)?;
+        atomic_write(&tmp, &new_path, &data)?;
+
         Ok(Self {
-            path: path.into(),
-            data: RwLock::new((file, data)),
+            path: new_path,
+            tmp,
+            data: RwLock::new(data),
         })
     }
 
     pub fn create(path: &Path) -> Result<Self> {
+        assert!(path.extension() == Some(OsStr::new("json")));
+        let tmp = Self::tmp_path(path)?;
+
         let data = Database::default();
-        let mut file = File::create(path)?;
-        file.try_lock_exclusive()?;
-        data.save(&mut file)?;
+        atomic_write(&tmp, path, &data)?;
+
         Ok(Self {
             path: path.into(),
-            data: RwLock::new((file, data)),
+            tmp,
+            data: RwLock::new(data),
         })
     }
 
     pub fn read(&self) -> AtomicDatabaseRead<'_> {
-        AtomicDatabaseRead(self.data.read().unwrap())
+        AtomicDatabaseRead {
+            data: self.data.read().unwrap(),
+        }
     }
     pub fn write(&self) -> AtomicDatabaseWrite<'_> {
-        AtomicDatabaseWrite(self.data.write().unwrap())
+        AtomicDatabaseWrite {
+            path: &self.path,
+            tmp: &self.tmp,
+            data: self.data.write().unwrap(),
+        }
     }
+
+    fn tmp_path(path: &Path) -> Result<PathBuf> {
+        let mut tmp_name = OsString::from(".");
+        tmp_name.push(path.file_name().unwrap_or(OsStr::new("db")));
+        let tmp = path.with_file_name(tmp_name);
+        if tmp.exists() {
+            error!(
+                "Found orphaned database temporary file '{tmp:?}'. The server has recently crashed or is already running. Delete this before continuing!"
+            );
+            return Err(Error::FileOpen);
+        }
+        Ok(tmp)
+    }
+}
+
+fn atomic_write(tmp: &Path, path: &Path, data: &Database) -> Result<()> {
+    {
+        let mut tmpfile = File::create_new(tmp)?;
+        data.save(&mut tmpfile)?;
+        tmpfile.sync_all()?; // just to be sure!
+    }
+    fs::rename(&tmp, &path)?;
+    Ok(())
 }
 
 impl fmt::Debug for AtomicDatabase {
@@ -350,45 +389,41 @@ impl fmt::Debug for AtomicDatabase {
 impl Drop for AtomicDatabase {
     fn drop(&mut self) {
         info!("Saving database");
-        let mut guard = self.data.write().unwrap();
-        let (file, data) = &mut *guard;
-        // truncate
-        file.rewind().unwrap();
-        file.set_len(0).unwrap();
-        data.save(file).unwrap();
-        // unlock file
-        guard.0.unlock().unwrap();
+        let guard = self.data.read().unwrap();
+        atomic_write(&self.tmp, &self.path, &guard).unwrap();
     }
 }
 
-pub struct AtomicDatabaseRead<'a>(RwLockReadGuard<'a, (File, Database)>);
+pub struct AtomicDatabaseRead<'a> {
+    data: RwLockReadGuard<'a, Database>,
+}
 impl Deref for AtomicDatabaseRead<'_> {
     type Target = Database;
     fn deref(&self) -> &Self::Target {
-        &self.0 .1
+        &self.data
     }
 }
 
-pub struct AtomicDatabaseWrite<'a>(RwLockWriteGuard<'a, (File, Database)>);
+pub struct AtomicDatabaseWrite<'a> {
+    tmp: &'a Path,
+    path: &'a Path,
+    data: RwLockWriteGuard<'a, Database>,
+}
 impl Deref for AtomicDatabaseWrite<'_> {
     type Target = Database;
     fn deref(&self) -> &Self::Target {
-        &self.0 .1
+        &self.data
     }
 }
 impl DerefMut for AtomicDatabaseWrite<'_> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0 .1
+        &mut self.data
     }
 }
 impl Drop for AtomicDatabaseWrite<'_> {
     fn drop(&mut self) {
         info!("Saving database");
-        let (file, data) = &mut *self.0;
-        // truncate
-        file.rewind().unwrap();
-        file.set_len(0).unwrap();
-        data.save(file).unwrap();
+        atomic_write(&self.tmp, &self.path, &self.data).unwrap();
     }
 }
 
@@ -413,7 +448,7 @@ mod test {
         let file = Path::new("test/data/schillerbib.db");
 
         let db1 = d1::Database::open(file.into()).unwrap().0;
-        let db2 = super::migrate::import(file).unwrap().1;
+        let db2 = super::migrate::import(file).unwrap();
 
         let timer = Instant::now();
         let results = db1.books().unwrap();
