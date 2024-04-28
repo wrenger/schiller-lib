@@ -304,15 +304,17 @@ impl Database {
 }
 
 /// Synchronized Wrapper, that automatically saves changes
-///
-/// It also locks the database file, preventing other applications from accessing it.
 pub struct AtomicDatabase {
     path: PathBuf,
+    /// Name of the DB temporary file
     tmp: PathBuf,
     data: RwLock<Database>,
 }
 
 impl AtomicDatabase {
+    /// Load the database from the file system.
+    ///
+    /// This also migrates it if it necessary.
     pub fn load(path: &Path) -> Result<Self> {
         let new_path = path.with_extension("json");
         let tmp = Self::tmp_path(&new_path)?;
@@ -326,9 +328,8 @@ impl AtomicDatabase {
             data: RwLock::new(data),
         })
     }
-
+    /// Create a new database and save it.
     pub fn create(path: &Path) -> Result<Self> {
-        assert!(path.extension() == Some(OsStr::new("json")));
         let tmp = Self::tmp_path(path)?;
 
         let data = Database::default();
@@ -340,12 +341,13 @@ impl AtomicDatabase {
             data: RwLock::new(data),
         })
     }
-
+    /// Lock the database for reading.
     pub fn read(&self) -> AtomicDatabaseRead<'_> {
         AtomicDatabaseRead {
             data: self.data.read().unwrap(),
         }
     }
+    /// Lock the database for writing. This will save the changes atomically on drop.
     pub fn write(&self) -> AtomicDatabaseWrite<'_> {
         AtomicDatabaseWrite {
             path: &self.path,
@@ -357,6 +359,7 @@ impl AtomicDatabase {
     fn tmp_path(path: &Path) -> Result<PathBuf> {
         let mut tmp_name = OsString::from(".");
         tmp_name.push(path.file_name().unwrap_or(OsStr::new("db")));
+        tmp_name.push("~");
         let tmp = path.with_file_name(tmp_name);
         if tmp.exists() {
             error!(
@@ -368,6 +371,9 @@ impl AtomicDatabase {
     }
 }
 
+/// Atomic write routine, loosely inspired by the tempfile crate.
+///
+/// This assumes that the rename FS operations are atomic.
 fn atomic_write(tmp: &Path, path: &Path, data: &Database) -> Result<()> {
     {
         let mut tmpfile = File::create_new(tmp)?;
@@ -445,7 +451,7 @@ mod test {
         use crate::db as d2;
 
         crate::logging();
-        let file = Path::new("test/data/schillerbib.db");
+        let file = Path::new("test/schillerbib.db");
 
         let db1 = d1::Database::open(file.into()).unwrap().0;
         let db2 = super::migrate::import(file).unwrap();
