@@ -10,15 +10,19 @@ register('de', () => import('./locales/de.json'));
 let lang: string | null | undefined = undefined;
 
 async function initializeI18n() {
-	await init({
-		fallbackLocale: defaultLocale,
-		initialLocale: browser ? window.navigator.language : defaultLocale
-	});
-
+	let initialLocale = defaultLocale;
 	if (browser) {
 		const storedLang = localStorage.getItem('lang');
-		if (storedLang) setLang(storedLang);
+		if (storedLang) {
+			initialLocale = storedLang;
+		} else {
+			setLang(initialLocale);
+		}
 	}
+	await init({
+		fallbackLocale: defaultLocale,
+		initialLocale
+	});
 
 	locale.subscribe((s) => (lang = s));
 }

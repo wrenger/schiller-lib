@@ -1,73 +1,72 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import api from '$lib/api';
-	import {
-		Autocomplete,
-		popup,
-		type AutocompleteOption,
-		type PopupSettings
-	} from '@skeletonlabs/skeleton';
-	import { onMount } from 'svelte';
+	import { Button } from '$lib/components/ui/button';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import * as Tooltip from '$lib/components/ui/tooltip';
+	import { HandCoins, Plus } from 'lucide-svelte';
+	import { Separator } from '$lib/components/ui/separator';
+	import UserDialog from './UserDialog.svelte';
 
-	export let label = '';
-	export let placeholder = '';
-	export let readonly: boolean = false;
-	export let value = '';
+	export let params: api.UserSearch;
+	export var onChange: (b: api.User | null) => void;
 
-	let items: api.Limited<api.User>;
-	let mounted: boolean = false;
-	let popupSettings: PopupSettings = {
-		event: 'focus-click',
-		target: 'popupAutocomplete',
-		placement: 'bottom-start'
-	};
-
-	onMount(() => (mounted = true));
-
-	function toACO(users: api.User[] | undefined): AutocompleteOption<string, {}>[] | undefined {
-		if (users)
-			return users.map((user) => ({
-				label: `${user.forename} ${user.surname}`,
-				value: user.account,
-				keywords: `${user.forename} ${user.surname} ${user.account}`,
-				meta: {}
-			}));
-	}
-
-	async function onSelect(event: CustomEvent<AutocompleteOption<string>>) {
-		value = event.detail.value;
-	}
-
-	async function fetch(value: string) {
-		items = await api.user_search({ query: value, limit: 10 });
-	}
-
-	$: if (mounted) fetch(value);
+	let may_borrow: string;
+	$: if (params?.may_borrow == undefined) may_borrow = 'None';
 </script>
 
-<label class="label">
-	{#if label}
-		<span>{label}</span>
-	{/if}
-	<input
-		class="input autocomplete"
-		type="search"
-		name="autocomplete-search"
-		{readonly}
-		bind:value
-		{placeholder}
-		use:popup={popupSettings}
-	/>
-	<div
-		data-popup={readonly ? '' : 'popupAutocomplete'}
-		class="card w-fit max-w-sm max-h-48 p-4 overflow-y-auto z-[500]"
-	>
-		<Autocomplete
-			bind:input={value}
-			options={toACO(items?.rows)}
-			emptyState={$_('.error.none')}
-			regionEmpty="p-2 pl-4 pr-4 opacity-50"
-			on:selection={onSelect}
-		/>
-	</div>
-</label>
+<div class="flex gap-1">
+	<DropdownMenu.Root>
+		<DropdownMenu.Trigger asChild let:builder={dropdown}>
+			<Tooltip.Root openDelay={0}>
+				<Tooltip.Trigger asChild let:builder={tooltip}>
+					<Button
+						variant={!params?.may_borrow ? 'ghost' : 'outline'}
+						size="icon"
+						class="rounded-lg"
+						aria-label={$_('.user.permission')}
+						builders={[dropdown, tooltip]}
+					>
+						<HandCoins class="size-5" />
+					</Button>
+				</Tooltip.Trigger>
+				<Tooltip.Content side="bottom" sideOffset={5}>{$_('.user.permission')}</Tooltip.Content>
+			</Tooltip.Root>
+		</DropdownMenu.Trigger>
+		<DropdownMenu.Content class="w-56">
+			<DropdownMenu.Label>{$_('.user.permission')}</DropdownMenu.Label>
+			<DropdownMenu.Separator />
+			<DropdownMenu.RadioGroup bind:value={may_borrow}>
+				<DropdownMenu.RadioItem
+					on:click={() => (params = { ...params, may_borrow: undefined })}
+					value="None">{$_('.action.all')}</DropdownMenu.RadioItem
+				>
+				<DropdownMenu.RadioItem
+					on:click={() => (params = { ...params, may_borrow: true })}
+					value="MayBorrow">{$_('.user.may-borrow')}</DropdownMenu.RadioItem
+				>
+				<DropdownMenu.RadioItem
+					on:click={() => (params = { ...params, may_borrow: false })}
+					value="MayNotBorrow">{$_('.user.may-not-borrow')}</DropdownMenu.RadioItem
+				>
+			</DropdownMenu.RadioGroup>
+		</DropdownMenu.Content>
+	</DropdownMenu.Root>
+	<Separator orientation="vertical" class="mx-1 mt-2 h-6" />
+	<UserDialog user={null} {onChange} let:dialog>
+		<Tooltip.Root openDelay={0}>
+			<Tooltip.Trigger asChild let:builder={tooltip}>
+				<Button
+					variant="ghost"
+					size="icon"
+					class="rounded-lg"
+					aria-label={$_('.action.add')}
+					builders={[dialog, tooltip]}
+				>
+					<Plus class="size-5" />
+				</Button>
+			</Tooltip.Trigger>
+			<Tooltip.Content side="bottom" sideOffset={5}>{$_('.action.add')}</Tooltip.Content>
+		</Tooltip.Root>
+	</UserDialog>
+</div>

@@ -1,37 +1,33 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
+	import Layout from '../Layout.svelte';
 	import api from '$lib/api';
-	import Container from '../../components/basic/Container.svelte';
+	import VirtualList from '../../lib/components/ui/virtual-list/VirtualList.svelte';
 	import UserSearch from './UserSearch.svelte';
-	import UserView from './UserView.svelte';
+	import { count } from '$lib/store';
+	import UserSelect from './UserSelect.svelte';
 	import UserItem, { HEIGHT } from './UserItem.svelte';
-	import VirtualList from '../../components/basic/VirtualList.svelte';
+	import UserActions from './UserActions.svelte';
+	import UserDisplay from './UserDisplay.svelte';
 
-	let params: api.BookSearch;
 	let active: api.User | null;
-	let adding: boolean = false;
+	let search: api.UserSearch = { query: '' };
+	let layout: Layout;
+	// layout mobile display, won't work without binding open
+	let open: boolean;
 
 	let list: VirtualList<api.User> | null = null;
-	let view: UserView | null = null;
 
-	$: if (params) list?.reload();
-	$: if (!adding) list?.stopAdding();
-	$: if (active != null) {
-		view?.display(active);
-		adding = false;
-	}
-
-	function onAdd() {
-		adding = true;
-		view?.create();
-	}
+	$: if (search) list?.reload();
 
 	function onChange(user: api.User | null) {
-		// don't deselect when closing adding
-		if (!(adding && user == null)) {
-			active = user;
+		// layout mobile display selection/deselection
+		if (user == null) {
+			layout?.setOpen(false);
+		} else {
+			layout?.setOpen(true);
 		}
-		adding = false;
+		active = user;
 		list?.reload();
 	}
 </script>
@@ -41,33 +37,46 @@
 	<meta name="description" content={$_('.search.user')} />
 </svelte:head>
 
-<Container isActive={active != null || adding}>
-	<span slot="list">
-		<VirtualList
-			bind:this={list}
-			bind:active
-			rowHeight={HEIGHT}
-			{onAdd}
-			load={(offset, limit) => api.user_search({ ...params, offset, limit })}
-			key={(user) => user.account}
-		>
-			<div slot="header" class="pt-2 pb-0">
-				<UserSearch bind:params />
-				<span class="flex pr-2 pl-2">
-					<span class="flex-auto font-bold">{$_('.user.name')} / {$_('.user.account')}</span>
-					<span class="font-bold">{$_('.user.role')} </span>
-				</span>
-			</div>
-			<UserItem
-				slot="item"
-				let:item
-				user={item}
-				active={active?.account === item.account}
-				onClick={() => (active = item)}
-			/>
-		</VirtualList>
-	</span>
-	<div slot="view" class="h-full" hidden={!(active != null || adding)}>
-		<UserView bind:this={view} {onChange} />
-	</div>
-</Container>
+<Layout bind:this={layout} bind:open>
+	<svelte:fragment slot="list-nav">
+		<div class="flex h-full items-center justify-between px-4">
+			<h1 class="text-xl font-bold">{$_('.search.user')}</h1>
+			<UserSelect {onChange} bind:params={search} />
+		</div>
+	</svelte:fragment>
+	<svelte:fragment slot="list">
+		<div class="grid grid-rows-[72px_auto] overflow-scroll">
+			<UserSearch bind:params={search} />
+			<VirtualList
+				bind:this={list}
+				bind:active
+				scrollClass="pb-2"
+				rowHeight={HEIGHT}
+				load={(offset, limit) => api.user_search({ ...search, offset, limit })}
+				key={(user) => user.account}
+				onLoad={(total) => {
+					$count.users = total;
+				}}
+			>
+				<UserItem
+					slot="item"
+					let:item
+					user={item}
+					active={active?.account === item.account}
+					onClick={() => {
+						active = item;
+						layout?.setOpen(true);
+					}}
+				/>
+			</VirtualList>
+		</div>
+	</svelte:fragment>
+	<svelte:fragment slot="display-nav">
+		<UserActions user={active} {onChange} />
+	</svelte:fragment>
+	<svelte:fragment slot="display">
+		{#if active}
+			<UserDisplay user={active} />
+		{/if}
+	</svelte:fragment>
+</Layout>

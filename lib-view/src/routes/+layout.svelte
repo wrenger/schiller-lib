@@ -1,193 +1,169 @@
 <script lang="ts">
-	// css
-	import '@fortawesome/fontawesome-free/css/all.css';
-	import '../app.postcss';
-
-	// app
-	import {
-		AppShell,
-		AppRail,
-		AppRailAnchor,
-		Modal,
-		getModalStore,
-		type ModalSettings,
-		type ModalComponent,
-		TabGroup,
-		TabAnchor,
-		setInitialClassState,
-		Toast,
-		type ToastSettings,
-		getToastStore
-	} from '@skeletonlabs/skeleton';
-
-	// stores
-	import { initializeStores } from '@skeletonlabs/skeleton';
-	initializeStores();
-	const modalStore = getModalStore();
-
-	const modalRegistry: Record<string, ModalComponent> = {
-		settingsModal: { ref: SettingsModal },
-		lendModal: { ref: LendModal },
-		mailModal: { ref: MailModal },
-		reserveModal: { ref: ReserveModal },
-		remindersModal: { ref: RemidersModal }
-	};
-
-	const toastStore = getToastStore();
-
-	// language
+	import '../app.pcss';
 	import { _ } from 'svelte-i18n';
-
-	// Floating UI for Popups
-	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
-	import { storePopup } from '@skeletonlabs/skeleton';
+	import { ModeWatcher, mode } from 'mode-watcher';
+	import { Toaster } from '$lib/components/ui/sonner';
+	import { Button } from '$lib/components/ui/button';
+	import { CalendarClock, Info, Library, Settings, Users } from 'lucide-svelte';
+	import * as Tooltip from '$lib/components/ui/tooltip';
+	import * as Avatar from '$lib/components/ui/avatar';
 	import { page } from '$app/stores';
-	import SettingsModal from '../components/settings/SettingsModal.svelte';
-	import api from '../lib/api';
+	import { Separator } from '$lib/components/ui/separator';
+	import { categories, count, settingsGlobal } from '$lib/store';
+	import api from '$lib/api';
 	import { DateTime } from 'luxon';
-	import { category, errorStore, settingsGlobal, state } from '$lib/store';
 	import { onMount } from 'svelte';
-	import LendModal from './books/LendModal.svelte';
-	import MailModal from './books/MailModal.svelte';
-	import ReserveModal from './books/ReserveModal.svelte';
-	import RemidersModal from '../components/settings/RemidersModal.svelte';
-	import Reminders from '../components/settings/Reminders.svelte';
-	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
+	import Reminder from './Reminder.svelte';
 
-	function settings(): void {
-		const modal: ModalSettings = {
-			type: 'component',
-			component: 'settingsModal'
-		};
-		modalStore.trigger(modal);
-	}
-
-	// get info
+	// Getting needed infos
 	async function update() {
-		// get settings
+		// Get settings
 		let data = await api.settings();
 		let settings = { ...data, mail_last_reminder: DateTime.fromISO(data.mail_last_reminder) };
 
 		settingsGlobal.set(settings);
 
-		// get categories
-		let categories = await api.categories();
-		category.set(categories);
+		// Get categories
+		let categoriesData = await api.categories();
+		categories.set(categoriesData);
 	}
 
+	// Update periodically after and on Mount
 	onMount(() => {
-		// Run the `update` function immediately on mount
 		update();
-
 		const interval = setInterval(update, 300000);
 
-		// Cleanup the interval when the component is unmounted
 		return () => {
 			clearInterval(interval);
 		};
 	});
-
-	// api errors
-	errorStore.subscribe((s) => {
-		if (s.message) {
-			const t: ToastSettings = {
-				message: s.message,
-				background: 'variant-filled-error'
-			};
-			toastStore.trigger(t);
-		}
-	});
 </script>
 
-<svelte:head>{@html `<script>(${setInitialClassState.toString()})();</script>`}</svelte:head>
+<Toaster id="toaster" theme={$mode} class={'z-[100]'} />
 
-<Toast position="br" zIndex="z-[1000]" />
-<Modal components={modalRegistry} />
-<Reminders />
+<ModeWatcher disableTransitions={false} />
 
-<AppShell>
-	<svelte:fragment slot="sidebarLeft">
-		<AppRail class="hidden sm:grid">
-			<AppRailAnchor
-				title={$_('.search.book')}
-				href="/books"
-				selected={$page.url.pathname === '/books'}
-				><svelte:fragment slot="lead"><i class="fa-solid fa-book"></i></svelte:fragment>
-				<span class="truncate w-16 inline-block">{$_('.search.book')}</span></AppRailAnchor
-			>
-			<AppRailAnchor
-				title={$_('.search.user')}
-				href="/users"
-				selected={$page.url.pathname === '/users'}
-				><svelte:fragment slot="lead"><i class="fa-solid fa-user-group"></i></svelte:fragment>
-				<span class="truncate w-16 inline-block">{$_('.search.user')}</span></AppRailAnchor
-			>
-			<AppRailAnchor
-				title={$_('.book.overdues')}
-				href="/overdues"
-				selected={$page.url.pathname === '/overdues'}
-				><svelte:fragment slot="lead"><i class="fa-solid fa-clock"></i></svelte:fragment>
-				<span class="truncate w-16 inline-block">{$_('.book.overdues')}</span></AppRailAnchor
-			>
-			<AppRailAnchor
-				title={$_('.alert.info')}
-				href="/info"
-				selected={$page.url.pathname === '/info'}
-				><svelte:fragment slot="lead"><i class="fa-solid fa-circle-info"></i></svelte:fragment>
-				<span class="truncate w-16 inline-block">{$_('.alert.info')}</span></AppRailAnchor
-			>
-			<svelte:fragment slot="trail">
-				<hr class="opacity-30" />
-				<AppRailAnchor title={$_('.pref.title')} on:click={settings} style="user-select: none;"
-					><svelte:fragment slot="lead"><i class="fa-solid fa-gear"></i></svelte:fragment>
-					<span class="truncate w-16 inline-block">{$_('.pref.title')}</span></AppRailAnchor
-				>
-			</svelte:fragment>
-		</AppRail>
-	</svelte:fragment>
-	<svelte:fragment slot="footer">
-		<TabGroup
-			justify="justify-center"
-			active="variant-filled-primary"
-			hover="hover:variant-soft-primary"
-			flex="flex-1 lg:flex-none"
-			rounded=""
-			border=""
-			class="bg-surface-100-800-token w-full sm:hidden shadow-inner"
-		>
-			<TabAnchor
-				title={$_('.search.book')}
-				href="/books"
-				selected={$page.url.pathname === '/books'}
-			>
-				<svelte:fragment slot="lead"><i class="fa-solid fa-book"></i></svelte:fragment>
-			</TabAnchor>
-			<TabAnchor
-				title={$_('.search.user')}
-				href="/users"
-				selected={$page.url.pathname === '/users'}
-			>
-				<svelte:fragment slot="lead"><i class="fa-solid fa-user-group"></i></svelte:fragment>
-			</TabAnchor>
-			<TabAnchor
-				title={$_('.book.overdues')}
-				href="/overdues"
-				selected={$page.url.pathname === '/overdues'}
-			>
-				<svelte:fragment slot="lead"><i class="fa-solid fa-clock"></i></svelte:fragment>
-			</TabAnchor>
-			<TabAnchor title={$_('.alert.info')} href="/info" selected={$page.url.pathname === '/info'}>
-				<svelte:fragment slot="lead"><i class="fa-solid fa-circle-info"></i></svelte:fragment>
-			</TabAnchor>
-			<span class="divider-vertical opacity-30" />
-			<TabAnchor title={$_('.pref.title')} on:click={settings} style="user-select: none;"
-				><svelte:fragment slot="lead"><i class="fa-solid fa-gear"></i></svelte:fragment>
-			</TabAnchor>
-		</TabGroup>
-	</svelte:fragment>
-	{#key $state}
-		<main class="md:p-2">
-			<slot />
-		</main>
-	{/key}
-</AppShell>
+<Reminder />
+
+<div class="grid h-full grid-cols-[60px_auto]">
+	<div class="grid h-full w-full grid-rows-[59px_1px_auto] border-r">
+		<div class="flex items-center justify-center">
+			<a href={$page.url.pathname} data-sveltekit-reload>
+				<Avatar.Root class="rounded-none">
+					<Avatar.Image src="/favicon.png" alt="schiller-lib" />
+					<Avatar.Fallback>SL</Avatar.Fallback>
+				</Avatar.Root>
+			</a>
+		</div>
+		<Separator />
+		<div class="grid grid-rows-[auto_1px_59px]">
+			<div class="flex flex-col items-center gap-1 pb-2 pt-2">
+				<Tooltip.Root openDelay={0} closeOnPointerDown={false}>
+					<Tooltip.Trigger asChild let:builder>
+						<Button
+							variant="ghost"
+							size="icon"
+							class="rounded-lg {$page.url.pathname == '/books'
+								? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+								: ''}"
+							aria-label={$_('.search.book')}
+							builders={[builder]}
+							href="/books"
+						>
+							<Library class="size-5" />
+						</Button>
+					</Tooltip.Trigger>
+					<Tooltip.Content side="right" sideOffset={5}>
+						{$_('.search.book')}
+						<span class="ml-auto text-muted-foreground">
+							{$count?.books ? $count.books : ''}
+						</span>
+					</Tooltip.Content>
+				</Tooltip.Root>
+				<Tooltip.Root openDelay={0} closeOnPointerDown={false}>
+					<Tooltip.Trigger asChild let:builder>
+						<Button
+							variant="ghost"
+							size="icon"
+							class="rounded-lg {$page.url.pathname == '/users'
+								? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+								: ''}"
+							aria-label={$_('.search.user')}
+							builders={[builder]}
+							href="/users"
+						>
+							<Users class="size-5" />
+						</Button>
+					</Tooltip.Trigger>
+					<Tooltip.Content side="right" sideOffset={5}>
+						{$_('.search.user')}
+						<span class="ml-auto text-muted-foreground">
+							{$count?.users ? $count.users : ''}
+						</span>
+					</Tooltip.Content>
+				</Tooltip.Root>
+				<Tooltip.Root openDelay={0} closeOnPointerDown={false}>
+					<Tooltip.Trigger asChild let:builder>
+						<Button
+							variant="ghost"
+							size="icon"
+							class="rounded-lg {$page.url.pathname == '/overdues'
+								? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+								: ''}"
+							aria-label={$_('.book.overdues')}
+							builders={[builder]}
+							href="/overdues"
+						>
+							<CalendarClock class="size-5" />
+						</Button>
+					</Tooltip.Trigger>
+					<Tooltip.Content side="right" sideOffset={5}>
+						{$_('.book.overdues')}
+						<span class="ml-auto text-muted-foreground">
+							{$count?.overdues ? $count.overdues : ''}
+						</span>
+					</Tooltip.Content>
+				</Tooltip.Root>
+				<Tooltip.Root openDelay={0} closeOnPointerDown={false}>
+					<Tooltip.Trigger asChild let:builder>
+						<Button
+							variant="ghost"
+							size="icon"
+							class="rounded-lg {$page.url.pathname == '/info'
+								? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+								: ''}"
+							aria-label={$_('.alert.info')}
+							builders={[builder]}
+							href="/info"
+						>
+							<Info class="size-5" />
+						</Button>
+					</Tooltip.Trigger>
+					<Tooltip.Content side="right" sideOffset={5}>{$_('.alert.info')}</Tooltip.Content>
+				</Tooltip.Root>
+			</div>
+			<Separator />
+			<div class="flex flex-col items-center justify-center gap-1">
+				<Tooltip.Root openDelay={0} closeOnPointerDown={false}>
+					<Tooltip.Trigger asChild let:builder>
+						<Button
+							variant="ghost"
+							size="icon"
+							class="rounded-lg {$page.url.pathname == '/settings'
+								? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+								: ''}"
+							aria-label={$_('.pref.title')}
+							builders={[builder]}
+							href="/settings"
+						>
+							<Settings class="size-5" />
+						</Button>
+					</Tooltip.Trigger>
+					<Tooltip.Content side="right" sideOffset={5}>{$_('.pref.title')}</Tooltip.Content>
+				</Tooltip.Root>
+			</div>
+		</div>
+	</div>
+
+	<slot />
+</div>

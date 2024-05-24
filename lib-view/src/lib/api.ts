@@ -1,6 +1,6 @@
 import { _ } from 'svelte-i18n';
-import { errorStore } from './store';
 import Ajv, { type JTDParser, type JTDSchemaType } from 'ajv/dist/jtd';
+import { toast } from 'svelte-sonner';
 
 namespace api {
 	const ajv = new Ajv();
@@ -438,7 +438,7 @@ namespace api {
 		let errorLocalized: string = '';
 		_.subscribe((_) => (errorLocalized = _(error_msg(error))));
 
-		errorStore.set({ message: errorLocalized });
+		toast.error(errorLocalized);
 
 		throw error;
 	}
