@@ -23,15 +23,15 @@
 
 <button
 	class={cn(
-		`flex w-full flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent ${buttonActive}`
+		`hover:bg-accent flex h-[66px] w-full flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all ${buttonActive}`
 	)}
 	id={book.id}
 	on:click={onClick}
 >
 	<div class="grid w-full grid-cols-[1fr_auto] gap-1">
 		<div class="truncate font-semibold">{book.title}</div>
-		<div class={cn(`ml-auto text-nowrap text-xs text-muted-foreground`)}>{book.id}</div>
+		<div class={cn(`text-muted-foreground ml-auto text-nowrap text-xs`)}>{book.id}</div>
 		<div class="truncate text-xs font-medium">{book.authors}</div>
-		<div class={cn('ml-auto text-nowrap text-xs text-foreground')}>{tr_borrow_state(book)}</div>
+		<div class={cn('text-foreground ml-auto text-nowrap text-xs')}>{tr_borrow_state(book)}</div>
 	</div>
 </button>

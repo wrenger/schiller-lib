@@ -16,7 +16,7 @@
 
 <button
 	class={cn(
-		`flex w-full flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent ${buttonActive}`
+		`hover:bg-accent flex h-[62px] w-full flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all ${buttonActive}`
 	)}
 	id={user.account}
 	on:click={onClick}
@@ -24,7 +24,7 @@
 	<div class="grid w-full grid-cols-[1fr_auto] gap-1">
 		<div class="w-full overflow-hidden">
 			<div class="truncate font-semibold">{user.forename} {user.surname}</div>
-			<div class={cn(`ml-auto text-nowrap text-xs text-muted-foreground`)}>{user.account}</div>
+			<div class={cn(`text-muted-foreground ml-auto text-nowrap text-xs`)}>{user.account}</div>
 		</div>
 		<div class="flex items-center truncate text-xs font-medium">{user.role}</div>
 	</div>
