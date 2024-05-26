@@ -39,7 +39,6 @@ impl User {
         account_is_valid(&self.account)
             && !self.forename.is_empty()
             && !self.surname.is_empty()
-            && !self.role.is_empty()
     }
 }
 
