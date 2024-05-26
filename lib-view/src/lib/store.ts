@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
-import { writable } from 'svelte/store';
 import type api from './api';
+import { persisted } from 'svelte-persisted-store';
 
 export interface GlobalSettings {
 	borrowing_duration: number;
@@ -14,7 +14,7 @@ export interface GlobalSettings {
 	mail_overdue2: api.MailTemplate;
 }
 
-export const settingsGlobal = writable<GlobalSettings>({
+export const settingsGlobal = persisted<GlobalSettings>('settings-global', {
 	borrowing_duration: 0,
 	dnb_token: '',
 	mail_last_reminder: DateTime.now(),
@@ -41,12 +41,12 @@ interface Category {
 	section: string;
 }
 
-export const category = writable<Category[]>([]);
+export const categories = persisted<Category[]>('categories', []);
 
-interface ErrorStore {
-	message: string | undefined;
+interface Count {
+	books?: number;
+	users?: number;
+	overdues?: number;
 }
 
-export const errorStore = writable<ErrorStore>({ message: undefined });
-
-export const state = writable<{}>({});
+export const count = persisted<Count>('count', {});

@@ -9,7 +9,7 @@ The latest builds can be downloaded from the [releases page](https://github.com/
 
 The webserver uses [Rust](https://www.rust-lang.org/learn/get-started), which has to be installed first.
 
-The front end uses [Svelte](https://svelte.dev) and [Skeleton](https://www.skeleton.dev/), which must be installed.
+The front end uses [Svelte](https://svelte.dev) and [Shadcn](https://www.shadcn-svelte.com/), which must be installed.
 We would recommend using [Bun](https://bun.sh/) as the package manager.
 
 The project can be built and executed with the following commands:

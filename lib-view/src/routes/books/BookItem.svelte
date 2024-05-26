@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-	export const HEIGHT: number = 64;
+	export const HEIGHT: number = 74;
 </script>
 
 <script lang="ts">
@@ -16,24 +16,21 @@
 		if (book.reservation) return $_('.book.reserved');
 		return $_('.book.available');
 	}
-
-	$: classesActive = (cond: boolean) => (cond ? '!bg-primary-active-token' : '');
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
-	class="list-option {classesActive(active)}"
+<button
+	class="hover:bg-accent flex h-[66px] w-full flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all"
+	class:bg-muted={active}
 	id={book.id}
 	on:click={onClick}
-	style="border-radius: 12px;"
 >
-	<span class="flex-auto truncate w-[200px]"
-		><dt>{book.title}</dt>
-		<dd class="text-sm opacity-50">{book.authors}</dd></span
-	>
-	<span class="text-end truncate">
-		<dd class="text-sm opacity-50">{book.id}</dd>
-		<dt>{tr_borrow_state(book)}</dt>
-	</span>
-</div>
+	<div class="grid w-full grid-cols-[1fr_auto] gap-1">
+		<div class="truncate font-semibold">{book.title}</div>
+		<div class="text-muted-foreground ml-auto text-nowrap text-xs">{book.id}</div>
+		<div class="truncate text-xs font-medium">{book.authors}</div>
+		<div
+			class="ml-auto text-nowrap text-xs"
+			class:text-destructive={!book.borrowable || book.borrower || book.reservation}
+		>{tr_borrow_state(book)}</div>
+	</div>
+</button>

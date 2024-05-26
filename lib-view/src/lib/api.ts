@@ -1,6 +1,6 @@
 import { _ } from 'svelte-i18n';
-import { errorStore } from './store';
 import Ajv, { type JTDParser, type JTDSchemaType } from 'ajv/dist/jtd';
+import { toast } from 'svelte-sonner';
 
 namespace api {
 	const ajv = new Ajv();
@@ -162,8 +162,17 @@ namespace api {
 		role: string;
 		may_borrow: boolean;
 	}
-	const schema_user: JTDSchemaType<User> = {
-		properties: {
+	function userDef(u: Partial<User>): User {
+		return {
+			account: u.account ?? '',
+			forename: u.forename ?? '',
+			surname: u.surname ?? '',
+			role: u.role ?? '',
+			may_borrow: u.may_borrow ?? true,
+		}
+	}
+	const schema_user: JTDSchemaType<Partial<User>> = {
+		optionalProperties: {
 			account: { type: 'string' },
 			forename: { type: 'string' },
 			surname: { type: 'string' },
@@ -212,7 +221,7 @@ namespace api {
 			rows: { elements: schema_book }
 		}
 	});
-	const parse_limited_users = ajv.compileParser<Limited<User>>({
+	const parse_limited_users = ajv.compileParser<Limited<Partial<User>>>({
 		properties: {
 			total: { type: 'uint32' },
 			rows: { elements: schema_user }
@@ -223,7 +232,7 @@ namespace api {
 		book: Book;
 		user: User;
 	}
-	const parse_overdues = ajv.compileParser<Overdue[]>({
+	const parse_overdues = ajv.compileParser<{book: Book, user: Partial<User>}[]>({
 		elements: {
 			properties: {
 				book: schema_book,
@@ -291,13 +300,16 @@ namespace api {
 	// -------------------------------------------------------------------------
 
 	export async function user_search(query: UserSearch): Promise<Limited<User>> {
-		return get('api/user', parse_limited_users, query);
+		return get('api/user', parse_limited_users, query).then(l => ({
+			total: l.total,
+			rows: l.rows.map(userDef),
+		}));
 	}
 	export async function user_add(user: User) {
 		await post('api/user', user);
 	}
 	export async function user(account: string): Promise<User> {
-		return get('api/user/' + encodeURIComponent(account), parse_user);
+		return get('api/user/' + encodeURIComponent(account), parse_user).then(userDef);
 	}
 	export async function user_update(account: string, user: User) {
 		await post('api/user/' + encodeURIComponent(account), user);
@@ -306,7 +318,7 @@ namespace api {
 		await del('api/user/' + encodeURIComponent(account));
 	}
 	export async function user_fetch(account: string): Promise<User> {
-		return get('api/user-fetch/' + encodeURIComponent(account), parse_user);
+		return get('api/user-fetch/' + encodeURIComponent(account), parse_user).then(userDef);
 	}
 	export async function user_update_roles() {
 		await post('api/user-update-roles', {});
@@ -359,7 +371,10 @@ namespace api {
 	// -------------------------------------------------------------------------
 
 	export async function overdues(): Promise<Overdue[]> {
-		return get('api/overdues', parse_overdues);
+		return get('api/overdues', parse_overdues).then((o) => o.map((e) => ({
+			book: e.book,
+			user: userDef(e.user),
+		})));
 	}
 
 	/** Fetches the data, throwing an exception if something went wrong */
@@ -438,7 +453,7 @@ namespace api {
 		let errorLocalized: string = '';
 		_.subscribe((_) => (errorLocalized = _(error_msg(error))));
 
-		errorStore.set({ message: errorLocalized });
+		toast.error(errorLocalized);
 
 		throw error;
 	}

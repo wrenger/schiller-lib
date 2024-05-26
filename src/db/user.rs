@@ -10,11 +10,14 @@ use crate::mail::account_is_valid;
 /// Data object for a user.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
+#[serde(default)]
 pub struct User {
     pub account: String,
     pub forename: String,
     pub surname: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub role: String,
+    #[serde(skip_serializing_if = "Clone::clone")] // <- skip if true
     pub may_borrow: bool,
 }
 
@@ -39,7 +42,6 @@ impl User {
         account_is_valid(&self.account)
             && !self.forename.is_empty()
             && !self.surname.is_empty()
-            && !self.role.is_empty()
     }
 }
 

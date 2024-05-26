@@ -1,30 +1,27 @@
 <script lang="ts" context="module">
-	export const HEIGHT: number = 64;
+	export const HEIGHT: number = 70;
 </script>
 
 <script lang="ts">
 	import type api from '$lib/api';
+	import { _ } from 'svelte-i18n';
 
 	export let user: api.User;
-	export let active: boolean;
+	export let active: boolean = false;
 	export let onClick: () => void;
-
-	$: classesActive = (cond: boolean) => (cond ? '!bg-primary-active-token' : '');
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
-	class="list-option {classesActive(active)}"
+<button
+	class="hover:bg-accent flex h-[62px] w-full flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all"
+	class:bg-muted={active}
 	id={user.account}
 	on:click={onClick}
-	style="border-radius: 12px;"
 >
-	<span class="flex-auto truncate w-[200px]">
-		<dt>{user.forename} {user.surname}</dt>
-		<dd class="text-sm opacity-50">{user.account}</dd>
-	</span>
-	<span class="text-end truncate">
-		<dt>{user.role}</dt>
-	</span>
-</div>
+	<div class="grid w-full grid-cols-[1fr_auto] gap-1">
+		<div class="w-full overflow-hidden">
+			<div class="truncate font-semibold">{user.forename} {user.surname}</div>
+			<div class="text-muted-foreground ml-auto text-nowrap text-xs">{user.account}</div>
+		</div>
+		<div class="flex items-center truncate text-xs font-medium">{user.role}</div>
+	</div>
+</button>
