@@ -4,7 +4,6 @@
 	import * as Tabs from '$lib/components/ui/tabs';
 	import Local from './Local.svelte';
 	import Global from './Global.svelte';
-	import Separator from "$lib/components/ui/separator/separator.svelte";
 
 	let scope = 'local';
 </script>
@@ -27,7 +26,7 @@
 		</div>
 	</svelte:fragment>
 	<svelte:fragment slot="list">
-		<div class="overflow-y-scroll md:container md:max-w-2xl mt-4">
+		<div class="overflow-y-scroll md:container md:max-w-2xl">
 			{#if scope == 'local'}
 				<Local />
 			{:else if scope == 'global'}
