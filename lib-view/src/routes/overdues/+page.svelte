@@ -29,7 +29,7 @@
 				{#await loadOverdues() then data}
 					{#each data as { book, user } (book.id)}
 						<a
-							class={'hover:bg-accent flex w-full flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all'}
+							class={'flex w-full flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent'}
 							href={`books?${new URLSearchParams({ search: book.id })}`}
 						>
 							<div class="grid w-full grid-cols-[1fr_auto] gap-1">

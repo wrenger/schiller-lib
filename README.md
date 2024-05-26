@@ -56,7 +56,7 @@ It contains the business and handles the data.
 
 ### UI Layer
 
-The [UI](lib-view) is developed in Svelte and TypeScript using Skeleton as a UI Framework.
+The [UI](lib-view) is developed in Svelte and TypeScript using Shadcn as a UI Framework.
 
 This layer is also responsible for internationalization ([locales](lib-view/src/lib/i18n/locales/)).
 Currently, there are only two languages supported (English and German).

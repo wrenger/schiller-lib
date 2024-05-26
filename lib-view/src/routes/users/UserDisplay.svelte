@@ -14,7 +14,7 @@
 		</p>
 	</div>
 	<div>
-		<h3 class="text-muted-foreground text-sm">{$_('.user.role')}</h3>
+		<h3 class="text-sm text-muted-foreground">{$_('.user.role')}</h3>
 		<p class="text-md font-medium">{user.role || $_('.action.empty')}</p>
 	</div>
 	<div class="flex items-center space-x-2">

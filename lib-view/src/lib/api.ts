@@ -168,8 +168,8 @@ namespace api {
 			forename: u.forename ?? '',
 			surname: u.surname ?? '',
 			role: u.role ?? '',
-			may_borrow: u.may_borrow ?? true,
-		}
+			may_borrow: u.may_borrow ?? true
+		};
 	}
 	const schema_user: JTDSchemaType<Partial<User>> = {
 		optionalProperties: {
@@ -232,7 +232,7 @@ namespace api {
 		book: Book;
 		user: User;
 	}
-	const parse_overdues = ajv.compileParser<{book: Book, user: Partial<User>}[]>({
+	const parse_overdues = ajv.compileParser<{ book: Book; user: Partial<User> }[]>({
 		elements: {
 			properties: {
 				book: schema_book,
@@ -300,9 +300,9 @@ namespace api {
 	// -------------------------------------------------------------------------
 
 	export async function user_search(query: UserSearch): Promise<Limited<User>> {
-		return get('api/user', parse_limited_users, query).then(l => ({
+		return get('api/user', parse_limited_users, query).then((l) => ({
 			total: l.total,
-			rows: l.rows.map(userDef),
+			rows: l.rows.map(userDef)
 		}));
 	}
 	export async function user_add(user: User) {
@@ -371,10 +371,12 @@ namespace api {
 	// -------------------------------------------------------------------------
 
 	export async function overdues(): Promise<Overdue[]> {
-		return get('api/overdues', parse_overdues).then((o) => o.map((e) => ({
-			book: e.book,
-			user: userDef(e.user),
-		})));
+		return get('api/overdues', parse_overdues).then((o) =>
+			o.map((e) => ({
+				book: e.book,
+				user: userDef(e.user)
+			}))
+		);
 	}
 
 	/** Fetches the data, throwing an exception if something went wrong */
