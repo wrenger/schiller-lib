@@ -40,7 +40,7 @@
 			forename,
 			surname,
 			account,
-			role: role ? role : '-',
+			role,
 			may_borrow
 		};
 	}

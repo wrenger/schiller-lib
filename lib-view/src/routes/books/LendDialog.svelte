@@ -14,11 +14,7 @@
 	export let book: api.Book | null;
 	export var onChange: (b: api.Book | null) => void;
 
-	let account: string = book?.reservation
-		? book.reservation
-		: book?.borrower
-			? book.borrower.user
-			: '';
+	let account: string = book?.reservation ?? book?.borrower?.user ?? '';
 	let period = DateTime.local().plus({ days: $settingsGlobal.borrowing_duration });
 	let open = false;
 

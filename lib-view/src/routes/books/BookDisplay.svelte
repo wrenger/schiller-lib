@@ -10,57 +10,54 @@
 	export let book: api.Book;
 
 	$: category = $categories?.find((c) => c.id == book.category);
-
-	function displayInformation(info: string | number | undefined) {
-		return info ? info : $_('.action.empty');
-	}
 </script>
 
 <div class="h-full w-full space-y-4 overflow-y-scroll p-4">
 	<div class="border-b pb-3">
 		<h2 class="text-xl font-semibold">{book.title}</h2>
 		<p class="text-md">
-			<span class="text-sm text-muted-foreground">{$_('.book.id')}:</span> {displayInformation(book.id)}
+			<span class="text-muted-foreground text-sm">{$_('.book.id')}:</span>
+			{book.id || $_('.action.empty')}
 		</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.book.isbn')}</h3>
-		<p class="text-md font-medium">{displayInformation(book.isbn)}</p>
+		<h3 class="text-muted-foreground text-sm">{$_('.book.isbn')}</h3>
+		<p class="text-md font-medium">{book.isbn || $_('.action.empty')}</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.book.authors')}</h3>
-		<p class="text-md font-medium">{displayInformation(book.authors)}</p>
+		<h3 class="text-muted-foreground text-sm">{$_('.book.authors')}</h3>
+		<p class="text-md font-medium">{book.authors || $_('.action.empty')}</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.book.publisher')}</h3>
-		<p class="text-md font-medium">{displayInformation(book.publisher)}</p>
+		<h3 class="text-muted-foreground text-sm">{$_('.book.publisher')}</h3>
+		<p class="text-md font-medium">{book.publisher || $_('.action.empty')}</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.book.costs')}</h3>
-		<p class="text-md font-medium">{displayInformation(book.costs)}</p>
+		<h3 class="text-muted-foreground text-sm">{$_('.book.costs')}</h3>
+		<p class="text-md font-medium">{book.costs || $_('.action.empty')}</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.book.year')}</h3>
-		<p class="text-md font-medium">{displayInformation(book.year)}</p>
+		<h3 class="text-muted-foreground text-sm">{$_('.book.year')}</h3>
+		<p class="text-md font-medium">{book.year || $_('.action.empty')}</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.category')}</h3>
+		<h3 class="text-muted-foreground text-sm">{$_('.category')}</h3>
 		<p class="text-md font-medium">
 			{category
 				? `${category.id} - ${category.name} - ${category.section}`
-				: displayInformation(book.category)}
+				: book.category || $_('.action.empty')}
 		</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.book.note')}</h3>
-		<p class="text-md font-medium">{displayInformation(book.note)}</p>
+		<h3 class="text-muted-foreground text-sm">{$_('.book.note')}</h3>
+		<p class="text-md font-medium">{book.note || $_('.action.empty')}</p>
 	</div>
 	<div class="flex items-center space-x-2">
 		<span class="text-md font-medium">{$_('.book.borrowable')}:</span>
 		{#if book.borrowable}
 			<Badge>{$_('.action.yes')}</Badge>
 		{:else}
-			<Badge>{$_('.action.no')}</Badge>
+			<Badge variant="destructive">{$_('.action.no')}</Badge>
 		{/if}
 	</div>
 	{#if book.borrower}

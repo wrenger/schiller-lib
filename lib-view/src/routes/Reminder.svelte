@@ -29,11 +29,11 @@
 
 	let response: Promise<void>;
 	async function sendReminders() {
-		let overdoneBooks: api.Overdue[] = await api.overdues();
+		let overdueBooks: api.Overdue[] = await api.overdues();
 
 		let dataToSend: api.MailBody[] = [];
 
-		for (const { book, user } of overdoneBooks) {
+		for (const { book, user } of overdueBooks) {
 			let borrower = book.borrower;
 			if (borrower != null) {
 				let template =

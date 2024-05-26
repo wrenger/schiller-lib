@@ -12,8 +12,8 @@
 	export let params: api.BookSearch;
 	export var onChange: (b: api.Book | null) => void;
 
-	let category: string = '';
-	$: if (!params?.category) category = 'None';
+	let category: string = params?.category == null ? 'None' : params.category;
+	$: params.category = category != 'None' ? category : undefined;
 </script>
 
 <div class="flex gap-1">
@@ -70,15 +70,9 @@
 			<DropdownMenu.Separator />
 			<div class="max-h-72 overflow-y-scroll">
 				<DropdownMenu.RadioGroup bind:value={category}>
-					<DropdownMenu.RadioItem
-						on:click={() => (params = { ...params, category: undefined })}
-						value="None">{$_('.action.all')}</DropdownMenu.RadioItem
-					>
+					<DropdownMenu.RadioItem value="None">{$_('.action.all')}</DropdownMenu.RadioItem>
 					{#each $categories as { name, id }}
-						<DropdownMenu.RadioItem
-							on:click={() => (params = { ...params, category: id })}
-							value={id}>{id} - {name}</DropdownMenu.RadioItem
-						>
+						<DropdownMenu.RadioItem value={id}>{id} - {name}</DropdownMenu.RadioItem>
 					{/each}
 				</DropdownMenu.RadioGroup>
 			</div>

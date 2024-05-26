@@ -14,7 +14,9 @@ pub struct User {
     pub account: String,
     pub forename: String,
     pub surname: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub role: String,
+    #[serde(default, skip_serializing_if = "Clone::clone")] // <- skip if true
     pub may_borrow: bool,
 }
 

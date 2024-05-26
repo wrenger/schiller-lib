@@ -39,7 +39,7 @@
 			authors = book.authors;
 			costs = book.costs;
 			year = book.year;
-			category = $categories?.find((c) => c.id == book.category) || null;
+			category = $categories?.find((c) => c.id == book.category) ?? null;
 			note = book.note ?? '';
 			borrowable = book.borrowable;
 			borrower = book.borrower;
@@ -69,8 +69,8 @@
 			authors,
 			costs,
 			year,
-			category: category?.id || '',
-			note: note || undefined,
+			category: category?.id ?? '',
+			note: note ?? undefined,
 			borrowable,
 			borrower: borrower,
 			reservation: reservation
@@ -78,8 +78,8 @@
 	}
 
 	let open = false;
-	let idResponse: Promise<any>;
-	let isbnResponse: Promise<any>;
+	let idResponse: Promise<string>;
+	let isbnResponse: Promise<Partial<api.Book>>;
 
 	$: if (open) setBook();
 

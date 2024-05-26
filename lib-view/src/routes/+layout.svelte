@@ -76,7 +76,7 @@
 					<Tooltip.Content side="right" sideOffset={5}>
 						{$_('.search.book')}
 						<span class="ml-auto text-muted-foreground">
-							{$count?.books ? $count.books : ''}
+							{$count?.books ?? ''}
 						</span>
 					</Tooltip.Content>
 				</Tooltip.Root>
@@ -98,7 +98,7 @@
 					<Tooltip.Content side="right" sideOffset={5}>
 						{$_('.search.user')}
 						<span class="ml-auto text-muted-foreground">
-							{$count?.users ? $count.users : ''}
+							{$count?.users ?? ''}
 						</span>
 					</Tooltip.Content>
 				</Tooltip.Root>
@@ -120,7 +120,7 @@
 					<Tooltip.Content side="right" sideOffset={5}>
 						{$_('.book.overdues')}
 						<span class="ml-auto text-muted-foreground">
-							{$count?.overdues ? $count.overdues : ''}
+							{$count?.overdues ?? ''}
 						</span>
 					</Tooltip.Content>
 				</Tooltip.Root>

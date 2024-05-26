@@ -79,7 +79,7 @@
 	".book.reserved": "Reserved",
 	".book.reserved.by": "Reserved by {0}",
 	".book.revoke": "Return",
-	".book.revoke.reminder": "The book is reserved by \"{0}\".\nDo you want to inform him that the book is now available?",
+	".book.revoke.reminder": "The book is reserved by \"{0}\".\nDo you want to inform this person that the book is now available?",
 	".book.state": "State",
 	".book.title": "Title",
 	".book.unavailable": "Borrowed or Reserved",

@@ -11,8 +11,9 @@
 	export let params: api.UserSearch;
 	export var onChange: (b: api.User | null) => void;
 
-	let may_borrow: string;
-	$: if (params?.may_borrow == undefined) may_borrow = 'None';
+	let may_borrow: string =
+		params?.may_borrow == null ? 'None' : params?.may_borrow ? 'MayBorrow' : 'MayNotBorrow';
+	$: params.may_borrow = may_borrow != 'None' ? may_borrow == 'MayBorrow' : undefined;
 </script>
 
 <div class="flex gap-1">
@@ -37,17 +38,10 @@
 			<DropdownMenu.Label>{$_('.user.permission')}</DropdownMenu.Label>
 			<DropdownMenu.Separator />
 			<DropdownMenu.RadioGroup bind:value={may_borrow}>
-				<DropdownMenu.RadioItem
-					on:click={() => (params = { ...params, may_borrow: undefined })}
-					value="None">{$_('.action.all')}</DropdownMenu.RadioItem
-				>
-				<DropdownMenu.RadioItem
-					on:click={() => (params = { ...params, may_borrow: true })}
-					value="MayBorrow">{$_('.user.may-borrow')}</DropdownMenu.RadioItem
-				>
-				<DropdownMenu.RadioItem
-					on:click={() => (params = { ...params, may_borrow: false })}
-					value="MayNotBorrow">{$_('.user.may-not-borrow')}</DropdownMenu.RadioItem
+				<DropdownMenu.RadioItem value="None">{$_('.action.all')}</DropdownMenu.RadioItem>
+				<DropdownMenu.RadioItem value="MayBorrow">{$_('.user.may-borrow')}</DropdownMenu.RadioItem>
+				<DropdownMenu.RadioItem value="MayNotBorrow"
+					>{$_('.user.may-not-borrow')}</DropdownMenu.RadioItem
 				>
 			</DropdownMenu.RadioGroup>
 		</DropdownMenu.Content>
