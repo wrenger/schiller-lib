@@ -42,7 +42,7 @@
 									<div class="w-full overflow-hidden">
 										<div class="truncate font-semibold">{book.title}</div>
 										<div class={cn(`ml-auto truncate text-xs`)}>
-											{$_('.book.overdone.by.short', {
+											{$_('.book.borrowed.by.short', {
 												values: { '0': `${user.forename} ${user.surname}` }
 											})}
 										</div>

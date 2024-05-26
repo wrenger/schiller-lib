@@ -69,7 +69,6 @@
 	".book.new": "Add Book",
 	".book.not-borrowable": "Not Borrowable",
 	".book.note": "Notes",
-	".book.overdone.by.short": "Overdone by {0}",
 	".book.period": "{0} ({1, plural, one {{1} day} other {{1} days}})",
 	".book.period.days": "Days",
 	".book.period.date": "Date",
