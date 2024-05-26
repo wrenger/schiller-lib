@@ -44,7 +44,7 @@
 	".alert.userfile": "Benutzerdatai auswählen",
 	".book": "Buch",
 	".book.authors": "Autoren",
-	".book.authors.def": "Vorname Nachname",
+	".book.authors.def": "Vorname Nachname, Anderer Autor",
 	".book.available": "Verfügbar",
 	".book.available.long": "Nicht Ausgeliehen oder Vorgemerkt",
 	".book.borrowable": "Ausleihbar",

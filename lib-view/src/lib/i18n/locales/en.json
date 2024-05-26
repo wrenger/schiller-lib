@@ -44,7 +44,7 @@
 	".alert.userfile": "Select User File",
 	".book": "Book",
 	".book.authors": "Authors",
-	".book.authors.def": "Forename Surname",
+	".book.authors.def": "Forename Surname, Other Author",
 	".book.available": "Available",
 	".book.available.long": "Not Borrowed or Reserved",
 	".book.borrowable": "Borrowable",

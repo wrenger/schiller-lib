@@ -171,7 +171,7 @@
 			</div>
 			<div class="flex w-full flex-col gap-1.5">
 				<Label for="authors" class="text-left">{$_('.book.authors')}</Label>
-				<Input id="authors" placeholder={$_('.book.authors')} bind:value={authors} />
+				<Input id="authors" placeholder={$_('.book.authors.def')} bind:value={authors} />
 			</div>
 			<div class="grid grid-cols-2 space-x-1">
 				<div class="flex w-full flex-col gap-1.5">
