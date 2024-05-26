@@ -19,39 +19,41 @@
 <div class="h-full w-full space-y-4 overflow-y-scroll p-4">
 	<div class="border-b pb-3">
 		<h2 class="text-xl font-semibold">{book.title}</h2>
-		<p class="text-sm text-muted-foreground">
-			{$_('.book.id')}: {displayInformation(book.id)} | {$_('.book.isbn')}: {displayInformation(
-				book.isbn
-			)}
+		<p class="text-md">
+			<span class="text-sm text-muted-foreground">{$_('.book.id')}:</span> {displayInformation(book.id)}
 		</p>
 	</div>
 	<div>
-		<h3 class="text-md font-medium">{$_('.book.authors')}</h3>
-		<p class="text-sm text-muted-foreground">{displayInformation(book.authors)}</p>
+		<h3 class="text-sm text-muted-foreground">{$_('.book.isbn')}</h3>
+		<p class="text-md font-medium">{displayInformation(book.isbn)}</p>
 	</div>
 	<div>
-		<h3 class="text-md font-medium">{$_('.book.publisher')}</h3>
-		<p class="text-sm text-muted-foreground">{displayInformation(book.publisher)}</p>
+		<h3 class="text-sm text-muted-foreground">{$_('.book.authors')}</h3>
+		<p class="text-md font-medium">{displayInformation(book.authors)}</p>
 	</div>
 	<div>
-		<h3 class="text-md font-medium">{$_('.book.costs')}</h3>
-		<p class="text-sm text-muted-foreground">{displayInformation(book.costs)}</p>
+		<h3 class="text-sm text-muted-foreground">{$_('.book.publisher')}</h3>
+		<p class="text-md font-medium">{displayInformation(book.publisher)}</p>
 	</div>
 	<div>
-		<h3 class="text-md font-medium">{$_('.book.year')}</h3>
-		<p class="text-sm text-muted-foreground">{displayInformation(book.year)}</p>
+		<h3 class="text-sm text-muted-foreground">{$_('.book.costs')}</h3>
+		<p class="text-md font-medium">{displayInformation(book.costs)}</p>
 	</div>
 	<div>
-		<h3 class="text-md font-medium">{$_('.category')}</h3>
-		<p class="text-sm text-muted-foreground">
+		<h3 class="text-sm text-muted-foreground">{$_('.book.year')}</h3>
+		<p class="text-md font-medium">{displayInformation(book.year)}</p>
+	</div>
+	<div>
+		<h3 class="text-sm text-muted-foreground">{$_('.category')}</h3>
+		<p class="text-md font-medium">
 			{category
 				? `${category.id} - ${category.name} - ${category.section}`
 				: displayInformation(book.category)}
 		</p>
 	</div>
 	<div>
-		<h3 class="text-md font-medium">{$_('.book.note')}</h3>
-		<p class="text-sm text-muted-foreground">{displayInformation(book.note)}</p>
+		<h3 class="text-sm text-muted-foreground">{$_('.book.note')}</h3>
+		<p class="text-md font-medium">{displayInformation(book.note)}</p>
 	</div>
 	<div class="flex items-center space-x-2">
 		<span class="text-md font-medium">{$_('.book.borrowable')}:</span>
