@@ -1,6 +1,6 @@
 {
-	"name": "schiller-lib-new-view",
-	"version": "0.0.1",
+	"name": "schiller-lib",
+	"version": "0.10.0",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
