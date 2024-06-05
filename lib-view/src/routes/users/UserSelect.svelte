@@ -22,7 +22,7 @@
 			<Tooltip.Root openDelay={0}>
 				<Tooltip.Trigger asChild let:builder={tooltip}>
 					<Button
-						variant={!params?.may_borrow ? 'ghost' : 'outline'}
+						variant={may_borrow === 'None' ? 'ghost' : 'outline'}
 						size="icon"
 						class="rounded-lg"
 						aria-label={$_('.user.permission')}
