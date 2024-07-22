@@ -164,7 +164,7 @@ impl Session {
         Self(data)
     }
     fn from_cookie(cookie: &str) -> Result<Self> {
-        let mut data = [0; 32 + 8]; // has to be larger due to fucked up estimates!
+        let mut data = [0; 32 + 8]; // has to be larger due to wrong estimates!
         let len = BASE64
             .decode_slice(cookie, &mut data)
             .map_err(|_| Error::Network)?;

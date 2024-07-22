@@ -380,7 +380,7 @@ fn atomic_write(tmp: &Path, path: &Path, data: &Database) -> Result<()> {
         data.save(&mut tmpfile)?;
         tmpfile.sync_all()?; // just to be sure!
     }
-    fs::rename(&tmp, &path)?;
+    fs::rename(tmp, path)?;
     Ok(())
 }
 
@@ -429,7 +429,7 @@ impl DerefMut for AtomicDatabaseWrite<'_> {
 impl Drop for AtomicDatabaseWrite<'_> {
     fn drop(&mut self) {
         info!("Saving database");
-        atomic_write(&self.tmp, &self.path, &self.data).unwrap();
+        atomic_write(self.tmp, self.path, &self.data).unwrap();
     }
 }
 

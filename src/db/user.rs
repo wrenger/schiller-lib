@@ -39,9 +39,7 @@ impl User {
         self.forename = self.forename.trim().to_string();
         self.surname = self.surname.trim().to_string();
         self.role = self.role.trim().to_string();
-        account_is_valid(&self.account)
-            && !self.forename.is_empty()
-            && !self.surname.is_empty()
+        account_is_valid(&self.account) && !self.forename.is_empty() && !self.surname.is_empty()
     }
 }
 
@@ -192,7 +190,7 @@ impl Users {
             let account = account.trim();
             if !account.is_empty() {
                 if let Some(entry) = self.data.get_mut(account) {
-                    entry.role = role.clone();
+                    entry.role.clone_from(role);
                 }
             }
         }

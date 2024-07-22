@@ -185,7 +185,7 @@ impl Books {
             let lower_title = book.title.to_ascii_lowercase();
 
             if keywords.is_empty() {
-                results.push((0, lower_title, &book));
+                results.push((0, lower_title, book));
                 continue;
             }
 
@@ -214,7 +214,7 @@ impl Books {
                 }
             }
             if score > 0 {
-                results.push((score, lower_title, &book));
+                results.push((score, lower_title, book));
             }
         }
 
