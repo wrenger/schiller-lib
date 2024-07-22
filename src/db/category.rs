@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use super::Books;
 use crate::error::{Error, Result};
 
+/// Data object for categories
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Category {
     pub id: String,
@@ -14,6 +15,7 @@ pub struct Category {
 }
 
 impl Category {
+    /// Check if category is valid
     fn validate(&mut self) -> bool {
         self.id = self.id.trim().to_string();
         self.name = self.name.trim().to_string();

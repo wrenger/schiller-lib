@@ -39,6 +39,7 @@ pub struct Borrower {
 }
 
 impl Book {
+    /// Check if the book is valid
     fn validate(&mut self) -> bool {
         self.id = self.id.trim().to_string();
         self.isbn = isbn::parse(&self.isbn).unwrap_or_else(|invalid| invalid);
@@ -80,17 +81,24 @@ impl Default for BookSearch {
     }
 }
 
+/// Borrow status of a book
 #[repr(i64)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BookState {
+    /// No status
     #[default]
     None = 0,
+    /// Can be borrowed
     Borrowable,
+    /// Cannot be borrowed
     NotBorrowable,
+    /// Is already borrowed
     Borrowed,
+    /// Is already reserved
     Reserved,
 }
 
+/// Container for all book
 #[derive(Serialize, Deserialize, Default)]
 pub struct Books {
     #[serde(flatten)]
@@ -98,6 +106,7 @@ pub struct Books {
 }
 
 impl Books {
+    /// Return the book with this `id`
     pub fn fetch(&self, id: &str) -> Result<Book> {
         let id = id.trim();
         if id.is_empty() {
@@ -106,6 +115,7 @@ impl Books {
         self.data.get(id).cloned().ok_or(Error::NothingFound)
     }
 
+    /// Add a new book
     pub fn add(&mut self, mut book: Book, categories: &Categories) -> Result<Book> {
         if !book.validate() || !categories.data.contains_key(&book.category) {
             return Err(Error::InvalidBook);
@@ -120,6 +130,7 @@ impl Books {
         }
     }
 
+    /// Update the book data
     pub fn update(&mut self, id: &str, mut book: Book, categories: &Categories) -> Result<Book> {
         let id = id.trim();
         if id.is_empty() || !book.validate() || !categories.data.contains_key(&book.category) {
@@ -144,6 +155,7 @@ impl Books {
         Err(Error::NothingFound)
     }
 
+    /// Delete the corresponding book
     pub fn delete(&mut self, id: &str) -> Result<()> {
         let id = id.trim();
         if id.is_empty() {
@@ -230,6 +242,7 @@ impl Books {
         Ok((total, books))
     }
 
+    /// Count the number of books in the given category
     pub fn in_category(&self, id: &str) -> Result<usize> {
         let id = id.trim();
         if id.is_empty() {
@@ -266,7 +279,7 @@ impl Books {
         Ok(format!("{prefix} {id}"))
     }
 
-    // Is the user borrowing or reserving by any books
+    /// Is the user borrowing or reserving by any books
     pub fn is_user_referenced(&self, account: &str) -> bool {
         let account = account.trim();
         if account.is_empty() {
@@ -279,6 +292,7 @@ impl Books {
         })
     }
 
+    /// Update the account name if it equals `from` to `to`
     pub fn update_user(&mut self, from: &str, to: &str) -> Result<()> {
         let (from, to) = (from.trim(), to.trim());
         if from.is_empty() || to.is_empty() {
@@ -298,6 +312,7 @@ impl Books {
         Ok(())
     }
 
+    /// Update the category if it equals `from` to `to`
     pub fn update_category(&mut self, from: &str, to: &str) -> Result<()> {
         let (from, to) = (from.trim(), to.trim());
         if from.is_empty() || to.is_empty() {

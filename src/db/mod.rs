@@ -29,6 +29,7 @@ mod sorted;
 #[deprecated]
 mod legacy;
 
+/// Library settings
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Settings {
     // Borrowing
@@ -46,6 +47,7 @@ pub struct Settings {
     pub mail_overdue2: MailTemplate,
 }
 
+/// Template for a mail notification
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, Default)]
 pub struct MailTemplate {
     pub subject: String,
@@ -96,6 +98,7 @@ pub struct Stats {
     pub overdues: usize,
 }
 
+/// Library database
 #[derive(Serialize, Deserialize)]
 pub struct Database {
     version: Version,
@@ -105,6 +108,7 @@ pub struct Database {
     settings: Settings,
 }
 
+/// Borrowed books that missed the deadline
 #[derive(Serialize)]
 pub struct Overdue {
     pub book: Book,
@@ -147,20 +151,21 @@ impl Default for Database {
 }
 
 impl Database {
+    /// Load a database from a file
     pub fn load(file: impl io::Read) -> Result<Self> {
         Ok(serde_json::from_reader(file)?)
     }
-
+    /// Save this database to a file
     pub fn save(&self, file: impl io::Write) -> Result<()> {
         let writer = BufWriter::new(file);
         serde_json::to_writer_pretty(writer, self)?;
         Ok(())
     }
-
+    /// Return the library settings
     pub fn settings(&self) -> Settings {
         self.settings.clone()
     }
-
+    /// Save the given settings to the database
     pub fn settings_update(&mut self, mut settings: Settings) -> Result<Settings> {
         if settings.validate() {
             self.settings = settings.clone();
@@ -170,6 +175,7 @@ impl Database {
         }
     }
 
+    /// Return library statistics
     pub fn stats(&self) -> Result<Stats> {
         let mut borrows = 0;
         let mut reservations = 0;
@@ -202,6 +208,7 @@ impl Database {
         })
     }
 
+    /// Lend the given book (`id`) to the `account`
     pub fn lend(&mut self, id: &str, account: &str, deadline: NaiveDate) -> Result<Book> {
         let mut book = self.books.fetch(id)?;
         let user = self.users.fetch(account)?;
@@ -230,7 +237,6 @@ impl Database {
         });
         self.books.update(id, book, &self.categories)
     }
-
     /// Returns the book.
     pub fn return_back(&mut self, id: &str) -> Result<Book> {
         let mut book = self.books.fetch(id)?;
@@ -242,7 +248,6 @@ impl Database {
         book.borrower = None;
         self.books.update(id, book, &self.categories)
     }
-
     /// Creates a reservation for the borrowed book.
     pub fn reserve(&mut self, id: &str, account: &str) -> Result<Book> {
         let mut book = self.books.fetch(id)?;
@@ -285,16 +290,15 @@ impl Database {
 
     /// Return the list of expired loan periods.
     pub fn overdues(&self) -> Result<Vec<Overdue>> {
-        let mut results = Sorted::new(|a: &Overdue, b| a.cmp(b));
+        let mut results = Sorted::new(Overdue::cmp);
 
         let now = Local::now().naive_local().date();
         for book in self.books.data.values() {
             if let Some(borrower) = &book.borrower {
                 if now > borrower.deadline {
-                    let user = self.users.fetch(&borrower.user)?;
                     results.push(Overdue {
                         book: book.clone(),
-                        user,
+                        user: self.users.fetch(&borrower.user)?,
                     });
                 }
             }

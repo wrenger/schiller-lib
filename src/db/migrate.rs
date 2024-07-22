@@ -9,6 +9,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use super::Database;
 use crate::error::{Error, Result};
 
+/// Version metadata, used for database migrations
 #[derive(Serialize, Deserialize)]
 struct DatabaseVersion {
     version: Version,
@@ -74,6 +75,7 @@ fn from_db(file: &Path) -> Result<Database> {
     Ok(data)
 }
 
+/// Semantic Version: major, minor, patch
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Version(pub u8, pub u8, pub u8);
 

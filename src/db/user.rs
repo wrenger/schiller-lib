@@ -146,8 +146,7 @@ impl Users {
         let mut results = 0;
         for user in self.data.values() {
             match search.may_borrow {
-                Some(true) if !user.may_borrow => continue,
-                Some(false) if user.may_borrow => continue,
+                Some(b) if b != user.may_borrow => continue,
                 _ => {}
             }
 
