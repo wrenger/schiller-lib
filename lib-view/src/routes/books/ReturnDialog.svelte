@@ -6,15 +6,15 @@
 	import api from '$lib/api';
 	import Spinner from '$lib/components/ui/spinner/Spinner.svelte';
 	import { settingsGlobal } from '$lib/store';
+	import { DateTime } from 'luxon';
 
 	export let book: api.Book | null;
 	export var onChange: (b: api.Book | null) => void;
 
 	let open = false;
+	let response: Promise<any>;
 
-	let response1: Promise<any>;
-	let response2: Promise<any>;
-	async function ret() {
+	async function return_back() {
 		if (book) {
 			book = await api.return_back(book.id);
 			open = false;
@@ -32,14 +32,9 @@
 				`${user.forename} ${user.surname}`
 			);
 
-			await api.mail([
-				{
-					account: book.reservation,
-					...mail
-				}
-			]);
+			await api.mail([{ account: book.reservation, ...mail }]);
 
-			await ret();
+			await return_back();
 		}
 	}
 </script>
@@ -53,26 +48,42 @@
 			<Dialog.Title>
 				{$_('.book.revoke')}
 			</Dialog.Title>
-			{#if book?.reservation}
-				<Dialog.Description>
-					{$_('.book.revoke.reminder', { values: { '0': book.reservation } })}
-				</Dialog.Description>
-			{/if}
+			<Dialog.Description>
+				{$_('.book.borrowed.by', {
+					values: {
+						'0': book?.borrower?.user,
+						'1': book?.borrower && DateTime.fromISO(book.borrower.deadline).toLocaleString()
+					}
+				})}
+			</Dialog.Description>
 		</Dialog.Header>
+		<hr />
+		<div>
+			<span class="text-muted-foreground text-sm">{$_('.book.note')}:</span>
+			<span class="text-md whitespace-pre-line font-medium"
+				>{book?.note || $_('.action.empty')}</span
+			>
+		</div>
+		{#if book?.reservation}
+			<hr />
+			<div class="whitespace-pre-line">
+				{$_('.book.revoke.reminder', { values: { '0': book.reservation } })}
+			</div>
+		{/if}
 		<Dialog.Footer>
 			{#if book?.reservation}
-				<Button variant="outline" on:click={() => (response1 = ret())}>
-					<Spinner response={response1} />
+				<Button variant="secondary" on:click={() => (response = return_back())}>
+					<Spinner {response} />
 					{$_('.action.no')}
 				</Button>
-				<Button on:click={() => (response2 = mail())}>
-					<Spinner response={response2} />
+				<Button on:click={() => (response = mail())}>
+					<Spinner {response} />
 					{$_('.action.yes')}
 				</Button>
 			{:else}
-				<Button on:click={() => (response1 = ret())}>
-					<Spinner response={response1} />
-					{$_('.action.ok')}
+				<Button on:click={() => (response = return_back())}>
+					<Spinner {response} />
+					{$_('.book.revoke')}
 				</Button>
 			{/if}
 		</Dialog.Footer>

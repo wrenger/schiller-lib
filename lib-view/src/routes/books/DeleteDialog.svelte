@@ -36,9 +36,9 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>
-			<Button on:click={() => (response = del())}>
+			<Button on:click={() => (response = del())} variant="destructive">
 				<Spinner {response} />
-				{$_('.action.ok')}
+				{$_('.action.delete')}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

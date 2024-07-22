@@ -4,7 +4,7 @@
 	import { ModeWatcher, mode } from 'mode-watcher';
 	import { Toaster } from '$lib/components/ui/sonner';
 	import { Button } from '$lib/components/ui/button';
-	import { CalendarClock, Info, Library, Settings, Users } from 'lucide-svelte';
+	import { BookMarked, CalendarClock, Info, Settings, User } from 'lucide-svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import * as Avatar from '$lib/components/ui/avatar';
 	import { page } from '$app/stores';
@@ -70,7 +70,7 @@
 							builders={[builder]}
 							href="/books"
 						>
-							<Library class="size-5" />
+							<BookMarked class="size-5" />
 						</Button>
 					</Tooltip.Trigger>
 					<Tooltip.Content side="right" sideOffset={5}>
@@ -92,7 +92,7 @@
 							builders={[builder]}
 							href="/users"
 						>
-							<Users class="size-5" />
+							<User class="size-5" />
 						</Button>
 					</Tooltip.Trigger>
 					<Tooltip.Content side="right" sideOffset={5}>

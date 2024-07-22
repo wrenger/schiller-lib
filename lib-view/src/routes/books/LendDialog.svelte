@@ -41,17 +41,18 @@
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title>
-				{#if book?.borrower && !book?.reservation}
-					{$_('.book.renew')}
-				{:else}
-					{$_('.book.lend')}
-				{/if}
+				{book?.borrower && !book?.reservation ? $_('.book.renew') : $_('.book.lend')}
 			</Dialog.Title>
 		</Dialog.Header>
 		<div class="grid gap-4">
 			<div class="flex w-full flex-col gap-1.5">
 				<Label for="account" class="text-left">{$_('.user.account')}</Label>
-				<SelectAccount id="account" bind:account />
+				{#if book?.reservation || book?.borrower}
+					<!-- Read-only for renews and reservations! -->
+					<div>{account}</div>
+				{:else}
+					<SelectAccount id="account" bind:account />
+				{/if}
 			</div>
 			<DateInput bind:date={period} label={$_('.book.lend.period')} />
 		</div>

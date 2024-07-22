@@ -4,7 +4,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
 	import * as Tooltip from '$lib/components/ui/tooltip';
-	import { Bookmark, BookmarkX, HandHelping, Pencil, SquareLibrary, Trash2 } from 'lucide-svelte';
+	import { Bookmark, BookmarkX, ClockArrowUp, Pencil, Trash2, Upload, Import } from 'lucide-svelte';
 	import LendDialog from './LendDialog.svelte';
 	import ReserveDialog from './ReserveDialog.svelte';
 	import ReleaseDialog from './ReleaseDialog.svelte';
@@ -27,20 +27,41 @@
 						class="rounded-lg"
 						aria-label={book?.borrower && !book?.reservation ? $_('.book.renew') : $_('.book.lend')}
 						builders={[dialog, tooltip]}
-						disabled={!book}
+						disabled={!(book && book.borrowable)}
 					>
-						<HandHelping class="size-5" />
+						{#if book?.borrower}
+							<ClockArrowUp class="size-5" />
+						{:else}
+							<Upload class="size-5" />
+						{/if}
 					</Button>
 				</Tooltip.Trigger>
 				<Tooltip.Content side="bottom" sideOffset={5}>
-					{#if book?.borrower && !book?.reservation}
-						{$_('.book.renew')}
-					{:else}
-						{$_('.book.lend')}
-					{/if}
+					{book?.borrower && !book?.reservation ? $_('.book.renew') : $_('.book.lend')}
 				</Tooltip.Content>
 			</Tooltip.Root>
 		</LendDialog>
+
+		<ReturnDialog {book} {onChange} let:dialog>
+			<Tooltip.Root openDelay={0}>
+				<Tooltip.Trigger asChild let:builder={tooltip}>
+					<Button
+						variant="ghost"
+						size="icon"
+						class="rounded-lg"
+						aria-label={$_('.book.revoke')}
+						builders={[dialog, tooltip]}
+						disabled={!(book && book?.borrower)}
+					>
+						<Import class="size-5" />
+					</Button>
+				</Tooltip.Trigger>
+				<Tooltip.Content side="bottom" sideOffset={5}>{$_('.book.revoke')}</Tooltip.Content>
+			</Tooltip.Root>
+		</ReturnDialog>
+
+		<Separator orientation="vertical" class="mx-1 mt-2 h-6" />
+
 		{#if book && book?.reservation}
 			<ReleaseDialog {book} {onChange} let:dialog>
 				<Tooltip.Root openDelay={0}>
@@ -82,24 +103,6 @@
 				</Tooltip.Root>
 			</ReserveDialog>
 		{/if}
-		<Separator orientation="vertical" class="mx-1 mt-2 h-6" />
-		<ReturnDialog {book} {onChange} let:dialog>
-			<Tooltip.Root openDelay={0}>
-				<Tooltip.Trigger asChild let:builder={tooltip}>
-					<Button
-						variant="ghost"
-						size="icon"
-						class="rounded-lg"
-						aria-label={$_('.book.revoke')}
-						builders={[dialog, tooltip]}
-						disabled={!(book && book?.borrower)}
-					>
-						<SquareLibrary class="size-5" />
-					</Button>
-				</Tooltip.Trigger>
-				<Tooltip.Content side="bottom" sideOffset={5}>{$_('.book.revoke')}</Tooltip.Content>
-			</Tooltip.Root>
-		</ReturnDialog>
 	</div>
 	<div class="flex gap-1">
 		<BookDialog {book} {onChange} let:dialog>

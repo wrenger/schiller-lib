@@ -16,32 +16,32 @@
 	<div class="border-b pb-3">
 		<h2 class="text-xl font-semibold">{book.title}</h2>
 		<p class="text-md">
-			<span class="text-sm text-muted-foreground">{$_('.book.id')}:</span>
+			<span class="text-muted-foreground text-sm">{$_('.book.id')}:</span>
 			{book.id || $_('.action.empty')}
 		</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.book.isbn')}</h3>
+		<h3 class="text-muted-foreground text-sm">{$_('.book.isbn')}</h3>
 		<p class="text-md font-medium">{book.isbn || $_('.action.empty')}</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.book.authors')}</h3>
+		<h3 class="text-muted-foreground text-sm">{$_('.book.authors')}</h3>
 		<p class="text-md font-medium">{book.authors || $_('.action.empty')}</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.book.publisher')}</h3>
+		<h3 class="text-muted-foreground text-sm">{$_('.book.publisher')}</h3>
 		<p class="text-md font-medium">{book.publisher || $_('.action.empty')}</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.book.costs')}</h3>
+		<h3 class="text-muted-foreground text-sm">{$_('.book.costs')}</h3>
 		<p class="text-md font-medium">{book.costs || $_('.action.empty')}</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.book.year')}</h3>
+		<h3 class="text-muted-foreground text-sm">{$_('.book.year')}</h3>
 		<p class="text-md font-medium">{book.year || $_('.action.empty')}</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.category')}</h3>
+		<h3 class="text-muted-foreground text-sm">{$_('.category')}</h3>
 		<p class="text-md font-medium">
 			{category
 				? `${category.id} - ${category.name} - ${category.section}`
@@ -49,8 +49,8 @@
 		</p>
 	</div>
 	<div>
-		<h3 class="text-sm text-muted-foreground">{$_('.book.note')}</h3>
-		<p class="text-md font-medium">{book.note || $_('.action.empty')}</p>
+		<h3 class="text-muted-foreground text-sm">{$_('.book.note')}</h3>
+		<p class="text-md whitespace-pre-line font-medium">{book.note || $_('.action.empty')}</p>
 	</div>
 	<div class="flex items-center space-x-2">
 		<span class="text-md font-medium">{$_('.book.borrowable')}:</span>

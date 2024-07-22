@@ -4,7 +4,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Tooltip from '$lib/components/ui/tooltip';
-	import { HandCoins, Plus } from 'lucide-svelte';
+	import { BookLock, Plus } from 'lucide-svelte';
 	import { Separator } from '$lib/components/ui/separator';
 	import UserDialog from './UserDialog.svelte';
 
@@ -28,7 +28,7 @@
 						aria-label={$_('.user.permission')}
 						builders={[dropdown, tooltip]}
 					>
-						<HandCoins class="size-5" />
+						<BookLock class="size-5" />
 					</Button>
 				</Tooltip.Trigger>
 				<Tooltip.Content side="bottom" sideOffset={5}>{$_('.user.permission')}</Tooltip.Content>

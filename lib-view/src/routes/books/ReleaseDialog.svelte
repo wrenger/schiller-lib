@@ -28,16 +28,16 @@
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title>
-				{$_('.action.delete')}
+				{$_('.book.delete-reservation')}
 			</Dialog.Title>
 			<Dialog.Description>
-				{$_('.book.delete-reservation')}?
+				{$_('.book.reserved.by', { values: { '0': book?.reservation } })}
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>
 			<Button on:click={() => (response = release())}>
 				<Spinner {response} />
-				{$_('.action.ok')}
+				{$_('.action.apply')}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
