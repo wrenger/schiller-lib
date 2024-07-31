@@ -1,6 +1,7 @@
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 
+use gluer::metadata;
 use serde::{Deserialize, Serialize};
 
 use super::Books;
@@ -8,6 +9,7 @@ use crate::error::{Error, Result};
 use crate::mail::account_is_valid;
 
 /// Data object for a user.
+#[metadata]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
 #[serde(default)]
@@ -44,6 +46,7 @@ impl User {
 }
 
 /// Parameters for the normal search
+#[metadata]
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct UserSearch {

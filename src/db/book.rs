@@ -2,6 +2,7 @@ use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 
 use chrono::NaiveDate;
+use gluer::metadata;
 use serde::{Deserialize, Serialize};
 use unicode_normalization::UnicodeNormalization;
 
@@ -11,6 +12,7 @@ use crate::error::{Error, Result};
 use crate::isbn;
 
 /// Data object for book.
+#[metadata]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Default))]
 pub struct Book {
@@ -31,10 +33,12 @@ pub struct Book {
     pub reservation: Option<String>,
 }
 
+#[metadata]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Default))]
 pub struct Borrower {
     pub user: String,
+    #[meta(into = String)]
     pub deadline: NaiveDate,
 }
 
@@ -59,11 +63,13 @@ impl Book {
 }
 
 /// Book search parameters
+#[metadata]
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct BookSearch {
     pub query: String,
     pub category: String,
+    #[meta(into = i64)]
     pub state: BookState,
     pub offset: usize,
     pub limit: usize,
