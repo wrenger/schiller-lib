@@ -12,12 +12,12 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
-use super::auth::{Auth, Login, STRUCT_LOGIN};
+use super::auth::{Auth, Login};
 use crate::db::*;
 use crate::error::{Error, Result};
 use crate::mail::{self, account_is_valid};
 use crate::provider;
-use crate::provider::dnb::STRUCT_BOOKDATA;
+use crate::provider::dnb::BookData;
 
 /// User configuration.
 #[derive(Debug, Clone)]
@@ -64,7 +64,6 @@ pub fn routes(state: Project) -> Router {
         .route("/session", extract!(get(session)))
         // books
         .route("/book", extract!(get(book_search).post(book_add)))
-        // .route("/book", extract!(post(book_add)))
         .route(
             "/book/:id",
             extract!(get(book_fetch).post(book_update).delete(book_delete)),
@@ -73,7 +72,6 @@ pub fn routes(state: Project) -> Router {
         .route("/book-fetch/:isbn", extract!(get(book_fetch_data)))
         // user
         .route("/user", extract!(get(user_search).post(user_add)))
-        // .route("/user", extract!(post(user_add)))
         .route(
             "/user/:account",
             extract!(get(user_fetch).post(user_update).delete(user_delete)),
@@ -252,7 +250,7 @@ async fn book_generate_id(
 async fn book_fetch_data(
     State(project): State<Project>,
     Path(isbn): Path<String>,
-) -> Result<Json<provider::dnb::BookData>> {
+) -> Result<Json<BookData>> {
     let settings = project.db.read().settings();
     Ok(Json(
         provider::dnb::fetch(project.client, &settings.dnb_token, &isbn).await?,
