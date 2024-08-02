@@ -10,7 +10,7 @@ use gluer::{extract, metadata, Api};
 use hyper::StatusCode;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use tracing::error;
+use tracing::{error, info};
 
 use super::auth::{Auth, Login};
 use crate::db::*;
@@ -100,7 +100,9 @@ pub fn routes(state: Project) -> Router {
                 .with_state(state.clone())
         });
 
-    api.generate_client("test/api.ts").unwrap();
+    api.generate_client("test/api.ts", "").unwrap();
+
+    info!("API routes generated");
 
     api.into_router()
 }
