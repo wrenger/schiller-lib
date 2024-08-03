@@ -69,7 +69,6 @@ impl Book {
 pub struct BookSearch {
     pub query: String,
     pub category: String,
-    #[meta(into = i64)]
     pub state: BookState,
     pub offset: usize,
     pub limit: usize,
@@ -88,6 +87,7 @@ impl Default for BookSearch {
 }
 
 /// Borrow status of a book
+#[metadata]
 #[repr(i64)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BookState {
