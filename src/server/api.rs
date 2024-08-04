@@ -14,7 +14,7 @@ use tracing::{error, info};
 
 use super::auth::{Auth, Login};
 use crate::db::*;
-use crate::error::{Error, Result};
+use crate::error::{Error, Result, ResultMetadata};
 use crate::mail::{self, account_is_valid};
 use crate::provider;
 use crate::provider::dnb::BookData;
@@ -134,13 +134,13 @@ async fn about() -> Json<About> {
 /// Returns the project settings.
 /// They are fetched when opening a project, so that this function only
 /// returns copies of the cached version.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn settings_get(State(project): State<Project>) -> Result<Json<Settings>> {
     Ok(Json(project.db.read().settings()))
 }
 
 /// Updates project settings.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn settings_update(
     State(project): State<Project>,
     Json(settings): Json<Settings>,
@@ -150,13 +150,13 @@ async fn settings_update(
 }
 
 /// Returns the project statistics.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn stats(State(project): State<Project>) -> Result<Json<Stats>> {
     Ok(Json(project.db.read().stats()?))
 }
 
 /// Returns the project statistics.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn session(login: Login) -> Result<Json<Login>> {
     Ok(Json(login))
 }
@@ -164,11 +164,11 @@ async fn session(login: Login) -> Result<Json<Login>> {
 // Book
 
 /// Returns the book with the given `id`.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn book_fetch(State(project): State<Project>, Path(id): Path<String>) -> Result<Json<Book>> {
     Ok(Json(project.db.read().books.fetch(&id)?))
 }
-#[metadata]
+#[metadata(custom = [Result])]
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 struct Search {
@@ -188,7 +188,7 @@ impl Default for Search {
 }
 
 /// Search result containting the total number of found records.
-#[metadata]
+#[metadata(custom = [Result])]
 #[derive(Serialize)]
 struct Limited<T: Serialize> {
     /// Total number of results (without limit)
@@ -205,7 +205,7 @@ impl<T: Serialize> From<(usize, Vec<T>)> for Limited<T> {
 }
 
 /// Preforms a simple media search with the given `query`.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn book_search(
     State(project): State<Project>,
     Query(params): Query<BookSearch>,
@@ -214,14 +214,14 @@ async fn book_search(
 }
 
 /// Adds a new book.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn book_add(State(project): State<Project>, Json(book): Json<Book>) -> Result<Json<Book>> {
     let db = &mut *project.db.write();
     Ok(Json(db.books.add(book, &db.categories)?))
 }
 
 /// Updates the book and all references if its id changes.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn book_update(
     State(project): State<Project>,
     Path(id): Path<String>,
@@ -233,13 +233,13 @@ async fn book_update(
 
 /// Deletes the book including the its authors.
 /// Also borrowers & reservations for this book are removed.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn book_delete(State(project): State<Project>, Path(id): Path<String>) -> Result<()> {
     project.db.write().books.delete(&id)
 }
 
 /// Generates a new book id.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn book_generate_id(
     State(project): State<Project>,
     Json(book): Json<Book>,
@@ -248,7 +248,7 @@ async fn book_generate_id(
 }
 
 /// Fetch the data of the book from the DNB an their like.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn book_fetch_data(
     State(project): State<Project>,
     Path(isbn): Path<String>,
@@ -262,7 +262,7 @@ async fn book_fetch_data(
 // User
 
 /// Returns the user with the given `account`.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn user_fetch(
     State(project): State<Project>,
     Path(account): Path<String>,
@@ -271,7 +271,7 @@ async fn user_fetch(
 }
 
 /// Performs a simple user search with the given `text`.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn user_search(
     State(project): State<Project>,
     Query(params): Query<UserSearch>,
@@ -280,13 +280,13 @@ async fn user_search(
 }
 
 /// Adds a new user.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn user_add(State(project): State<Project>, Json(user): Json<User>) -> Result<Json<User>> {
     Ok(Json(project.db.write().users.add(user)?))
 }
 
 /// Updates the user and all references if its account changes.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn user_update(
     State(project): State<Project>,
     Path(account): Path<String>,
@@ -299,14 +299,14 @@ async fn user_update(
 /// Deletes the user.
 ///
 /// Returns a `Error::StillReferenced` if there are any borrows or reservations left.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn user_delete(State(project): State<Project>, Path(account): Path<String>) -> Result<()> {
     let db = &mut *project.db.write();
     db.users.delete(&account, &db.books)
 }
 
 /// Fetch the data of the book from the DNB an their like.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn user_fetch_data(
     State(project): State<Project>,
     Path(account): Path<String>,
@@ -325,7 +325,7 @@ async fn user_fetch_data(
 /// Deletes the roles from all users and inserts the new roles.
 ///
 /// The roles of all users not contained in the given list are cleared.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn user_update_roles(State(project): State<Project>) -> Result<()> {
     if let Some(user) = &project.user {
         let users = super::provider::user::load_roles(&user.file, user.delimiter)?;
@@ -338,13 +338,13 @@ async fn user_update_roles(State(project): State<Project>) -> Result<()> {
 // Category
 
 /// Fetches and returns all categories.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn category_list(State(project): State<Project>) -> Result<Json<Vec<Category>>> {
     Ok(Json(project.db.read().categories.list()?))
 }
 
 /// Adds a new category.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn category_add(
     State(project): State<Project>,
     Json(category): Json<Category>,
@@ -353,7 +353,7 @@ async fn category_add(
 }
 
 /// Updates the category and all references.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn category_update(
     State(project): State<Project>,
     Path(id): Path<String>,
@@ -364,14 +364,14 @@ async fn category_update(
 }
 
 /// Removes the category or returns a `Error::StillReferenced` if it is still in use.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn category_delete(State(project): State<Project>, Path(id): Path<String>) -> Result<()> {
     let db = &mut *project.db.write();
     db.categories.delete(&id, &db.books)
 }
 
 /// Returns the number of books in this category.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn category_references(
     State(project): State<Project>,
     Path(id): Path<String>,
@@ -380,7 +380,7 @@ async fn category_references(
 }
 
 // Lending
-#[metadata]
+#[metadata(custom = [Result])]
 #[derive(Debug, Deserialize)]
 struct LendParams {
     id: String,
@@ -391,7 +391,7 @@ struct LendParams {
 }
 
 /// Lends the book to the specified user.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn lending_lend(
     State(project): State<Project>,
     Query(params): Query<LendParams>,
@@ -402,21 +402,21 @@ async fn lending_lend(
         params.deadline,
     )?))
 }
-#[metadata]
+#[metadata(custom = [Result])]
 #[derive(Debug, Deserialize)]
 struct ReturnParams {
     id: String,
 }
 
 /// Returns the book.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn lending_return(
     State(project): State<Project>,
     Query(params): Query<ReturnParams>,
 ) -> Result<Json<Book>> {
     Ok(Json(project.db.write().return_back(&params.id)?))
 }
-#[metadata]
+#[metadata(custom = [Result])]
 #[derive(Debug, Deserialize)]
 struct ReserveParams {
     id: String,
@@ -424,7 +424,7 @@ struct ReserveParams {
 }
 
 /// Creates a reservation for the borrowed book.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn lending_reserve(
     State(project): State<Project>,
     Query(params): Query<ReserveParams>,
@@ -435,7 +435,7 @@ async fn lending_reserve(
 }
 
 /// Removes the reservation from the specified book.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn lending_release(
     State(project): State<Project>,
     Query(params): Query<ReturnParams>,
@@ -444,13 +444,13 @@ async fn lending_release(
 }
 
 /// Returns the list of expired borrowing periods.
-#[metadata]
+#[metadata(custom = [Result])]
 async fn lending_overdues(State(project): State<Project>) -> Result<Json<Vec<Overdue>>> {
     Ok(Json(project.db.read().overdues()?))
 }
 
 // Mail Notifications
-#[metadata]
+#[metadata(custom = [Result])]
 #[derive(Debug, Deserialize)]
 struct Message {
     account: String,
@@ -458,7 +458,7 @@ struct Message {
     body: String,
 }
 
-#[metadata]
+#[metadata(custom = [Result])]
 async fn mail_notify(
     State(project): State<Project>,
     Json(messages): Json<Vec<Message>>,
