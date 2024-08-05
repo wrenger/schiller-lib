@@ -6,15 +6,15 @@ use axum::middleware::from_extractor_with_state;
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use chrono::NaiveDate;
-use gluer::{extract, metadata, Api};
+use gluer::{generate, metadata, route};
 use hyper::StatusCode;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use tracing::{error, info};
+use tracing::error;
 
 use super::auth::{Auth, Login};
 use crate::db::*;
-use crate::error::{Error, Result, ResultMetadata};
+use crate::error::{Error, Result};
 use crate::mail::{self, account_is_valid};
 use crate::provider;
 use crate::provider::dnb::BookData;
@@ -53,58 +53,55 @@ impl Project {
 }
 
 pub fn routes(state: Project) -> Router {
-    let api = Api::new()
-        // general
-        .route("/about", extract!(get(about)))
-        .route(
-            "/settings",
-            extract!(get(settings_get).post(settings_update)),
-        )
-        .route("/stats", extract!(get(stats)))
-        .route("/session", extract!(get(session)))
-        // books
-        .route("/book", extract!(get(book_search).post(book_add)))
-        .route(
-            "/book/:id",
-            extract!(get(book_fetch).post(book_update).delete(book_delete)),
-        )
-        .route("/book-id", extract!(post(book_generate_id)))
-        .route("/book-fetch/:isbn", extract!(get(book_fetch_data)))
-        // user
-        .route("/user", extract!(get(user_search).post(user_add)))
-        .route(
-            "/user/:account",
-            extract!(get(user_fetch).post(user_update).delete(user_delete)),
-        )
-        .route("/user-fetch/:account", extract!(get(user_fetch_data)))
-        .route("/user-update-roles", extract!(post(user_update_roles)))
-        // category
-        .route("/category", extract!(get(category_list).post(category_add)))
-        .route(
-            "/category/:id",
-            extract!(post(category_update).delete(category_delete)),
-        )
-        .route("/category-refs/:id", extract!(get(category_references)))
-        // lending
-        .route("/lending/lend", extract!(post(lending_lend)))
-        .route("/lending/return", extract!(post(lending_return)))
-        .route("/lending/reserve", extract!(post(lending_reserve)))
-        .route("/lending/release", extract!(post(lending_release)))
-        .route("/overdues", extract!(get(lending_overdues)))
-        // mail
-        .route("/notify", extract!(post(mail_notify)))
-        // all routes require authorization
-        .inner_router(|f| {
-            f.route_layer(from_extractor_with_state::<Login, Auth>(state.auth.clone()))
-                .fallback(|| async { (StatusCode::NOT_FOUND, Json(Error::NothingFound)) })
-                .with_state(state.clone())
-        });
+    let mut api = Router::new();
 
-    api.generate_client("test/api.ts", "").unwrap();
+    // general
+    route!(api, "/about", get(about));
+    route!(api, "/settings", get(settings_get).post(settings_update));
+    route!(api, "/stats", get(stats));
+    route!(api, "/session", get(session));
+    // books
+    route!(api, "/book", get(book_search).post(book_add));
+    route!(
+        api,
+        "/book/:id",
+        get(book_fetch).post(book_update).delete(book_delete)
+    );
+    route!(api, "/book-id", post(book_generate_id));
+    route!(api, "/book-fetch/:isbn", get(book_fetch_data));
+    // user
+    route!(api, "/user", get(user_search).post(user_add));
+    route!(
+        api,
+        "/user/:account",
+        get(user_fetch).post(user_update).delete(user_delete)
+    );
+    route!(api, "/user-fetch/:account", get(user_fetch_data));
+    route!(api, "/user-update-roles", post(user_update_roles));
+    // category
+    route!(api, "/category", get(category_list).post(category_add));
+    route!(
+        api,
+        "/category/:id",
+        post(category_update).delete(category_delete)
+    );
+    route!(api, "/category-refs/:id", get(category_references));
+    // lending
+    route!(api, "/lending/lend", post(lending_lend));
+    route!(api, "/lending/return", post(lending_return));
+    route!(api, "/lending/reserve", post(lending_reserve));
+    route!(api, "/lending/release", post(lending_release));
+    route!(api, "/overdues", get(lending_overdues));
+    // mail
+    route!(api, "/notify", post(mail_notify));
 
-    info!("API routes generated");
+    // generate the API documentation (on compile time)
+    generate!("src", "test/api.ts", "");
 
-    api.into_router()
+    // all routes require authorization
+    api.route_layer(from_extractor_with_state::<Login, Auth>(state.auth.clone()))
+        .fallback(|| async { (StatusCode::NOT_FOUND, Json(Error::NothingFound)) })
+        .with_state(state.clone())
 }
 #[metadata]
 #[derive(Debug, Serialize)]
@@ -168,7 +165,7 @@ async fn session(login: Login) -> Result<Json<Login>> {
 async fn book_fetch(State(project): State<Project>, Path(id): Path<String>) -> Result<Json<Book>> {
     Ok(Json(project.db.read().books.fetch(&id)?))
 }
-#[metadata(custom = [Result])]
+
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 struct Search {
