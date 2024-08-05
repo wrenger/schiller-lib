@@ -22,6 +22,7 @@ pub struct Book {
     pub publisher: String,
     pub year: i64,
     pub costs: f64,
+    #[meta(into = Option<String>)]
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub note: String,
     pub borrowable: bool,
