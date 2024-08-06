@@ -96,7 +96,16 @@ pub fn routes(state: Project) -> Router {
     route!(api, "/notify", post(mail_notify));
 
     // generate the API documentation (on compile time)
-    generate!("src", "test/api.ts", "/api");
+    generate!(
+        [
+            "src/db",
+            "src/server",
+            "src/error.rs",
+            "src/provider/dnb.rs"
+        ],
+        "test/api.ts",
+        "/api"
+    );
 
     // all routes require authorization
     api.route_layer(from_extractor_with_state::<Login, Auth>(state.auth.clone()))
