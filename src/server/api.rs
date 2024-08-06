@@ -110,7 +110,7 @@ pub fn routes(state: Project) -> Router {
     // all routes require authorization
     api.route_layer(from_extractor_with_state::<Login, Auth>(state.auth.clone()))
         .fallback(|| async { (StatusCode::NOT_FOUND, Json(Error::NothingFound)) })
-        .with_state(state.clone())
+        .with_state(state)
 }
 #[metadata]
 #[derive(Debug, Serialize)]
