@@ -112,6 +112,7 @@ pub fn routes(state: Project) -> Router {
         .fallback(|| async { (StatusCode::NOT_FOUND, Json(Error::NothingFound)) })
         .with_state(state)
 }
+
 #[metadata]
 #[derive(Debug, Serialize)]
 struct About {
@@ -193,8 +194,8 @@ impl Default for Search {
     }
 }
 
-/// Search result containting the total number of found records.
-#[metadata(custom = [Result])]
+/// Search result containing the total number of found records.
+#[metadata]
 #[derive(Serialize)]
 struct Limited<T: Serialize> {
     /// Total number of results (without limit)
@@ -386,7 +387,7 @@ async fn category_references(
 }
 
 // Lending
-#[metadata(custom = [Result])]
+#[metadata]
 #[derive(Debug, Deserialize)]
 struct LendParams {
     id: String,
@@ -408,7 +409,7 @@ async fn lending_lend(
         params.deadline,
     )?))
 }
-#[metadata(custom = [Result])]
+#[metadata]
 #[derive(Debug, Deserialize)]
 struct ReturnParams {
     id: String,
@@ -422,7 +423,7 @@ async fn lending_return(
 ) -> Result<Json<Book>> {
     Ok(Json(project.db.write().return_back(&params.id)?))
 }
-#[metadata(custom = [Result])]
+#[metadata]
 #[derive(Debug, Deserialize)]
 struct ReserveParams {
     id: String,
@@ -456,7 +457,7 @@ async fn lending_overdues(State(project): State<Project>) -> Result<Json<Vec<Ove
 }
 
 // Mail Notifications
-#[metadata(custom = [Result])]
+#[metadata]
 #[derive(Debug, Deserialize)]
 struct Message {
     account: String,
