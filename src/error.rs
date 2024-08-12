@@ -8,7 +8,7 @@ use serde::Serialize;
 use tracing::error;
 
 /// The api compatible error type.
-/// On the godot side there are specific error messages displayed for each of the error types.
+/// On the frontend there are specific error messages displayed for each of the error types.
 ///
 /// More specific error messages are removed to be api compatible.
 /// Those messages are logged however.

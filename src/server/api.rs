@@ -312,7 +312,7 @@ async fn user_delete(State(project): State<Project>, Path(account): Path<String>
     db.users.delete(&account, &db.books)
 }
 
-/// Fetch the data of the book from the DNB an their like.
+/// Fetch the data of the user from the specified user file.
 #[metadata(custom = [Result])]
 async fn user_fetch_data(
     State(project): State<Project>,

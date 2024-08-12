@@ -197,7 +197,7 @@ namespace api {
 
     /**
         The api compatible error type.
-        On the godot side there are specific error messages displayed for each of the error types.
+        On the frontend there are specific error messages displayed for each of the error types.
         
         More specific error messages are removed to be api compatible.
         Those messages are logged however.
@@ -549,7 +549,7 @@ namespace api {
     }
 
     /**
-        Fetch the data of the book from the DNB an their like.
+        Fetch the data of the user from the specified user file.
     */
     export async function user_fetch_data(path: string): Promise<Result<User>> {
         return fetch_api(`${BASE}/user-fetch/${encodeURIComponent(path)}`, {
