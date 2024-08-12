@@ -6,7 +6,7 @@
 	import api from '$lib/api';
 	import { DateTime } from 'luxon';
 	import Spinner from '$lib/components/ui/spinner/Spinner.svelte';
-	import { onOutsideClick } from '$lib';
+	import { onOutsideClick, mail_replace, handle_result } from '$lib';
 
 	let open = false;
 	let opened = false;
@@ -17,7 +17,7 @@
 			settings.mail_last_reminder.isValid &&
 			Math.ceil(settings.mail_last_reminder.diffNow('days').days) < 0
 		) {
-			let overdues = await api.overdues();
+			let overdues = handle_result(await api.lending_overdues());
 			if (overdues.length > 0) {
 				open = true;
 				opened = true;
@@ -29,9 +29,8 @@
 
 	let response: Promise<void>;
 	async function sendReminders() {
-		let overdueBooks: api.Overdue[] = await api.overdues();
-
-		let dataToSend: api.MailBody[] = [];
+		let overdueBooks = handle_result(await api.lending_overdues());
+		let dataToSend: api.Message[] = [];
 
 		for (const { book, user } of overdueBooks) {
 			let borrower = book.borrower;
@@ -40,21 +39,23 @@
 					-DateTime.fromISO(borrower.deadline).diffNow('days').days > 14
 						? $settingsGlobal.mail_overdue2
 						: $settingsGlobal.mail_overdue;
-				let mail = api.mail_replace(template, book.title, `${user.forename} ${user.surname}`);
+				let mail = mail_replace(template, book.title, `${user.forename} ${user.surname}`);
 				dataToSend.push({ account: borrower.user, ...mail });
 			} else {
 				console.error('No borrower found for book', book);
 			}
 		}
 
-		await api.mail(dataToSend);
+		handle_result(await api.mail_notify(dataToSend));
 
 		let mail_last_reminder = DateTime.now().toISODate();
 
-		await api.settings_update({
-			...$settingsGlobal,
-			mail_last_reminder
-		});
+		handle_result(
+			await api.settings_update({
+				...$settingsGlobal,
+				mail_last_reminder
+			})
+		);
 
 		settingsGlobal.set({
 			...$settingsGlobal,

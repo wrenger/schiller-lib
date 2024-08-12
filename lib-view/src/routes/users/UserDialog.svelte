@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { onOutsideClick } from '$lib';
+	import { handle_result, onOutsideClick } from '$lib';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import api from '$lib/api';
@@ -24,8 +24,8 @@
 			forename = user.forename;
 			surname = user.surname;
 			account = user.account;
-			role = user.role;
-			may_borrow = user.may_borrow;
+			role = user.role || '';
+			may_borrow = user.may_borrow || true;
 		} else {
 			forename = '';
 			surname = '';
@@ -52,8 +52,7 @@
 
 	let addResponse: Promise<any>;
 	async function add() {
-		let user = getUser();
-		await api.user_add(user);
+		let user = handle_result(await api.user_add(getUser()));
 		open = false;
 		onChange(user);
 	}
@@ -61,8 +60,7 @@
 	let editResponse: Promise<any>;
 	async function edit() {
 		if (user) {
-			let newUser = getUser();
-			await api.user_update(user.account, newUser);
+			let newUser = handle_result(await api.user_update(user.account, getUser()));
 			open = false;
 			onChange(newUser);
 		}

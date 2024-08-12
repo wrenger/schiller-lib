@@ -11,7 +11,7 @@
 	import UserDisplay from './UserDisplay.svelte';
 
 	let active: api.User | null;
-	let search: api.UserSearch = { query: '' };
+	let search: api.UserSearch = { query: '', may_borrow: null, offset: 0, limit: 200 };
 	let layout: Layout;
 	// layout mobile display, won't work without binding open
 	let open: boolean;

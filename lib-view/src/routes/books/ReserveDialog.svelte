@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { onOutsideClick } from '$lib';
+	import { handle_result, onOutsideClick } from '$lib';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import api from '$lib/api';
@@ -22,7 +22,7 @@
 	let response: Promise<any>;
 	async function reserve() {
 		if (book) {
-			book = await api.reserve(book.id, account);
+			book = handle_result(await api.lending_reserve({ id: book.id, account }));
 			open = false;
 			onChange(book);
 		}

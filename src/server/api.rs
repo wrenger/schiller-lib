@@ -103,7 +103,7 @@ pub fn routes(state: Project) -> Router {
             "src/error.rs",
             "src/provider/dnb.rs"
         ],
-        "test/api.ts",
+        "lib-view/src/lib/api.ts",
         "/api"
     );
 

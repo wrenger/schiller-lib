@@ -5,6 +5,19 @@
 	import { ChevronRight } from 'lucide-svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import Separator from '$lib/components/ui/separator/separator.svelte';
+	import { handle_result } from '$lib';
+
+	async function session() {
+		return handle_result(await api.session());
+	}
+
+	async function stats() {
+		return handle_result(await api.stats());
+	}
+
+	async function about() {
+		return handle_result(await api.about());
+	}
 </script>
 
 <svelte:head>
@@ -21,7 +34,7 @@
 	<svelte:fragment slot="list">
 		<div class="h-full overflow-y-scroll">
 			<div class="p-4">
-				{#await api.session() then session}
+				{#await session() then session}
 					<div class="space-y-2">
 						<h1 class="text-lg font-semibold tracking-tight">
 							{$_('.info.session')}
@@ -32,7 +45,7 @@
 					</div>
 				{/await}
 				<div class="grid gap-4 pt-4 md:grid-cols-2">
-					{#await api.stats() then stats}
+					{#await stats() then stats}
 						<div class="space-y-2">
 							<h1 class="text-lg font-semibold tracking-tight">
 								{$_('.info.stats')}
@@ -48,7 +61,7 @@
 							</div>
 						</div>
 					{/await}
-					{#await api.about() then about}
+					{#await about() then about}
 						<div class="space-y-2">
 							<h1 class="text-lg font-semibold tracking-tight">
 								{$_('.info.about', {

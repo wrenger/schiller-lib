@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { onOutsideClick } from '$lib';
+	import { handle_result, onOutsideClick } from '$lib';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import api from '$lib/api';
@@ -42,8 +42,8 @@
 			category = $categories?.find((c) => c.id == book.category) ?? null;
 			note = book.note ?? '';
 			borrowable = book.borrowable;
-			borrower = book.borrower;
-			reservation = book.reservation;
+			borrower = book.borrower || undefined;
+			reservation = book.reservation || undefined;
 		} else {
 			id = '';
 			isbn = '';
@@ -72,21 +72,20 @@
 			category: category?.id ?? '',
 			note: note ?? undefined,
 			borrowable,
-			borrower: borrower,
-			reservation: reservation
+			borrower: borrower || null,
+			reservation: reservation || null
 		};
 	}
 
 	let open = false;
-	let idResponse: Promise<string>;
-	let isbnResponse: Promise<Partial<api.Book>>;
+	let idResponse: Promise<api.Result<string>>;
+	let isbnResponse: Promise<api.Result<api.BookData>>;
 
 	$: if (open) setBook();
 
 	let addResponse: Promise<any>;
 	async function add() {
-		let book = getBook();
-		await api.book_add(book);
+		let book = handle_result(await api.book_add(getBook()));
 		open = false;
 		onChange(book);
 	}
@@ -94,8 +93,7 @@
 	let editResponse: Promise<any>;
 	async function edit() {
 		if (book) {
-			let newBook = getBook();
-			await api.book_update(book.id, newBook);
+			let newBook = handle_result(await api.book_update(book.id, getBook()));
 			open = false;
 			onChange(newBook);
 		}
@@ -131,8 +129,8 @@
 							title={$_('.book.id.action')}
 							class="absolute left-2 top-2.5 h-5 w-5 p-[2px] text-muted-foreground"
 							on:click={async () => {
-								idResponse = api.book_id(getBook());
-								id = await idResponse;
+								idResponse = api.book_generate_id(getBook());
+								id = handle_result(await idResponse);
 							}}
 						>
 							<Spinner response={idResponse} spinnerClass="size-5 !mr-0">
@@ -151,13 +149,13 @@
 							title={$_('.book.request')}
 							class="absolute left-2 top-2.5 h-5 w-5 p-[2px] text-muted-foreground"
 							on:click={async () => {
-								isbnResponse = api.book_fetch(isbn);
-								let data = await isbnResponse;
+								isbnResponse = api.book_fetch_data(isbn);
+								let data = handle_result(await isbnResponse);
 								title = data.title ?? '';
 								publisher = data.publisher ?? '';
 								authors = Array.isArray(data.authors)
 									? data.authors.join(', ')
-									: data.authors ?? '';
+									: (data.authors ?? '');
 								costs = data.costs ?? 0;
 							}}
 						>

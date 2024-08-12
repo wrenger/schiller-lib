@@ -1,520 +1,591 @@
-import { _ } from 'svelte-i18n';
-import Ajv, { type JTDParser, type JTDSchemaType } from 'ajv/dist/jtd';
-import { toast } from 'svelte-sonner';
+const BASE = '/api';
 
 namespace api {
-	const ajv = new Ajv();
+    export interface About {
+        name: string;
+        version: string;
+        repository: string;
+        authors: string[];
+        description: string;
+        license: string;
+    }
 
-	export interface About {
-		name: string;
-		version: string;
-		repository: string;
-		authors: string[];
-		description: string;
-		license: string;
-	}
-	const parse_about = ajv.compileParser<About>({
-		properties: {
-			name: { type: 'string' },
-			version: { type: 'string' },
-			repository: { type: 'string' },
-			authors: { elements: { type: 'string' } },
-			description: { type: 'string' },
-			license: { type: 'string' }
+    /**
+        Data object for book.
+    */
+    export interface Book {
+        id: string;
+        isbn: string;
+        title: string;
+        publisher: string;
+        year: number;
+        costs: number;
+        note: string | null;
+        borrowable: boolean;
+        category: string;
+        authors: string;
+        borrower: Borrower | null;
+        reservation: string | null;
+    }
+
+    export interface BookData {
+        title: string;
+        authors: string[];
+        publisher: string;
+        costs: number;
+    }
+
+    /**
+        Book search parameters
+    */
+    export interface BookSearch {
+        query: string;
+        category: string;
+        state: BookState;
+        offset: number;
+        limit: number;
+    }
+
+    export interface Borrower {
+        user: string;
+        deadline: string;
+    }
+
+    /**
+        Data object for categories
+    */
+    export interface Category {
+        id: string;
+        name: string;
+        section: string;
+    }
+
+    export interface LendParams {
+        id: string;
+        account: string;
+        /**
+            ISO date format: YYYY-MM-DD
+        */
+        deadline: string;
+    }
+
+    /**
+        Search result containing the total number of found records.
+    */
+    export interface Limited<T> {
+        /**
+            Total number of results (without limit)
+        */
+        total: number;
+        rows: T[];
+    }
+
+    /**
+        The user data we'll get back from oauth.
+        
+        E.g. Discord: https://discord.com/developers/docs/resources/user#user-object-user-structure
+    */
+    export interface Login {
+        id: string;
+        username: string;
+    }
+
+    /**
+        Template for a mail notification
+    */
+    export interface MailTemplate {
+        subject: string;
+        body: string;
+    }
+
+    export interface Message {
+        account: string;
+        subject: string;
+        body: string;
+    }
+
+    /**
+        Borrowed books that missed the deadline
+    */
+    export interface Overdue {
+        book: Book;
+        user: User;
+    }
+
+    export interface ReserveParams {
+        id: string;
+        account: string;
+    }
+
+    export interface ReturnParams {
+        id: string;
+    }
+
+    /**
+        Library settings
+    */
+    export interface Settings {
+        borrowing_duration: number;
+        dnb_token: string;
+        mail_last_reminder: string;
+        mail_from: string;
+        mail_host: string;
+        mail_password: string;
+        mail_info: MailTemplate;
+        mail_overdue: MailTemplate;
+        mail_overdue2: MailTemplate;
+    }
+
+    /**
+        Data object for book.
+    */
+    export interface Stats {
+        books: number;
+        users: number;
+        categories: number;
+        borrows: number;
+        reservations: number;
+        overdues: number;
+    }
+
+    /**
+        Data object for a user.
+    */
+    export interface User {
+        account: string;
+        forename: string;
+        surname: string;
+        role: string | null;
+        may_borrow: boolean | null;
+    }
+
+    /**
+        Parameters for the normal search
+    */
+    export interface UserSearch {
+        query: string;
+        may_borrow: boolean | null;
+        offset: number;
+        limit: number;
+    }
+
+    /**
+        Borrow status of a book
+    */
+    export enum BookState {
+        /**
+            No status
+        */
+        None = "None",
+        /**
+            Can be borrowed
+        */
+        Borrowable = "Borrowable",
+        /**
+            Cannot be borrowed
+        */
+        NotBorrowable = "NotBorrowable",
+        /**
+            Is already borrowed
+        */
+        Borrowed = "Borrowed",
+        /**
+            Is already reserved
+        */
+        Reserved = "Reserved",
+    }
+
+    /**
+        The api compatible error type.
+        On the godot side there are specific error messages displayed for each of the error types.
+        
+        More specific error messages are removed to be api compatible.
+        Those messages are logged however.
+    */
+    export enum Error {
+        /**
+            The user provided arguments are malformed
+        */
+        Arguments = "Arguments",
+        /**
+            A file could not be found or opened
+        */
+        FileOpen = "FileOpen",
+        /**
+            Could not connect to server
+        */
+        Network = "Network",
+        /**
+            Invalid file format
+        */
+        InvalidFormat = "InvalidFormat",
+        /**
+            No matching results
+        */
+        NothingFound = "NothingFound",
+        /**
+            Deletion not possible as the user is still referenced
+        */
+        ReferencedUser = "ReferencedUser",
+        /**
+            Deletion not possible as the category is still referenced
+        */
+        ReferencedCategory = "ReferencedCategory",
+        /**
+            The book has invalid or missing fields
+        */
+        InvalidBook = "InvalidBook",
+        /**
+            The user has invalid or missing fields
+        */
+        InvalidUser = "InvalidUser",
+        /**
+            User may not borrow
+        */
+        LendingUserMayNotBorrow = "LendingUserMayNotBorrow",
+        /**
+            Book cannot be borrowed
+        */
+        LendingBookNotBorrowable = "LendingBookNotBorrowable",
+        /**
+            Book is already borrowed
+        */
+        LendingBookAlreadyBorrowed = "LendingBookAlreadyBorrowed",
+        /**
+            Book cannot be reserved as the user already borrows it
+        */
+        LendingBookAlreadyBorrowedByUser = "LendingBookAlreadyBorrowedByUser",
+        /**
+            The book cannot be reserved or returned as it is not borrowed
+        */
+        LendingBookNotBorrowed = "LendingBookNotBorrowed",
+        /**
+            The book is already reserved
+        */
+        LendingBookAlreadyReserved = "LendingBookAlreadyReserved",
+        /**
+            The book is not reserved
+        */
+        LendingBookNotReserved = "LendingBookNotReserved",
+        /**
+            The database version is too old
+        */
+        UnsupportedProjectVersion = "UnsupportedProjectVersion",
+    }
+
+    /**
+        Result type using the api error.
+    */
+    export type Result<T> = T | Error;
+
+    async function fetch_api(endpoint: string, options: RequestInit): Promise<any> {
+        const response = await fetch(endpoint, {
+            headers: {
+                "Content-Type": "application/json",
+                ...options.headers,
+            },
+            ...options,
+        });
+        if (response.headers.get('Content-Length') === '0') {
+			return;
+		} else {
+			return response.json();
 		}
-	});
+    }
 
-	export interface Stats {
-		books: number;
-		users: number;
-		categories: number;
-		borrows: number;
-		reservations: number;
-		overdues: number;
-	}
-	const parse_stats = ajv.compileParser<Stats>({
-		properties: {
-			books: { type: 'uint32' },
-			users: { type: 'uint32' },
-			categories: { type: 'uint32' },
-			borrows: { type: 'uint32' },
-			reservations: { type: 'uint32' },
-			overdues: { type: 'uint32' }
-		}
-	});
-
-	export interface Session {
-		id: string;
-		username: string;
-	}
-	const parse_session = ajv.compileParser<Session>({
-		properties: {
-			id: { type: 'string' },
-			username: { type: 'string' }
-		}
-	});
-
-	export interface MailTemplate {
-		subject: string;
-		body: string;
-	}
-	const schema_mail_template: JTDSchemaType<MailTemplate> = {
-		properties: {
-			subject: { type: 'string' },
-			body: { type: 'string' }
-		}
-	};
-
-	export interface Settings {
-		// Borrowing
-		borrowing_duration: number;
-		// DNB
-		dnb_token: string;
-		// Mail
-		mail_last_reminder: string;
-		mail_from: string;
-		mail_host: string;
-		mail_password: string;
-		// Mail Templates
-		mail_info: MailTemplate;
-		mail_overdue: MailTemplate;
-		mail_overdue2: MailTemplate;
-	}
-	const parse_settings = ajv.compileParser<Settings>({
-		properties: {
-			borrowing_duration: { type: 'uint32' },
-			dnb_token: { type: 'string' },
-			mail_last_reminder: { type: 'string' },
-			mail_from: { type: 'string' },
-			mail_host: { type: 'string' },
-			mail_password: { type: 'string' },
-			mail_info: schema_mail_template,
-			mail_overdue: schema_mail_template,
-			mail_overdue2: schema_mail_template
-		}
-	});
-
-	export interface Borrower {
-		user: string;
-		deadline: string;
-	}
-
-	export interface Book {
-		id: string;
-		isbn: string;
-		title: string;
-		publisher: string;
-		year: number;
-		costs: number;
-		note?: string;
-		borrowable: boolean;
-		category: string;
-		authors: string;
-		borrower?: Borrower;
-		reservation?: string;
-	}
-	const schema_book: JTDSchemaType<Book> = {
-		properties: {
-			id: { type: 'string' },
-			isbn: { type: 'string' },
-			title: { type: 'string' },
-			publisher: { type: 'string' },
-			year: { type: 'uint32' },
-			costs: { type: 'float32' },
-			borrowable: { type: 'boolean' },
-			category: { type: 'string' },
-			authors: { type: 'string' }
-		},
-		optionalProperties: {
-			note: { type: 'string' },
-			reservation: { type: 'string' },
-			borrower: {
-				properties: {
-					user: { type: 'string' },
-					deadline: { type: 'string' }
-				}
-			}
-		}
-	};
-
-	const parse_book = ajv.compileParser(schema_book);
-	const parse_partial_book = ajv.compileParser<Partial<Book>>({
-		optionalProperties: {
-			...schema_book.properties,
-			...schema_book.optionalProperties
-		}
-	});
-
-	export type BookState = 'None' | 'Borrowable' | 'NotBorrowable' | 'Borrowed' | 'Reserved';
-
-	export interface BookSearch {
-		query?: string;
-		category?: string;
-		state?: BookState;
-		offset?: number;
-		limit?: number;
-	}
-
-	export interface User {
-		account: string;
-		forename: string;
-		surname: string;
-		role: string;
-		may_borrow: boolean;
-	}
-	function userDef(u: Partial<User>): User {
-		return {
-			account: u.account ?? '',
-			forename: u.forename ?? '',
-			surname: u.surname ?? '',
-			role: u.role ?? '',
-			may_borrow: u.may_borrow ?? true
-		};
-	}
-	const schema_user: JTDSchemaType<Partial<User>> = {
-		optionalProperties: {
-			account: { type: 'string' },
-			forename: { type: 'string' },
-			surname: { type: 'string' },
-			role: { type: 'string' },
-			may_borrow: { type: 'boolean' }
-		}
-	};
-	const parse_user = ajv.compileParser(schema_user);
-
-	export interface UserSearch {
-		query?: string;
-		may_borrow?: boolean;
-		offset?: number;
-		limit?: number;
-	}
-
-	export interface Category {
-		id: string;
-		name: string;
-		section: string;
-	}
-	const schema_category: JTDSchemaType<Category> = {
-		properties: {
-			id: { type: 'string' },
-			name: { type: 'string' },
-			section: { type: 'string' }
-		}
-	};
-	const parse_categories = ajv.compileParser<Category[]>({
-		elements: schema_category
-	});
-
-	export interface MailBody {
-		account: string;
-		subject: string;
-		body: string;
-	}
-
-	export interface Limited<T> {
-		total: number;
-		rows: T[];
-	}
-	const parse_limited_books = ajv.compileParser<Limited<Book>>({
-		properties: {
-			total: { type: 'uint32' },
-			rows: { elements: schema_book }
-		}
-	});
-	const parse_limited_users = ajv.compileParser<Limited<Partial<User>>>({
-		properties: {
-			total: { type: 'uint32' },
-			rows: { elements: schema_user }
-		}
-	});
-
-	export interface Overdue {
-		book: Book;
-		user: User;
-	}
-	const parse_overdues = ajv.compileParser<{ book: Book; user: Partial<User> }[]>({
-		elements: {
-			properties: {
-				book: schema_book,
-				user: schema_user
-			}
-		}
-	});
-
-	export type QueryParam = Record<string, any>;
-
-	export function keys<T extends object>(obj: T) {
-		return Object.keys(obj) as Array<keyof T>;
-	}
-
-	// -------------------------------------------------------------------------
-	// General
-	// -------------------------------------------------------------------------
-
-	export async function about(): Promise<About> {
-		return get('api/about', parse_about);
-	}
-	export async function stats(): Promise<Stats> {
-		return get('api/stats', parse_stats);
-	}
-	export async function session(): Promise<Session> {
-		return get('api/session', parse_session);
-	}
-
-	export async function settings(): Promise<Settings> {
-		return get('api/settings', parse_settings);
-	}
-	export async function settings_update(settings: Partial<Settings>) {
-		await post('api/settings', settings);
-	}
-
-	// -------------------------------------------------------------------------
-	// Book
-	// -------------------------------------------------------------------------
-
-	export async function book_search(query: BookSearch): Promise<Limited<Book>> {
-		return get('api/book', parse_limited_books, query);
-	}
-	export async function book_add(book: Book) {
-		await post('api/book', book);
-	}
-	export async function book(id: string): Promise<Book> {
-		return get('api/book/' + encodeURIComponent(id), parse_book);
-	}
-	export async function book_update(id: string, book: Book) {
-		await post('api/book/' + encodeURIComponent(id), book);
-	}
-	export async function book_delete(id: string) {
-		await del('api/book/' + encodeURIComponent(id));
-	}
-	export async function book_id(book: Book): Promise<string> {
-		const parse_book_id = ajv.compileParser<string>({ type: 'string' });
-		return post_get('api/book-id', book, parse_book_id);
-	}
-	export async function book_fetch(isbn: string): Promise<Partial<Book>> {
-		return get('api/book-fetch/' + encodeURIComponent(isbn), parse_partial_book);
-	}
-
-	// -------------------------------------------------------------------------
-	// User
-	// -------------------------------------------------------------------------
-
-	export async function user_search(query: UserSearch): Promise<Limited<User>> {
-		return get('api/user', parse_limited_users, query).then((l) => ({
-			total: l.total,
-			rows: l.rows.map(userDef)
-		}));
-	}
-	export async function user_add(user: User) {
-		await post('api/user', user);
-	}
-	export async function user(account: string): Promise<User> {
-		return get('api/user/' + encodeURIComponent(account), parse_user).then(userDef);
-	}
-	export async function user_update(account: string, user: User) {
-		await post('api/user/' + encodeURIComponent(account), user);
-	}
-	export async function user_delete(account: string) {
-		await del('api/user/' + encodeURIComponent(account));
-	}
-	export async function user_fetch(account: string): Promise<User> {
-		return get('api/user-fetch/' + encodeURIComponent(account), parse_user).then(userDef);
-	}
-	export async function user_update_roles() {
-		await post('api/user-update-roles', {});
-	}
-
-	// -------------------------------------------------------------------------
-	// Category
-	// -------------------------------------------------------------------------
-
-	export async function categories(): Promise<Category[]> {
-		return get('api/category', parse_categories);
-	}
-	export async function category_add(category: Category) {
-		await post('api/category', category);
-	}
-	export async function category_update(id: string, category: Category) {
-		await post('api/category/' + encodeURIComponent(id), category);
-	}
-	export async function category_delete(id: string) {
-		await del('api/category/' + encodeURIComponent(id));
-	}
-
-	// -------------------------------------------------------------------------
-	// Lending
-	// -------------------------------------------------------------------------
-
-	export async function lend(id: string, account: string, deadline: string | null): Promise<Book> {
-		return post_get('api/lending/lend', {}, parse_book, { id, account, deadline });
-	}
-	export async function return_back(id: string): Promise<Book> {
-		return post_get('api/lending/return', {}, parse_book, { id });
-	}
-	export async function reserve(id: string, account: string): Promise<Book> {
-		return post_get('api/lending/reserve', {}, parse_book, { id, account });
-	}
-	export async function release(id: string): Promise<Book> {
-		return post_get('api/lending/release', {}, parse_book, { id });
-	}
-
-	// -------------------------------------------------------------------------
-	// Mail
-	// -------------------------------------------------------------------------
-
-	export async function mail(mails: MailBody[]) {
-		await post('api/notify', mails);
-	}
-
-	// -------------------------------------------------------------------------
-	// Overdues
-	// -------------------------------------------------------------------------
-
-	export async function overdues(): Promise<Overdue[]> {
-		return get('api/overdues', parse_overdues).then((o) =>
-			o.map((e) => ({
-				book: e.book,
-				user: userDef(e.user)
-			}))
-		);
-	}
-
-	/** Fetches the data, throwing an exception if something went wrong */
-	async function get<T>(url: string, parse: JTDParser<T>, query: QueryParam = {}): Promise<T> {
-		let response = await fetch(url + query_str(query), { method: 'GET' });
-		if (response.ok) {
-			let result = parse(await response.text());
-			if (result) return result;
-			console.error(parse.message);
-			error('InvalidFormat');
-		}
-		error(await response.json());
-	}
-
-	/** Posts/updates the data, throwing an exception if something went wrong */
-	async function post(url: string, data: any, query: QueryParam = {}) {
-		let response = await fetch(url + query_str(query), {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json; charset=utf-8'
-			},
-			body: JSON.stringify(data)
-		});
-		if (response.ok) return;
-
-		error(await response.json());
-	}
-
-	/** Posts/updates the data, throwing an exception if something went wrong */
-	async function post_get<T>(
-		url: string,
-		data: any,
-		parse: JTDParser<T>,
-		query: QueryParam = {}
-	): Promise<T> {
-		let response = await fetch(url + query_str(query), {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json; charset=utf-8'
-			},
-			body: JSON.stringify(data)
-		});
-		if (response.ok) {
-			let result = parse(await response.text());
-			if (result) return result;
-			console.error(parse.message);
-			error('InvalidFormat');
-		}
-
-		error(await response.json());
-	}
-
-	/** Deletes the data, throwing an exception if something went wrong */
-	async function del(url: string, query: QueryParam = {}) {
-		let response = await fetch(url + query_str(query), { method: 'DELETE' });
-		if (response.ok) return;
-
-		error(await response.json());
-	}
-
-	/** Safely create a valid query string from the provided query parameters */
-	function query_str(params: QueryParam): string {
+    function query_str(params: Record<string, any>): string {
 		if (params) {
 			let data: Record<string, string> = {};
 			for (let key in params) {
 				if (params[key] != null) data[key] = params[key].toString();
 			}
-			// the URLSearchParams escapes any problematic values
 			return '?' + new URLSearchParams(data).toString();
 		}
 		return '';
 	}
 
-	/** For api errors, Opens a toast */
-	function error(error: string): never {
-		let errorLocalized: string = '';
-		_.subscribe((_) => (errorLocalized = _(error_msg(error))));
+    /**
+        Returns info about this project.
+    */
+    export async function about(): Promise<About> {
+        return fetch_api(`${BASE}/about`, {
+            method: "GET", 
+        });
+    }
 
-		toast.error(errorLocalized);
+    /**
+        Adds a new book.
+    */
+    export async function book_add(data: Book): Promise<Result<Book>> {
+        return fetch_api(`${BASE}/book`, {
+            method: "POST", 
+            body: JSON.stringify(data)
+        });
+    }
 
-		throw error;
-	}
+    /**
+        Deletes the book including the its authors.
+        Also borrowers & reservations for this book are removed.
+    */
+    export async function book_delete(path: string): Promise<Result<void>> {
+        return fetch_api(`${BASE}/book/${encodeURIComponent(path)}`, {
+            method: "DELETE", 
+        });
+    }
 
-	/** Server Error translations */
-	export function error_msg(string: any): string {
-		switch (string) {
-			case 'Arguments':
-				return '.error.input';
-			case 'FileOpen':
-				return '.error.file-open';
-			case 'Network':
-				return '.error.network';
-			case 'InvalidFormat':
-				return '.error.format';
-			case 'NothingFound':
-				return '.error.none';
-			case 'ReferencedUser':
-				return '.user.referenced.del';
-			case 'ReferencedCategory':
-				return '.category.not-empty.del';
-			case 'InvalidBook':
-				return '.book.invalid';
-			case 'InvalidUser':
-				return '.user.invalid';
-			case 'LendingUserMayNotBorrow':
-				return '.error.lending.user';
-			case 'LendingBookNotBorrowable':
-				return '.error.lending.book';
-			case 'LendingBookAlreadyBorrowed':
-				return '.error.lending.already-borrowed';
-			case 'LendingBookAlreadyBorrowedByUser':
-				return '.error.lending.already-borrowed-by';
-			case 'LendingBookNotBorrowed':
-				return '.error.lending.not-borrowed';
-			case 'LendingBookAlreadyReserved':
-				return '.error.lending.already-reserved';
-			case 'LendingBookNotReserved':
-				return '.error.lending.not-reserved';
-			case 'UnsupportedProjectVersion':
-				return '.error.update';
-			default:
-				return '.error.unknown';
-		}
-	}
+    /**
+        Returns the book with the given `id`.
+    */
+    export async function book_fetch(path: string): Promise<Result<Book>> {
+        return fetch_api(`${BASE}/book/${encodeURIComponent(path)}`, {
+            method: "GET", 
+        });
+    }
 
-	/** Replaces the placeholders in the mail templates */
-	export function mail_replace(
-		template: MailTemplate,
-		booktitle: string,
-		username: string
-	): MailTemplate {
-		return {
-			subject: template.subject
-				.replaceAll('{booktitle}', booktitle)
-				.replaceAll('{username}', username),
-			body: template.body.replaceAll('{booktitle}', booktitle).replaceAll('{username}', username)
-		};
-	}
+    /**
+        Fetch the data of the book from the DNB an their like.
+    */
+    export async function book_fetch_data(path: string): Promise<Result<BookData>> {
+        return fetch_api(`${BASE}/book-fetch/${encodeURIComponent(path)}`, {
+            method: "GET", 
+        });
+    }
+
+    /**
+        Generates a new book id.
+    */
+    export async function book_generate_id(data: Book): Promise<Result<string>> {
+        return fetch_api(`${BASE}/book-id`, {
+            method: "POST", 
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
+        Preforms a simple media search with the given `query`.
+    */
+    export async function book_search(query: BookSearch): Promise<Result<Limited<Book>>> {
+        return fetch_api(`${BASE}/book${query_str(query)}`, {
+            method: "GET", 
+        });
+    }
+
+    /**
+        Updates the book and all references if its id changes.
+    */
+    export async function book_update(path: string, data: Book): Promise<Result<Book>> {
+        return fetch_api(`${BASE}/book/${encodeURIComponent(path)}`, {
+            method: "POST", 
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
+        Adds a new category.
+    */
+    export async function category_add(data: Category): Promise<Result<Category>> {
+        return fetch_api(`${BASE}/category`, {
+            method: "POST", 
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
+        Removes the category or returns a `Error::StillReferenced` if it is still in use.
+    */
+    export async function category_delete(path: string): Promise<Result<void>> {
+        return fetch_api(`${BASE}/category/${encodeURIComponent(path)}`, {
+            method: "DELETE", 
+        });
+    }
+
+    /**
+        Fetches and returns all categories.
+    */
+    export async function category_list(): Promise<Result<Category[]>> {
+        return fetch_api(`${BASE}/category`, {
+            method: "GET", 
+        });
+    }
+
+    /**
+        Returns the number of books in this category.
+    */
+    export async function category_references(path: string): Promise<Result<number>> {
+        return fetch_api(`${BASE}/category-refs/${encodeURIComponent(path)}`, {
+            method: "GET", 
+        });
+    }
+
+    /**
+        Updates the category and all references.
+    */
+    export async function category_update(path: string, data: Category): Promise<Result<Category>> {
+        return fetch_api(`${BASE}/category/${encodeURIComponent(path)}`, {
+            method: "POST", 
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
+        Lends the book to the specified user.
+    */
+    export async function lending_lend(query: LendParams): Promise<Result<Book>> {
+        return fetch_api(`${BASE}/lending/lend${query_str(query)}`, {
+            method: "POST", 
+        });
+    }
+
+    /**
+        Returns the list of expired borrowing periods.
+    */
+    export async function lending_overdues(): Promise<Result<Overdue[]>> {
+        return fetch_api(`${BASE}/overdues`, {
+            method: "GET", 
+        });
+    }
+
+    /**
+        Removes the reservation from the specified book.
+    */
+    export async function lending_release(query: ReturnParams): Promise<Result<Book>> {
+        return fetch_api(`${BASE}/lending/release${query_str(query)}`, {
+            method: "POST", 
+        });
+    }
+
+    /**
+        Creates a reservation for the borrowed book.
+    */
+    export async function lending_reserve(query: ReserveParams): Promise<Result<Book>> {
+        return fetch_api(`${BASE}/lending/reserve${query_str(query)}`, {
+            method: "POST", 
+        });
+    }
+
+    /**
+        Returns the book.
+    */
+    export async function lending_return(query: ReturnParams): Promise<Result<Book>> {
+        return fetch_api(`${BASE}/lending/return${query_str(query)}`, {
+            method: "POST", 
+        });
+    }
+
+    export async function mail_notify(data: Message[]): Promise<Result<void>> {
+        return fetch_api(`${BASE}/notify`, {
+            method: "POST", 
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
+        Returns the project statistics.
+    */
+    export async function session(): Promise<Result<Login>> {
+        return fetch_api(`${BASE}/session`, {
+            method: "GET", 
+        });
+    }
+
+    /**
+        Returns the project settings.
+        They are fetched when opening a project, so that this function only
+        returns copies of the cached version.
+    */
+    export async function settings_get(): Promise<Result<Settings>> {
+        return fetch_api(`${BASE}/settings`, {
+            method: "GET", 
+        });
+    }
+
+    /**
+        Updates project settings.
+    */
+    export async function settings_update(data: Settings): Promise<Result<void>> {
+        return fetch_api(`${BASE}/settings`, {
+            method: "POST", 
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
+        Returns the project statistics.
+    */
+    export async function stats(): Promise<Result<Stats>> {
+        return fetch_api(`${BASE}/stats`, {
+            method: "GET", 
+        });
+    }
+
+    /**
+        Adds a new user.
+    */
+    export async function user_add(data: User): Promise<Result<User>> {
+        return fetch_api(`${BASE}/user`, {
+            method: "POST", 
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
+        Deletes the user.
+        
+        Returns a `Error::StillReferenced` if there are any borrows or reservations left.
+    */
+    export async function user_delete(path: string): Promise<Result<void>> {
+        return fetch_api(`${BASE}/user/${encodeURIComponent(path)}`, {
+            method: "DELETE", 
+        });
+    }
+
+    /**
+        Returns the user with the given `account`.
+    */
+    export async function user_fetch(path: string): Promise<Result<User>> {
+        return fetch_api(`${BASE}/user/${encodeURIComponent(path)}`, {
+            method: "GET", 
+        });
+    }
+
+    /**
+        Fetch the data of the book from the DNB an their like.
+    */
+    export async function user_fetch_data(path: string): Promise<Result<User>> {
+        return fetch_api(`${BASE}/user-fetch/${encodeURIComponent(path)}`, {
+            method: "GET", 
+        });
+    }
+
+    /**
+        Performs a simple user search with the given `text`.
+    */
+    export async function user_search(query: UserSearch): Promise<Result<Limited<User>>> {
+        return fetch_api(`${BASE}/user${query_str(query)}`, {
+            method: "GET", 
+        });
+    }
+
+    /**
+        Updates the user and all references if its account changes.
+    */
+    export async function user_update(path: string, data: User): Promise<Result<User>> {
+        return fetch_api(`${BASE}/user/${encodeURIComponent(path)}`, {
+            method: "POST", 
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
+        Deletes the roles from all users and inserts the new roles.
+        
+        The roles of all users not contained in the given list are cleared.
+    */
+    export async function user_update_roles(): Promise<Result<void>> {
+        return fetch_api(`${BASE}/user-update-roles`, {
+            method: "POST", 
+        });
+    }
 }
 
 export default api;
