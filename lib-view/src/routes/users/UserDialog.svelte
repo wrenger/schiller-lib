@@ -102,7 +102,7 @@
 							title={$_('.user.request')}
 							class="absolute left-2 top-2.5 h-5 w-5 p-[2px] text-muted-foreground"
 							on:click={async () => {
-								userInfoResponse = api.user_fetch(account);
+								userInfoResponse = api.user_fetch_data(account);
 								let data = await userInfoResponse;
 								forename = data.forename;
 								surname = data.surname;
