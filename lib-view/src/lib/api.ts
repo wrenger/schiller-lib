@@ -1,4 +1,4 @@
-const BASE = '/api';
+const PREFIX = '/api';
 
 namespace api {
     export interface About {
@@ -308,7 +308,7 @@ namespace api {
         Returns info about this project.
     */
     export async function about(): Promise<About> {
-        return fetch_api(`${BASE}/about`, {
+        return fetch_api(`${PREFIX}/about`, {
             method: "GET", 
         });
     }
@@ -317,7 +317,7 @@ namespace api {
         Adds a new book.
     */
     export async function book_add(data: Book): Promise<Result<Book>> {
-        return fetch_api(`${BASE}/book`, {
+        return fetch_api(`${PREFIX}/book`, {
             method: "POST", 
             body: JSON.stringify(data)
         });
@@ -328,7 +328,7 @@ namespace api {
         Also borrowers & reservations for this book are removed.
     */
     export async function book_delete(path: string): Promise<Result<void>> {
-        return fetch_api(`${BASE}/book/${encodeURIComponent(path)}`, {
+        return fetch_api(`${PREFIX}/book/${encodeURIComponent(path)}`, {
             method: "DELETE", 
         });
     }
@@ -337,7 +337,7 @@ namespace api {
         Returns the book with the given `id`.
     */
     export async function book_fetch(path: string): Promise<Result<Book>> {
-        return fetch_api(`${BASE}/book/${encodeURIComponent(path)}`, {
+        return fetch_api(`${PREFIX}/book/${encodeURIComponent(path)}`, {
             method: "GET", 
         });
     }
@@ -346,7 +346,7 @@ namespace api {
         Fetch the data of the book from the DNB an their like.
     */
     export async function book_fetch_data(path: string): Promise<Result<BookData>> {
-        return fetch_api(`${BASE}/book-fetch/${encodeURIComponent(path)}`, {
+        return fetch_api(`${PREFIX}/book-fetch/${encodeURIComponent(path)}`, {
             method: "GET", 
         });
     }
@@ -355,7 +355,7 @@ namespace api {
         Generates a new book id.
     */
     export async function book_generate_id(data: Book): Promise<Result<string>> {
-        return fetch_api(`${BASE}/book-id`, {
+        return fetch_api(`${PREFIX}/book-id`, {
             method: "POST", 
             body: JSON.stringify(data)
         });
@@ -365,7 +365,7 @@ namespace api {
         Preforms a simple media search with the given `query`.
     */
     export async function book_search(query: BookSearch): Promise<Result<Limited<Book>>> {
-        return fetch_api(`${BASE}/book${query_str(query)}`, {
+        return fetch_api(`${PREFIX}/book${query_str(query)}`, {
             method: "GET", 
         });
     }
@@ -374,7 +374,7 @@ namespace api {
         Updates the book and all references if its id changes.
     */
     export async function book_update(path: string, data: Book): Promise<Result<Book>> {
-        return fetch_api(`${BASE}/book/${encodeURIComponent(path)}`, {
+        return fetch_api(`${PREFIX}/book/${encodeURIComponent(path)}`, {
             method: "POST", 
             body: JSON.stringify(data)
         });
@@ -384,7 +384,7 @@ namespace api {
         Adds a new category.
     */
     export async function category_add(data: Category): Promise<Result<Category>> {
-        return fetch_api(`${BASE}/category`, {
+        return fetch_api(`${PREFIX}/category`, {
             method: "POST", 
             body: JSON.stringify(data)
         });
@@ -394,7 +394,7 @@ namespace api {
         Removes the category or returns a `Error::StillReferenced` if it is still in use.
     */
     export async function category_delete(path: string): Promise<Result<void>> {
-        return fetch_api(`${BASE}/category/${encodeURIComponent(path)}`, {
+        return fetch_api(`${PREFIX}/category/${encodeURIComponent(path)}`, {
             method: "DELETE", 
         });
     }
@@ -403,7 +403,7 @@ namespace api {
         Fetches and returns all categories.
     */
     export async function category_list(): Promise<Result<Category[]>> {
-        return fetch_api(`${BASE}/category`, {
+        return fetch_api(`${PREFIX}/category`, {
             method: "GET", 
         });
     }
@@ -412,7 +412,7 @@ namespace api {
         Returns the number of books in this category.
     */
     export async function category_references(path: string): Promise<Result<number>> {
-        return fetch_api(`${BASE}/category-refs/${encodeURIComponent(path)}`, {
+        return fetch_api(`${PREFIX}/category-refs/${encodeURIComponent(path)}`, {
             method: "GET", 
         });
     }
@@ -421,7 +421,7 @@ namespace api {
         Updates the category and all references.
     */
     export async function category_update(path: string, data: Category): Promise<Result<Category>> {
-        return fetch_api(`${BASE}/category/${encodeURIComponent(path)}`, {
+        return fetch_api(`${PREFIX}/category/${encodeURIComponent(path)}`, {
             method: "POST", 
             body: JSON.stringify(data)
         });
@@ -431,7 +431,7 @@ namespace api {
         Lends the book to the specified user.
     */
     export async function lending_lend(query: LendParams): Promise<Result<Book>> {
-        return fetch_api(`${BASE}/lending/lend${query_str(query)}`, {
+        return fetch_api(`${PREFIX}/lending/lend${query_str(query)}`, {
             method: "POST", 
         });
     }
@@ -440,7 +440,7 @@ namespace api {
         Returns the list of expired borrowing periods.
     */
     export async function lending_overdues(): Promise<Result<Overdue[]>> {
-        return fetch_api(`${BASE}/overdues`, {
+        return fetch_api(`${PREFIX}/overdues`, {
             method: "GET", 
         });
     }
@@ -449,7 +449,7 @@ namespace api {
         Removes the reservation from the specified book.
     */
     export async function lending_release(query: ReturnParams): Promise<Result<Book>> {
-        return fetch_api(`${BASE}/lending/release${query_str(query)}`, {
+        return fetch_api(`${PREFIX}/lending/release${query_str(query)}`, {
             method: "POST", 
         });
     }
@@ -458,7 +458,7 @@ namespace api {
         Creates a reservation for the borrowed book.
     */
     export async function lending_reserve(query: ReserveParams): Promise<Result<Book>> {
-        return fetch_api(`${BASE}/lending/reserve${query_str(query)}`, {
+        return fetch_api(`${PREFIX}/lending/reserve${query_str(query)}`, {
             method: "POST", 
         });
     }
@@ -467,13 +467,13 @@ namespace api {
         Returns the book.
     */
     export async function lending_return(query: ReturnParams): Promise<Result<Book>> {
-        return fetch_api(`${BASE}/lending/return${query_str(query)}`, {
+        return fetch_api(`${PREFIX}/lending/return${query_str(query)}`, {
             method: "POST", 
         });
     }
 
     export async function mail_notify(data: Message[]): Promise<Result<void>> {
-        return fetch_api(`${BASE}/notify`, {
+        return fetch_api(`${PREFIX}/notify`, {
             method: "POST", 
             body: JSON.stringify(data)
         });
@@ -483,7 +483,7 @@ namespace api {
         Returns the project statistics.
     */
     export async function session(): Promise<Result<Login>> {
-        return fetch_api(`${BASE}/session`, {
+        return fetch_api(`${PREFIX}/session`, {
             method: "GET", 
         });
     }
@@ -494,7 +494,7 @@ namespace api {
         returns copies of the cached version.
     */
     export async function settings_get(): Promise<Result<Settings>> {
-        return fetch_api(`${BASE}/settings`, {
+        return fetch_api(`${PREFIX}/settings`, {
             method: "GET", 
         });
     }
@@ -503,7 +503,7 @@ namespace api {
         Updates project settings.
     */
     export async function settings_update(data: Settings): Promise<Result<void>> {
-        return fetch_api(`${BASE}/settings`, {
+        return fetch_api(`${PREFIX}/settings`, {
             method: "POST", 
             body: JSON.stringify(data)
         });
@@ -513,7 +513,7 @@ namespace api {
         Returns the project statistics.
     */
     export async function stats(): Promise<Result<Stats>> {
-        return fetch_api(`${BASE}/stats`, {
+        return fetch_api(`${PREFIX}/stats`, {
             method: "GET", 
         });
     }
@@ -522,7 +522,7 @@ namespace api {
         Adds a new user.
     */
     export async function user_add(data: User): Promise<Result<User>> {
-        return fetch_api(`${BASE}/user`, {
+        return fetch_api(`${PREFIX}/user`, {
             method: "POST", 
             body: JSON.stringify(data)
         });
@@ -534,7 +534,7 @@ namespace api {
         Returns a `Error::StillReferenced` if there are any borrows or reservations left.
     */
     export async function user_delete(path: string): Promise<Result<void>> {
-        return fetch_api(`${BASE}/user/${encodeURIComponent(path)}`, {
+        return fetch_api(`${PREFIX}/user/${encodeURIComponent(path)}`, {
             method: "DELETE", 
         });
     }
@@ -543,7 +543,7 @@ namespace api {
         Returns the user with the given `account`.
     */
     export async function user_fetch(path: string): Promise<Result<User>> {
-        return fetch_api(`${BASE}/user/${encodeURIComponent(path)}`, {
+        return fetch_api(`${PREFIX}/user/${encodeURIComponent(path)}`, {
             method: "GET", 
         });
     }
@@ -552,7 +552,7 @@ namespace api {
         Fetch the data of the user from the specified user file.
     */
     export async function user_fetch_data(path: string): Promise<Result<User>> {
-        return fetch_api(`${BASE}/user-fetch/${encodeURIComponent(path)}`, {
+        return fetch_api(`${PREFIX}/user-fetch/${encodeURIComponent(path)}`, {
             method: "GET", 
         });
     }
@@ -561,7 +561,7 @@ namespace api {
         Performs a simple user search with the given `text`.
     */
     export async function user_search(query: UserSearch): Promise<Result<Limited<User>>> {
-        return fetch_api(`${BASE}/user${query_str(query)}`, {
+        return fetch_api(`${PREFIX}/user${query_str(query)}`, {
             method: "GET", 
         });
     }
@@ -570,7 +570,7 @@ namespace api {
         Updates the user and all references if its account changes.
     */
     export async function user_update(path: string, data: User): Promise<Result<User>> {
-        return fetch_api(`${BASE}/user/${encodeURIComponent(path)}`, {
+        return fetch_api(`${PREFIX}/user/${encodeURIComponent(path)}`, {
             method: "POST", 
             body: JSON.stringify(data)
         });
@@ -582,7 +582,7 @@ namespace api {
         The roles of all users not contained in the given list are cleared.
     */
     export async function user_update_roles(): Promise<Result<void>> {
-        return fetch_api(`${BASE}/user-update-roles`, {
+        return fetch_api(`${PREFIX}/user-update-roles`, {
             method: "POST", 
         });
     }

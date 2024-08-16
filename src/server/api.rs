@@ -3,10 +3,9 @@ use std::sync::Arc;
 
 use axum::extract::{FromRef, Path, Query, State};
 use axum::middleware::from_extractor_with_state;
-use axum::routing::{get, post};
 use axum::{Json, Router};
 use chrono::NaiveDate;
-use gluer::{generate, metadata, route};
+use gluer::{generate, metadata};
 use hyper::StatusCode;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -53,64 +52,49 @@ impl Project {
 }
 
 pub fn routes(state: Project) -> Router {
-    let mut api = Router::new();
-
-    // general
-    route!(api, "/about", get(about));
-    route!(api, "/settings", get(settings_get).post(settings_update));
-    route!(api, "/stats", get(stats));
-    route!(api, "/session", get(session));
-    // books
-    route!(api, "/book", get(book_search).post(book_add));
-    route!(
-        api,
-        "/book/:id",
-        get(book_fetch).post(book_update).delete(book_delete)
-    );
-    route!(api, "/book-id", post(book_generate_id));
-    route!(api, "/book-fetch/:isbn", get(book_fetch_data));
-    // user
-    route!(api, "/user", get(user_search).post(user_add));
-    route!(
-        api,
-        "/user/:account",
-        get(user_fetch).post(user_update).delete(user_delete)
-    );
-    route!(api, "/user-fetch/:account", get(user_fetch_data));
-    route!(api, "/user-update-roles", post(user_update_roles));
-    // category
-    route!(api, "/category", get(category_list).post(category_add));
-    route!(
-        api,
-        "/category/:id",
-        post(category_update).delete(category_delete)
-    );
-    route!(api, "/category-refs/:id", get(category_references));
-    // lending
-    route!(api, "/lending/lend", post(lending_lend));
-    route!(api, "/lending/return", post(lending_return));
-    route!(api, "/lending/reserve", post(lending_reserve));
-    route!(api, "/lending/release", post(lending_release));
-    route!(api, "/overdues", get(lending_overdues));
-    // mail
-    route!(api, "/notify", post(mail_notify));
-
-    // generate the API documentation (on compile time)
-    generate!(
-        [
+    generate! {
+        prefix = "/api",
+        routes ={
+            // general
+            "/about" = get(about),
+            "/settings" = get(settings_get).post(settings_update),
+            "/stats" = get(stats),
+            "/session" = get(session),
+            // books
+            "/book" = get(book_search).post(book_add),
+            "/book/:id" = get(book_fetch).post(book_update).delete(book_delete),
+            "/book-id" = post(book_generate_id),
+            "/book-fetch/:isbn" = get(book_fetch_data),
+            // user
+            "/user" = get(user_search).post(user_add),
+            "/user/:account" = get(user_fetch).post(user_update).delete(user_delete),
+            "/user-fetch/:account" = get(user_fetch_data),
+            "/user-update-roles" = post(user_update_roles),
+            // category
+            "/category" = get(category_list).post(category_add),
+            "/category/:id" = post(category_update).delete(category_delete),
+            "/category-refs/:id" = get(category_references),
+            // lending
+            "/lending/lend" = post(lending_lend),
+            "/lending/return" = post(lending_return),
+            "/lending/reserve" = post(lending_reserve),
+            "/lending/release" = post(lending_release),
+            "/overdues" = get(lending_overdues),
+            // mail
+            "/notify" = post(mail_notify),
+        },
+        files = [
             "src/db",
             "src/server",
             "src/error.rs",
             "src/provider/dnb.rs"
         ],
-        "lib-view/src/lib/api.ts",
-        "/api"
-    );
-
+        output = "lib-view/src/lib/api.ts",
+    }
     // all routes require authorization
-    api.route_layer(from_extractor_with_state::<Login, Auth>(state.auth.clone()))
-        .fallback(|| async { (StatusCode::NOT_FOUND, Json(Error::NothingFound)) })
-        .with_state(state)
+    .route_layer(from_extractor_with_state::<Login, Auth>(state.auth.clone()))
+    .fallback(|| async { (StatusCode::NOT_FOUND, Json(Error::NothingFound)) })
+    .with_state(state)
 }
 
 #[metadata]
