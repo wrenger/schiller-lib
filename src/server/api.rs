@@ -54,7 +54,7 @@ impl Project {
 pub fn routes(state: Project) -> Router {
     generate! {
         prefix = "/api",
-        routes ={
+        routes = {
             // general
             "/about" = get(about),
             "/settings" = get(settings_get).post(settings_update),
