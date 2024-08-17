@@ -24,7 +24,7 @@
 			forename = user.forename;
 			surname = user.surname;
 			account = user.account;
-			role = user.role || '';
+			if (user.role) role = user.role;
 			if (user.may_borrow) may_borrow = user.may_borrow;
 		} else {
 			forename = '';
