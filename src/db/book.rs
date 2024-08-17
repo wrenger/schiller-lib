@@ -22,14 +22,16 @@ pub struct Book {
     pub publisher: String,
     pub year: i64,
     pub costs: f64,
-    #[meta(into = Option<String>)]
+    #[meta(optional)]
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub note: String,
     pub borrowable: bool,
     pub category: String,
     pub authors: String,
+    #[meta(optional, into = Borrower)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub borrower: Option<Borrower>,
+    #[meta(optional, into = String)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reservation: Option<String>,
 }

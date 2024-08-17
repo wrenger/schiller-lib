@@ -19,7 +19,7 @@
 	</div>
 	<div class="flex items-center space-x-2">
 		<span class="text-md font-medium">{$_('.user.may-borrow')}:</span>
-		{#if user.may_borrow || user.may_borrow == null}
+		{#if user.may_borrow || user.may_borrow == undefined}
 			<Badge>{$_('.action.yes')}</Badge>
 		{:else}
 			<Badge variant="destructive">{$_('.action.no')}</Badge>

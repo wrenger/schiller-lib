@@ -25,7 +25,7 @@
 			surname = user.surname;
 			account = user.account;
 			role = user.role || '';
-			may_borrow = user.may_borrow || true;
+			if (user.may_borrow) may_borrow = user.may_borrow;
 		} else {
 			forename = '';
 			surname = '';
@@ -100,7 +100,7 @@
 							size="icon"
 							variant="ghost"
 							title={$_('.user.request')}
-							class="absolute left-2 top-2.5 h-5 w-5 p-[2px] text-muted-foreground"
+							class="text-muted-foreground absolute left-2 top-2.5 h-5 w-5 p-[2px]"
 							on:click={async () => {
 								userInfoResponse = api.user_fetch_data(account);
 								let data = await userInfoResponse;

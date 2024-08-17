@@ -17,10 +17,10 @@ pub struct User {
     pub account: String,
     pub forename: String,
     pub surname: String,
-    #[meta(into = Option<String>)]
+    #[meta(optional)]
     #[serde(skip_serializing_if = "String::is_empty")]
     pub role: String,
-    #[meta(into = Option<bool>)]
+    #[meta(optional)]
     #[serde(skip_serializing_if = "Clone::clone")] // <- skip if true
     pub may_borrow: bool,
 }

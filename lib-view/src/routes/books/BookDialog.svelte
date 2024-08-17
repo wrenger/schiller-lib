@@ -42,8 +42,8 @@
 			category = $categories?.find((c) => c.id == book.category) ?? null;
 			note = book.note ?? '';
 			borrowable = book.borrowable;
-			borrower = book.borrower || undefined;
-			reservation = book.reservation || undefined;
+			borrower = book.borrower;
+			reservation = book.reservation;
 		} else {
 			id = '';
 			isbn = '';
@@ -72,8 +72,8 @@
 			category: category?.id ?? '',
 			note: note ?? undefined,
 			borrowable,
-			borrower: borrower || null,
-			reservation: reservation || null
+			borrower: borrower,
+			reservation: reservation
 		};
 	}
 
@@ -127,7 +127,7 @@
 							size="icon"
 							variant="ghost"
 							title={$_('.book.id.action')}
-							class="absolute left-2 top-2.5 h-5 w-5 p-[2px] text-muted-foreground"
+							class="text-muted-foreground absolute left-2 top-2.5 h-5 w-5 p-[2px]"
 							on:click={async () => {
 								idResponse = api.book_generate_id(getBook());
 								id = handle_result(await idResponse);
@@ -147,7 +147,7 @@
 							size="icon"
 							variant="ghost"
 							title={$_('.book.request')}
-							class="absolute left-2 top-2.5 h-5 w-5 p-[2px] text-muted-foreground"
+							class="text-muted-foreground absolute left-2 top-2.5 h-5 w-5 p-[2px]"
 							on:click={async () => {
 								isbnResponse = api.book_fetch_data(isbn);
 								let data = handle_result(await isbnResponse);
