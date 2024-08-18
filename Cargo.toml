@@ -29,7 +29,8 @@ hyper-util = "0.1"
 lettre = { version = "0.11", default-features = false, features = [
     "builder",
     "smtp-transport",
-    "rustls-tls",
+    "tokio1",
+    "tokio1-rustls-tls",
 ] }
 oauth2 = { version = "5.0.0-alpha.4" }
 rand = "0.8"

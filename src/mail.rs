@@ -4,7 +4,7 @@ use email_address::EmailAddress;
 use lettre::message::header::ContentType;
 use lettre::message::{Mailbox, SinglePartBuilder};
 use lettre::transport::smtp::authentication::Credentials;
-use lettre::{Address, Message, SmtpTransport, Transport};
+use lettre::{Address, AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor};
 use tracing::{error, info};
 use unicode_normalization::UnicodeNormalization;
 
@@ -15,7 +15,7 @@ pub fn account_is_valid(account: &str) -> bool {
     EmailAddress::is_valid_local_part(account)
 }
 
-pub fn send(
+pub async fn send(
     host: &str,
     password: &str,
     from: &str,
@@ -46,13 +46,13 @@ pub fn send(
         )?;
 
     // Open tls encrypted smtp connection
-    let mailer = SmtpTransport::relay(host)?
+    let mailer = AsyncSmtpTransport::<Tokio1Executor>::relay(host)?
         .credentials(Credentials::new(from.to_string(), password.to_string()))
         .timeout(Some(Duration::from_secs(1)))
         .build();
 
     // Send the email
-    mailer.send(&email)?;
+    mailer.send(email).await?;
     Ok(())
 }
 
@@ -77,9 +77,10 @@ impl From<lettre::transport::smtp::Error> for Error {
 
 #[cfg(test)]
 mod tests {
-    #[test]
+    #[tokio::test]
     #[ignore]
-    fn send_mail() {
+    async fn send_mail() {
+        crate::logging();
         super::send(
             &std::env::var("SBV_MAIL_HOST").unwrap(),
             &std::env::var("SBV_MAIL_PASSWORD").unwrap(),
@@ -88,6 +89,7 @@ mod tests {
             "Test Mail 🚧",
             "Test Content 🚧",
         )
+        .await
         .unwrap();
     }
 }

@@ -480,7 +480,8 @@ async fn mail_notify(
             account,
             &subject,
             &body,
-        )?;
+        )
+        .await?;
     }
     Ok(())
 }
