@@ -8,6 +8,7 @@ use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::{fmt, fs};
 
 use chrono::{Local, NaiveDate};
+use gluer::metadata;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
@@ -30,6 +31,7 @@ mod sorted;
 mod legacy;
 
 /// Library settings
+#[metadata]
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Settings {
     // Borrowing
@@ -37,6 +39,7 @@ pub struct Settings {
     // DNB
     pub dnb_token: String,
     // Mail
+    #[meta(into = String)]
     pub mail_last_reminder: NaiveDate,
     pub mail_from: String,
     pub mail_host: String,
@@ -48,6 +51,7 @@ pub struct Settings {
 }
 
 /// Template for a mail notification
+#[metadata]
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, Default)]
 pub struct MailTemplate {
     pub subject: String,
@@ -87,6 +91,7 @@ impl Default for Settings {
 }
 
 /// Data object for book.
+#[metadata]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Default))]
 pub struct Stats {
@@ -109,6 +114,7 @@ pub struct Database {
 }
 
 /// Borrowed books that missed the deadline
+#[metadata]
 #[derive(Serialize)]
 pub struct Overdue {
     pub book: Book,

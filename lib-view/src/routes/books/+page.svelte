@@ -11,7 +11,13 @@
 	import BookDisplay from './BookDisplay.svelte';
 
 	let active: api.Book | null;
-	let search: api.BookSearch = { query: '', state: 'None' };
+	let search: api.BookSearch = {
+		query: '',
+		state: api.BookState.None,
+		category: '',
+		offset: 0,
+		limit: 200
+	};
 	let layout: Layout;
 	// layout mobile display, won't work without binding open
 	let open: boolean;

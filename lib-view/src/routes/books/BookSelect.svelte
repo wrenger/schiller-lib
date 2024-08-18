@@ -13,7 +13,7 @@
 	export var onChange: (b: api.Book | null) => void;
 
 	let category: string = params?.category == null ? 'None' : params.category;
-	$: params.category = category != 'None' ? category : undefined;
+	$: params.category = category != 'None' ? category : '';
 </script>
 
 <div class="flex gap-1">

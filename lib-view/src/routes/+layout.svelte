@@ -14,18 +14,21 @@
 	import { DateTime } from 'luxon';
 	import { onMount } from 'svelte';
 	import Reminder from './Reminder.svelte';
+	import { handle_result } from '$lib';
 
 	// Getting needed infos
 	async function update() {
 		// Get settings
-		let data = await api.settings();
-		let settings = { ...data, mail_last_reminder: DateTime.fromISO(data.mail_last_reminder) };
-
+		let settings_data = handle_result(await api.settings_get());
+		let settings = {
+			...settings_data,
+			mail_last_reminder: DateTime.fromISO(settings_data.mail_last_reminder)
+		};
 		settingsGlobal.set(settings);
 
 		// Get categories
-		let categoriesData = await api.categories();
-		categories.set(categoriesData);
+		let category_data = handle_result(await api.category_list());
+		categories.set(category_data);
 	}
 
 	// Update periodically after and on Mount

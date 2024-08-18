@@ -17,6 +17,9 @@ build
 /test/cert/*
 !/test/cert/gen.sh
 
+# Generated API
+lib-view/src/lib/api.ts
+
 # Misc
 .vscode
 .DS_Store

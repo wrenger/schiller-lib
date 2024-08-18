@@ -8,6 +8,7 @@
 	import { onMount, tick } from 'svelte';
 	import api from '$lib/api';
 	import { _ } from 'svelte-i18n';
+	import { handle_result } from '$lib';
 
 	export let account: string;
 	export let id: string = '';
@@ -28,7 +29,9 @@
 	}
 
 	async function fetch(value: string) {
-		items = await api.user_search({ query: value, limit: LIMIT });
+		items = handle_result(
+			await api.user_search({ query: value, may_borrow: null, offset: 0, limit: LIMIT })
+		);
 		items.rows.sort();
 	}
 

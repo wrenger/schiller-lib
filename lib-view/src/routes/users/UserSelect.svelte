@@ -13,7 +13,7 @@
 
 	let may_borrow: string =
 		params?.may_borrow == null ? 'None' : params?.may_borrow ? 'MayBorrow' : 'MayNotBorrow';
-	$: params.may_borrow = may_borrow != 'None' ? may_borrow == 'MayBorrow' : undefined;
+	$: params.may_borrow = may_borrow != 'None' ? may_borrow == 'MayBorrow' : null;
 </script>
 
 <div class="flex gap-1">

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { handle_result } from '$lib';
+
 	import { _ } from 'svelte-i18n';
 	import type api from '$lib/api';
 
@@ -9,7 +11,7 @@
 	export let rowHeight: number;
 	export let scrollClass: string = '';
 	export let active: T | null;
-	export let load: (offset: number, limit: number) => Promise<api.Limited<T>>;
+	export let load: (offset: number, limit: number) => Promise<api.Result<api.Limited<T>>>;
 	export let onLoad: (totalCount: number) => void = () => {};
 	export let key: (t: T) => string;
 
@@ -26,7 +28,7 @@
 	}
 
 	async function loadChunk(i: number): Promise<void> {
-		let { rows, total } = await load(i * CHUNK_SIZE, CHUNK_SIZE);
+		let { rows, total } = handle_result(await load(i * CHUNK_SIZE, CHUNK_SIZE));
 		onLoad(total);
 
 		// Grow list

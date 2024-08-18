@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { onOutsideClick } from '$lib';
+	import { handle_result, mail_replace, onOutsideClick } from '$lib';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import api from '$lib/api';
@@ -12,11 +12,12 @@
 	export var onChange: (b: api.Book | null) => void;
 
 	let open = false;
-	let response: Promise<any>;
+	let response_back: Promise<any>;
+	let response_mail: Promise<any>;
 
 	async function return_back() {
 		if (book) {
-			book = await api.return_back(book.id);
+			book = handle_result(await api.lending_return({ id: book.id }));
 			open = false;
 			onChange(book);
 		}
@@ -24,15 +25,14 @@
 
 	async function mail() {
 		if (book && book.reservation) {
-			let user = await api.user_fetch(book.reservation);
-
-			let mail = api.mail_replace(
+			let user = handle_result(await api.user_fetch(book.reservation));
+			let mail = mail_replace(
 				$settingsGlobal.mail_info,
 				book.title,
 				`${user.forename} ${user.surname}`
 			);
 
-			await api.mail([{ account: book.reservation, ...mail }]);
+			handle_result(await api.mail_notify([{ account: book.reservation, ...mail }]));
 
 			await return_back();
 		}
@@ -59,7 +59,7 @@
 		</Dialog.Header>
 		<hr />
 		<div>
-			<span class="text-muted-foreground text-sm">{$_('.book.note')}:</span>
+			<span class="text-sm text-muted-foreground">{$_('.book.note')}:</span>
 			<span class="text-md whitespace-pre-line font-medium"
 				>{book?.note || $_('.action.empty')}</span
 			>
@@ -72,17 +72,17 @@
 		{/if}
 		<Dialog.Footer>
 			{#if book?.reservation}
-				<Button variant="secondary" on:click={() => (response = return_back())}>
-					<Spinner {response} />
+				<Button variant="outline" on:click={() => (response_back = return_back())}>
+					<Spinner response={response_back} />
 					{$_('.action.no')}
 				</Button>
-				<Button on:click={() => (response = mail())}>
-					<Spinner {response} />
+				<Button on:click={() => (response_mail = mail())}>
+					<Spinner response={response_mail} />
 					{$_('.action.yes')}
 				</Button>
 			{:else}
-				<Button on:click={() => (response = return_back())}>
-					<Spinner {response} />
+				<Button on:click={() => (response_back = return_back())}>
+					<Spinner response={response_back} />
 					{$_('.book.revoke')}
 				</Button>
 			{/if}

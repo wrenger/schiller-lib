@@ -13,6 +13,7 @@ use axum_extra::headers::Cookie;
 use axum_extra::TypedHeader;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
+use gluer::metadata;
 use hyper::{HeaderMap, StatusCode};
 use oauth2::basic::BasicClient;
 use oauth2::{
@@ -71,11 +72,13 @@ pub async fn background(auth: Auth) {
 /// The user data we'll get back from oauth.
 ///
 /// E.g. Discord: https://discord.com/developers/docs/resources/user#user-object-user-structure
+#[metadata]
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Login {
     id: String,
     username: String,
     /// Custom data storing how long the session is valid
+    #[meta(skip)]
     #[serde(skip)]
     expires: u64,
 }

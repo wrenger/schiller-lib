@@ -7,7 +7,7 @@
 	import { DateTime } from 'luxon';
 	import { settingsGlobal, type GlobalSettings } from '$lib/store';
 	import api from '$lib/api';
-	import { areObjectsEqual } from '$lib';
+	import { areObjectsEqual, handle_result } from '$lib';
 	import { Button } from '$lib/components/ui/button';
 	import Spinner from '$lib/components/ui/spinner/Spinner.svelte';
 	import { Textarea } from '$lib/components/ui/textarea';
@@ -59,7 +59,7 @@
 
 	let userResponse: Promise<void>;
 	async function userUpdate() {
-		await api.user_update_roles();
+		await handle_result(api.user_update_roles());
 	}
 
 	let saveResponse: Promise<void>;
@@ -69,8 +69,8 @@
 			mail_last_reminder: settings?.mail_last_reminder.toISODate() ?? ''
 		};
 
-		await api.settings_update(data);
-		if (settings) settingsGlobal.set(settings);
+		handle_result(await api.settings_update(data));
+		settingsGlobal.set(settings);
 	}
 </script>
 

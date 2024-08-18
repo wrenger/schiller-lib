@@ -7,7 +7,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { categories } from '$lib/store';
 	import api from '$lib/api';
-	import { areObjectsEqual } from '$lib';
+	import { areObjectsEqual, handle_result } from '$lib';
 	import Spinner from '$lib/components/ui/spinner/Spinner.svelte';
 
 	let categoryMode = 'add';
@@ -30,19 +30,19 @@
 
 	let addResponse: Promise<void>;
 	async function add() {
-		await api.category_add(emptyNew);
+		handle_result(await api.category_add(emptyNew));
 		await onChange();
 	}
 
 	let editResponse: Promise<void>;
 	async function edit() {
-		await api.category_update(selected.id, { id, name, section });
+		handle_result(await api.category_update(selected.id, { id, name, section }));
 		await onChange();
 	}
 
 	let deleteResponse: Promise<void>;
 	async function del() {
-		await api.category_delete(selected.id);
+		handle_result(await api.category_delete(selected.id));
 		await onChange();
 	}
 
@@ -56,7 +56,7 @@
 	}
 
 	async function reload() {
-		let data = await api.categories();
+		let data = handle_result(await api.category_list());
 		categories.set(data);
 		if (selected != null) {
 			let sid = categoryMode == 'add' ? emptyNew.id : selected.id;

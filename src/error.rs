@@ -2,15 +2,17 @@ use std::fmt;
 
 use axum::response::IntoResponse;
 use axum::Json;
+use gluer::metadata;
 use hyper::StatusCode;
 use serde::Serialize;
 use tracing::error;
 
 /// The api compatible error type.
-/// On the godot side there are specific error messages displayed for each of the error types.
+/// On the frontend there are specific error messages displayed for each of the error types.
 ///
 /// More specific error messages are removed to be api compatible.
 /// Those messages are logged however.
+#[metadata]
 #[repr(i64)]
 #[derive(Debug, Clone, Copy, Serialize)]
 pub enum Error {
@@ -156,4 +158,5 @@ impl IntoResponse for Error {
 }
 
 /// Result type using the api error.
+#[metadata]
 pub type Result<T> = std::result::Result<T, Error>;

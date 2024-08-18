@@ -16,9 +16,7 @@
 </script>
 
 <div class="flex w-full flex-col gap-1.5">
-	<Label class={labelClass + ' text-left'} for={label.toLowerCase()}
-		>{label}</Label
-	>
+	<Label class={labelClass + ' text-left'} for={label.toLowerCase()}>{label}</Label>
 	<Input
 		min={min ? minDate : ''}
 		placeholder={label}

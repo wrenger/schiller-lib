@@ -9,28 +9,6 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-svelte:
-    name: Build Svelte
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: "latest"
-      - name: Install Svelte
-        run: bun install
-        working-directory: lib-view
-      - name: Build Svelte
-        run: bun run build
-        working-directory: lib-view
-      - name: Upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: lib-view
-          path: lib-view/build
-
   build-rust:
     name: Build ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -52,6 +30,28 @@ jobs:
         with:
           name: ${{ matrix.exe }}
           path: target/release/${{ matrix.exe }}
+
+  build-svelte:
+    name: Build Svelte
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: "latest"
+      - name: Install Svelte
+        run: bun install
+        working-directory: lib-view
+      - name: Build Svelte
+        run: bun run build
+        working-directory: lib-view
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: lib-view
+          path: lib-view/build
 
   package:
     name: Package ${{ matrix.platform }}

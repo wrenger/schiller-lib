@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { onOutsideClick } from '$lib';
+	import { handle_result, onOutsideClick } from '$lib';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import api from '$lib/api';
@@ -14,7 +14,7 @@
 	let response: Promise<any>;
 	async function del() {
 		if (book) {
-			await api.book_delete(book.id);
+			handle_result(await api.book_delete(book.id));
 			book = null;
 			open = false;
 			onChange(book);
