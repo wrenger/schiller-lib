@@ -25,7 +25,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build
         run: cargo build --release
-      - name: Upload
+      - name: Upload API
+        uses: actions/upload-artifact@v4
+        with:
+          name: api
+          path: lib-view/src/lib/api.ts
+      - name: Upload Bin
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.exe }}
@@ -45,6 +50,11 @@ jobs:
       - name: Install Svelte
         run: bun install
         working-directory: lib-view
+      - name: Download API
+        uses: actions/download-artifact@v4
+        with:
+          name: api
+          path: lib-view/src/lib/api.ts
       - name: Build Svelte
         run: bun run build
         working-directory: lib-view
