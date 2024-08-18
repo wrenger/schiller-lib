@@ -33,7 +33,6 @@
 		"@sveltejs/adapter-static": "^3.0.3",
 		"@types/luxon": "^3.4.2",
 		"bits-ui": "^0.21.13",
-		"clsx": "^2.1.1",
 		"cmdk-sv": "^0.0.17",
 		"lucide-svelte": "^0.427.0",
 		"luxon": "^3.5.0",
