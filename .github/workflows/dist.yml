@@ -28,7 +28,7 @@ jobs:
       - name: Upload API
         uses: actions/upload-artifact@v4
         with:
-          name: api
+          name: api-${{ matrix.exe }}
           path: lib-view/src/lib/api.ts
       - name: Upload Bin
         uses: actions/upload-artifact@v4
@@ -53,7 +53,7 @@ jobs:
       - name: Download API
         uses: actions/download-artifact@v4
         with:
-          name: api
+          name: api-ubuntu-latest
           path: lib-view/src/lib/api.ts
       - name: Build Svelte
         run: bun run build
