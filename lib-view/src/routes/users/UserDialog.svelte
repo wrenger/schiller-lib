@@ -100,7 +100,7 @@
 							size="icon"
 							variant="ghost"
 							title={$_('.user.request')}
-							class="text-muted-foreground absolute left-2 top-2.5 h-5 w-5 p-[2px]"
+							class="absolute left-2 top-2.5 h-5 w-5 p-[2px] text-muted-foreground"
 							on:click={async () => {
 								userInfoResponse = api.user_fetch_data(account);
 								let data = handle_result(await userInfoResponse);

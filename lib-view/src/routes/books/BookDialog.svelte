@@ -127,7 +127,7 @@
 							size="icon"
 							variant="ghost"
 							title={$_('.book.id.action')}
-							class="text-muted-foreground absolute left-2 top-2.5 h-5 w-5 p-[2px]"
+							class="absolute left-2 top-2.5 h-5 w-5 p-[2px] text-muted-foreground"
 							on:click={async () => {
 								idResponse = api.book_generate_id(getBook());
 								id = handle_result(await idResponse);
@@ -147,7 +147,7 @@
 							size="icon"
 							variant="ghost"
 							title={$_('.book.request')}
-							class="text-muted-foreground absolute left-2 top-2.5 h-5 w-5 p-[2px]"
+							class="absolute left-2 top-2.5 h-5 w-5 p-[2px] text-muted-foreground"
 							on:click={async () => {
 								isbnResponse = api.book_fetch_data(isbn);
 								let data = handle_result(await isbnResponse);
