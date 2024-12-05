@@ -103,7 +103,7 @@
 							class="text-muted-foreground absolute left-2 top-2.5 h-5 w-5 p-[2px]"
 							on:click={async () => {
 								userInfoResponse = api.user_fetch_data(account);
-								let data = await userInfoResponse;
+								let data = handle_result(await userInfoResponse);
 								forename = data.forename;
 								surname = data.surname;
 								account = data.account;
