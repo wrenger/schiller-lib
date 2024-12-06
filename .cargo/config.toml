@@ -16,3 +16,7 @@ serve = [
     "--key=test/cert/key.pem",
     "--auth=test/auth.json",
 ]
+
+[target.x86_64-unknown-linux-gnu]
+linker = "x86_64-unknown-linux-gnu-gcc"
+ar = "x86_64-unknown-linux-gnu-ar"
