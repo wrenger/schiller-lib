@@ -63,18 +63,18 @@ pub fn routes(state: Project) -> Router {
             "/session" = get(session),
             // books
             "/book" = get(book_search).post(book_add),
-            "/book/:id" = get(book_fetch).post(book_update).delete(book_delete),
+            "/book/{id}" = get(book_fetch).post(book_update).delete(book_delete),
             "/book-id" = post(book_generate_id),
-            "/book-fetch/:isbn" = get(book_fetch_data),
+            "/book-fetch/{isbn}" = get(book_fetch_data),
             // user
             "/user" = get(user_search).post(user_add),
-            "/user/:account" = get(user_fetch).post(user_update).delete(user_delete),
-            "/user-fetch/:account" = get(user_fetch_data),
+            "/user/{account}" = get(user_fetch).post(user_update).delete(user_delete),
+            "/user-fetch/{account}" = get(user_fetch_data),
             "/user-update-roles" = post(user_update_roles),
             // category
             "/category" = get(category_list).post(category_add),
-            "/category/:id" = post(category_update).delete(category_delete),
-            "/category-refs/:id" = get(category_references),
+            "/category/{id}" = post(category_update).delete(category_delete),
+            "/category-refs/{id}" = get(category_references),
             // lending
             "/lending/lend" = post(lending_lend),
             "/lending/return" = post(lending_return),

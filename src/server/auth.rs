@@ -8,7 +8,7 @@ use axum::http::header::SET_COOKIE;
 use axum::http::request::Parts;
 use axum::response::{IntoResponse, Redirect, Response};
 use axum::routing::get;
-use axum::{async_trait, Json, RequestPartsExt, Router};
+use axum::{Json, RequestPartsExt, Router};
 use axum_extra::headers::Cookie;
 use axum_extra::TypedHeader;
 use base64::engine::general_purpose::STANDARD as BASE64;
@@ -281,7 +281,6 @@ async fn login_authorized(
     Ok((headers, Redirect::to("/")))
 }
 
-#[async_trait]
 impl<S> FromRequestParts<S> for Login
 where
     Auth: FromRef<S>,

@@ -61,7 +61,7 @@ pub async fn start(
                 .layer(from_extractor_with_state::<Login, Auth>(auth.clone())),
         )
         .route(
-            "/*file",
+            "/{*file}",
             get(static_assets)
                 .with_state(assets)
                 .layer(from_extractor_with_state::<Login, Auth>(auth.clone())),
