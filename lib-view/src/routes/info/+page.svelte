@@ -41,7 +41,6 @@
 						</h1>
 						<Separator />
 						<p>{$_('.info.session.id', { values: { '0': session.id } })}</p>
-						<p>{$_('.info.session.username', { values: { '0': session.username } })}</p>
 					</div>
 				{/await}
 				<div class="grid gap-4 pt-4 md:grid-cols-2">

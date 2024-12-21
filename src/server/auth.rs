@@ -18,17 +18,17 @@ use hyper::{HeaderMap, StatusCode};
 use oauth2::basic::BasicClient;
 use oauth2::{
     AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, EndpointNotSet, EndpointSet,
-    RedirectUrl, Scope, TokenResponse, TokenUrl,
+    RedirectUrl, RevocationUrl, Scope, TokenResponse, TokenUrl,
 };
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
-use tracing::error;
+use tracing::{error, info, warn};
 
 use crate::error::{Error, Result};
 
 static COOKIE_NAME: &str = "SESSION";
 const SESSION_CHECK_SEC: u64 = 8 * 60 * 60; // 8h
-const SESSION_EXPIRE_SEC: u64 = 3 * 24 * 60 * 60; // 3d
+const SESSION_EXPIRE_SEC: u64 = 2 * 24 * 60 * 60; // 2d
 
 const LOGIN_COUNT: usize = 10;
 const LOGIN_EXPIRE_SEC: u64 = 5 * 60;
@@ -69,18 +69,16 @@ pub async fn background(auth: Auth) {
     }
 }
 
-/// The user data we'll get back from oauth.
-///
-/// E.g. Discord: https://discord.com/developers/docs/resources/user#user-object-user-structure
+/// The user data for a successful login.
 #[metadata]
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Login {
-    id: String,
-    username: String,
+    /// A unique user id
+    /// - Discord: https://discord.com/developers/docs/resources/user#user-object-user-structure
+    /// - Iserv: https://doku.iserv.de/manage/system/sso
+    pub id: String,
     /// Custom data storing how long the session is valid
-    #[meta(skip)]
-    #[serde(skip)]
-    expires: u64,
+    pub expires: u64,
 }
 
 /// The authentication method used by the server
@@ -100,7 +98,10 @@ impl Auth {
             client_secret,
             auth_url,
             token_url,
-            user_url,
+            revoke_url,
+            profile_url,
+            profile_scope,
+            profile_key,
         }) = config
         {
             let redirect = format!("https://{domain}/auth/authorized");
@@ -108,13 +109,16 @@ impl Auth {
                 .set_client_secret(ClientSecret::new(client_secret))
                 .set_auth_uri(AuthUrl::new(auth_url).unwrap())
                 .set_token_uri(TokenUrl::new(token_url).unwrap())
+                .set_revocation_url(RevocationUrl::new(revoke_url).unwrap())
                 .set_redirect_uri(RedirectUrl::new(redirect).unwrap());
 
             Self::OAuth(Arc::new(OAuthState {
                 client,
                 sessions: Default::default(),
                 logins: Default::default(),
-                user_url,
+                profile_url,
+                profile_scope,
+                profile_key,
             }))
         } else {
             error!("SECURITY: Missing OAuth configuration!");
@@ -134,17 +138,31 @@ pub struct AuthConfig {
     pub auth_url: String,
     /// Endpoint for converting the login code to a token
     pub token_url: String,
+    /// Endpoint for revoking an access token
+    pub revoke_url: String,
+
     /// Endpoint for user data (requires a token)
-    pub user_url: String,
+    pub profile_url: String,
+    /// Required scope for the identity route.
+    /// - Discord: "identify"
+    /// - Iserv: "profile"
+    pub profile_scope: String,
+    /// Key in the json dictionary returned by the identity route.
+    /// This can also be a dot separated list of keys into nested dictionaries.
+    /// - Discord: "id"
+    /// - Iserv: "profile.preferred_username"
+    pub profile_key: String,
 }
 
 /// The internal authentication state
 pub struct OAuthState {
-    client: BasicClient<EndpointSet, EndpointNotSet, EndpointNotSet, EndpointNotSet, EndpointSet>,
+    client: BasicClient<EndpointSet, EndpointNotSet, EndpointNotSet, EndpointSet, EndpointSet>,
     sessions: RwLock<HashMap<Session, Login>>,
     /// Tokens for CSRF protection
     logins: Mutex<VecDeque<(CsrfToken, u64)>>,
-    user_url: String,
+    profile_url: String,
+    profile_scope: String,
+    profile_key: String,
 }
 
 impl fmt::Debug for OAuthState {
@@ -152,7 +170,7 @@ impl fmt::Debug for OAuthState {
         f.debug_struct("OAuthState")
             .field("sessions", &self.sessions)
             .field("logins", &self.logins)
-            .field("user_url", &self.user_url)
+            .field("profile_url", &self.profile_url)
             .finish()
     }
 }
@@ -198,7 +216,7 @@ async fn login_redirect(State(auth): State<Arc<OAuthState>>) -> impl IntoRespons
     let (auth_url, csrf_token) = auth
         .client
         .authorize_url(CsrfToken::new_random)
-        .add_scope(Scope::new("identify".to_string()))
+        .add_scope(Scope::new(auth.profile_scope.clone()))
         .url();
 
     // Store csrf token for later checks
@@ -255,15 +273,42 @@ async fn login_authorized(
 
     // Fetch user data from discord
     let client = reqwest::Client::new();
-    let mut login: Login = client
-        .get(&*auth.user_url)
+    let data: serde_json::Value = client
+        .get(&*auth.profile_url)
         .bearer_auth(token.access_token().secret())
         .send()
         .await?
         .json()
         .await?;
 
-    login.expires = unix_secs() + SESSION_EXPIRE_SEC;
+    // Parse user data (search for an id to show in the UI)
+    let mut curr = &data;
+    for part in auth.profile_key.split('.') {
+        let Some(map) = curr.as_object() else {
+            error!("Invalid user data, expected dict: {data:?}");
+            return Err(Error::Network);
+        };
+        let Some(val) = map.get(part) else {
+            error!("Invalid user data, key '{part:?}' not found: {data:?}");
+            return Err(Error::Network);
+        };
+        curr = val;
+    }
+    let Some(id) = curr.as_str() else {
+        error!("Invalid user id, expected string: {curr:?}");
+        return Err(Error::Network);
+    };
+
+    warn!("Login: {id:?}");
+
+    // Directly revoke token, not needed anymore
+    info!("Revoke access");
+    auth.client
+        .revoke_token(token.access_token().into())
+        .map_err(|e| {
+            error!("Revocation failed! {e:?}");
+            Error::Network
+        })?;
 
     // Create a new session filled with user data
     let session = Session::new();
@@ -273,11 +318,15 @@ async fn login_authorized(
         "{COOKIE_NAME}={}; SameSite=Lax; Path=/",
         session.to_cookie()
     );
-    let mut headers = HeaderMap::new();
-    headers.insert(SET_COOKIE, cookie.parse().unwrap());
 
+    let login = Login {
+        id: id.into(),
+        expires: unix_secs() + SESSION_EXPIRE_SEC,
+    };
     auth.sessions.write().unwrap().insert(session, login);
 
+    let mut headers = HeaderMap::new();
+    headers.insert(SET_COOKIE, cookie.parse().unwrap());
     Ok((headers, Redirect::to("/")))
 }
 
@@ -297,7 +346,6 @@ where
         let Auth::OAuth(auth) = auth else {
             return Ok(Login {
                 id: String::new(),
-                username: String::new(),
                 expires: 0,
             });
         };
