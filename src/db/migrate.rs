@@ -8,6 +8,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use super::Database;
 use crate::error::{Error, Result};
+use crate::util::PKG_VERSION;
 
 /// Version metadata, used for database migrations
 #[derive(Serialize, Deserialize)]
@@ -27,7 +28,7 @@ pub fn import(path: &Path) -> Result<Database> {
     let mut file = File::open(path)?;
 
     let DatabaseVersion { version } = serde_json::from_reader(BufReader::new(&file))?;
-    let pkg_version: Version = crate::PKG_VERSION.parse().unwrap();
+    let pkg_version: Version = PKG_VERSION.parse().unwrap();
     if MIN_VERSION <= version && version <= pkg_version {
         file.rewind()?;
         // TODO: Migration routines
@@ -114,7 +115,7 @@ use serde::de::{self, Visitor};
 
 struct VersionVisitor;
 
-impl<'de> Visitor<'de> for VersionVisitor {
+impl Visitor<'_> for VersionVisitor {
     type Value = Version;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -146,7 +147,6 @@ impl<'de> Deserialize<'de> for Version {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::PKG_VERSION;
 
     #[test]
     fn version_parsing() {

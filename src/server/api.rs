@@ -112,7 +112,7 @@ struct About {
 /// Returns info about this project.
 #[metadata]
 async fn about() -> Json<About> {
-    use crate::*;
+    use crate::util::*;
     Json(About {
         name: PKG_NAME,
         version: PKG_VERSION,
@@ -245,10 +245,7 @@ async fn book_fetch_data(
     State(project): State<Project>,
     Path(isbn): Path<String>,
 ) -> Result<Json<BookData>> {
-    let settings = project.db.read().settings();
-    Ok(Json(
-        provider::dnb::fetch(project.client, &settings.dnb_token, &isbn).await?,
-    ))
+    Ok(Json(provider::dnb::fetch(&project.client, &isbn).await?))
 }
 
 // User

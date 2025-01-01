@@ -8,7 +8,7 @@ use tracing::{error, info};
 
 use crate::db::Version;
 use crate::error::{Error, Result};
-use crate::PKG_VERSION;
+use crate::util::PKG_VERSION;
 
 #[derive(Debug)]
 pub struct Database {
@@ -189,7 +189,6 @@ impl From<Settings> for super::Settings {
     fn from(value: Settings) -> Self {
         Self {
             borrowing_duration: value.borrowing_duration,
-            dnb_token: value.dnb_token,
             mail_last_reminder: NaiveDate::parse_from_str(&value.mail_last_reminder, "%Y-%m-%d")
                 .unwrap_or_else(|_| Local::now().naive_local().date()),
             mail_from: value.mail_from,

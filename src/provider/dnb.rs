@@ -1,6 +1,7 @@
 use gluer::metadata;
-use reqwest::Client;
+use reqwest::{Client, Url};
 use serde::Serialize;
+use tracing::info;
 use unicode_normalization::UnicodeNormalization;
 
 use crate::error::{Error, Result};
@@ -13,19 +14,53 @@ pub struct BookData {
     pub publisher: String,
     pub costs: f64,
 }
+const URL: &str =
+    "https://services.dnb.de/sru/dnb?version=1.1&operation=searchRetrieve&recordSchema=MARC21-xml";
 
 /// Try fetching the book data from the "Deutsche Nationalbibliothek"
-pub async fn fetch(client: Client, dnb_token: &str, isbn: &str) -> Result<BookData> {
-    let url = format!(
-        "https://services.dnb.de/sru/accessToken~{dnb_token}/dnb?version=1.1&operation=searchRetrieve&recordSchema=MARC21-xml&query=NUM%3D{isbn}"
-    );
+pub async fn fetch(client: &Client, isbn: &str) -> Result<BookData> {
+    let url = Url::parse_with_params(URL, [("query", &format!("NUM={isbn}"))])
+        .map_err(|_| Error::Arguments)?;
+    info!("Fetch {url}");
     let response = client.get(url).send().await?;
     if !response.status().is_success() {
         return Err(Error::Network);
     }
-
     let text = response.text().await?;
-    parse(&text, isbn)
+    parse_single(&text, isbn)
+}
+
+#[allow(unused)]
+pub async fn query(client: &Client, query: &str, page: usize) -> Result<Vec<Record>> {
+    let url = Url::parse_with_params(
+        URL,
+        [
+            ("maximumRecords", "100"),
+            ("startRecord", format!("{}", page * 100).as_str()),
+            ("query", query),
+        ],
+    )
+    .map_err(|_| Error::Arguments)?;
+
+    info!("Fetch {url}");
+    let response = client.get(url).send().await?;
+    if !response.status().is_success() {
+        return Err(Error::Network);
+    }
+    let text = response.text().await?;
+
+    // parse the MARC21-xml response
+    let document = roxmltree::Document::parse(&text)?;
+    let mut results = Vec::new();
+    if let Some(records) = document
+        .descendants()
+        .find(|n| n.tag_name().name() == "records")
+    {
+        for record in records.children().map(Record::parse) {
+            results.push(record);
+        }
+    }
+    Ok(results)
 }
 
 const ISBN_COSTS_TAG: &str = "020";
@@ -53,7 +88,7 @@ const SHORT_TITLE_LEN: usize = 16;
 ///
 /// ## See Also
 /// https://www.dnb.de/EN/Professionell/Metadatendienste/Datenbezug/SRU/sru_node.html
-fn parse(response: &str, isbn: &str) -> Result<BookData> {
+fn parse_single(response: &str, isbn: &str) -> Result<BookData> {
     let document = roxmltree::Document::parse(response)?;
 
     let mut first_result = None;
@@ -76,9 +111,9 @@ fn parse(response: &str, isbn: &str) -> Result<BookData> {
 }
 
 #[derive(Debug, Default)]
-struct Record {
-    isbns: Vec<String>,
-    data: BookData,
+pub struct Record {
+    pub isbns: Vec<String>,
+    pub data: BookData,
 }
 
 impl Record {
@@ -184,7 +219,7 @@ mod tests {
     #[test]
     fn parse_single_record() {
         let response = fs::read_to_string("test/dnb/dnb-response_9783570303337.xml").unwrap();
-        let data = parse(&response, "9783570303337").unwrap();
+        let data = parse_single(&response, "9783570303337").unwrap();
         assert_eq!(
             data,
             BookData {
@@ -199,7 +234,7 @@ mod tests {
     #[test]
     fn parse_multiple_records() {
         let response = fs::read_to_string("test/dnb/dnb-response_3440040585.xml").unwrap();
-        let data = parse(&response, "3440040585").unwrap();
+        let data = parse_single(&response, "3440040585").unwrap();
         assert_eq!(
             data,
             BookData {
@@ -214,7 +249,7 @@ mod tests {
     #[test]
     fn parse_no_authors() {
         let response = fs::read_to_string("test/dnb/dnb-response_9783060016150.xml").unwrap();
-        let data = parse(&response, "9783060016150").unwrap();
+        let data = parse_single(&response, "9783060016150").unwrap();
         assert_eq!(
             data,
             BookData {

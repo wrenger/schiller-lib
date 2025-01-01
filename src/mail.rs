@@ -80,7 +80,7 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn send_mail() {
-        crate::logging();
+        crate::util::logging();
         super::send(
             &std::env::var("SBV_MAIL_HOST").unwrap(),
             &std::env::var("SBV_MAIL_PASSWORD").unwrap(),

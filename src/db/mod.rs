@@ -15,6 +15,7 @@ use tracing::{error, info};
 use crate::db::sorted::Sorted;
 use crate::error::{Error, Result};
 use crate::mail::account_is_valid;
+use crate::util::PKG_VERSION;
 
 mod book;
 pub use book::*;
@@ -36,13 +37,12 @@ mod legacy;
 pub struct Settings {
     // Borrowing
     pub borrowing_duration: i64,
-    // DNB
-    pub dnb_token: String,
     // Mail
     #[meta(into = String)]
     pub mail_last_reminder: NaiveDate,
     pub mail_from: String,
     pub mail_host: String,
+    // TODO: Redact from requests
     pub mail_password: String,
     // Mail Templates
     pub mail_info: MailTemplate,
@@ -60,7 +60,6 @@ pub struct MailTemplate {
 
 impl Settings {
     fn validate(&mut self) -> bool {
-        self.dnb_token = self.dnb_token.trim().to_string();
         self.mail_from = self.mail_from.trim().to_string();
         self.mail_host = self.mail_host.trim().to_string();
         self.mail_password = self.mail_password.trim().to_string();
@@ -78,7 +77,6 @@ impl Default for Settings {
     fn default() -> Settings {
         Settings {
             borrowing_duration: 28,
-            dnb_token: Default::default(),
             mail_last_reminder: Local::now().naive_local().date(),
             mail_from: Default::default(),
             mail_host: Default::default(),
@@ -147,7 +145,7 @@ impl Ord for Overdue {
 impl Default for Database {
     fn default() -> Self {
         Self {
-            version: crate::PKG_VERSION.parse().unwrap(),
+            version: PKG_VERSION.parse().unwrap(),
             books: Default::default(),
             users: Default::default(),
             categories: Default::default(),
@@ -460,7 +458,7 @@ mod test {
         use super::legacy as d1;
         use crate::db as d2;
 
-        crate::logging();
+        crate::util::logging();
         let file = Path::new("test/schillerbib.db");
 
         let db1 = d1::Database::open(file.into()).unwrap().0;

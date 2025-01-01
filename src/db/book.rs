@@ -47,7 +47,7 @@ pub struct Borrower {
 
 impl Book {
     /// Check if the book is valid
-    fn validate(&mut self) -> bool {
+    pub fn validate(&mut self) -> bool {
         self.id = self.id.trim().to_string();
         self.isbn = isbn::parse(&self.isbn).unwrap_or_else(|invalid| invalid);
         self.title = self.title.trim().to_string();
@@ -203,7 +203,7 @@ impl Books {
                 _ => {}
             }
 
-            let lower_title = book.title.to_ascii_lowercase();
+            let lower_title = book.title.to_lowercase();
 
             if keywords.is_empty() {
                 results.push((0, lower_title, book));
@@ -219,8 +219,7 @@ impl Books {
             for keyword in &keywords {
                 if lower_title.starts_with(keyword) {
                     score += 3;
-                } else if lower_title.contains(keyword) || lower_id.to_lowercase().contains(keyword)
-                {
+                } else if lower_title.contains(keyword) || lower_id.contains(keyword) {
                     score += 2;
                 } else if book.isbn.to_lowercase().contains(keyword)
                     || book.publisher.to_lowercase().contains(keyword)
@@ -231,6 +230,7 @@ impl Books {
                 {
                     score += 1;
                 } else {
+                    // keyword not matched
                     continue 'books;
                 }
             }

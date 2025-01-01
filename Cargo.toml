@@ -8,6 +8,11 @@ readme = "README.md"
 license = "MIT"
 repository = "https://github.com/wrenger/schiller-lib"
 publish = false
+default-run = "schiller-lib"
+
+[[bench]]
+name = "benches"
+harness = false
 
 [profile.release]
 lto = "thin"
@@ -16,14 +21,14 @@ codegen-units = 1
 strip = true
 
 [dependencies]
-axum = { version = "0.8.0-rc.1", default-features = false, features = [
+axum = { version = "0.8.1", default-features = false, features = [
     "json",
     "query",
     "tokio",
     "tower-log",
     "tracing",
 ] }
-axum-extra = { version = "0.10.0-rc.1", features = ["typed-header"] }
+axum-extra = { version = "0.10.0", features = ["typed-header"] }
 base64 = "0.22"
 chrono = "0.4"
 clap = { version = "4.5", features = ["derive"] }
@@ -68,6 +73,9 @@ tower-service = "0.3"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 unicode-normalization = "0.1"
+
+[dev-dependencies]
+criterion = { version = "0.5" }
 
 [features]
 default = []

@@ -12,6 +12,7 @@ build
 !/test/.gdignore
 !/test/dnb
 !/test/csv
+!/test/demo.json
 
 !/test/cert
 /test/cert/*

@@ -20,7 +20,7 @@ use oauth2::{
     AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, EndpointNotSet, EndpointSet,
     RedirectUrl, RevocationUrl, Scope, TokenResponse, TokenUrl,
 };
-use rand::RngCore;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info, warn};
 
@@ -32,6 +32,33 @@ const SESSION_EXPIRE_SEC: u64 = 2 * 24 * 60 * 60; // 2d
 
 const LOGIN_COUNT: usize = 10;
 const LOGIN_EXPIRE_SEC: u64 = 5 * 60;
+
+/// Configuration for OAuth
+#[derive(Debug, Deserialize)]
+pub struct AuthConfig {
+    /// The application id
+    pub client_id: String,
+    /// The application secret
+    pub client_secret: String,
+    /// Login page from the OAuth server
+    pub auth_url: String,
+    /// Endpoint for converting the login code to a token
+    pub token_url: String,
+    /// Endpoint for revoking an access token
+    pub revoke_url: String,
+
+    /// Endpoint for user data (requires a token)
+    pub profile_url: String,
+    /// Required scope for the identity route.
+    /// - Discord: "identify"
+    /// - Iserv: "profile"
+    pub profile_scope: String,
+    /// Key in the json dictionary returned by the identity route.
+    /// This can also be a dot separated list of keys into nested dictionaries.
+    /// - Discord: "id"
+    /// - Iserv: "profile.preferred_username"
+    pub profile_key: String,
+}
 
 /// The routes required for login and logout
 pub fn routes(auth: Auth) -> Router {
@@ -127,33 +154,6 @@ impl Auth {
     }
 }
 
-/// Configuration for OAuth
-#[derive(Debug, Deserialize)]
-pub struct AuthConfig {
-    /// The application id
-    pub client_id: String,
-    /// The application secret
-    pub client_secret: String,
-    /// Login page from the OAuth server
-    pub auth_url: String,
-    /// Endpoint for converting the login code to a token
-    pub token_url: String,
-    /// Endpoint for revoking an access token
-    pub revoke_url: String,
-
-    /// Endpoint for user data (requires a token)
-    pub profile_url: String,
-    /// Required scope for the identity route.
-    /// - Discord: "identify"
-    /// - Iserv: "profile"
-    pub profile_scope: String,
-    /// Key in the json dictionary returned by the identity route.
-    /// This can also be a dot separated list of keys into nested dictionaries.
-    /// - Discord: "id"
-    /// - Iserv: "profile.preferred_username"
-    pub profile_key: String,
-}
-
 /// The internal authentication state
 pub struct OAuthState {
     client: BasicClient<EndpointSet, EndpointNotSet, EndpointNotSet, EndpointSet, EndpointSet>,
@@ -175,26 +175,22 @@ impl fmt::Debug for OAuthState {
     }
 }
 
+/// A unique session for a logged in user.
+/// The session does not reuse the oauth token.
 #[derive(Clone, Hash, PartialEq, Eq)]
-struct Session([u8; 32]);
-
+struct Session([u8; Self::N]);
 impl Session {
+    const N: usize = 32;
     fn new() -> Self {
-        let mut data = [0; 32];
-        rand::thread_rng().fill_bytes(&mut data);
-        Self(data)
+        Self(rand::thread_rng().gen())
     }
     fn from_cookie(cookie: &str) -> Result<Self> {
-        let mut data = [0; 32 + 8]; // has to be larger due to wrong estimates!
+        let mut data = [0; Self::N + 8]; // has to be larger due to wrong estimates!
         let len = BASE64
             .decode_slice(cookie, &mut data)
             .map_err(|_| Error::Network)?;
-
-        let mut ret = [0; 32];
-        if len == ret.len() {
-            let len = ret.len();
-            ret.copy_from_slice(&data[..len]);
-            Ok(Self(ret))
+        if len == Self::N {
+            Ok(Self(data[..Self::N].try_into().unwrap()))
         } else {
             Err(Error::Network)
         }
@@ -203,7 +199,6 @@ impl Session {
         BASE64.encode(self.0)
     }
 }
-
 impl fmt::Debug for Session {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("Session")
@@ -260,7 +255,7 @@ async fn login_authorized(
     }
 
     let http_client = reqwest::Client::builder()
-        // Following redirects opens the client up to SSRF vulnerabilities.
+        // Following redirects opens the client up to SSRF.
         .redirect(reqwest::redirect::Policy::none())
         .build()?;
 
