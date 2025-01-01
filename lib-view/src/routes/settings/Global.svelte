@@ -15,7 +15,6 @@
 	import DateInput from '$lib/components/ui/date-input/DateInput.svelte';
 
 	let borrowing_duration = '0';
-	let dnb_token = '';
 	let mail_last_reminder: DateTime = DateTime.fromISO('');
 	let mail_from = '';
 	let mail_host = '';
@@ -29,7 +28,6 @@
 
 	$: settings = {
 		borrowing_duration: parseInt(borrowing_duration),
-		dnb_token,
 		mail_last_reminder,
 		mail_from,
 		mail_host,
@@ -40,7 +38,6 @@
 	};
 
 	function set(s: GlobalSettings) {
-		dnb_token = s.dnb_token;
 		borrowing_duration = s.borrowing_duration.toString();
 		mail_last_reminder = s.mail_last_reminder;
 		mail_from = s.mail_from;
@@ -97,16 +94,6 @@
 				<Spinner response={userResponse} />
 				{$_('.pref.user.update')}
 			</Button>
-		</div>
-		<Separator />
-		<div class="flex w-full flex-col gap-1.5">
-			<Label class="text-md" for="dnb-token">{$_('.pref.request.token')}</Label>
-			<Input
-				id="dnb-token"
-				bind:value={dnb_token}
-				type="text"
-				placeholder={$_('.pref.request.token')}
-			/>
 		</div>
 		<Separator />
 		<DateInput
