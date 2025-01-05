@@ -35,15 +35,21 @@ mod legacy;
 #[metadata]
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Settings {
-    // Borrowing
-    pub borrowing_duration: i64,
+    /// Default borrowing time in days
+    pub borrowing_duration: usize,
+
     // Mail
+    /// Date of the last reminder mail
     #[meta(into = String)]
     pub mail_last_reminder: NaiveDate,
+    /// Mail sender account
     pub mail_from: String,
+    /// Mail server host for sender and users
     pub mail_host: String,
-    // TODO: Redact from requests
+    /// Mail server password for the sender
+    /// - TODO: Redact from requests
     pub mail_password: String,
+
     // Mail Templates
     pub mail_info: MailTemplate,
     pub mail_overdue: MailTemplate,
@@ -131,14 +137,13 @@ impl PartialOrd for Overdue {
 }
 impl Ord for Overdue {
     fn cmp(&self, other: &Self) -> Ordering {
-        if let (Some(borrower), Some(other_borrower)) = (&self.book.borrower, &other.book.borrower)
-        {
-            match borrower.deadline.cmp(&other_borrower.deadline) {
-                o @ (Ordering::Greater | Ordering::Less) => return o,
-                Ordering::Equal => {}
-            }
+        if let (Some(b), Some(other_b)) = (&self.book.borrower, &other.book.borrower) {
+            b.deadline
+                .cmp(&other_b.deadline)
+                .then_with(|| self.book.id.cmp(&other.book.id))
+        } else {
+            self.book.id.cmp(&other.book.id)
         }
-        self.book.id.cmp(&other.book.id)
     }
 }
 
@@ -461,7 +466,7 @@ mod test {
         crate::util::logging();
         let file = Path::new("test/schillerbib.db");
 
-        let db1 = d1::Database::open(file.into()).unwrap().0;
+        let db1 = d1::Database::open(file).unwrap().0;
         let db2 = super::migrate::import(file).unwrap();
 
         let timer = Instant::now();

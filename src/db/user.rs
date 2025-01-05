@@ -5,6 +5,7 @@ use gluer::metadata;
 use serde::{Deserialize, Serialize};
 
 use super::Books;
+use crate::db::sorted::Sorted;
 use crate::error::{Error, Result};
 use crate::mail::account_is_valid;
 
@@ -109,11 +110,12 @@ impl Users {
                 *entry = user.clone();
                 return Ok(user);
             }
-        } else if self.data.remove(account).is_some() {
+        } else if self.data.contains_key(account) {
             return match self.data.entry(user.account.clone()) {
                 Entry::Vacant(v) => {
                     v.insert(user.clone());
                     books.update_user(account, &user.account)?;
+                    self.data.remove(account);
                     Ok(user)
                 }
                 _ => Err(Error::InvalidUser),
@@ -140,46 +142,61 @@ impl Users {
 
     /// Performes a simple user search with the given `text`.
     pub fn search(&self, search: &UserSearch) -> Result<(usize, Vec<User>)> {
-        let mut primary = Vec::new();
-        let mut secondary = Vec::new();
-        let mut tertiary = Vec::new();
+        let mut results = Sorted::new(|a: &(usize, &User), b: &(usize, &User)| {
+            a.0.cmp(&b.0)
+                .reverse()
+                .then_with(|| a.1.account.cmp(&b.1.account))
+        });
 
-        let limits = search.offset..search.offset + search.limit;
-        let query = search.query.to_lowercase();
+        let query = search.query.trim().to_lowercase();
+        let keywords = query.split_whitespace().collect::<Vec<_>>();
 
         // just a very basic brute-force search
-        let mut results = 0;
-        for user in self.data.values() {
+        'users: for user in self.data.values() {
             match search.may_borrow {
                 Some(b) if b != user.may_borrow => continue,
                 _ => {}
             }
 
-            if user.account.to_lowercase().starts_with(&query) {
-                results += 1;
-                if limits.contains(&results) {
-                    primary.push(user.clone());
+            if query.is_empty() {
+                results.push((0, user));
+                continue;
+            }
+            let account = user.account.to_lowercase();
+            if query == account {
+                results.push((100, user));
+                continue;
+            }
+
+            let mut score = 0;
+            for keyword in &keywords {
+                if account.starts_with(keyword) {
+                    score += 3;
+                } else if account.contains(keyword) {
+                    score += 2;
+                } else if user.forename.to_lowercase().contains(keyword)
+                    || user.surname.to_lowercase().contains(keyword)
+                    || user.role.to_lowercase().contains(keyword)
+                {
+                    score += 1;
+                } else {
+                    // no match -> skip this user
+                    continue 'users;
                 }
-            } else if user.account.to_lowercase().contains(&query) {
-                results += 1;
-                if limits.contains(&results) {
-                    secondary.push(user.clone());
-                }
-            } else if user.forename.to_lowercase().contains(&query)
-                || user.surname.to_lowercase().contains(&query)
-                || user.role.to_lowercase().contains(&query)
-            {
-                results += 1;
-                if limits.contains(&results) {
-                    tertiary.push(user.clone());
-                }
+            }
+            if score > 0 {
+                results.push((score, user));
             }
         }
 
-        primary.reserve(secondary.len() + tertiary.len());
-        primary.append(&mut secondary);
-        primary.append(&mut tertiary);
-        Ok((results, primary))
+        let total = results.len();
+        let books = results
+            .into_iter()
+            .skip(search.offset)
+            .take(search.limit)
+            .map(|b| b.1.clone())
+            .collect();
+        Ok((total, books))
     }
 
     /// Deletes the roles from all users and inserts the new roles.
@@ -194,7 +211,7 @@ impl Users {
             let account = account.trim();
             if !account.is_empty() {
                 if let Some(entry) = self.data.get_mut(account) {
-                    entry.role.clone_from(role);
+                    entry.role = role.clone();
                 }
             }
         }

@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::path::Path;
 use std::ptr::addr_of;
 
@@ -17,11 +16,11 @@ pub struct Database {
 
 impl Database {
     /// Opens a database connection to the given project database.
-    pub fn open(path: Cow<'_, Path>) -> Result<(Database, bool)> {
+    pub fn open(path: &Path) -> Result<(Database, bool)> {
         if path.exists() {
             let database = Database {
                 con: rusqlite::Connection::open_with_flags(
-                    &path,
+                    path,
                     rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
                 )
                 .map_err(|_| Error::FileOpen)?,
@@ -188,7 +187,7 @@ impl FromRow for (String, String) {
 impl From<Settings> for super::Settings {
     fn from(value: Settings) -> Self {
         Self {
-            borrowing_duration: value.borrowing_duration,
+            borrowing_duration: value.borrowing_duration as _,
             mail_last_reminder: NaiveDate::parse_from_str(&value.mail_last_reminder, "%Y-%m-%d")
                 .unwrap_or_else(|_| Local::now().naive_local().date()),
             mail_from: value.mail_from,

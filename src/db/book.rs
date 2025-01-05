@@ -118,10 +118,11 @@ impl Books {
     /// Return the book with this `id`
     pub fn fetch(&self, id: &str) -> Result<Book> {
         let id = id.trim();
-        if id.is_empty() {
-            return Err(Error::Arguments);
+        if !id.is_empty() {
+            self.data.get(id).cloned().ok_or(Error::NothingFound)
+        } else {
+            Err(Error::Arguments)
         }
-        self.data.get(id).cloned().ok_or(Error::NothingFound)
     }
 
     /// Add a new book
@@ -151,10 +152,11 @@ impl Books {
                 *entry = book.clone();
                 return Ok(book);
             }
-        } else if self.data.remove(id).is_some() {
+        } else if self.data.contains_key(id) {
             return match self.data.entry(book.id.clone()) {
                 Entry::Vacant(v) => {
                     v.insert(book.clone());
+                    self.data.remove(id);
                     Ok(book)
                 }
                 _ => Err(Error::InvalidBook),
@@ -167,22 +169,21 @@ impl Books {
     /// Delete the corresponding book
     pub fn delete(&mut self, id: &str) -> Result<()> {
         let id = id.trim();
-        if id.is_empty() {
-            return Err(Error::Arguments);
+        if !id.is_empty() {
+            self.data.remove(id).map(|_| ()).ok_or(Error::NothingFound)
+        } else {
+            Err(Error::Arguments)
         }
-        self.data.remove(id).map(|_| ()).ok_or(Error::NothingFound)
     }
 
     /// Search specific books
     pub fn search(&self, search: &BookSearch) -> Result<(usize, Vec<Book>)> {
-        fn sort(a: &(usize, String, &Book), b: &(usize, String, &Book)) -> std::cmp::Ordering {
+        let mut results = Sorted::new(|a: &(usize, String, &Book), b: &(usize, String, &Book)| {
             a.0.cmp(&b.0)
                 .reverse()
                 .then_with(|| a.1.cmp(&b.1))
                 .then_with(|| a.2.id.cmp(&b.2.id))
-        }
-
-        let mut results = Sorted::new(sort);
+        });
 
         let query = search.query.trim().to_lowercase();
         let keywords = query.split_whitespace().collect::<Vec<_>>();
@@ -211,11 +212,12 @@ impl Books {
             }
 
             let lower_id = book.id.to_ascii_lowercase();
+            if query == lower_id {
+                results.push((100, lower_title, book));
+                continue;
+            }
 
             let mut score = 0;
-            if query == lower_id {
-                score += 100;
-            }
             for keyword in &keywords {
                 if lower_title.starts_with(keyword) {
                     score += 3;
@@ -230,7 +232,7 @@ impl Books {
                 {
                     score += 1;
                 } else {
-                    // keyword not matched
+                    // no match -> skip this book
                     continue 'books;
                 }
             }
@@ -254,16 +256,18 @@ impl Books {
     /// Count the number of books in the given category
     pub fn in_category(&self, id: &str) -> Result<usize> {
         let id = id.trim();
-        if id.is_empty() {
-            return Err(Error::Arguments);
+        if !id.is_empty() {
+            Ok(self.data.values().filter(|b| b.category == id).count())
+        } else {
+            Err(Error::Arguments)
         }
-        Ok(self.data.values().filter(|b| b.category == id).count())
     }
 
     /// Generates a new unique id based on the authors surname and the category.
     pub fn generate_id(&self, book: &Book) -> Result<String> {
+        let authors = book.authors.trim();
         let prefix = id_prefix(
-            book.authors.split_once(',').map_or(&book.authors, |a| a.0),
+            authors.split_once(',').map_or(authors, |a| a.0),
             book.category.trim(),
         );
         let id = book.id.trim();
@@ -275,17 +279,16 @@ impl Books {
         }
 
         // query smallest unused id
-        let mut last_id = None;
+        let mut max_id = 0usize;
         for key in self.data.keys() {
             if let Some(suffix) = key.strip_prefix(&prefix) {
-                if let Ok(id) = suffix.trim().parse::<usize>() {
-                    last_id = Some(id + 1);
+                if let Ok(id) = suffix.trim().parse() {
+                    max_id = max_id.max(id);
                 }
             }
         }
-
-        let id = last_id.unwrap_or(1);
-        Ok(format!("{prefix} {id}"))
+        max_id += 1;
+        Ok(format!("{prefix} {max_id}"))
     }
 
     /// Is the user borrowing or reserving by any books
@@ -315,7 +318,9 @@ impl Books {
                 }
             }
             if let Some(reservation) = &mut book.reservation {
-                *reservation = to.to_string();
+                if reservation == from {
+                    *reservation = to.to_string();
+                }
             }
         }
         Ok(())

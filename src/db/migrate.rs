@@ -45,7 +45,7 @@ fn from_db(file: &Path) -> Result<Database> {
 
     let mut data = Database::default();
 
-    let db = super::legacy::Database::open(file.into())?.0;
+    let db = super::legacy::Database::open(file)?.0;
     info!("Transferring settings");
     data.settings = super::Settings::from(db.settings()?);
 

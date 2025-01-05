@@ -51,6 +51,7 @@ impl Categories {
         }
     }
 
+    /// Update the category with the given id
     pub fn update(
         &mut self,
         id: &str,
@@ -67,11 +68,12 @@ impl Categories {
                 *entry = category.clone();
                 return Ok(category);
             }
-        } else if self.data.remove(id).is_some() {
+        } else if self.data.contains_key(id) {
             return match self.data.entry(category.id.clone()) {
                 Entry::Vacant(v) => {
                     v.insert(category.clone());
                     books.update_category(id, &category.id)?;
+                    self.data.remove(id);
                     Ok(category)
                 }
                 _ => Err(Error::Arguments),
