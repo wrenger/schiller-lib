@@ -34,9 +34,12 @@ mod legacy;
 /// Library settings
 #[metadata]
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Settings {
     /// Default borrowing time in days
     pub borrowing_duration: usize,
+    /// Number of days after the deadline the send the stronger reminder
+    pub overdue_warning_delay: usize,
 
     // Mail
     /// Date of the last reminder mail
@@ -83,6 +86,7 @@ impl Default for Settings {
     fn default() -> Settings {
         Settings {
             borrowing_duration: 28,
+            overdue_warning_delay: 14,
             mail_last_reminder: Local::now().naive_local().date(),
             mail_from: Default::default(),
             mail_host: Default::default(),

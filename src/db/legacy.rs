@@ -205,6 +205,7 @@ impl From<Settings> for super::Settings {
                 subject: value.mail_overdue2_subject,
                 body: value.mail_overdue2_content,
             },
+            ..Default::default()
         }
     }
 }

@@ -9,7 +9,7 @@
 	import * as Avatar from '$lib/components/ui/avatar';
 	import { page } from '$app/stores';
 	import { Separator } from '$lib/components/ui/separator';
-	import { categories, count, settingsGlobal } from '$lib/store';
+	import { categories, stats, settingsGlobal } from '$lib/store';
 	import api from '$lib/api';
 	import { DateTime } from 'luxon';
 	import { onMount } from 'svelte';
@@ -20,25 +20,19 @@
 	async function update() {
 		// Get settings
 		let settings_data = handle_result(await api.settings_get());
-		let settings = {
+		settingsGlobal.set({
 			...settings_data,
 			mail_last_reminder: DateTime.fromISO(settings_data.mail_last_reminder)
-		};
-		settingsGlobal.set(settings);
-
-		// Get categories
-		let category_data = handle_result(await api.category_list());
-		categories.set(category_data);
+		});
+		categories.set(handle_result(await api.category_list()));
+		stats.set(handle_result(await api.stats()));
 	}
 
 	// Update periodically after and on Mount
 	onMount(() => {
 		update();
-		const interval = setInterval(update, 300000);
-
-		return () => {
-			clearInterval(interval);
-		};
+		const interval = setInterval(update, 300_000);
+		return () => clearInterval(interval);
 	});
 </script>
 
@@ -66,9 +60,7 @@
 						<Button
 							variant="ghost"
 							size="icon"
-							class="rounded-lg {$page.url.pathname == '/books'
-								? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-								: ''}"
+							class="rounded-lg {$page.url.pathname == '/books' ? 'border' : ''}"
 							aria-label={$_('.search.book')}
 							builders={[builder]}
 							href="/books"
@@ -77,10 +69,7 @@
 						</Button>
 					</Tooltip.Trigger>
 					<Tooltip.Content side="right" sideOffset={5}>
-						{$_('.search.book')}
-						<span class="ml-auto text-muted-foreground">
-							{$count?.books ?? ''}
-						</span>
+						{$_('.search.book')} <span class="text-muted-foreground">{$stats.books}</span>
 					</Tooltip.Content>
 				</Tooltip.Root>
 				<Tooltip.Root openDelay={0} closeOnPointerDown={false}>
@@ -88,9 +77,7 @@
 						<Button
 							variant="ghost"
 							size="icon"
-							class="rounded-lg {$page.url.pathname == '/users'
-								? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-								: ''}"
+							class="rounded-lg {$page.url.pathname == '/users' ? 'border' : ''}"
 							aria-label={$_('.search.user')}
 							builders={[builder]}
 							href="/users"
@@ -99,10 +86,7 @@
 						</Button>
 					</Tooltip.Trigger>
 					<Tooltip.Content side="right" sideOffset={5}>
-						{$_('.search.user')}
-						<span class="ml-auto text-muted-foreground">
-							{$count?.users ?? ''}
-						</span>
+						{$_('.search.user')} <span class="text-muted-foreground">{$stats.users}</span>
 					</Tooltip.Content>
 				</Tooltip.Root>
 				<Tooltip.Root openDelay={0} closeOnPointerDown={false}>
@@ -110,9 +94,7 @@
 						<Button
 							variant="ghost"
 							size="icon"
-							class="rounded-lg {$page.url.pathname == '/overdues'
-								? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-								: ''}"
+							class="rounded-lg {$page.url.pathname == '/overdues' ? 'border' : ''}"
 							aria-label={$_('.book.overdues')}
 							builders={[builder]}
 							href="/overdues"
@@ -121,10 +103,7 @@
 						</Button>
 					</Tooltip.Trigger>
 					<Tooltip.Content side="right" sideOffset={5}>
-						{$_('.book.overdues')}
-						<span class="ml-auto text-muted-foreground">
-							{$count?.overdues ?? ''}
-						</span>
+						{$_('.book.overdues')} <span class="text-muted-foreground">{$stats.overdues}</span>
 					</Tooltip.Content>
 				</Tooltip.Root>
 				<Tooltip.Root openDelay={0} closeOnPointerDown={false}>
@@ -132,9 +111,7 @@
 						<Button
 							variant="ghost"
 							size="icon"
-							class="rounded-lg {$page.url.pathname == '/info'
-								? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-								: ''}"
+							class="rounded-lg {$page.url.pathname == '/info' ? 'border' : ''}"
 							aria-label={$_('.alert.info')}
 							builders={[builder]}
 							href="/info"
@@ -152,9 +129,7 @@
 						<Button
 							variant="ghost"
 							size="icon"
-							class="rounded-lg {$page.url.pathname == '/settings'
-								? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-								: ''}"
+							class="rounded-lg {$page.url.pathname == '/settings' ? 'border' : ''}"
 							aria-label={$_('.pref.title')}
 							builders={[builder]}
 							href="/settings"

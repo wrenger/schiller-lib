@@ -15,6 +15,7 @@
 	import DateInput from '$lib/components/ui/date-input/DateInput.svelte';
 
 	let borrowing_duration = '0';
+	let overdue_warning_delay = '0';
 	let mail_last_reminder: DateTime = DateTime.fromISO('');
 	let mail_from = '';
 	let mail_host = '';
@@ -28,6 +29,7 @@
 
 	$: settings = {
 		borrowing_duration: parseInt(borrowing_duration),
+		overdue_warning_delay: parseInt(overdue_warning_delay),
 		mail_last_reminder,
 		mail_from,
 		mail_host,
@@ -39,6 +41,7 @@
 
 	function set(s: GlobalSettings) {
 		borrowing_duration = s.borrowing_duration.toString();
+		overdue_warning_delay = s.overdue_warning_delay.toString();
 		mail_last_reminder = s.mail_last_reminder;
 		mail_from = s.mail_from;
 		mail_host = s.mail_host;
@@ -71,73 +74,53 @@
 	}
 </script>
 
-<div class="space-y-4 p-3 pb-0">
-	<div class="space-y-4 p-1">
-		<div class="flex w-full flex-col gap-1.5">
-			<Label class="text-md" for="category">{$_('.category.edit')}</Label>
+<div class="space-y-4">
+	<div class="space-y-10 p-4">
+		<div>
+			<h2 class="my-1.5">{$_('.category.edit')}</h2>
 			<EditCategory />
 		</div>
-		<Separator />
-		<div class="flex w-full flex-col gap-1.5">
-			<Label class="text-md" for="borrowing-duration">{$_('.pref.borrowing.duration')}</Label>
-			<Input
-				id="borrowing-duration"
-				bind:value={borrowing_duration}
-				type="number"
-				placeholder={$_('.pref.borrowing.duration')}
-			/>
+		<div>
+			<h2 class="my-1.5">{$_('.pref.borrowing.duration')}</h2>
+			<Input bind:value={borrowing_duration} type="number" />
 		</div>
-		<Separator />
-		<div class="flex w-full flex-col gap-1.5">
-			<Label class="text-md" for="user-update">{$_('.pref.user.update')}</Label>
-			<Button id="user-update" on:click={() => (userResponse = userUpdate())}>
+		<div>
+			<h2 class="my-1.5">{$_('.pref.overdue.warning-delay')}</h2>
+			<Input id="overdue-warning-delay" bind:value={overdue_warning_delay} type="number" />
+		</div>
+		<div>
+			<h2 class="my-1.5">{$_('.pref.user.update')}</h2>
+			<p class="my-1.5">{$_('.pref.user.update.info')}</p>
+			<Button class="w-full" on:click={() => (userResponse = userUpdate())}>
 				<Spinner response={userResponse} />
 				{$_('.pref.user.update')}
 			</Button>
 		</div>
-		<Separator />
 		<DateInput
 			bind:date={mail_last_reminder}
 			min={false}
 			labelClass="text-md"
 			label={$_('.pref.mail.last-reminder')}
 		/>
-		<Separator />
-		<div class="flex w-full flex-col gap-1.5">
-			<Label class="text-md">{$_('.pref.cred')}</Label>
+		<div>
+			<h2 class="my-1.5">{$_('.pref.cred')}</h2>
 			<div class="space-y-2">
-				<div class="flex w-full flex-col gap-1.5">
-					<Label for="hostname">{$_('.pref.mail.account.host')}</Label>
-					<Input
-						id="hostname"
-						bind:value={mail_host}
-						type="text"
-						placeholder={$_('.pref.mail.account.host')}
-					/>
+				<div>
+					<Label for="host" class="my-1.5 block">{$_('.pref.mail.account.host')}</Label>
+					<Input id="host" bind:value={mail_host} type="text" />
 				</div>
-				<div class="flex w-full flex-col gap-1.5">
-					<Label for="from">{$_('.pref.mail.account.from')}</Label>
-					<Input
-						id="from"
-						bind:value={mail_from}
-						type="text"
-						placeholder={$_('.pref.mail.account.from')}
-					/>
+				<div>
+					<Label for="from" class="my-1.5 block">{$_('.pref.mail.account.from')}</Label>
+					<Input id="from" bind:value={mail_from} type="text" />
 				</div>
-				<div class="flex w-full flex-col gap-1.5">
-					<Label for="password">{$_('.pref.mail.account.password')}</Label>
-					<Input
-						id="password"
-						bind:value={mail_password}
-						type="password"
-						placeholder={$_('.pref.mail.account.password')}
-					/>
+				<div>
+					<Label for="password" class="my-1.5 block">{$_('.pref.mail.account.password')}</Label>
+					<Input id="password" bind:value={mail_password} type="password" />
 				</div>
 			</div>
 		</div>
-		<Separator />
-		<div class="flex w-full flex-col gap-1.5">
-			<Label class="text-md">{$_('.pref.mail.templates.header')}</Label>
+		<div>
+			<h2 class="my-1.5">{$_('.pref.mail.templates.header')}</h2>
 			<p style="white-space: pre-line;">
 				{$_('.mail.info')}
 			</p>
@@ -148,41 +131,31 @@
 					{/each}
 				</Tabs.List>
 				{#each Object.keys(templates) as name}
-					<Tabs.Content value={name}>
-						<div class="space-y-2">
-							<div class="flex w-full flex-col gap-1.5">
-								<Label for="title">{$_('.mail.label.title')}</Label>
-								<Input
-									id="title"
-									bind:value={templates[name].subject}
-									type="text"
-									placeholder={$_('.mail.label.title')}
-								/>
-							</div>
-							<div class="flex w-full flex-col gap-1.5">
-								<Label for="content">{$_('.mail.label.content')}</Label>
-								<Textarea
-									rows={6}
-									id="content"
-									bind:value={templates[name].body}
-									placeholder={$_('.mail.label.content')}
-								/>
-							</div>
+					<Tabs.Content value={name} class="space-y-2">
+						<div>
+							<Label for="title" class="my-1.5 block">{$_('.mail.label.title')}</Label>
+							<Input id="title" bind:value={templates[name].subject} type="text" />
+						</div>
+						<div>
+							<Label for="content" class="my-1.5 block">{$_('.mail.label.content')}</Label>
+							<Textarea rows={6} id="content" bind:value={templates[name].body} />
 						</div>
 					</Tabs.Content>
 				{/each}
 			</Tabs.Root>
 		</div>
 	</div>
-	<div class="sticky bottom-0 z-20 space-y-4 bg-background p-1 pb-4 pt-0">
+	<div class="bg-background sticky bottom-0 z-20 space-y-4 pb-4">
 		<Separator />
-		<Button
-			class="w-full"
-			disabled={areObjectsEqual(settings, $settingsGlobal)}
-			on:click={() => (saveResponse = save())}
-		>
-			<Spinner response={saveResponse} />
-			{$_('.action.apply')}
-		</Button>
+		<div class="px-4">
+			<Button
+				class="w-full"
+				disabled={areObjectsEqual(settings, $settingsGlobal)}
+				on:click={() => (saveResponse = save())}
+			>
+				<Spinner response={saveResponse} />
+				{$_('.action.apply')}
+			</Button>
+		</div>
 	</div>
 </div>

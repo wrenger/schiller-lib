@@ -4,7 +4,6 @@
 	import api from '$lib/api';
 	import VirtualList from '../../lib/components/ui/virtual-list/VirtualList.svelte';
 	import UserSearch from './UserSearch.svelte';
-	import { count } from '$lib/store';
 	import UserSelect from './UserSelect.svelte';
 	import UserItem, { HEIGHT } from './UserItem.svelte';
 	import UserActions from './UserActions.svelte';
@@ -54,9 +53,6 @@
 				rowHeight={HEIGHT}
 				load={(offset, limit) => api.user_search({ ...search, offset, limit })}
 				key={(user) => user.account}
-				onLoad={(total) => {
-					$count.users = total;
-				}}
 			>
 				<UserItem
 					slot="item"

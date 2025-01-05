@@ -4,7 +4,6 @@
 	import api from '$lib/api';
 	import VirtualList from '../../lib/components/ui/virtual-list/VirtualList.svelte';
 	import BookSearch from '../books/BookSearch.svelte';
-	import { count } from '$lib/store';
 	import BookSelect from './BookSelect.svelte';
 	import BookItem, { HEIGHT } from './BookItem.svelte';
 	import BookActions from './BookActions.svelte';
@@ -60,9 +59,6 @@
 				rowHeight={HEIGHT}
 				load={(offset, limit) => api.book_search({ ...search, offset, limit })}
 				key={(book) => book.id}
-				onLoad={(total) => {
-					$count.books = total;
-				}}
 			>
 				<BookItem
 					slot="item"

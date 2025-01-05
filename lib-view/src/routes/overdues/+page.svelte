@@ -3,13 +3,10 @@
 	import Layout from '../Layout.svelte';
 	import { DateTime } from 'luxon';
 	import api from '$lib/api';
-	import { count } from '$lib/store';
 	import { handle_result } from '$lib';
 
 	async function loadOverdues() {
-		let overdues = handle_result(await api.lending_overdues());
-		$count.overdues = overdues.length;
-		return overdues;
+		return handle_result(await api.lending_overdues());
 	}
 </script>
 

@@ -74,27 +74,17 @@
 	</Tabs.List>
 	<Tabs.Content value="add">
 		<div class="space-y-2">
-			<div class="flex w-full flex-col gap-1.5">
-				<Label for="id">{$_('.category.id')}</Label>
-				<Input bind:value={emptyNew.id} type="text" id="id" placeholder={$_('.category.id')} />
+			<div>
+				<Label for="id" class="my-1.5 block">{$_('.category.id')}</Label>
+				<Input bind:value={emptyNew.id} type="text" id="id" />
 			</div>
-			<div class="flex w-full flex-col gap-1.5">
-				<Label for="name">{$_('.category.name')}</Label>
-				<Input
-					bind:value={emptyNew.name}
-					type="text"
-					id="name"
-					placeholder={$_('.category.name')}
-				/>
+			<div>
+				<Label for="name" class="my-1.5 block">{$_('.category.name')}</Label>
+				<Input bind:value={emptyNew.name} type="text" id="name" />
 			</div>
-			<div class="flex w-full flex-col gap-1.5">
-				<Label for="section">{$_('.category.section')}</Label>
-				<Input
-					bind:value={emptyNew.section}
-					type="text"
-					id="section"
-					placeholder={$_('.category.section')}
-				/>
+			<div>
+				<Label for="section" class="my-1.5 block">{$_('.category.section')}</Label>
+				<Input bind:value={emptyNew.section} type="text" id="section" />
 			</div>
 			<Button
 				class="w-full"
@@ -108,8 +98,8 @@
 	</Tabs.Content>
 	<Tabs.Content value="edit">
 		<div class="space-y-2">
-			<div class="flex w-full flex-col gap-1.5">
-				<Label for="category-list">{$_('.category')}</Label>
+			<div>
+				<Label for="category-list" class="my-1.5 block">{$_('.category')}</Label>
 				<Select.Root
 					selected={{
 						value: selected.id,
@@ -122,34 +112,25 @@
 					<Select.Content>
 						<div class="max-h-72 overflow-y-scroll">
 							{#each $categories as category}
-								<Select.Item
-									on:click={() => {
-										selectCategory(category);
-									}}
-									value={category.id}
-									>{category.id} - {category.name} - {category.section}</Select.Item
-								>
+								<Select.Item on:click={() => selectCategory(category)} value={category.id}>
+									{category.id} - {category.name} - {category.section}
+								</Select.Item>
 							{/each}
 						</div>
 					</Select.Content>
 				</Select.Root>
 			</div>
-			<div class="flex w-full flex-col gap-1.5">
-				<Label for="id">{$_('.category.id')}</Label>
-				<Input bind:value={id} type="text" id="id" placeholder={$_('.category.id')} />
+			<div>
+				<Label for="id" class="my-1.5 block">{$_('.category.id')}</Label>
+				<Input bind:value={id} type="text" id="id" />
 			</div>
-			<div class="flex w-full flex-col gap-1.5">
-				<Label for="name">{$_('.category.name')}</Label>
-				<Input bind:value={name} type="text" id="name" placeholder={$_('.category.name')} />
+			<div>
+				<Label for="name" class="my-1.5 block">{$_('.category.name')}</Label>
+				<Input bind:value={name} type="text" id="name" />
 			</div>
-			<div class="flex w-full flex-col gap-1.5">
-				<Label for="section">{$_('.category.section')}</Label>
-				<Input
-					bind:value={section}
-					type="text"
-					id="section"
-					placeholder={$_('.category.section')}
-				/>
+			<div>
+				<Label for="section" class="my-1.5 block">{$_('.category.section')}</Label>
+				<Input bind:value={section} type="text" id="section" />
 			</div>
 			<div class="grid grid-cols-2 gap-2">
 				<Button

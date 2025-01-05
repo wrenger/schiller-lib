@@ -27,7 +27,7 @@ pub async fn send(
 
     if cfg!(debug_assertions) {
         error!("Mail sending is disabled for debug builds");
-        return Err(Error::Network);
+        return Ok(());
     }
 
     // Change encoding of äöü to ascii
