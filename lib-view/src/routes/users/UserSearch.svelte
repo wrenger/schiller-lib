@@ -6,28 +6,28 @@
 	import { Search } from 'lucide-svelte';
 	import { Input } from '$lib/components/ui/input';
 
-	export let params: api.UserSearch;
+	export let params: Omit<api.UserSearch, 'limit' | 'offset'>;
 	let input: string = '';
 
 	onMount(() => {
 		let query = $page.url.searchParams.get('search');
-		if (query) {
-			input = query;
-			params.query = input;
-		}
+		if (query) params.query = query;
+		input = params.query;
 	});
 
 	let timer: any | undefined = undefined;
 
 	function handleInputDelayed() {
 		clearTimeout(timer);
-		timer = setTimeout(() => (params.query = input), 500);
+		timer = setTimeout(() => {
+			params.query = input;
+		}, 500);
 	}
 </script>
 
 <div class="p-4">
 	<div class="relative">
-		<Search class="absolute left-2 top-3 h-4 w-4 text-muted-foreground" />
+		<Search class="text-muted-foreground absolute left-2 top-3 h-4 w-4" />
 		<Input
 			class="pl-8"
 			type="search"

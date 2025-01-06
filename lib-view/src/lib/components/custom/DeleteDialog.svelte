@@ -1,42 +1,34 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { handle_result, onOutsideClick } from '$lib';
+	import { onOutsideClick } from '$lib';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import api from '$lib/api';
 	import Spinner from '$lib/components/ui/spinner/Spinner.svelte';
 
-	export let book: api.Book | null;
-	export var onChange: (b: api.Book | null) => void;
-
+	export let identifier: string;
+	export let onDelete: () => Promise<void>;
+	let response: Promise<any>;
 	let open = false;
 
-	let response: Promise<any>;
-	async function del() {
-		if (book) {
-			handle_result(await api.book_delete(book.id));
-			book = null;
-			open = false;
-			onChange(book);
-		}
+	function del() {
+		response = onDelete();
+		open = false;
 	}
 </script>
 
-<Dialog.Root bind:open onOpenChange={(value) => (open = value)} {onOutsideClick}>
+<Dialog.Root bind:open {onOutsideClick}>
 	<Dialog.Trigger asChild let:builder={dialog}>
 		<slot {dialog} />
 	</Dialog.Trigger>
 	<Dialog.Content>
 		<Dialog.Header>
-			<Dialog.Title>
-				{$_('.action.delete')}
-			</Dialog.Title>
+			<Dialog.Title>{$_('.action.delete')}</Dialog.Title>
 			<Dialog.Description>
-				{$_('.book.delete')}
+				{$_('.user.delete', { values: { '0': identifier } })}
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>
-			<Button on:click={() => (response = del())} variant="destructive">
+			<Button variant="destructive" on:click={del}>
 				<Spinner {response} />
 				{$_('.action.delete')}
 			</Button>

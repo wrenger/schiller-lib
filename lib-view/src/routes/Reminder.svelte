@@ -13,6 +13,10 @@
 	let opened = false;
 	let overdues: api.Overdue[] = [];
 
+	export function openDialog() {
+		open = true;
+	}
+
 	settingsGlobal.subscribe(async (settings) => {
 		if (
 			!opened &&

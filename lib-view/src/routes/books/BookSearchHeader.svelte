@@ -1,15 +1,14 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import api from '$lib/api';
-	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import * as Tooltip from '$lib/components/ui/tooltip';
 	import { categories } from '$lib/store';
 	import { BookDashed, Plus, Tags } from 'lucide-svelte';
 	import { Separator } from '$lib/components/ui/separator';
 	import BookDialog from './BookDialog.svelte';
+	import IconButton from "$lib/components/custom/IconButton.svelte";
 
-	export let params: api.BookSearch;
+	export let params: Omit<api.BookSearch, 'offset' | 'limit'>;
 	export var onChange: (b: api.Book | null) => void;
 
 	let category: string = params?.category == null ? 'None' : params.category;
@@ -19,20 +18,13 @@
 <div class="flex gap-1">
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger asChild let:builder={dropdown}>
-			<Tooltip.Root openDelay={0}>
-				<Tooltip.Trigger asChild let:builder={tooltip}>
-					<Button
-						variant={params.state == 'None' ? 'ghost' : 'outline'}
-						size="icon"
-						class="rounded-lg"
-						aria-label={$_('.book.state')}
-						builders={[dropdown, tooltip]}
-					>
-						<BookDashed class="size-5" />
-					</Button>
-				</Tooltip.Trigger>
-				<Tooltip.Content side="bottom" sideOffset={5}>{$_('.book.state')}</Tooltip.Content>
-			</Tooltip.Root>
+			<IconButton
+				icon={BookDashed}
+				label={$_('.book.state')}
+				variant={params.state == 'None' ? 'ghost' : 'outline'}
+				builders={[dropdown]}
+				tooltip_side="bottom"
+			/>
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content class="w-56">
 			<DropdownMenu.Label>{$_('.book.state')}</DropdownMenu.Label>
@@ -50,20 +42,13 @@
 	</DropdownMenu.Root>
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger asChild let:builder={dropdown}>
-			<Tooltip.Root openDelay={0}>
-				<Tooltip.Trigger asChild let:builder={tooltip}>
-					<Button
-						variant={!params?.category ? 'ghost' : 'outline'}
-						size="icon"
-						class="rounded-lg"
-						aria-label={$_('.category')}
-						builders={[dropdown, tooltip]}
-					>
-						<Tags class="size-5" />
-					</Button>
-				</Tooltip.Trigger>
-				<Tooltip.Content side="bottom" sideOffset={5}>{$_('.category')}</Tooltip.Content>
-			</Tooltip.Root>
+			<IconButton
+				icon={Tags}
+				label={$_('.category')}
+				variant={!params?.category ? 'ghost' : 'outline'}
+				builders={[dropdown]}
+				tooltip_side="bottom"
+			/>
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content class="w-56">
 			<DropdownMenu.Label>{$_('.category')}</DropdownMenu.Label>
@@ -80,19 +65,11 @@
 	</DropdownMenu.Root>
 	<Separator orientation="vertical" class="mx-1 mt-2 h-6" />
 	<BookDialog book={null} {onChange} let:dialog>
-		<Tooltip.Root openDelay={0}>
-			<Tooltip.Trigger asChild let:builder={tooltip}>
-				<Button
-					variant="ghost"
-					size="icon"
-					class="rounded-lg"
-					aria-label={$_('.action.add')}
-					builders={[dialog, tooltip]}
-				>
-					<Plus class="size-5" />
-				</Button>
-			</Tooltip.Trigger>
-			<Tooltip.Content side="bottom" sideOffset={5}>{$_('.action.add')}</Tooltip.Content>
-		</Tooltip.Root>
+		<IconButton
+			icon={Plus}
+			label={$_('.action.add')}
+			builders={[dialog]}
+			tooltip_side="bottom"
+		/>
 	</BookDialog>
 </div>

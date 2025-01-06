@@ -4,19 +4,17 @@
 	import api from '$lib/api';
 	import VirtualList from '../../lib/components/ui/virtual-list/VirtualList.svelte';
 	import BookSearch from '../books/BookSearch.svelte';
-	import BookSelect from './BookSelect.svelte';
+	import BookSearchHeader from './BookSearchHeader.svelte';
 	import BookItem, { HEIGHT } from './BookItem.svelte';
 	import BookActions from './BookActions.svelte';
 	import BookDisplay from './BookDisplay.svelte';
+	import { bookState } from "$lib/store";
 
-	let active: api.Book | null;
-	let search: api.BookSearch = {
-		query: '',
-		state: api.BookState.None,
-		category: '',
-		offset: 0,
-		limit: 200
-	};
+	let active = $bookState.active;
+	let search = $bookState.search;
+	let scroll = $bookState.scroll;
+	$: bookState.set({ scroll, active, search });
+
 	let layout: Layout;
 	// layout mobile display, won't work without binding open
 	let open: boolean;
@@ -46,7 +44,7 @@
 	<svelte:fragment slot="list-nav">
 		<div class="flex h-full items-center justify-between px-4">
 			<h1 class="text-xl font-bold">{$_('.search.book')}</h1>
-			<BookSelect {onChange} bind:params={search} />
+			<BookSearchHeader {onChange} bind:params={search} />
 		</div>
 	</svelte:fragment>
 	<svelte:fragment slot="list">
@@ -55,6 +53,7 @@
 			<VirtualList
 				bind:this={list}
 				bind:active
+				bind:scroll
 				scrollClass="pb-2"
 				rowHeight={HEIGHT}
 				load={(offset, limit) => api.book_search({ ...search, offset, limit })}

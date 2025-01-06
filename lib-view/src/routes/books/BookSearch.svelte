@@ -6,7 +6,7 @@
 	import { Search } from 'lucide-svelte';
 	import { Input } from '$lib/components/ui/input';
 
-	export let params: api.BookSearch;
+	export let params: Omit<api.BookSearch, 'offset' | 'limit'>;
 	let input: string = '';
 
 	onMount(() => {

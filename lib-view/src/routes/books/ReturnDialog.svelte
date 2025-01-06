@@ -7,6 +7,7 @@
 	import Spinner from '$lib/components/ui/spinner/Spinner.svelte';
 	import { settingsGlobal } from '$lib/store';
 	import { DateTime } from 'luxon';
+	import { Mail } from 'lucide-svelte';
 
 	export let book: api.Book | null;
 	export var onChange: (b: api.Book | null) => void;
@@ -59,7 +60,7 @@
 		</Dialog.Header>
 		<hr />
 		<div>
-			<span class="text-sm text-muted-foreground">{$_('.book.note')}:</span>
+			<span class="text-muted-foreground text-sm">{$_('.book.note')}:</span>
 			<span class="text-md whitespace-pre-line font-medium"
 				>{book?.note || $_('.action.empty')}</span
 			>
@@ -79,6 +80,7 @@
 				<Button on:click={() => (response_mail = mail())}>
 					<Spinner response={response_mail} />
 					{$_('.action.yes')}
+					<Mail class="ml-2 h-4 w-4" />
 				</Button>
 			{:else}
 				<Button on:click={() => (response_back = return_back())}>

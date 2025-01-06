@@ -2,6 +2,7 @@
 	import { handle_result } from '$lib';
 
 	import { _ } from 'svelte-i18n';
+	import { tick } from 'svelte';
 	import type api from '$lib/api';
 
 	type T = $$Generic<{}>;
@@ -11,6 +12,8 @@
 	export let rowHeight: number;
 	export let scrollClass: string = '';
 	export let active: T | null;
+	export let scroll: number = 0;
+
 	export let load: (offset: number, limit: number) => Promise<api.Result<api.Limited<T>>>;
 	export let onLoad: (totalCount: number) => void = () => {};
 	export let key: (t: T) => string;
@@ -20,6 +23,7 @@
 	let firstChunk = -1;
 	let lastChunk = -1;
 	let totalCount: number = 0;
+	let firstLoad = true;
 
 	let scroller: HTMLDivElement | undefined;
 
@@ -54,10 +58,19 @@
 
 		// trigger update
 		chunks = chunks;
+
+		if (firstLoad) {
+			firstLoad = false;
+			tick().then(() => {
+				scroller?.scrollTo({ top: scroll });
+			});
+		}
 	}
 
 	async function updateChunks(needsReload = false) {
 		if (scroller == null) return;
+
+		if (!firstLoad) scroll = scroller.scrollTop;
 
 		// calculate viewport
 		const border = (rowHeight * CHUNK_SIZE) / 2;

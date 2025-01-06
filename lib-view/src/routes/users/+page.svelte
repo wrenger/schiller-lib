@@ -4,28 +4,27 @@
 	import api from '$lib/api';
 	import VirtualList from '../../lib/components/ui/virtual-list/VirtualList.svelte';
 	import UserSearch from './UserSearch.svelte';
-	import UserSelect from './UserSelect.svelte';
+	import UserSearchHeader from './UserSearchHeader.svelte';
 	import UserItem, { HEIGHT } from './UserItem.svelte';
 	import UserActions from './UserActions.svelte';
 	import UserDisplay from './UserDisplay.svelte';
+	import { userState } from '$lib/store';
 
-	let active: api.User | null;
-	let search: api.UserSearch = { query: '', may_borrow: null, offset: 0, limit: 200 };
+	let search = $userState.search;
+	let scroll = $userState.scroll;
+	let active = $userState.active;
+	$: userState.set({ scroll, active, search });
+
 	let layout: Layout;
 	// layout mobile display, won't work without binding open
 	let open: boolean;
 
 	let list: VirtualList<api.User> | null = null;
-
 	$: if (search) list?.reload();
 
 	function onChange(user: api.User | null) {
 		// layout mobile display selection/deselection
-		if (user == null) {
-			layout?.setOpen(false);
-		} else {
-			layout?.setOpen(true);
-		}
+		layout?.setOpen(user != null);
 		active = user;
 		list?.reload();
 	}
@@ -40,7 +39,7 @@
 	<svelte:fragment slot="list-nav">
 		<div class="flex h-full items-center justify-between px-4">
 			<h1 class="text-xl font-bold">{$_('.search.user')}</h1>
-			<UserSelect {onChange} bind:params={search} />
+			<UserSearchHeader {onChange} bind:params={search} />
 		</div>
 	</svelte:fragment>
 	<svelte:fragment slot="list">
@@ -49,6 +48,7 @@
 			<VirtualList
 				bind:this={list}
 				bind:active
+				bind:scroll
 				scrollClass="pb-2"
 				rowHeight={HEIGHT}
 				load={(offset, limit) => api.user_search({ ...search, offset, limit })}

@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import type api from './api';
+import api from './api';
 import { persisted } from 'svelte-persisted-store';
 import { writable } from "svelte/store";
 
@@ -15,7 +15,7 @@ export interface GlobalSettings {
 	mail_overdue2: api.MailTemplate;
 }
 
-export const settingsGlobal = persisted<GlobalSettings>('settings-global', {
+export const settingsGlobal = writable<GlobalSettings>({
 	borrowing_duration: 0,
 	overdue_warning_delay: 0,
 	mail_last_reminder: DateTime.now(),
@@ -36,13 +36,43 @@ export const settingsGlobal = persisted<GlobalSettings>('settings-global', {
 	}
 });
 
+/// UI state of the book tab
+export interface BookState {
+	search: Omit<api.BookSearch, "offset" | "limit">;
+	scroll: number;
+	active: api.Book | null;
+}
+export const bookState = writable<BookState>({
+	search: {
+		query: '',
+		category: '',
+		state: api.BookState.None
+	},
+	scroll: 0,
+	active: null,
+});
+
+/// UI state of the user tab
+export interface UserState {
+	search: Omit<api.UserSearch, "offset" | "limit">;
+	scroll: number;
+	active: api.User | null;
+}
+export const userState = writable<UserState>({
+	search: {
+		query: '',
+		may_borrow: null
+	},
+	scroll: 0,
+	active: null,
+});
+
 interface Category {
 	id: string;
 	name: string;
 	section: string;
 }
-
-export const categories = persisted<Category[]>('categories', []);
+export const categories = writable<Category[]>([]);
 
 export const stats = writable<api.Stats>({
 	books: 0,
@@ -52,3 +82,6 @@ export const stats = writable<api.Stats>({
 	reservations: 0,
 	overdues: 0
 });
+
+// TODO: Is there a better way to access this global dialog?
+export const reminderDialog = writable<{ openDialog: () => void } | null>(null);
