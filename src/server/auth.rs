@@ -15,10 +15,11 @@ use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
 use gluer::metadata;
 use hyper::{HeaderMap, StatusCode};
-use oauth2::basic::BasicClient;
+use oauth2::basic::{BasicClient, BasicErrorResponse, BasicTokenResponse};
 use oauth2::{
-    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, EndpointNotSet, EndpointSet,
-    RedirectUrl, RevocationUrl, Scope, TokenResponse, TokenUrl,
+    AuthUrl, AuthorizationCode, AuthorizationRequest, ClientId, ClientSecret, CodeTokenRequest,
+    CsrfToken, EndpointNotSet, EndpointSet, RedirectUrl, RevocationUrl, Scope, TokenResponse,
+    TokenUrl,
 };
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -45,7 +46,7 @@ pub struct AuthConfig {
     /// Endpoint for converting the login code to a token
     pub token_url: String,
     /// Endpoint for revoking an access token
-    pub revoke_url: String,
+    pub revoke_url: Option<String>,
 
     /// Endpoint for user data (requires a token)
     pub profile_url: String,
@@ -136,8 +137,15 @@ impl Auth {
                 .set_client_secret(ClientSecret::new(client_secret))
                 .set_auth_uri(AuthUrl::new(auth_url).unwrap())
                 .set_token_uri(TokenUrl::new(token_url).unwrap())
-                .set_revocation_url(RevocationUrl::new(revoke_url).unwrap())
                 .set_redirect_uri(RedirectUrl::new(redirect).unwrap());
+
+            let client = if let Some(revoke_url) = revoke_url {
+                Client::Revokable(
+                    client.set_revocation_url(RevocationUrl::new(revoke_url).unwrap()),
+                )
+            } else {
+                Client::NonRevokable(client)
+            };
 
             Self::OAuth(Arc::new(OAuthState {
                 client,
@@ -154,9 +162,34 @@ impl Auth {
     }
 }
 
+/// Client wrapper that can be revokable or not
+enum Client {
+    Revokable(BasicClient<EndpointSet, EndpointNotSet, EndpointNotSet, EndpointSet, EndpointSet>),
+    NonRevokable(
+        BasicClient<EndpointSet, EndpointNotSet, EndpointNotSet, EndpointNotSet, EndpointSet>,
+    ),
+}
+impl Client {
+    fn authorize_url(&self, csrf: impl FnOnce() -> CsrfToken) -> AuthorizationRequest {
+        match self {
+            Client::Revokable(client) => client.authorize_url(csrf),
+            Client::NonRevokable(client) => client.authorize_url(csrf),
+        }
+    }
+    fn exchange_code(
+        &self,
+        code: AuthorizationCode,
+    ) -> CodeTokenRequest<'_, BasicErrorResponse, BasicTokenResponse> {
+        match self {
+            Client::Revokable(client) => client.exchange_code(code),
+            Client::NonRevokable(client) => client.exchange_code(code),
+        }
+    }
+}
+
 /// The internal authentication state
 pub struct OAuthState {
-    client: BasicClient<EndpointSet, EndpointNotSet, EndpointNotSet, EndpointSet, EndpointSet>,
+    client: Client,
     sessions: RwLock<HashMap<Session, Login>>,
     /// Tokens for CSRF protection
     logins: Mutex<VecDeque<(CsrfToken, u64)>>,
@@ -240,6 +273,7 @@ struct AuthRequest {
     state: String,
 }
 
+#[tracing::instrument]
 async fn login_authorized(
     Query(query): Query<AuthRequest>,
     State(auth): State<Arc<OAuthState>>,
@@ -250,6 +284,7 @@ async fn login_authorized(
         let len = logins.len();
         logins.retain(|t| t.0.secret() != &query.state);
         if len == logins.len() {
+            error!("CSRF token not found!");
             return Err(Error::Network); // CSRF token not found
         }
     }
@@ -266,7 +301,9 @@ async fn login_authorized(
         .request_async(&http_client)
         .await?;
 
-    // Fetch user data from discord
+    info!("Token received");
+
+    // Fetch user data
     let client = reqwest::Client::new();
     let data: serde_json::Value = client
         .get(&*auth.profile_url)
@@ -296,14 +333,14 @@ async fn login_authorized(
 
     warn!("Login: {id:?}");
 
-    // Directly revoke token, not needed anymore
-    info!("Revoke access");
-    auth.client
-        .revoke_token(token.access_token().into())
-        .map_err(|e| {
-            error!("Revocation failed! {e:?}");
-            Error::Network
-        })?;
+    if let Client::Revokable(auth) = &auth.client {
+        // Directly revoke token, not needed anymore
+        info!("Revoke access");
+        auth.revoke_token(token.access_token().into())
+            .map_err(|_| Error::Network)?
+            .request_async(&http_client)
+            .await?;
+    }
 
     // Create a new session filled with user data
     let session = Session::new();

@@ -69,14 +69,7 @@ pub async fn start(
         .layer(
             ServiceBuilder::new()
                 .layer(CompressionLayer::new())
-                .layer(HandleErrorLayer::new(|error: BoxError| async move {
-                    if error.is::<tower::timeout::error::Elapsed>() {
-                        Ok(StatusCode::REQUEST_TIMEOUT)
-                    } else {
-                        error!("Internal server error: {error}");
-                        Err(StatusCode::INTERNAL_SERVER_ERROR)
-                    }
-                }))
+                .layer(HandleErrorLayer::new(handle_error))
                 .timeout(Duration::from_secs(10))
                 .layer(TraceLayer::new_for_http())
                 .into_inner(),
@@ -86,6 +79,15 @@ pub async fn start(
 
     let (_, r) = tokio::join!(auth::background(auth), serve(host, tls, app));
     r.unwrap();
+}
+
+async fn handle_error(error: BoxError) -> StatusCode {
+    if error.is::<tower::timeout::error::Elapsed>() {
+        StatusCode::REQUEST_TIMEOUT
+    } else {
+        error!("Internal server error: {error}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    }
 }
 
 async fn serve(host: SocketAddr, tls: ServerConfig, app: Router) -> io::Result<()> {
