@@ -57,7 +57,7 @@ pub struct AuthConfig {
     /// Key in the json dictionary returned by the identity route.
     /// This can also be a dot separated list of keys into nested dictionaries.
     /// - Discord: "id"
-    /// - Iserv: "profile.preferred_username"
+    /// - Iserv: "preferred_username"
     pub profile_key: String,
 }
 
