@@ -60,7 +60,7 @@
 		</Dialog.Header>
 		<hr />
 		<div>
-			<span class="text-muted-foreground text-sm">{$_('.book.note')}:</span>
+			<span class="text-sm text-muted-foreground">{$_('.book.note')}:</span>
 			<span class="text-md whitespace-pre-line font-medium"
 				>{book?.note || $_('.action.empty')}</span
 			>

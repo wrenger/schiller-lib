@@ -76,7 +76,12 @@
 			/>
 		</BookDialog>
 		<Separator orientation="vertical" class="mx-1 mt-2 h-6" />
-		<DeleteDialog identifier={book?.title || ''} {onDelete} let:dialog>
+
+		<DeleteDialog
+			description={$_('.book.delete', { values: { '0': book?.title || '' } })}
+			{onDelete}
+			let:dialog
+		>
 			<IconButton
 				icon={Trash2}
 				label={$_('.action.delete')}

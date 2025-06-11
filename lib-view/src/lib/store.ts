@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import api from './api';
 import { persisted } from 'svelte-persisted-store';
-import { writable } from "svelte/store";
+import { writable } from 'svelte/store';
 
 export interface GlobalSettings {
 	borrowing_duration: number;
@@ -38,7 +38,7 @@ export const settingsGlobal = writable<GlobalSettings>({
 
 /// UI state of the book tab
 export interface BookState {
-	search: Omit<api.BookSearch, "offset" | "limit">;
+	search: Omit<api.BookSearch, 'offset' | 'limit'>;
 	scroll: number;
 	active: api.Book | null;
 }
@@ -49,12 +49,12 @@ export const bookState = writable<BookState>({
 		state: api.BookState.None
 	},
 	scroll: 0,
-	active: null,
+	active: null
 });
 
 /// UI state of the user tab
 export interface UserState {
-	search: Omit<api.UserSearch, "offset" | "limit">;
+	search: Omit<api.UserSearch, 'offset' | 'limit'>;
 	scroll: number;
 	active: api.User | null;
 }
@@ -64,7 +64,7 @@ export const userState = writable<UserState>({
 		may_borrow: null
 	},
 	scroll: 0,
-	active: null,
+	active: null
 });
 
 interface Category {

@@ -33,7 +33,11 @@
 			<IconButton icon={Pencil} label={$_('.action.edit')} builders={[dialog]} disabled={!user} />
 		</UserDialog>
 		<Separator orientation="vertical" class="mx-1 mt-2 h-6" />
-		<DeleteDialog identifier={user?.account || ''} {onDelete} let:dialog>
+		<DeleteDialog
+			description={$_('.user.delete', { values: { '0': user?.account || '' } })}
+			{onDelete}
+			let:dialog
+		>
 			<IconButton
 				icon={Trash2}
 				label={$_('.action.delete')}

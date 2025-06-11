@@ -27,7 +27,7 @@
 
 <div class="p-4">
 	<div class="relative">
-		<Search class="text-muted-foreground absolute left-2 top-3 h-4 w-4" />
+		<Search class="absolute left-2 top-3 h-4 w-4 text-muted-foreground" />
 		<Input
 			class="pl-8"
 			type="search"

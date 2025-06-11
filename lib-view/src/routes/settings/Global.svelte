@@ -145,7 +145,7 @@
 			</Tabs.Root>
 		</div>
 	</div>
-	<div class="bg-background sticky bottom-0 z-20 space-y-4 pb-4">
+	<div class="sticky bottom-0 z-20 space-y-4 bg-background pb-4">
 		<Separator />
 		<div class="px-4">
 			<Button

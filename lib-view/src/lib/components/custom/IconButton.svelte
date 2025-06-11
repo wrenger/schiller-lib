@@ -12,8 +12,8 @@
 	export let extra: string = '';
 
 	export let onClick: (() => void) | undefined = undefined;
-    export let builders: Builder[] = [];
-    export let href: string | undefined = undefined;
+	export let builders: Builder[] = [];
+	export let href: string | undefined = undefined;
 
 	export let variant: VariantProps<typeof buttonVariants>['variant'] = 'ghost';
 	let className: string = '';
@@ -27,7 +27,7 @@
 	<Tooltip.Trigger asChild let:builder={tooltip}>
 		<Button
 			on:click={onClick}
-            {href}
+			{href}
 			{variant}
 			size="icon"
 			class={cn('rounded-lg', className)}

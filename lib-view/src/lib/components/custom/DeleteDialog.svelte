@@ -5,7 +5,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import Spinner from '$lib/components/ui/spinner/Spinner.svelte';
 
-	export let identifier: string;
+	export let description: string;
 	export let onDelete: () => Promise<void>;
 	let response: Promise<any>;
 	let open = false;
@@ -24,7 +24,7 @@
 		<Dialog.Header>
 			<Dialog.Title>{$_('.action.delete')}</Dialog.Title>
 			<Dialog.Description>
-				{$_('.user.delete', { values: { '0': identifier } })}
+				{description}
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>

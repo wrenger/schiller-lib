@@ -6,7 +6,7 @@
 	import { BookDashed, Plus, Tags } from 'lucide-svelte';
 	import { Separator } from '$lib/components/ui/separator';
 	import BookDialog from './BookDialog.svelte';
-	import IconButton from "$lib/components/custom/IconButton.svelte";
+	import IconButton from '$lib/components/custom/IconButton.svelte';
 
 	export let params: Omit<api.BookSearch, 'offset' | 'limit'>;
 	export var onChange: (b: api.Book | null) => void;
@@ -65,11 +65,6 @@
 	</DropdownMenu.Root>
 	<Separator orientation="vertical" class="mx-1 mt-2 h-6" />
 	<BookDialog book={null} {onChange} let:dialog>
-		<IconButton
-			icon={Plus}
-			label={$_('.action.add')}
-			builders={[dialog]}
-			tooltip_side="bottom"
-		/>
+		<IconButton icon={Plus} label={$_('.action.add')} builders={[dialog]} tooltip_side="bottom" />
 	</BookDialog>
 </div>

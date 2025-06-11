@@ -8,7 +8,7 @@
 	import BookItem, { HEIGHT } from './BookItem.svelte';
 	import BookActions from './BookActions.svelte';
 	import BookDisplay from './BookDisplay.svelte';
-	import { bookState } from "$lib/store";
+	import { bookState } from '$lib/store';
 
 	let active = $bookState.active;
 	let search = $bookState.search;

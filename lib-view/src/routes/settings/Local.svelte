@@ -12,9 +12,7 @@
 <div class="space-y-10 p-4">
 	<div>
 		<Label class="text-md my-1.5 block" for="theme">{$_('.pref.appearance.title')}</Label>
-		<Select.Root
-			selected={{ value: $mode, label: $_(`.pref.appearance.${$mode ?? 'dark'}`) }}
-		>
+		<Select.Root selected={{ value: $mode, label: $_(`.pref.appearance.${$mode ?? 'dark'}`) }}>
 			<Select.Trigger class="w-full" id="theme">
 				<Select.Value placeholder={$_('.pref.appearance.title')} />
 			</Select.Trigger>
@@ -29,9 +27,7 @@
 	</div>
 	<div>
 		<Label class="text-md my-1.5 block" for="lang">{$_('.lang.title')}</Label>
-		<Select.Root
-			selected={{ value: getLang(), label: $_(`.lang.${getLang() ?? 'en'}`) }}
-		>
+		<Select.Root selected={{ value: getLang(), label: $_(`.lang.${getLang() ?? 'en'}`) }}>
 			<Select.Trigger class="w-full" id="lang">
 				<Select.Value placeholder={$_('.lang.title')} />
 			</Select.Trigger>
