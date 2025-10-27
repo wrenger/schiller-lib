@@ -1,6 +1,7 @@
+use std::hint::black_box;
 use std::path::Path;
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use schiller_lib::db::{AtomicDatabase, BookSearch};
 use schiller_lib::util;
 

@@ -161,24 +161,6 @@ async fn book_fetch(State(project): State<Project>, Path(id): Path<String>) -> R
     Ok(Json(project.db.read().books.fetch(&id)?))
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(default)]
-struct Search {
-    query: String,
-    offset: usize,
-    limit: usize,
-}
-
-impl Default for Search {
-    fn default() -> Self {
-        Self {
-            query: Default::default(),
-            offset: 0,
-            limit: 100,
-        }
-    }
-}
-
 /// Search result containing the total number of found records.
 #[metadata]
 #[derive(Serialize)]

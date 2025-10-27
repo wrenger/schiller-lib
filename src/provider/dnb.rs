@@ -149,13 +149,12 @@ impl Record {
                         data.title = t;
                     }
                     // Add subtitle if the title is to short
-                    if data.title.len() < SHORT_TITLE_LEN {
-                        if let Some(t) = subfield(df, SUBTITLE_CODE) {
-                            if !t.is_empty() {
-                                data.title.push_str(" - ");
-                                data.title.push_str(&t);
-                            }
-                        }
+                    if data.title.len() < SHORT_TITLE_LEN
+                        && let Some(t) = subfield(df, SUBTITLE_CODE)
+                        && !t.is_empty()
+                    {
+                        data.title.push_str(" - ");
+                        data.title.push_str(&t);
                     }
                 }
                 AUTHOR_TAG => {

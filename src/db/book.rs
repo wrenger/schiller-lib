@@ -1,5 +1,5 @@
-use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
+use std::collections::btree_map::Entry;
 
 use chrono::NaiveDate;
 use gluer::metadata;
@@ -281,10 +281,10 @@ impl Books {
         // query smallest unused id
         let mut max_id = 0usize;
         for key in self.data.keys() {
-            if let Some(suffix) = key.strip_prefix(&prefix) {
-                if let Ok(id) = suffix.trim().parse() {
-                    max_id = max_id.max(id);
-                }
+            if let Some(suffix) = key.strip_prefix(&prefix)
+                && let Ok(id) = suffix.trim().parse()
+            {
+                max_id = max_id.max(id);
             }
         }
         max_id += 1;
@@ -312,15 +312,15 @@ impl Books {
         }
 
         for book in self.data.values_mut() {
-            if let Some(borrower) = &mut book.borrower {
-                if borrower.user == from {
-                    borrower.user = to.to_string();
-                }
+            if let Some(borrower) = &mut book.borrower
+                && borrower.user == from
+            {
+                borrower.user = to.to_string();
             }
-            if let Some(reservation) = &mut book.reservation {
-                if reservation == from {
-                    *reservation = to.to_string();
-                }
+            if let Some(reservation) = &mut book.reservation
+                && reservation == from
+            {
+                *reservation = to.to_string();
             }
         }
         Ok(())

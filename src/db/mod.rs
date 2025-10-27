@@ -204,10 +204,10 @@ impl Database {
                 reservations += 1;
             }
 
-            if let Some(borrower) = &book.borrower {
-                if now > borrower.deadline {
-                    overdues += 1;
-                }
+            if let Some(borrower) = &book.borrower
+                && now > borrower.deadline
+            {
+                overdues += 1;
             }
         }
 
@@ -307,13 +307,13 @@ impl Database {
 
         let now = Local::now().naive_local().date();
         for book in self.books.data.values() {
-            if let Some(borrower) = &book.borrower {
-                if now > borrower.deadline {
-                    results.push(Overdue {
-                        book: book.clone(),
-                        user: self.users.fetch(&borrower.user)?,
-                    });
-                }
+            if let Some(borrower) = &book.borrower
+                && now > borrower.deadline
+            {
+                results.push(Overdue {
+                    book: book.clone(),
+                    user: self.users.fetch(&borrower.user)?,
+                });
             }
         }
         Ok(results.into_iter().collect())

@@ -7,9 +7,9 @@ pub const PKG_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
 /// initialize tracing
 pub fn logging() {
+    use tracing_subscriber::EnvFilter;
     use tracing_subscriber::layer::SubscriberExt;
     use tracing_subscriber::util::SubscriberInitExt;
-    use tracing_subscriber::EnvFilter;
     tracing_subscriber::registry()
         .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()))
         .with(tracing_subscriber::fmt::layer())

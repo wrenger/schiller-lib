@@ -1,5 +1,5 @@
-use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
+use std::collections::btree_map::Entry;
 
 use gluer::metadata;
 use serde::{Deserialize, Serialize};
@@ -209,10 +209,10 @@ impl Users {
 
         for (account, role) in users {
             let account = account.trim();
-            if !account.is_empty() {
-                if let Some(entry) = self.data.get_mut(account) {
-                    entry.role = role.clone();
-                }
+            if !account.is_empty()
+                && let Some(entry) = self.data.get_mut(account)
+            {
+                entry.role = role.clone();
             }
         }
         Ok(())

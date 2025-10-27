@@ -9,10 +9,10 @@ use axum::http::request::Parts;
 use axum::response::{IntoResponse, Redirect, Response};
 use axum::routing::get;
 use axum::{Json, RequestPartsExt, Router};
-use axum_extra::headers::Cookie;
 use axum_extra::TypedHeader;
-use base64::engine::general_purpose::STANDARD as BASE64;
+use axum_extra::headers::Cookie;
 use base64::Engine;
+use base64::engine::general_purpose::STANDARD as BASE64;
 use gluer::metadata;
 use hyper::{HeaderMap, StatusCode};
 use oauth2::basic::{BasicClient, BasicErrorResponse, BasicTokenResponse};
@@ -170,7 +170,7 @@ enum Client {
     ),
 }
 impl Client {
-    fn authorize_url(&self, csrf: impl FnOnce() -> CsrfToken) -> AuthorizationRequest {
+    fn authorize_url(&self, csrf: impl FnOnce() -> CsrfToken) -> AuthorizationRequest<'_> {
         match self {
             Client::Revokable(client) => client.authorize_url(csrf),
             Client::NonRevokable(client) => client.authorize_url(csrf),
@@ -215,7 +215,7 @@ struct Session([u8; Self::N]);
 impl Session {
     const N: usize = 32;
     fn new() -> Self {
-        Self(rand::thread_rng().gen())
+        Self(rand::rng().random())
     }
     fn from_cookie(cookie: &str) -> Result<Self> {
         let mut data = [0; Self::N + 8]; // has to be larger due to wrong estimates!

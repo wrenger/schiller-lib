@@ -1,7 +1,7 @@
 use std::fmt;
 
-use axum::response::IntoResponse;
 use axum::Json;
+use axum::response::IntoResponse;
 use gluer::metadata;
 use hyper::StatusCode;
 use serde::Serialize;
