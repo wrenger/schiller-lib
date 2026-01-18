@@ -17564,6 +17564,7 @@
   },
   "settings": {
     "borrowing_duration": 28,
+    "overdue_warning_delay": 14,
     "mail_last_reminder": "2025-01-01",
     "mail_from": "",
     "mail_host": "",
