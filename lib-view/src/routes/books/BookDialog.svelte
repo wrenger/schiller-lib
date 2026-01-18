@@ -22,8 +22,8 @@
 	let title = '';
 	let publisher = '';
 	let authors = '';
-	let costs = 0;
-	let year = DateTime.now().year;
+	let costs = '0';
+	let year = DateTime.now().year.toString();
 	let category: api.Category | null = null;
 	let note = '';
 	let borrowable = true;
@@ -37,8 +37,8 @@
 			title = book.title;
 			publisher = book.publisher;
 			authors = book.authors;
-			costs = book.costs;
-			year = book.year;
+			costs = book.costs.toString();
+			year = book.year.toString();
 			category = $categories?.find((c) => c.id == book.category) ?? null;
 			note = book.note ?? '';
 			borrowable = book.borrowable;
@@ -50,8 +50,8 @@
 			title = '';
 			publisher = '';
 			authors = '';
-			costs = 0;
-			year = DateTime.now().year;
+			costs = '0';
+			year = DateTime.now().year.toString();
 			category = null;
 			note = '';
 			borrowable = true;
@@ -67,8 +67,8 @@
 			title,
 			publisher,
 			authors,
-			costs,
-			year,
+			costs: parseFloat(costs),
+			year: parseInt(year),
 			category: category?.id ?? '',
 			note: note ?? undefined,
 			borrowable,
@@ -156,7 +156,7 @@
 								authors = Array.isArray(data.authors)
 									? data.authors.join(', ')
 									: (data.authors ?? '');
-								costs = data.costs ?? 0;
+								costs = data.costs.toString() ?? '0';
 							}}
 						>
 							<Spinner response={isbnResponse} spinnerClass="size-5 !mr-0">
