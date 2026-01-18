@@ -11,17 +11,17 @@
 
 	onMount(() => {
 		let query = $page.url.searchParams.get('search');
-		if (query) {
-			input = query;
-			params.query = input;
-		}
+		if (query) params.query = query;
+		input = params.query;
 	});
 
 	let timer: any | undefined = undefined;
 
 	function handleInputDelayed() {
 		clearTimeout(timer);
-		timer = setTimeout(() => (params.query = input), 500);
+		timer = setTimeout(() => {
+			params.query = input;
+		}, 500);
 	}
 </script>
 

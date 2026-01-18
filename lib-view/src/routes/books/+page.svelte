@@ -10,9 +10,9 @@
 	import BookDisplay from './BookDisplay.svelte';
 	import { bookState } from '$lib/store';
 
-	let active = $bookState.active;
 	let search = $bookState.search;
 	let scroll = $bookState.scroll;
+	let active = $bookState.active;
 	$: bookState.set({ scroll, active, search });
 
 	let layout: Layout;
