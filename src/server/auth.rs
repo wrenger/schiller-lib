@@ -170,7 +170,7 @@ enum Client {
     ),
 }
 impl Client {
-    fn authorize_url(&self, csrf: impl FnOnce() -> CsrfToken) -> AuthorizationRequest<'_> {
+    fn authorize_url(&'_ self, csrf: impl FnOnce() -> CsrfToken) -> AuthorizationRequest<'_> {
         match self {
             Client::Revokable(client) => client.authorize_url(csrf),
             Client::NonRevokable(client) => client.authorize_url(csrf),
@@ -305,6 +305,19 @@ async fn login_authorized(
 
     // Fetch user data
     let client = reqwest::Client::new();
+
+    // For debugging fetched data
+    // info!(
+    //     "Received Data: {}",
+    //     client
+    //         .get(&*auth.profile_url)
+    //         .bearer_auth(token.access_token().secret())
+    //         .send()
+    //         .await?
+    //         .text()
+    //         .await?
+    // );
+
     let data: serde_json::Value = client
         .get(&*auth.profile_url)
         .bearer_auth(token.access_token().secret())
