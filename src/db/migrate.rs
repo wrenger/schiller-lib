@@ -8,6 +8,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use super::Database;
 use crate::error::{Error, Result};
+use crate::server::UserConfig;
 use crate::util::PKG_VERSION;
 
 /// Version metadata, used for database migrations
@@ -18,11 +19,11 @@ struct DatabaseVersion {
 
 const MIN_VERSION: Version = Version(0, 9, 0);
 
-pub fn import(path: &Path) -> Result<Database> {
+pub fn import(path: &Path, #[allow(unused)] user: Option<&UserConfig>) -> Result<Database> {
     #[cfg(feature = "sqlite")]
     if path.extension() == Some(std::ffi::OsStr::new("db")) {
         tracing::warn!("Try importing old database");
-        return from_db(path);
+        return from_db(path, user);
     }
 
     let mut file = File::open(path)?;
@@ -40,8 +41,13 @@ pub fn import(path: &Path) -> Result<Database> {
 
 #[cfg(feature = "sqlite")]
 #[allow(deprecated)]
-fn from_db(file: &Path) -> Result<Database> {
-    use tracing::{info, warn};
+fn from_db(file: &Path, user_config: Option<&UserConfig>) -> Result<Database> {
+    use std::collections::HashMap;
+
+    use tracing::{error, info, warn};
+
+    use crate::db::Category;
+    use crate::provider;
 
     let mut data = Database::default();
 
@@ -50,26 +56,114 @@ fn from_db(file: &Path) -> Result<Database> {
     data.settings = super::Settings::from(db.settings()?);
 
     info!("Transferring categories");
+    data.categories.add(Category {
+        id: "none".into(),
+        name: "None".into(),
+        section: "None".into(),
+    })?;
+
     for category in db.categories()? {
         let id = category.id.clone();
         if let Err(e) = data.categories.add(category.into()) {
-            warn!("{e:?}: Failed adding category {id}");
+            warn!("Category {id}: Failure {e:?}");
         }
+    }
+
+    let mut changed_accounts = HashMap::new();
+
+    fn find_in_userfile(config: &Option<&UserConfig>, user: &super::User) -> Option<String> {
+        if let Some(UserConfig { file, delimiter }) = config {
+            match provider::user::load_all(file, *delimiter) {
+                Ok(provided) => {
+                    for found in provided {
+                        if found.forename.to_lowercase() == user.forename.trim().to_lowercase()
+                            && found.surname.to_lowercase() == user.surname.trim().to_lowercase()
+                        {
+                            return Some(found.account.clone());
+                        }
+                    }
+                }
+                Err(e) => error!("Error loading userfile: {e:?}"),
+            }
+        }
+        None
     }
 
     info!("Transferring users");
     for user in db.users()? {
+        let mut user = super::User::from(user);
         let account = user.account.clone();
+
+        let mut changed = None;
+        if !crate::mail::account_is_valid(&user.account) {
+            warn!("User {account}: Invalid account");
+
+            // Try to find in user file...
+            if let Some(new_account) = find_in_userfile(&user_config, &user) {
+                warn!("User {account}: Updated to {new_account} from userfile");
+                changed = Some(new_account.clone());
+                user.account = new_account;
+            } else {
+                // Or strip invalid characters
+                let new = crate::util::convert_ascii_lower(&user.account, false);
+                warn!("User {account}: Updated to {new} by normalization");
+                changed = Some(new.clone());
+                user.account = new;
+            }
+        } else if let Some(UserConfig { file, delimiter }) = &user_config
+            && provider::user::get(file, *delimiter, &account).is_err()
+        {
+            warn!("User {account}: Not found in userfile");
+
+            // Try to find in user file...
+            if let Some(new_account) = find_in_userfile(&user_config, &user) {
+                changed = Some(new_account.clone());
+                warn!("User {account}: Updated to {new_account} from userfile");
+                user.account = new_account;
+            }
+        }
+
         if let Err(e) = data.users.add(user.into()) {
-            warn!("{e:?}: Failed adding user {account}");
+            warn!("User {account}: Failure {e:?}");
+            changed_accounts.insert(account, String::new());
+        } else if let Some(changed) = changed {
+            changed_accounts.insert(account, changed);
         }
     }
 
     info!("Transferring books");
     for book in db.books()? {
         let id = book.id.clone();
-        if let Err(e) = data.books.add(book.into(), &data.categories) {
-            warn!("{e:?}: Failed adding book {id}");
+        let mut book = super::Book::from(book);
+        if book.category.is_empty() || !data.categories.data.contains_key(&book.category) {
+            warn!("Book {id}: Invalid category -> setting to 'none'");
+            book.category = "none".into();
+        }
+        if let Some(borrower) = &mut book.borrower {
+            if let Some(new_account) = changed_accounts.get(&borrower.user) {
+                if new_account.is_empty() {
+                    info!("Book {id}: Removing missing borrower {}", borrower.user);
+                    book.borrower = None;
+                } else {
+                    info!("Book {id}: Updating borrower to {new_account}");
+                    borrower.user = new_account.clone();
+                }
+            }
+        }
+        if let Some(reservation) = &mut book.reservation {
+            if let Some(new_account) = changed_accounts.get(reservation) {
+                if new_account.is_empty() {
+                    info!("Book {id}: Removing missing reservation {reservation}");
+                    book.reservation = None;
+                } else {
+                    info!("Book {id}: Updating reservation to {new_account}");
+                    *reservation = new_account.clone();
+                }
+            }
+        }
+
+        if let Err(e) = data.books.add(book, &data.categories, &data.users) {
+            warn!("Book {id}: Failure {e:?}");
         }
     }
 

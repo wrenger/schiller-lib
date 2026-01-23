@@ -1,63 +1,96 @@
+use std::collections::HashMap;
 use std::path::Path;
 
 use crate::db::User;
+use crate::db::sorted::Sorted;
 use crate::error::{Error, Result};
+use crate::fuzzy;
 
 const ACCOUNT: usize = 0;
 const FORENAME: usize = 1;
 const SURNAME: usize = 2;
 const ROLE: usize = 3;
 
+trait StringRecordExt {
+    fn get_i(&self, index: usize) -> Result<&str>;
+}
+impl StringRecordExt for csv::StringRecord {
+    fn get_i(&self, index: usize) -> Result<&str> {
+        self.get(index)
+            .map(|s| s.trim())
+            .ok_or(Error::InvalidFormat)
+    }
+}
+
 /// Load all users and roles from the userfile.
-pub fn load_roles(file: &Path, delimiter: u8) -> Result<Vec<(String, String)>> {
+pub fn load_roles(file: &Path, delimiter: u8) -> Result<HashMap<String, String>> {
     let mut reader = reader(file, delimiter)?;
 
-    let mut pairs = Vec::new();
+    let mut pairs = HashMap::new();
     for result in reader.records() {
         let record = result?;
-        pairs.push((
-            record.get(ACCOUNT).ok_or(Error::InvalidFormat)?.into(),
-            record.get(ROLE).ok_or(Error::InvalidFormat)?.into(),
-        ))
+        let account = record.get_i(ACCOUNT)?;
+        let role = record.get_i(ROLE)?;
+        pairs
+            .entry(account.to_string())
+            .or_insert_with(|| role.to_string());
     }
     Ok(pairs)
+}
+
+fn parse_record(record: &csv::StringRecord) -> Result<User> {
+    Ok(User {
+        account: record.get_i(ACCOUNT)?.to_string(),
+        forename: record.get_i(FORENAME)?.to_string(),
+        surname: record.get_i(SURNAME)?.to_string(),
+        role: record.get_i(ROLE)?.to_string(),
+        may_borrow: true,
+    })
 }
 
 #[allow(unused)]
 pub fn load_all(file: &Path, delimiter: u8) -> Result<Vec<User>> {
     let mut reader = reader(file, delimiter)?;
-
     let mut users = Vec::new();
     for result in reader.records() {
-        let record = result?;
-        users.push(User {
-            account: record.get(ACCOUNT).ok_or(Error::InvalidFormat)?.into(),
-            forename: record.get(FORENAME).ok_or(Error::InvalidFormat)?.into(),
-            surname: record.get(SURNAME).ok_or(Error::InvalidFormat)?.into(),
-            role: record.get(ROLE).ok_or(Error::InvalidFormat)?.into(),
-            may_borrow: true,
-        });
+        users.push(parse_record(&result?)?);
     }
     Ok(users)
 }
 
 /// Search for a specific user
-pub fn search(file: &Path, delimiter: u8, account: &str) -> Result<User> {
+pub fn get(file: &Path, delimiter: u8, account: &str) -> Result<User> {
     let mut reader = reader(file, delimiter)?;
-
     for record in reader.records() {
         let record = record?;
         if record.get(ACCOUNT) == Some(account) {
-            return Ok(User {
-                account: account.into(),
-                forename: record.get(FORENAME).ok_or(Error::InvalidFormat)?.into(),
-                surname: record.get(SURNAME).ok_or(Error::InvalidFormat)?.into(),
-                role: record.get(ROLE).ok_or(Error::InvalidFormat)?.into(),
-                may_borrow: true,
-            });
+            return parse_record(&record);
         }
     }
     Err(Error::NothingFound)
+}
+
+#[allow(unused)]
+pub fn search(file: &Path, delimiter: u8, search: &str, count: usize) -> Result<Vec<User>> {
+    let mut reader = reader(file, delimiter)?;
+    let mut fuzzy = fuzzy::Fuzzy::new(search);
+
+    let mut results = Sorted::<(u32, User), _>::new(|a, b| {
+        a.0.cmp(&b.0)
+            .reverse()
+            .then_with(|| a.1.account.cmp(&b.1.account))
+    });
+    for record in reader.records() {
+        let user = parse_record(&record?)?;
+        if let Some(score) = user.fuzzy(&mut fuzzy) {
+            results.push((score, user));
+        }
+    }
+    Ok(results
+        .into_iter()
+        .take(count)
+        .map(|(_, user)| user)
+        .collect())
 }
 
 fn reader(file: &Path, delimiter: u8) -> Result<csv::Reader<std::fs::File>> {

@@ -15,6 +15,7 @@ use tracing::{error, info};
 use crate::db::sorted::Sorted;
 use crate::error::{Error, Result};
 use crate::mail::account_is_valid;
+use crate::server::UserConfig;
 use crate::util::PKG_VERSION;
 
 mod book;
@@ -25,7 +26,7 @@ mod category;
 pub use category::*;
 mod migrate;
 pub use migrate::Version;
-mod sorted;
+pub mod sorted;
 
 #[cfg(feature = "sqlite")]
 #[deprecated]
@@ -332,11 +333,11 @@ impl AtomicDatabase {
     /// Load the database from the file system.
     ///
     /// This also migrates it if it necessary.
-    pub fn load(path: &Path) -> Result<Self> {
+    pub fn load(path: &Path, user: Option<&UserConfig>) -> Result<Self> {
         let new_path = path.with_extension("json");
         let tmp = Self::tmp_path(&new_path)?;
 
-        let data = migrate::import(path)?;
+        let data = migrate::import(path, user)?;
         atomic_write(&tmp, &new_path, &data)?;
 
         Ok(Self {
@@ -471,7 +472,7 @@ mod test {
         let file = Path::new("test/schillerbib.db");
 
         let db1 = d1::Database::open(file).unwrap().0;
-        let db2 = super::migrate::import(file).unwrap();
+        let db2 = super::migrate::import(file, None).unwrap();
 
         let timer = Instant::now();
         let results = db1.books().unwrap();

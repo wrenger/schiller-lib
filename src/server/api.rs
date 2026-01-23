@@ -191,7 +191,7 @@ async fn book_search(
 #[metadata(custom = [Result])]
 async fn book_add(State(project): State<Project>, Json(book): Json<Book>) -> Result<Json<Book>> {
     let db = &mut *project.db.write();
-    Ok(Json(db.books.add(book, &db.categories)?))
+    Ok(Json(db.books.add(book, &db.categories, &db.users)?))
 }
 
 /// Updates the book and all references if its id changes.
@@ -283,7 +283,7 @@ async fn user_fetch_data(
     Path(account): Path<String>,
 ) -> Result<Json<User>> {
     if let Some(user) = &project.user {
-        Ok(Json(super::provider::user::search(
+        Ok(Json(super::provider::user::get(
             &user.file,
             user.delimiter,
             &account,
@@ -300,7 +300,7 @@ async fn user_fetch_data(
 async fn user_update_roles(State(project): State<Project>) -> Result<()> {
     if let Some(user) = &project.user {
         let users = super::provider::user::load_roles(&user.file, user.delimiter)?;
-        project.db.write().users.update_roles(&users)
+        project.db.write().users.update_roles(users.into_iter())
     } else {
         Err(Error::NothingFound)
     }

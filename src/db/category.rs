@@ -47,7 +47,7 @@ impl Categories {
                 v.insert(category.clone());
                 Ok(category)
             }
-            _ => Err(Error::Arguments),
+            _ => Err(Error::Duplicate),
         }
     }
 
@@ -76,7 +76,7 @@ impl Categories {
                     self.data.remove(id);
                     Ok(category)
                 }
-                _ => Err(Error::Arguments),
+                _ => Err(Error::Duplicate),
             };
         }
 

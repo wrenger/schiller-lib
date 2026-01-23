@@ -34,6 +34,8 @@ pub enum Error {
     InvalidBook,
     /// The user has invalid or missing fields
     InvalidUser,
+    /// A user, book, or category already exists
+    Duplicate,
     /// User may not borrow
     LendingUserMayNotBorrow,
     /// Book cannot be borrowed
@@ -142,6 +144,7 @@ impl IntoResponse for Error {
             | Error::ReferencedCategory
             | Error::InvalidBook
             | Error::InvalidUser
+            | Error::Duplicate
             | Error::LendingUserMayNotBorrow
             | Error::LendingBookNotBorrowable
             | Error::LendingBookAlreadyBorrowed

@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use schiller_lib::db::{AtomicDatabase, Book, Category};
+use schiller_lib::error::Error;
 use schiller_lib::{provider, util};
 use tracing::error;
 
@@ -35,17 +36,28 @@ async fn main() {
             section: "Demo".into(),
         })
         .unwrap();
+    db.categories
+        .add(Category {
+            id: "long".into(),
+            name: "Long Title".into(),
+            section: "Demo".into(),
+        })
+        .unwrap();
     for mut record in books {
         let mut book = Book {
             id: String::new(),
             isbn: record.isbns.pop().unwrap_or_default(),
+            category: if record.data.title.len() > 50 {
+                "long".into()
+            } else {
+                "demo".into()
+            },
             title: record.data.title,
             publisher: record.data.publisher,
             year: 2020,
             costs: record.data.costs,
             note: String::new(),
             borrowable: true,
-            category: "demo".into(),
             authors: record.data.authors.join(", "),
             borrower: None,
             reservation: None,
@@ -55,7 +67,11 @@ async fn main() {
         book.id = id;
         if book.validate() {
             // ignore duplicates
-            let _ = db.books.add(book, &db.categories);
+            match db.books.add(book, &db.categories, &db.users) {
+                Ok(_) => {}
+                Err(Error::Duplicate) => {}
+                Err(e) => error!("Failed to add book: {e:?}"),
+            }
         } else {
             error!("Invalid book {}", book.title);
         }

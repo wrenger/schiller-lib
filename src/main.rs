@@ -9,6 +9,7 @@ use crate::server::{Tls, UserConfig};
 
 mod db;
 mod error;
+mod fuzzy;
 mod isbn;
 mod mail;
 mod provider;
@@ -76,7 +77,7 @@ async fn main() {
     let domain = domain.unwrap_or_else(|| host.to_string());
 
     let db = if db.exists() {
-        AtomicDatabase::load(&db).unwrap()
+        AtomicDatabase::load(&db, user.as_ref()).unwrap()
     } else {
         AtomicDatabase::create(&db).unwrap()
     };

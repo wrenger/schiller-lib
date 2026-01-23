@@ -6,7 +6,7 @@ use gluer::metadata;
 use serde::{Deserialize, Serialize};
 use unicode_normalization::UnicodeNormalization;
 
-use super::Categories;
+use super::{Categories, Users};
 use crate::db::sorted::Sorted;
 use crate::error::{Error, Result};
 use crate::isbn;
@@ -62,6 +62,20 @@ impl Book {
             borrower.user = borrower.user.trim().to_string();
         }
         !self.id.is_empty() && !self.title.is_empty()
+    }
+
+    /// Fuzzy search score for this book
+    pub fn fuzzy(&self, fuzzy: &mut crate::fuzzy::Fuzzy) -> Option<u32> {
+        fuzzy.score_many(&[
+            (self.id.as_str(), 1), // <- exact match is handled separately
+            (self.title.as_str(), 3),
+            (self.authors.as_str(), 2),
+            (self.isbn.as_str(), 1),
+            (self.publisher.as_str(), 1),
+            (self.note.as_str(), 1),
+            (self.borrower.as_ref().map_or("", |b| b.user.as_str()), 1),
+            (self.reservation.as_deref().unwrap_or(""), 1),
+        ])
     }
 }
 
@@ -126,8 +140,18 @@ impl Books {
     }
 
     /// Add a new book
-    pub fn add(&mut self, mut book: Book, categories: &Categories) -> Result<Book> {
+    pub fn add(&mut self, mut book: Book, categories: &Categories, users: &Users) -> Result<Book> {
         if !book.validate() || !categories.data.contains_key(&book.category) {
+            return Err(Error::InvalidBook);
+        }
+        if let Some(borrower) = &book.borrower
+            && !users.data.contains_key(&borrower.user)
+        {
+            return Err(Error::InvalidBook);
+        }
+        if let Some(reservation) = &book.reservation
+            && !users.data.contains_key(reservation)
+        {
             return Err(Error::InvalidBook);
         }
 
@@ -136,7 +160,7 @@ impl Books {
                 v.insert(book.clone());
                 Ok(book)
             }
-            _ => Err(Error::InvalidBook),
+            _ => Err(Error::Duplicate),
         }
     }
 
@@ -159,7 +183,7 @@ impl Books {
                     self.data.remove(id);
                     Ok(book)
                 }
-                _ => Err(Error::InvalidBook),
+                _ => Err(Error::Duplicate),
             };
         }
 
@@ -178,7 +202,7 @@ impl Books {
 
     /// Search specific books
     pub fn search(&self, search: &BookSearch) -> Result<(usize, Vec<Book>)> {
-        let mut results = Sorted::new(|a: &(usize, String, &Book), b: &(usize, String, &Book)| {
+        let mut results = Sorted::<(u32, String, &Book), _>::new(|a, b| {
             a.0.cmp(&b.0)
                 .reverse()
                 .then_with(|| a.1.cmp(&b.1))
@@ -186,10 +210,10 @@ impl Books {
         });
 
         let query = search.query.trim().to_lowercase();
-        let keywords = query.split_whitespace().collect::<Vec<_>>();
+        let mut fuzzy = (!query.is_empty()).then(|| crate::fuzzy::Fuzzy::new(&query));
 
         // just a very basic keyword search
-        'books: for book in self.data.values() {
+        for book in self.data.values() {
             // filter by category
             if !search.category.is_empty() && search.category != book.category {
                 continue;
@@ -206,38 +230,19 @@ impl Books {
 
             let lower_title = book.title.to_lowercase();
 
-            if keywords.is_empty() {
-                results.push((0, lower_title, book));
-                continue;
-            }
-
+            // Exact match
             let lower_id = book.id.to_ascii_lowercase();
             if query == lower_id {
-                results.push((100, lower_title, book));
+                results.push((u32::MAX, lower_title, book));
                 continue;
             }
 
-            let mut score = 0;
-            for keyword in &keywords {
-                if lower_title.starts_with(keyword) {
-                    score += 3;
-                } else if lower_title.contains(keyword) || lower_id.contains(keyword) {
-                    score += 2;
-                } else if book.isbn.to_lowercase().contains(keyword)
-                    || book.publisher.to_lowercase().contains(keyword)
-                    || book.note.to_lowercase().contains(keyword)
-                    || book.authors.to_lowercase().contains(keyword)
-                    || matches!(&book.borrower, Some(b) if b.user.to_lowercase().contains(keyword))
-                    || matches!(&book.reservation, Some(r) if r.to_lowercase().contains(keyword))
-                {
-                    score += 1;
-                } else {
-                    // no match -> skip this book
-                    continue 'books;
+            if let Some(fuzzy) = &mut fuzzy {
+                if let Some(score) = book.fuzzy(fuzzy) {
+                    results.push((score, lower_title, book));
                 }
-            }
-            if score > 0 {
-                results.push((score, lower_title, book));
+            } else {
+                results.push((0, lower_title, book));
             }
         }
 
@@ -424,8 +429,9 @@ mod tests {
             ..Book::default()
         };
 
-        db.books.add(book.clone(), &db.categories).unwrap();
-
+        db.books
+            .add(book.clone(), &db.categories, &db.users)
+            .unwrap();
         let db_book = db
             .books
             .search(&BookSearch {

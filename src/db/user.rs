@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use super::Books;
 use crate::db::sorted::Sorted;
 use crate::error::{Error, Result};
+use crate::fuzzy;
 use crate::mail::account_is_valid;
 
 /// Data object for a user.
@@ -45,6 +46,15 @@ impl User {
         self.surname = self.surname.trim().to_string();
         self.role = self.role.trim().to_string();
         account_is_valid(&self.account) && !self.forename.is_empty() && !self.surname.is_empty()
+    }
+
+    pub fn fuzzy(&self, fuzzy: &mut fuzzy::Fuzzy) -> Option<u32> {
+        fuzzy.score_many(&[
+            (self.account.as_str(), 1), // <- exact match is handled separately
+            (self.forename.as_str(), 2),
+            (self.surname.as_str(), 2),
+            (self.role.as_str(), 1),
+        ])
     }
 }
 
@@ -95,7 +105,7 @@ impl Users {
                 v.insert(user.clone());
                 Ok(user)
             }
-            _ => Err(Error::InvalidUser),
+            _ => Err(Error::Duplicate),
         }
     }
 
@@ -118,7 +128,7 @@ impl Users {
                     self.data.remove(account);
                     Ok(user)
                 }
-                _ => Err(Error::InvalidUser),
+                _ => Err(Error::Duplicate),
             };
         }
 
@@ -142,50 +152,31 @@ impl Users {
 
     /// Performes a simple user search with the given `text`.
     pub fn search(&self, search: &UserSearch) -> Result<(usize, Vec<User>)> {
-        let mut results = Sorted::new(|a: &(usize, &User), b: &(usize, &User)| {
+        let mut results = Sorted::<(u32, &User), _>::new(|a, b| {
             a.0.cmp(&b.0)
                 .reverse()
                 .then_with(|| a.1.account.cmp(&b.1.account))
         });
 
-        let query = search.query.trim().to_lowercase();
-        let keywords = query.split_whitespace().collect::<Vec<_>>();
+        let query = search.query.trim();
+        let mut fuzzy = (!query.is_empty()).then(|| fuzzy::Fuzzy::new(query));
 
-        // just a very basic brute-force search
-        'users: for user in self.data.values() {
-            match search.may_borrow {
-                Some(b) if b != user.may_borrow => continue,
-                _ => {}
-            }
-
-            if query.is_empty() {
-                results.push((0, user));
+        for user in self.data.values() {
+            if let Some(may_borrow) = search.may_borrow
+                && may_borrow != user.may_borrow
+            {
                 continue;
             }
-            let account = user.account.to_lowercase();
-            if query == account {
-                results.push((100, user));
+            if query == user.account {
+                results.push((u32::MAX, user));
                 continue;
             }
-
-            let mut score = 0;
-            for keyword in &keywords {
-                if account.starts_with(keyword) {
-                    score += 3;
-                } else if account.contains(keyword) {
-                    score += 2;
-                } else if user.forename.to_lowercase().contains(keyword)
-                    || user.surname.to_lowercase().contains(keyword)
-                    || user.role.to_lowercase().contains(keyword)
-                {
-                    score += 1;
-                } else {
-                    // no match -> skip this user
-                    continue 'users;
+            if let Some(fuzzy) = &mut fuzzy {
+                if let Some(score) = user.fuzzy(fuzzy) {
+                    results.push((score, user));
                 }
-            }
-            if score > 0 {
-                results.push((score, user));
+            } else {
+                results.push((0, user));
             }
         }
 
@@ -202,7 +193,7 @@ impl Users {
     /// Deletes the roles from all users and inserts the new roles.
     ///
     /// The roles of all users not contained in the given list are cleared.
-    pub fn update_roles(&mut self, users: &[(String, String)]) -> Result<()> {
+    pub fn update_roles(&mut self, users: impl Iterator<Item = (String, String)>) -> Result<()> {
         for user in self.data.values_mut() {
             user.role.clear();
         }
@@ -319,7 +310,7 @@ mod tests {
         assert_eq!(users[1], user1);
 
         db.users
-            .update_roles(&[("foo.bar".into(), "Teacher".into())])
+            .update_roles([("foo.bar".into(), "Teacher".into())].into_iter())
             .unwrap();
 
         user1.role = "Teacher".into();
