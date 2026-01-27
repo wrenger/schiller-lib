@@ -8,6 +8,7 @@ pub struct Fuzzy {
 }
 
 impl Fuzzy {
+    /// Create a new fuzzy search instance for the given search string.
     pub fn new(search: &str) -> Self {
         let mut config = Config::DEFAULT;
         config.prefer_prefix = true;
@@ -22,21 +23,23 @@ impl Fuzzy {
             buffer: Vec::new(),
         }
     }
-    pub fn score(&mut self, candidate: &str) -> Option<u32> {
-        self.pattern.score(
+    /// Compare the candidate string against the pattern and return a score.
+    /// Returns 0 if there is no match or the pattern is empty.
+    pub fn score(&mut self, candidate: &str) -> u32 {
+        let res = self.pattern.score(
             Utf32Str::new(candidate, &mut self.buffer),
             &mut self.matcher,
-        )
+        );
+        assert!(!matches!(res, Some(0)));
+        res.unwrap_or_default()
     }
-    pub fn score_many(&mut self, candidates: &[(&str, u32)]) -> Option<u32> {
-        let mut result = None;
-        for (candidate, multiplyer) in candidates {
-            if !candidate.is_empty()
-                && let Some(score) = self.score(candidate)
-            {
-                result = Some(result.unwrap_or_default() + score * multiplyer);
-            }
-        }
-        result
+    /// Compare multiple candidate strings against the pattern and return the total score.
+    pub fn score_many(&mut self, candidates: &[(&str, u32)]) -> u32 {
+        candidates
+            .iter()
+            .filter_map(|(candidate, multiplier)| {
+                (!candidate.is_empty()).then(|| self.score(candidate) * multiplier)
+            })
+            .sum()
     }
 }

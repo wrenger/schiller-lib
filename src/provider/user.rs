@@ -73,7 +73,8 @@ pub fn get(file: &Path, delimiter: u8, account: &str) -> Result<User> {
 #[allow(unused)]
 pub fn search(file: &Path, delimiter: u8, search: &str, count: usize) -> Result<Vec<User>> {
     let mut reader = reader(file, delimiter)?;
-    let mut fuzzy = fuzzy::Fuzzy::new(search);
+    let query = search.trim();
+    let mut fuzzy = (!query.is_empty()).then(|| fuzzy::Fuzzy::new(query));
 
     let mut results = Sorted::<(u32, User), _>::new(|a, b| {
         a.0.cmp(&b.0)
@@ -82,8 +83,13 @@ pub fn search(file: &Path, delimiter: u8, search: &str, count: usize) -> Result<
     });
     for record in reader.records() {
         let user = parse_record(&record?)?;
-        if let Some(score) = user.fuzzy(&mut fuzzy) {
-            results.push((score, user));
+        if let Some(fuzzy) = &mut fuzzy {
+            let score = user.fuzzy(fuzzy);
+            if score > 0 {
+                results.push((score, user));
+            }
+        } else {
+            results.push((0, user));
         }
     }
     Ok(results

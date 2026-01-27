@@ -48,7 +48,7 @@ impl User {
         account_is_valid(&self.account) && !self.forename.is_empty() && !self.surname.is_empty()
     }
 
-    pub fn fuzzy(&self, fuzzy: &mut fuzzy::Fuzzy) -> Option<u32> {
+    pub fn fuzzy(&self, fuzzy: &mut fuzzy::Fuzzy) -> u32 {
         fuzzy.score_many(&[
             (self.account.as_str(), 1), // <- exact match is handled separately
             (self.forename.as_str(), 2),
@@ -172,7 +172,8 @@ impl Users {
                 continue;
             }
             if let Some(fuzzy) = &mut fuzzy {
-                if let Some(score) = user.fuzzy(fuzzy) {
+                let score = user.fuzzy(fuzzy);
+                if score > 0 {
                     results.push((score, user));
                 }
             } else {

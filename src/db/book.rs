@@ -65,7 +65,7 @@ impl Book {
     }
 
     /// Fuzzy search score for this book
-    pub fn fuzzy(&self, fuzzy: &mut crate::fuzzy::Fuzzy) -> Option<u32> {
+    pub fn fuzzy(&self, fuzzy: &mut crate::fuzzy::Fuzzy) -> u32 {
         fuzzy.score_many(&[
             (self.id.as_str(), 1), // <- exact match is handled separately
             (self.title.as_str(), 3),
@@ -238,7 +238,8 @@ impl Books {
             }
 
             if let Some(fuzzy) = &mut fuzzy {
-                if let Some(score) = book.fuzzy(fuzzy) {
+                let score = book.fuzzy(fuzzy);
+                if score > 0 {
                     results.push((score, lower_title, book));
                 }
             } else {
