@@ -31,6 +31,10 @@ impl<T, F: Fn(&T, &T) -> Ordering + Copy> Sorted<T, F> {
     pub fn len(&self) -> usize {
         self.heap.len()
     }
+    #[allow(unused)]
+    pub fn is_empty(&self) -> bool {
+        self.heap.is_empty()
+    }
 }
 
 impl<T, F: Fn(&T, &T) -> Ordering + Copy> IntoIterator for Sorted<T, F> {

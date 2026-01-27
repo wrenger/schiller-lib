@@ -262,7 +262,7 @@ mod tests {
         assert_eq!(count, 1);
         assert_eq!(users[0].role, "Teacher");
 
-        db.users.delete(&user.account, &mut db.books).unwrap();
+        db.users.delete(&user.account, &db.books).unwrap();
         let (count, _) = db
             .users
             .search(&UserSearch {

@@ -7,7 +7,7 @@ use schiller_lib::util;
 
 fn criterion_benchmark(c: &mut Criterion) {
     util::logging();
-    let db = AtomicDatabase::load(Path::new("test/demo.json")).unwrap();
+    let db = AtomicDatabase::load(Path::new("test/demo.json"), None).unwrap();
     let db = db.read();
 
     let search = BookSearch {

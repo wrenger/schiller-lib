@@ -18,6 +18,7 @@ pub fn logging() {
         .init();
 }
 
+#[allow(unused)]
 pub fn convert_ascii_lower(input: &str, spaces: bool) -> String {
     let input = input.trim();
     let mut output = String::with_capacity(input.len());
@@ -25,11 +26,17 @@ pub fn convert_ascii_lower(input: &str, spaces: bool) -> String {
     for c in input.nfkd() {
         let c = c.to_ascii_lowercase();
         match (last, c) {
-            (Some('a' | 'o' | 'u'), '\u{0308}') => output.push_str("e"),
+            // Handle German umlauts
+            (Some('a' | 'o' | 'u'), '\u{0308}') => output.push('e'),
+            // Handle German sharp S
             (_, 'ß') => output.push_str("ss"),
+            // Skip duplicate spaces/dots
             (Some(' ' | '.'), c) if c.is_whitespace() => {}
+            // Handle whitespace
             _ if c.is_whitespace() => output.push(if spaces { ' ' } else { '.' }),
+            // Keep alphanumeric characters
             _ if c.is_ascii_alphanumeric() => output.push(c),
+            // Skip other characters
             _ => {}
         }
         last = Some(c);
