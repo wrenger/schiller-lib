@@ -31,11 +31,11 @@ axum = { version = "0.8", default-features = false, features = [
 axum-extra = { version = "0.12", features = ["typed-header"] }
 base64 = "0.22"
 chrono = "0.4"
-clap = { version = "4.5", features = ["derive"] }
+clap = { version = "4.6", features = ["derive"] }
 csv = "1.4"
 email_address = "0.2"
 gluer = "0.8.3"
-hyper = "1.8"
+hyper = "1.9"
 hyper-util = "0.1"
 lettre = { version = "0.11", default-features = false, features = [
     "builder",
@@ -44,18 +44,18 @@ lettre = { version = "0.11", default-features = false, features = [
     "tokio1-rustls-tls",
 ] }
 oauth2 = "5.0.0"
-rand = "0.9"
+rand = "0.8"
 reqwest = { version = "0.12", default-features = false, features = [
     "rustls-tls",
     "json",
 ] }
 roxmltree = "0.21"
-rusqlite = { version = "0.38", features = ["bundled"], optional = true }
+rusqlite = { version = "0.39", features = ["bundled"], optional = true }
 rustls = { version = "0.23", default-features = false }
 rustls-pemfile = "2.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tokio = { version = "1.49", features = [
+tokio = { version = "1.52", features = [
     "fs",
     "sync",
     "time",

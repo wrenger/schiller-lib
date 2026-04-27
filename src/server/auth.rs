@@ -1,6 +1,6 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 use std::fmt;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, RwLock};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use axum::extract::{FromRef, FromRequestParts, Query, State};
@@ -21,17 +21,15 @@ use oauth2::{
     CsrfToken, EndpointNotSet, EndpointSet, RedirectUrl, RevocationUrl, Scope, TokenResponse,
     TokenUrl,
 };
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info, warn};
 
 use crate::error::{Error, Result};
 
-static COOKIE_NAME: &str = "SESSION";
+const COOKIE_NAME: &str = "SESSION";
 const SESSION_CHECK_SEC: u64 = 8 * 60 * 60; // 8h
 const SESSION_EXPIRE_SEC: u64 = 2 * 24 * 60 * 60; // 2d
 
-const LOGIN_COUNT: usize = 10;
 const LOGIN_EXPIRE_SEC: u64 = 5 * 60;
 
 /// Configuration for OAuth
@@ -91,7 +89,6 @@ pub async fn background(auth: Auth) {
                     .write()
                     .unwrap()
                     .retain(|_, l| l.expires > now);
-                auth.logins.lock().unwrap().retain(|t| t.1 > now);
             });
         }
     }
@@ -150,7 +147,6 @@ impl Auth {
             Self::OAuth(Arc::new(OAuthState {
                 client,
                 sessions: Default::default(),
-                logins: Default::default(),
                 profile_url,
                 profile_scope,
                 profile_key,
@@ -191,8 +187,6 @@ impl Client {
 pub struct OAuthState {
     client: Client,
     sessions: RwLock<HashMap<Session, Login>>,
-    /// Tokens for CSRF protection
-    logins: Mutex<VecDeque<(CsrfToken, u64)>>,
     profile_url: String,
     profile_scope: String,
     profile_key: String,
@@ -202,9 +196,10 @@ impl fmt::Debug for OAuthState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("OAuthState")
             .field("sessions", &self.sessions)
-            .field("logins", &self.logins)
             .field("profile_url", &self.profile_url)
-            .finish()
+            .field("profile_scope", &self.profile_scope)
+            .field("profile_key", &self.profile_key)
+            .finish_non_exhaustive()
     }
 }
 
@@ -215,7 +210,7 @@ struct Session([u8; Self::N]);
 impl Session {
     const N: usize = 32;
     fn new() -> Self {
-        Self(rand::rng().random())
+        Self(rand::random())
     }
     fn from_cookie(cookie: &str) -> Result<Self> {
         let mut data = [0; Self::N + 8]; // has to be larger due to wrong estimates!
@@ -247,12 +242,17 @@ async fn login_redirect(State(auth): State<Arc<OAuthState>>) -> impl IntoRespons
         .add_scope(Scope::new(auth.profile_scope.clone()))
         .url();
 
-    // Store csrf token for later checks
-    let mut logins = auth.logins.lock().unwrap();
-    logins.push_front((csrf_token, unix_secs() + LOGIN_EXPIRE_SEC));
-    logins.truncate(LOGIN_COUNT);
+    // Store csrf token in a short-lived cookie
+    let cookie = format!(
+        "OAUTH_CSRF={}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age={}",
+        csrf_token.secret(),
+        LOGIN_EXPIRE_SEC
+    );
 
-    Redirect::to(auth_url.as_ref())
+    let mut headers = HeaderMap::new();
+    headers.insert(SET_COOKIE, cookie.parse().unwrap());
+
+    (headers, Redirect::to(auth_url.as_ref()))
 }
 
 async fn logout(
@@ -277,15 +277,13 @@ struct AuthRequest {
 async fn login_authorized(
     Query(query): Query<AuthRequest>,
     State(auth): State<Arc<OAuthState>>,
+    TypedHeader(cookies): TypedHeader<Cookie>,
 ) -> Result<impl IntoResponse> {
     {
         // Check CSRF
-        let mut logins = auth.logins.lock().unwrap();
-        let len = logins.len();
-        logins.retain(|t| t.0.secret() != &query.state);
-        if len == logins.len() {
-            error!("CSRF token not found!");
-            return Err(Error::Network); // CSRF token not found
+        if cookies.get("OAUTH_CSRF") != Some(&query.state) {
+            error!("CSRF token not found or mismatch!");
+            return Err(Error::Network);
         }
     }
 
@@ -360,9 +358,10 @@ async fn login_authorized(
 
     // Set cookie
     let cookie = format!(
-        "{COOKIE_NAME}={}; SameSite=Lax; Path=/",
+        "{COOKIE_NAME}={}; HttpOnly; Secure; SameSite=Lax; Path=/",
         session.to_cookie()
     );
+    let clear_csrf = "OAUTH_CSRF=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0";
 
     let login = Login {
         id: id.into(),
@@ -371,7 +370,8 @@ async fn login_authorized(
     auth.sessions.write().unwrap().insert(session, login);
 
     let mut headers = HeaderMap::new();
-    headers.insert(SET_COOKIE, cookie.parse().unwrap());
+    headers.append(SET_COOKIE, cookie.parse().unwrap());
+    headers.append(SET_COOKIE, clear_csrf.parse().unwrap());
     Ok((headers, Redirect::to("/")))
 }
 
