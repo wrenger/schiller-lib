@@ -22,11 +22,12 @@ use oauth2::{
     TokenUrl,
 };
 use serde::{Deserialize, Serialize};
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 
 use crate::error::{Error, Result};
 
 const COOKIE_NAME: &str = "SESSION";
+const CSRF_COOKIE: &str = "OAUTH_CSRF";
 const SESSION_CHECK_SEC: u64 = 8 * 60 * 60; // 8h
 const SESSION_EXPIRE_SEC: u64 = 2 * 24 * 60 * 60; // 2d
 
@@ -244,9 +245,8 @@ async fn login_redirect(State(auth): State<Arc<OAuthState>>) -> impl IntoRespons
 
     // Store csrf token in a short-lived cookie
     let cookie = format!(
-        "OAUTH_CSRF={}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age={}",
+        "{CSRF_COOKIE}={}; HttpOnly; Secure; SameSite=Lax; Path=/auth/authorized; Max-Age={LOGIN_EXPIRE_SEC}",
         csrf_token.secret(),
-        LOGIN_EXPIRE_SEC
     );
 
     let mut headers = HeaderMap::new();
@@ -281,7 +281,7 @@ async fn login_authorized(
 ) -> Result<impl IntoResponse> {
     {
         // Check CSRF
-        if cookies.get("OAUTH_CSRF") != Some(&query.state) {
+        if cookies.get(CSRF_COOKIE) != Some(&query.state) {
             error!("CSRF token not found or mismatch!");
             return Err(Error::Network);
         }
@@ -302,27 +302,14 @@ async fn login_authorized(
     info!("Token received");
 
     // Fetch user data
-    let client = reqwest::Client::new();
-
-    // For debugging fetched data
-    // info!(
-    //     "Received Data: {}",
-    //     client
-    //         .get(&*auth.profile_url)
-    //         .bearer_auth(token.access_token().secret())
-    //         .send()
-    //         .await?
-    //         .text()
-    //         .await?
-    // );
-
-    let data: serde_json::Value = client
+    let data: serde_json::Value = http_client
         .get(&*auth.profile_url)
         .bearer_auth(token.access_token().secret())
         .send()
         .await?
         .json()
         .await?;
+    debug!("User data: {data:?}");
 
     // Parse user data (search for an id to show in the UI)
     let mut curr = &data;
@@ -347,10 +334,14 @@ async fn login_authorized(
     if let Client::Revokable(auth) = &auth.client {
         // Directly revoke token, not needed anymore
         info!("Revoke access");
-        auth.revoke_token(token.access_token().into())
+        if let Err(e) = auth
+            .revoke_token(token.access_token().into())
             .map_err(|_| Error::Network)?
             .request_async(&http_client)
-            .await?;
+            .await
+        {
+            warn!("Failed to revoke user token {id:?}: {e}");
+        }
     }
 
     // Create a new session filled with user data
@@ -358,10 +349,11 @@ async fn login_authorized(
 
     // Set cookie
     let cookie = format!(
-        "{COOKIE_NAME}={}; HttpOnly; Secure; SameSite=Lax; Path=/",
+        "{COOKIE_NAME}={}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age={SESSION_EXPIRE_SEC}",
         session.to_cookie()
     );
-    let clear_csrf = "OAUTH_CSRF=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0";
+    let clear_csrf =
+        format!("{CSRF_COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/auth/authorized; Max-Age=0");
 
     let login = Login {
         id: id.into(),
@@ -406,6 +398,7 @@ where
         let guard = sessions.read().unwrap();
         let login = guard.get(&session).ok_or(AuthRedirect)?;
         if unix_secs() > login.expires {
+            drop(guard); // prevent dead-lock
             sessions.write().unwrap().remove(&session);
             Err(AuthRedirect)
         } else {
