@@ -136,9 +136,8 @@ async fn settings_get(State(project): State<Project>) -> Result<Json<Settings>> 
 async fn settings_update(
     State(project): State<Project>,
     Json(settings): Json<Settings>,
-) -> Result<()> {
-    project.db.write().settings_update(settings)?;
-    Ok(())
+) -> Result<Json<Settings>> {
+    project.db.write().settings_update(settings).map(Json)
 }
 
 /// Returns the project statistics.

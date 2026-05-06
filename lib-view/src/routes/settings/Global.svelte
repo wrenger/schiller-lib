@@ -45,7 +45,7 @@
 		mail_last_reminder = s.mail_last_reminder;
 		mail_from = s.mail_from;
 		mail_host = s.mail_host;
-		mail_password = s.mail_password;
+		mail_password = s.mail_password || '';
 		// update fields directly due to bindings
 		templates.info.subject = s.mail_info.subject;
 		templates.info.body = s.mail_info.body;
@@ -69,8 +69,11 @@
 			mail_last_reminder: settings?.mail_last_reminder.toISODate() ?? ''
 		};
 
-		handle_result(await api.settings_update(data));
-		settingsGlobal.set(settings);
+		let new_settings = handle_result(await api.settings_update(data));
+		settingsGlobal.set({
+		    ...new_settings,
+			mail_last_reminder: DateTime.fromISO(new_settings.mail_last_reminder)
+		});
 	}
 </script>
 
@@ -115,7 +118,7 @@
 				</div>
 				<div>
 					<Label for="password" class="my-1.5 block">{$_('.pref.mail.account.password')}</Label>
-					<Input id="password" bind:value={mail_password} type="password" />
+					<Input id="password" bind:value={mail_password} type="password" placeholder="******" />
 				</div>
 			</div>
 		</div>

@@ -56,7 +56,7 @@
 
 		let mail_last_reminder = DateTime.now().toISODate();
 
-		handle_result(
+		let new_settings = handle_result(
 			await api.settings_update({
 				...$settingsGlobal,
 				mail_last_reminder
@@ -64,7 +64,7 @@
 		);
 
 		settingsGlobal.set({
-			...$settingsGlobal,
+			...new_settings,
 			mail_last_reminder: DateTime.fromISO(mail_last_reminder)
 		});
 

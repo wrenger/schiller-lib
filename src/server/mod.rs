@@ -21,6 +21,7 @@ use tokio_rustls::TlsAcceptor;
 use tokio_rustls::rustls::ServerConfig;
 use tower::{BoxError, ServiceBuilder, ServiceExt};
 use tower_http::compression::CompressionLayer;
+use tower_http::cors::{CorsLayer, AllowOrigin};
 use tower_http::services::{ServeDir, ServeFile};
 use tower_http::trace::TraceLayer;
 use tower_service::Service;
@@ -92,10 +93,17 @@ async fn handle_error(error: BoxError) -> StatusCode {
 
 async fn serve(host: SocketAddr, tls: ServerConfig, app: Router) -> io::Result<()> {
     let acceptor = TlsAcceptor::from(Arc::new(tls));
-    let listener = TcpListener::bind(&host).await.unwrap();
+    let listener = TcpListener::bind(&host).await?;
 
     loop {
-        let (stream, peer) = listener.accept().await?;
+        let (stream, peer) = match listener.accept().await {
+            Ok(new) => new,
+            Err(err) => {
+                error!("client connection failed: {err:?}");
+                continue;
+            }
+        };
+
         let acceptor = acceptor.clone();
         let app = app.clone();
 

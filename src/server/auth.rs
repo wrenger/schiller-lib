@@ -244,13 +244,13 @@ async fn login_redirect(State(auth): State<Arc<OAuthState>>) -> impl IntoRespons
         .url();
 
     // Store csrf token in a short-lived cookie
-    let cookie = format!(
-        "{CSRF_COOKIE}={}; HttpOnly; Secure; SameSite=Lax; Path=/auth/authorized; Max-Age={LOGIN_EXPIRE_SEC}",
+    let set_csrf = format!(
+        "{CSRF_COOKIE}={}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age={LOGIN_EXPIRE_SEC}",
         csrf_token.secret(),
     );
 
     let mut headers = HeaderMap::new();
-    headers.insert(SET_COOKIE, cookie.parse().unwrap());
+    headers.insert(SET_COOKIE, set_csrf.parse().unwrap());
 
     (headers, Redirect::to(auth_url.as_ref()))
 }
@@ -282,7 +282,7 @@ async fn login_authorized(
     {
         // Check CSRF
         if cookies.get(CSRF_COOKIE) != Some(&query.state) {
-            error!("CSRF token not found or mismatch!");
+            error!("Invalid CSRF token");
             return Err(Error::Network);
         }
     }
@@ -348,12 +348,11 @@ async fn login_authorized(
     let session = Session::new();
 
     // Set cookie
-    let cookie = format!(
+    let set_session = format!(
         "{COOKIE_NAME}={}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age={SESSION_EXPIRE_SEC}",
         session.to_cookie()
     );
-    let clear_csrf =
-        format!("{CSRF_COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/auth/authorized; Max-Age=0");
+    let clear_csrf = format!("{CSRF_COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0");
 
     let login = Login {
         id: id.into(),
@@ -362,7 +361,7 @@ async fn login_authorized(
     auth.sessions.write().unwrap().insert(session, login);
 
     let mut headers = HeaderMap::new();
-    headers.append(SET_COOKIE, cookie.parse().unwrap());
+    headers.append(SET_COOKIE, set_session.parse().unwrap());
     headers.append(SET_COOKIE, clear_csrf.parse().unwrap());
     Ok((headers, Redirect::to("/")))
 }

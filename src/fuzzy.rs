@@ -37,9 +37,8 @@ impl Fuzzy {
     pub fn score_many(&mut self, candidates: &[(&str, u32)]) -> u32 {
         candidates
             .iter()
-            .filter_map(|(candidate, multiplier)| {
-                (!candidate.is_empty()).then(|| self.score(candidate) * multiplier)
-            })
+            .filter(|(candidate, _)| !candidate.is_empty())
+            .map(|(candidate, multiplier)| self.score(candidate) * multiplier)
             .sum()
     }
 }

@@ -51,7 +51,6 @@ pub struct Settings {
     /// Mail server host for sender and users
     pub mail_host: String,
     /// Mail server password for the sender
-    /// - TODO: Redact from requests
     pub mail_password: String,
 
     // Mail Templates
@@ -177,12 +176,20 @@ impl Database {
     }
     /// Return the library settings
     pub fn settings(&self) -> Settings {
-        self.settings.clone()
+        let mut settings = self.settings.clone();
+        settings.mail_password.clear(); // Hide the password
+        settings
     }
     /// Save the given settings to the database
     pub fn settings_update(&mut self, mut settings: Settings) -> Result<Settings> {
         if settings.validate() {
+            if settings.mail_password.is_empty() {
+                // The client is usually not informed about the password to prevent leaking it
+                // If the password is empty, keep the old one
+                settings.mail_password = self.settings.mail_password.clone();
+            }
             self.settings = settings.clone();
+            settings.mail_password.clear(); // Hide the password
             Ok(settings)
         } else {
             Err(Error::Arguments)
@@ -393,6 +400,10 @@ impl AtomicDatabase {
 ///
 /// This assumes that the rename FS operations are atomic.
 fn atomic_write(tmp: &Path, path: &Path, data: &Database) -> Result<()> {
+    // Remove any existing tmp file first (from previous crash or concurrent write)
+    // This is safe because we're the only writer to this specific tmp path
+    let _ = fs::remove_file(tmp);
+
     {
         let mut tmpfile = File::create_new(tmp)?;
         data.save(&mut tmpfile)?;
