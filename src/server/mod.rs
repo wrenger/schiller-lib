@@ -21,7 +21,6 @@ use tokio_rustls::TlsAcceptor;
 use tokio_rustls::rustls::ServerConfig;
 use tower::{BoxError, ServiceBuilder, ServiceExt};
 use tower_http::compression::CompressionLayer;
-use tower_http::cors::{CorsLayer, AllowOrigin};
 use tower_http::services::{ServeDir, ServeFile};
 use tower_http::trace::TraceLayer;
 use tower_service::Service;

@@ -28,16 +28,11 @@
       in
       {
         devShells.default = pkgs.mkShell {
-          buildInputs =
-            with pkgs;
-            [
-              toolchain
-              pkg-config
-              bun
-            ]
-            ++ lib.optionals stdenv.isDarwin [
-              darwin.apple_sdk.frameworks.SystemConfiguration
-            ];
+          buildInputs = with pkgs; [
+            toolchain
+            pkg-config
+            bun
+          ];
         };
       }
     );
