@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 use std::collections::btree_map::Entry;
 
 use chrono::NaiveDate;
-use gluer::metadata;
 use serde::{Deserialize, Serialize};
 use unicode_normalization::UnicodeNormalization;
 
@@ -12,7 +11,6 @@ use crate::error::{Error, Result};
 use crate::isbn;
 
 /// Data object for book.
-#[metadata]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Default))]
 pub struct Book {
@@ -22,26 +20,21 @@ pub struct Book {
     pub publisher: String,
     pub year: i64,
     pub costs: f64,
-    #[meta(optional)]
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub note: String,
     pub borrowable: bool,
     pub category: String,
     pub authors: String,
-    #[meta(optional, into = Borrower)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub borrower: Option<Borrower>,
-    #[meta(optional, into = String)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reservation: Option<String>,
 }
 
-#[metadata]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Default))]
 pub struct Borrower {
     pub user: String,
-    #[meta(into = String)]
     pub deadline: NaiveDate,
 }
 
@@ -80,7 +73,6 @@ impl Book {
 }
 
 /// Book search parameters
-#[metadata]
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct BookSearch {
@@ -104,7 +96,6 @@ impl Default for BookSearch {
 }
 
 /// Borrow status of a book
-#[metadata]
 #[repr(i64)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BookState {

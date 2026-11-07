@@ -2,7 +2,6 @@ use std::fmt;
 
 use axum::Json;
 use axum::response::IntoResponse;
-use gluer::metadata;
 use hyper::StatusCode;
 use serde::Serialize;
 use tracing::error;
@@ -12,7 +11,6 @@ use tracing::error;
 ///
 /// More specific error messages are removed to be api compatible.
 /// Those messages are logged however.
-#[metadata]
 #[repr(i64)]
 #[derive(Debug, Clone, Copy, Serialize)]
 pub enum Error {
@@ -161,5 +159,4 @@ impl IntoResponse for Error {
 }
 
 /// Result type using the api error.
-#[metadata]
 pub type Result<T> = std::result::Result<T, Error>;

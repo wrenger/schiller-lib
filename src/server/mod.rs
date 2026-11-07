@@ -8,64 +8,52 @@ use std::time::Duration;
 use axum::Router;
 use axum::body::Body;
 use axum::error_handling::HandleErrorLayer;
-use axum::extract::{Path, State};
+
 use axum::http::StatusCode;
 use axum::middleware::from_extractor_with_state;
-use axum::response::{IntoResponse, Response};
-use axum::routing::get;
+
 use hyper::Request;
 use hyper::body::Incoming;
 use hyper_util::rt::{TokioExecutor, TokioIo};
 use tokio::net::TcpListener;
 use tokio_rustls::TlsAcceptor;
 use tokio_rustls::rustls::ServerConfig;
-use tower::{BoxError, ServiceBuilder, ServiceExt};
+use tower::{BoxError, ServiceBuilder};
 use tower_http::compression::CompressionLayer;
-use tower_http::services::{ServeDir, ServeFile};
+
 use tower_http::trace::TraceLayer;
 use tower_service::Service;
 use tracing::{debug, error, info};
 
 use crate::db::AtomicDatabase;
-use crate::provider;
 use crate::server::auth::Login;
 
 mod auth;
 use auth::Auth;
 pub use auth::AuthConfig;
-mod api;
-use api::Project;
-pub use api::UserConfig;
 
 /// Start the backend server
 pub async fn start(
     host: SocketAddr,
     domain: &str,
     db: AtomicDatabase,
-    assets: PathBuf,
     tls: Tls,
     auth: Option<AuthConfig>,
-    user: Option<UserConfig>,
 ) {
     let tls = tls.load_config().expect("invalid TLS config");
     let auth = Auth::new(domain, auth);
-    let project = Project::new(db, user, auth.clone());
+    let app = app(auth.clone(), crate::web::router(db).build());
 
-    let app = Router::new()
+    debug!("Listening on https://{host}");
+
+    let (_, r) = tokio::join!(auth::background(auth), serve(host, tls, app));
+    r.unwrap();
+}
+
+fn app(auth: Auth, web: topcoat::router::Router) -> Router {
+    Router::new()
         .nest("/auth", auth::routes(auth.clone()))
-        .nest("/api", api::routes(project.clone()))
-        .route(
-            "/",
-            get(static_index)
-                .with_state(assets.clone())
-                .layer(from_extractor_with_state::<Login, Auth>(auth.clone())),
-        )
-        .route(
-            "/{*file}",
-            get(static_assets)
-                .with_state(assets)
-                .layer(from_extractor_with_state::<Login, Auth>(auth.clone())),
-        )
+        .fallback_service(frontend(auth, web))
         .layer(
             ServiceBuilder::new()
                 .layer(CompressionLayer::new())
@@ -73,12 +61,21 @@ pub async fn start(
                 .timeout(Duration::from_secs(10))
                 .layer(TraceLayer::new_for_http())
                 .into_inner(),
-        );
+        )
+}
 
-    debug!("Listening on {host}");
-
-    let (_, r) = tokio::join!(auth::background(auth), serve(host, tls, app));
-    r.unwrap();
+fn frontend(auth: Auth, web: topcoat::router::Router) -> Router {
+    let web = Arc::new(web);
+    Router::new()
+        .fallback(move |request: Request<Body>| {
+            let web = web.clone();
+            async move {
+                web.handle(request.map(topcoat::router::Body::new))
+                    .await
+                    .map(Body::new)
+            }
+        })
+        .layer(from_extractor_with_state::<Login, Auth>(auth))
 }
 
 async fn handle_error(error: BoxError) -> StatusCode {
@@ -133,6 +130,86 @@ async fn serve(host: SocketAddr, tls: ServerConfig, app: Router) -> io::Result<(
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::http::header::LOCATION;
+    use tower::ServiceExt;
+
+    fn oauth() -> Auth {
+        Auth::new(
+            "localhost:5000",
+            Some(AuthConfig {
+                client_id: "test".into(),
+                client_secret: "test".into(),
+                auth_url: "https://identity.example/authorize".into(),
+                token_url: "https://identity.example/token".into(),
+                revoke_url: None,
+                profile_url: "https://identity.example/profile".into(),
+                profile_scope: "profile".into(),
+                profile_key: "id".into(),
+            }),
+        )
+    }
+
+    #[tokio::test]
+    async fn frontend_requires_login_for_every_path_and_method() {
+        let app = frontend(oauth(), topcoat::router::Router::builder().build());
+        for (method, path) in [
+            ("GET", "/"),
+            ("GET", "/books"),
+            ("GET", "/assets/test.js"),
+            ("POST", "/runtime"),
+        ] {
+            let response = app
+                .clone()
+                .oneshot(
+                    Request::builder()
+                        .method(method)
+                        .uri(path)
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::TEMPORARY_REDIRECT);
+            assert_eq!(response.headers()[LOCATION], "/auth/login");
+        }
+    }
+
+    #[tokio::test]
+    async fn oauth_login_is_public() {
+        let auth = oauth();
+        let app = app(auth, topcoat::router::Router::builder().build());
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/auth/login")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::SEE_OTHER);
+        assert!(
+            response.headers()[LOCATION]
+                .to_str()
+                .unwrap()
+                .starts_with("https://identity.example/authorize?")
+        );
+    }
+
+    #[tokio::test]
+    async fn frontend_without_oauth_reaches_topcoat() {
+        let app = frontend(Auth::None, topcoat::router::Router::builder().build());
+        let response = app
+            .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    }
+}
+
 /// TLS configuration
 pub struct Tls {
     pub cert: PathBuf,
@@ -151,33 +228,5 @@ impl Tls {
             .with_no_client_auth()
             .with_single_cert(certs, key.into())
             .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))
-    }
-}
-
-async fn static_index(State(dir): State<PathBuf>, req: Request<Body>) -> Response {
-    ServeFile::new(dir.join("index.html"))
-        .oneshot(req)
-        .await
-        .unwrap()
-        .into_response()
-}
-
-async fn static_assets(
-    State(dir): State<PathBuf>,
-    Path(file): Path<String>,
-    req: Request<Body>,
-) -> Response {
-    if !file.contains('.') {
-        ServeFile::new(dir.join(file).with_extension("html"))
-            .oneshot(req)
-            .await
-            .unwrap()
-            .into_response()
-    } else {
-        ServeDir::new(dir.clone())
-            .oneshot(req)
-            .await
-            .unwrap()
-            .into_response()
     }
 }

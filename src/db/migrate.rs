@@ -6,9 +6,9 @@ use std::str::FromStr;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use super::Database;
+use super::{Database, UserConfig};
 use crate::error::{Error, Result};
-use crate::server::UserConfig;
+
 use crate::util::PKG_VERSION;
 
 /// Version metadata, used for database migrations

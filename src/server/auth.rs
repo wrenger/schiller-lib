@@ -13,7 +13,6 @@ use axum_extra::TypedHeader;
 use axum_extra::headers::Cookie;
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
-use gluer::metadata;
 use hyper::{HeaderMap, StatusCode};
 use oauth2::basic::{BasicClient, BasicErrorResponse, BasicTokenResponse};
 use oauth2::{
@@ -96,7 +95,6 @@ pub async fn background(auth: Auth) {
 }
 
 /// The user data for a successful login.
-#[metadata]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Login {
     /// A unique user id

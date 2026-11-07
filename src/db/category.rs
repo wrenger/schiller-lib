@@ -1,14 +1,12 @@
 use std::collections::BTreeMap;
 use std::collections::btree_map::Entry;
 
-use gluer::metadata;
 use serde::{Deserialize, Serialize};
 
 use super::Books;
 use crate::error::{Error, Result};
 
 /// Data object for categories
-#[metadata]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Category {
     pub id: String,

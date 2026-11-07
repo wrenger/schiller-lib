@@ -1,4 +1,7 @@
+use topcoat::asset::{Asset, asset};
 use unicode_normalization::UnicodeNormalization;
+
+pub const FAVICON: Asset = asset!("./assets/favicon.png");
 
 pub const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 pub const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");

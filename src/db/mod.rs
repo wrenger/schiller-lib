@@ -8,14 +8,13 @@ use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::{fmt, fs};
 
 use chrono::{Local, NaiveDate};
-use gluer::metadata;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
 use crate::db::sorted::Sorted;
 use crate::error::{Error, Result};
 use crate::mail::account_is_valid;
-use crate::server::UserConfig;
+
 use crate::util::PKG_VERSION;
 
 mod book;
@@ -32,8 +31,14 @@ pub mod sorted;
 #[deprecated]
 mod legacy;
 
+/// User configuration.
+#[derive(Debug, Clone)]
+pub struct UserConfig {
+    pub file: PathBuf,
+    pub delimiter: u8,
+}
+
 /// Library settings
-#[metadata]
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
@@ -44,7 +49,6 @@ pub struct Settings {
 
     // Mail
     /// Date of the last reminder mail
-    #[meta(into = String)]
     pub mail_last_reminder: NaiveDate,
     /// Mail sender account
     pub mail_from: String,
@@ -60,7 +64,6 @@ pub struct Settings {
 }
 
 /// Template for a mail notification
-#[metadata]
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, Default)]
 pub struct MailTemplate {
     pub subject: String,
@@ -99,7 +102,6 @@ impl Default for Settings {
 }
 
 /// Data object for book.
-#[metadata]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Default))]
 pub struct Stats {
@@ -122,7 +124,6 @@ pub struct Database {
 }
 
 /// Borrowed books that missed the deadline
-#[metadata]
 #[derive(Serialize)]
 pub struct Overdue {
     pub book: Book,

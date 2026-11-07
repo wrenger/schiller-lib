@@ -1,0 +1,27 @@
+# Topcoat UI install state. Managed by `topcoat ui`.
+version = 1
+components_dir = "src/components"
+
+[registries.topcoat.components.button]
+hash = "sha256:260ed94b12414e4a0e625f75fae88aa51e20954171dcba65cb3cd1937a75ee4d"
+file = "src/components/button.rs"
+
+[registries.topcoat.components.dialog]
+hash = "sha256:df9073df351770ee0282b9c64b7724caa0422fb51d7823fd3615688f4d02ddf6"
+file = "src/components/dialog.rs"
+
+[registries.topcoat.components.input]
+hash = "sha256:7fe8728a839a821af865711347189a00c29ba28b8b11dcc0d2ee06a053ca127c"
+file = "src/components/input.rs"
+
+[registries.topcoat.components.separator]
+hash = "sha256:7ba5a7628128e1811e960884bd56da34f754c1d516230b4442dfbc1cb97e73e9"
+file = "src/components/separator.rs"
+
+[registries.topcoat.components.sheet]
+hash = "sha256:b1149fd0c5b263dc73d511ee056b56416aad7f570cfdac13a430ccb6d4047132"
+file = "src/components/sheet.rs"
+
+[registries.topcoat.components.skeleton]
+hash = "sha256:3b6d99ca9aef02697ce1142903bd49062ef9f2bd4ecbb1e6b82be0ea6554d1a5"
+file = "src/components/skeleton.rs"

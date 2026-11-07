@@ -1,12 +1,4 @@
-use std::fs::File;
-use std::net::SocketAddr;
-use std::path::PathBuf;
-
-use clap::Parser;
-
-use crate::db::AtomicDatabase;
-use crate::server::{Tls, UserConfig};
-
+mod components;
 mod db;
 mod error;
 mod fuzzy;
@@ -15,6 +7,16 @@ mod mail;
 mod provider;
 mod server;
 mod util;
+mod web;
+
+use std::fs::File;
+use std::net::SocketAddr;
+use std::path::PathBuf;
+
+use clap::Parser;
+
+use crate::db::{AtomicDatabase, UserConfig};
+use crate::server::Tls;
 
 /// Schiller Library Backend
 #[derive(Parser)]
@@ -27,9 +29,7 @@ struct Args {
     /// Path to the oauth config
     #[arg(long)]
     auth: Option<PathBuf>,
-    /// Directory for the static assets
-    #[arg(short, long, default_value = "lib-view/build")]
-    assets: PathBuf,
+
     /// Path to the database
     #[arg(short, long, default_value = "lib.json")]
     db: PathBuf,
@@ -55,7 +55,7 @@ async fn main() {
         host,
         domain,
         auth,
-        assets,
+
         db,
         user_file,
         user_delimiter,
@@ -83,5 +83,5 @@ async fn main() {
     };
 
     let tls = Tls { cert, key };
-    server::start(host, &domain, db, assets, tls, auth, user).await;
+    server::start(host, &domain, db, tls, auth).await;
 }

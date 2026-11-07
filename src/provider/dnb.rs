@@ -1,4 +1,3 @@
-use gluer::metadata;
 use reqwest::{Client, Url};
 use serde::Serialize;
 use tracing::info;
@@ -6,7 +5,6 @@ use unicode_normalization::UnicodeNormalization;
 
 use crate::error::{Error, Result};
 
-#[metadata]
 #[derive(Debug, Default, PartialEq, Serialize)]
 pub struct BookData {
     pub title: String,
