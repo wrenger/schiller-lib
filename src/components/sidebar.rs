@@ -1,5 +1,8 @@
+use crate::t;
+
 use topcoat::{
     Result,
+    context::Cx,
     icon::{icon, iconify::iconify_icon},
     runtime::Expr,
     view::{Attributes, Child, Class, StaticClass, View, attributes, class, component, view},
@@ -139,6 +142,7 @@ const PANEL_THEME: StaticClass = class!(
 /// visual overlay; focus trapping requires additional application scripting.
 #[component]
 pub async fn sidebar(
+    cx: &Cx,
     #[into]
     #[default(true.into())]
     open: Expr<bool>,
@@ -182,7 +186,7 @@ pub async fn sidebar(
                 open: mobile_open,
                 attrs: attributes! {
                     role="navigation"
-                    aria-label="Sidebar"
+                    aria-label=(t!(component_sidebar).resolve(cx))
                     class=(class!(
                         "md:relative md:inset-auto md:flex md:overflow-visible md:bg-transparent md:opacity-100 md:backdrop-blur-none md:starting:open:opacity-100 md:transition-none md:group-data-[collapsible=offcanvas]/sidebar:invisible motion-reduce:transition-none",
                         sheet_attrs.remove("class"),
@@ -217,6 +221,7 @@ pub async fn sidebar(
 /// desktop and mobile expressions and handlers.
 #[component]
 pub async fn sidebar_trigger(
+    cx: &Cx,
     #[into]
     #[default(true.into())]
     open: Expr<bool>,
@@ -229,7 +234,7 @@ pub async fn sidebar_trigger(
             attrs: attributes! {
                 type="button"
                 data-sidebar="trigger"
-                aria-label="Toggle sidebar"
+                aria-label=(t!(component_toggle_sidebar).resolve(cx))
                 :aria-expanded=$(if open { "true" } else { "false" })
                 (attrs)
             },
@@ -243,6 +248,7 @@ pub async fn sidebar_trigger(
 /// Pass its signal update as an `@click` attribute.
 #[component]
 pub async fn sidebar_rail(
+    cx: &Cx,
     #[into]
     #[default(true.into())]
     open: Expr<bool>,
@@ -252,8 +258,8 @@ pub async fn sidebar_rail(
         <button
             type="button"
             data-sidebar="rail"
-            aria-label="Toggle sidebar"
-            title="Toggle sidebar"
+            aria-label=(t!(component_toggle_sidebar).resolve(cx))
+            title=(t!(component_toggle_sidebar).resolve(cx))
             :aria-expanded=$(if open { "true" } else { "false" })
             class=(class!(
                 "absolute inset-y-0 z-10 hidden w-2 cursor-pointer outline-none after:absolute after:inset-y-0 after:w-px hover:after:bg-sidebar-border focus-visible:after:bg-sidebar-ring md:block group-data-[side=left]/sidebar:right-0 group-data-[side=left]/sidebar:after:right-0 group-data-[side=right]/sidebar:left-0 group-data-[side=right]/sidebar:after:left-0",

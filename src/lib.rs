@@ -1,3 +1,5 @@
+topcoat::l10n::fluent::messages!(pub(crate) "./l10n/{locale}/**/*.ftl");
+
 pub mod components;
 pub mod db;
 pub mod error;

@@ -7,12 +7,14 @@ build
 # Translation
 *.translation
 
+# Runtime database (must not trigger topcoat dev rebuilds)
+/lib.json
+
 # Test data
 /test/*
 !/test/.gdignore
 !/test/dnb
 !/test/csv
-!/test/demo.json
 
 !/test/cert
 /test/cert/*

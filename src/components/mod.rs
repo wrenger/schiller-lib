@@ -1,3 +1,4 @@
+pub mod book_view;
 pub mod button;
 pub mod dialog;
 pub mod input;

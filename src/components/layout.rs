@@ -1,3 +1,5 @@
+use crate::t;
+
 use topcoat::{
     Result,
     context::Cx,
@@ -24,29 +26,24 @@ use crate::{
 pub const SIDEBAR_ID: &'static str = "schiller-lib-sidebar";
 
 struct NavItem {
-    label: &'static str,
     icon: IconData,
     target: &'static str,
 }
 
 static NAV: [NavItem; 4] = [
     NavItem {
-        label: "Books",
         icon: iconify_icon!("lucide:book-marked"),
         target: "/books",
     },
     NavItem {
-        label: "Users",
         icon: iconify_icon!("lucide:user"),
         target: "/users",
     },
     NavItem {
-        label: "Overdues",
         icon: iconify_icon!("lucide:calendar-clock"),
         target: "/overdues",
     },
     NavItem {
-        label: "Info",
         icon: iconify_icon!("lucide:info"),
         target: "/info",
     },
@@ -103,7 +100,7 @@ pub async fn dividing_layout(
                                         @click=$(|_e: Event| {
                                             open.toggle();
                                             raw!(
-                                                r#"localStorage.setItem("schiller.sidebar.open", String(${open}.get()))"#,
+                                                r#"localStorage.setItem("schiller.sidebar.open", String(${open}.get()))"#
                                             );
                                         })
                                     }
@@ -183,7 +180,7 @@ pub async fn simplified_layout(cx: &Cx, header: Child<'_>, main: Child<'_>) -> R
                                     @click=$(|_e: Event| {
                                         open.toggle();
                                         raw!(
-                                            r#"localStorage.setItem("schiller.sidebar.open", String(${open}.get()))"#,
+                                            r#"localStorage.setItem("schiller.sidebar.open", String(${open}.get()))"#
                                         );
                                     })
                                 }
@@ -224,7 +221,7 @@ async fn app_sidebar(
             collapsible: SidebarCollapsible::Icon,
             sheet_attrs: attributes! {
                 id=(id)
-                aria-label="Schiller library navigation"
+                aria-label=(t!(component_library_navigation).resolve(cx))
                 @keydown=$(|e: Event| {
                     if e.key == "Escape" {
                         mobile_open.set(false);
@@ -249,7 +246,7 @@ async fn app_sidebar(
                         ))
                     >
                         <img src=(FAVICON) class="h-6 w-6" />
-                        <span class="font-semibold">"Schiller Library"</span>
+                        <span class="font-semibold">(t!(component_library_name))</span>
                     </a>
                     button(
                         variant: ButtonVariant::Ghost,
@@ -257,7 +254,7 @@ async fn app_sidebar(
                         attrs: attributes! {
                             type="button"
                             class="md:hidden"
-                            aria-label="Close sidebar"
+                            aria-label=(t!(component_close_sidebar).resolve(cx))
                             @click=$(|_e: Event| mobile_open.set(false))
                         },
                         icon(data: iconify_icon!("lucide:x"))
@@ -266,12 +263,18 @@ async fn app_sidebar(
             )
             sidebar_content(
                 sidebar_group(
-                    sidebar_group_label("Library")
+                    sidebar_group_label((t!(component_library)))
                     sidebar_group_content(
                         sidebar_menu(
                             for item in &NAV {
                                 let target = href!(item.target);
                                 let current = in_section(cx, &target.resolve(cx));
+                                let label = match item.target {
+                                    "/books" => t!(search_book),
+                                    "/users" => t!(search_user),
+                                    "/overdues" => t!(book_overdues),
+                                    _ => t!(main_info),
+                                };
                                 sidebar_menu_item(
                                     link(
                                         href: target,
@@ -279,7 +282,7 @@ async fn app_sidebar(
                                             data-sidebar="menu-button"
                                             data-active=(if current { "true" } else { "false" })
                                             aria-current=(current.then_some("page"))
-                                            title=(item.label)
+                                            title=(label.resolve(cx))
                                             class=(sidebar_menu_button_variants(
                                                 SidebarMenuButtonVariant::Default,
                                                 SidebarMenuButtonSize::Md,
@@ -287,7 +290,7 @@ async fn app_sidebar(
                                             @click=$(|_e: Event| mobile_open.set(false))
                                         },
                                         icon(data: item.icon.clone())
-                                        <span>(item.label)</span>
+                                        <span>(label)</span>
                                     )
                                 )
                             }
@@ -304,7 +307,7 @@ async fn app_sidebar(
                             href: target,
                             attrs: attributes! {
                                 data-sidebar="menu-button"
-                                title="Settings"
+                                title=(t!(pref_title).resolve(cx))
                                 data-active=(if current { "true" } else { "false" })
                                 aria-current=(current.then_some("page"))
                                 class=(sidebar_menu_button_variants(
@@ -314,7 +317,7 @@ async fn app_sidebar(
                                 @click=$(|_e: Event| mobile_open.set(false))
                             },
                             icon(data: iconify_icon!("lucide:settings"))
-                            <span>"Settings"</span>
+                            <span>(t!(pref_title))</span>
                         )
                     )
                 )

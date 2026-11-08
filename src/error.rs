@@ -1,9 +1,12 @@
 use std::fmt;
 
-use axum::Json;
-use axum::response::IntoResponse;
-use hyper::StatusCode;
 use serde::Serialize;
+use topcoat::context::Cx;
+use topcoat::router::{
+    StatusCode,
+    content::Json,
+    response::{IntoResponse, Response},
+};
 use tracing::error;
 
 /// The api compatible error type.
@@ -134,7 +137,7 @@ impl<ER: std::error::Error + 'static, T: oauth2::ErrorResponse + 'static>
 }
 
 impl IntoResponse for Error {
-    fn into_response(self) -> axum::response::Response {
+    fn into_response(self, cx: &Cx) -> topcoat::Result<Response> {
         let status = match self {
             Error::Arguments
             | Error::InvalidFormat
@@ -154,7 +157,7 @@ impl IntoResponse for Error {
             Error::UnsupportedProjectVersion => StatusCode::INTERNAL_SERVER_ERROR,
             Error::Network => StatusCode::SERVICE_UNAVAILABLE,
         };
-        (status, Json(self)).into_response()
+        (status, Json(self)).into_response(cx)
     }
 }
 

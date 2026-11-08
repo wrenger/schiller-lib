@@ -5,211 +5,162 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 
-use axum::Router;
-use axum::body::Body;
-use axum::error_handling::HandleErrorLayer;
-
-use axum::http::StatusCode;
-
-use hyper::Request;
-use hyper::body::Incoming;
-use hyper_util::rt::{TokioExecutor, TokioIo};
-use tokio::net::TcpListener;
-use tokio_rustls::TlsAcceptor;
+use tokio::net::{TcpListener, TcpStream};
+use tokio::task::JoinSet;
 use tokio_rustls::rustls::ServerConfig;
-use tower::{BoxError, ServiceBuilder};
-use tower_http::compression::CompressionLayer;
-
-use tower_http::trace::TraceLayer;
-use tower_service::Service;
-use tracing::{debug, error, info};
+use tokio_rustls::{TlsAcceptor, server::TlsStream};
+use topcoat::context::Cx;
+use topcoat::router::response::IntoResponse;
+use topcoat::router::{
+    Body, LayerFn, LayerFuture, Listener, Next, Router, RouterBuilder, StatusCode,
+};
+use topcoat::runtime::RouterBuilderRuntimeExt;
+use tracing::{Instrument, debug, error, info_span, warn};
 
 use crate::db::AtomicDatabase;
-pub use crate::server::auth::Login;
 
 mod auth;
 use auth::Auth;
-pub use auth::AuthConfig;
+pub use auth::{AuthConfig, require_login};
 
-/// Start the backend server
+/// Start the backend server. Topcoat dev always uses its HTTP transport.
 pub async fn start(
-    host: SocketAddr,
-    domain: &str,
+    host: Option<SocketAddr>,
+    origin: &str,
     db: AtomicDatabase,
-    tls: Tls,
+    tls: Option<Tls>,
     auth: Option<AuthConfig>,
-) {
-    let tls = tls.load_config().expect("invalid TLS config");
-    let auth = Auth::new(domain, auth);
-    let app = app(auth.clone(), crate::web::router(db).build());
+) -> io::Result<()> {
+    let dev = std::env::var_os("TOPCOAT_DEV_URL").is_some();
+    let host = if dev { None } else { host };
+    let tls = if dev { None } else { tls };
+    let auth = Auth::new(origin, auth);
+    let app = app(auth.clone(), crate::web::router(db));
 
-    debug!("Listening on https://{host}");
-
-    let (_, r) = tokio::join!(auth::background(auth), serve(host, tls, app));
-    r.unwrap();
-}
-
-fn app(auth: Auth, web: topcoat::router::Router) -> Router {
-    Router::new()
-        .nest("/auth", auth::routes(auth.clone()))
-        .fallback_service(frontend(auth, web))
-        .layer(
-            ServiceBuilder::new()
-                .layer(CompressionLayer::new())
-                .layer(HandleErrorLayer::new(handle_error))
-                .timeout(Duration::from_secs(10))
-                .layer(TraceLayer::new_for_http())
-                .into_inner(),
-        )
-}
-
-fn frontend(auth: Auth, web: topcoat::router::Router) -> Router {
-    let web = Arc::new(web);
-    Router::new()
-        .fallback(move |login: Login, request: Request<Body>| {
-            let web = web.clone();
-            async move {
-                web.handle_with(request.map(topcoat::router::Body::new), (login,))
-                    .await
-                    .map(Body::new)
-            }
-        })
-        .with_state(auth)
-}
-
-async fn handle_error(error: BoxError) -> StatusCode {
-    if error.is::<tower::timeout::error::Elapsed>() {
-        StatusCode::REQUEST_TIMEOUT
-    } else {
-        error!("Internal server error: {error}");
-        StatusCode::INTERNAL_SERVER_ERROR
+    // Stop the cleanup future when serving ends (including graceful shutdown).
+    tokio::select! {
+        result = serve(host, tls, app) => result,
+        () = async {
+            auth::background(auth).await;
+            std::future::pending::<()>().await;
+        } => unreachable!(),
     }
 }
 
-async fn serve(host: SocketAddr, tls: ServerConfig, app: Router) -> io::Result<()> {
-    let acceptor = TlsAcceptor::from(Arc::new(tls));
-    let listener = TcpListener::bind(&host).await?;
+fn app(auth: Auth, web: RouterBuilder) -> Router {
+    auth::routes(web.app_context(auth))
+        .layer(LayerFn::new(None::<&str>, requests))
+        .runtime()
+        .build()
+}
 
-    loop {
-        let (stream, peer) = match listener.accept().await {
-            Ok(new) => new,
-            Err(err) => {
-                error!("client connection failed: {err:?}");
-                continue;
+fn requests<'a>(cx: &'a Cx, body: Body, next: Next<'a>) -> LayerFuture<'a> {
+    Box::pin(async move {
+        let request = topcoat::router::request::parts(cx);
+        let span = info_span!("request", method = %request.method, path = %request.uri.path());
+        async move {
+            let started = std::time::Instant::now();
+            let response =
+                match tokio::time::timeout(Duration::from_secs(10), next.run(cx, body)).await {
+                    Ok(result) => result,
+                    Err(_) => StatusCode::REQUEST_TIMEOUT.into_response(cx),
+                };
+            match &response {
+                Ok(response) => debug!(status = %response.status(), elapsed = ?started.elapsed(), "Request handled"),
+                Err(error) if error.is::<topcoat::router::error::RewriteError>()
+                    || error.is::<topcoat::router::error::RedirectError>()
+                    || error.is::<topcoat::router::error::SeeOther>() => {
+                    debug!(elapsed = ?started.elapsed(), "Request returned to router");
+                }
+                Err(error) => {
+                    error!(method = %request.method, path = %request.uri.path(), error = ?error, elapsed = ?started.elapsed(), "Request failed");
+                }
             }
+            response
+        }
+        .instrument(span)
+        .await
+    })
+}
+
+/// Resolve an explicit address or Topcoat's HOST/PORT defaults.
+pub fn address(host: Option<SocketAddr>) -> io::Result<(String, u16)> {
+    if let Some(host) = host {
+        return Ok((host.ip().to_string(), host.port()));
+    }
+    let host = match std::env::var("HOST") {
+        Ok(host) => host,
+        Err(std::env::VarError::NotPresent) => "127.0.0.1".into(),
+        Err(error) => return Err(io::Error::new(io::ErrorKind::InvalidInput, error)),
+    };
+    let port = match std::env::var("PORT") {
+        Ok(port) => port
+            .parse()
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))?,
+        Err(std::env::VarError::NotPresent) => 3000,
+        Err(error) => return Err(io::Error::new(io::ErrorKind::InvalidInput, error)),
+    };
+    Ok((host, port))
+}
+
+async fn serve(host: Option<SocketAddr>, tls: Option<Tls>, app: Router) -> io::Result<()> {
+    if let Some(tls) = tls {
+        let (host, port) = address(host)?;
+        let listener = TcpListener::bind((host.as_str(), port)).await?;
+        debug!(address = %listener.local_addr()?, "Listening with TLS");
+        let listener = TlsListener {
+            listener,
+            acceptor: TlsAcceptor::from(Arc::new(tls.load_config()?)),
+            handshakes: JoinSet::new(),
         };
-
-        let acceptor = acceptor.clone();
-        let app = app.clone();
-
-        tokio::spawn(async move {
-            let Ok(stream) = acceptor.accept(stream).await else {
-                info!("tls handshake failed: {peer}");
-                return;
-            };
-            let stream = TokioIo::new(stream);
-
-            // Hyper has also its own `Service` trait and doesn't use tower. We can use
-            // `hyper::service::service_fn` to create a hyper `Service` that calls our app through
-            // `tower::Service::call`.
-            let hyper_service = hyper::service::service_fn(move |request: Request<Incoming>| {
-                // We have to clone `app` because hyper's `Service` uses `&self` whereas
-                // tower's `Service` requires `&mut self`.
-                app.clone().call(request)
-            });
-
-            let ret = hyper_util::server::conn::auto::Builder::new(TokioExecutor::new())
-                .serve_connection_with_upgrades(stream, hyper_service)
-                .await;
-
-            if let Err(err) = ret {
-                info!("serving failed {peer}: {err}");
-            }
-        });
+        topcoat::serve(listener, app).await
+    } else if let Some(host) = host {
+        topcoat::serve(TcpListener::bind(host).await?, app).await
+    } else {
+        topcoat::start(app).await
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use axum::http::header::LOCATION;
-    use tower::ServiceExt;
+struct TlsListener {
+    listener: TcpListener,
+    acceptor: TlsAcceptor,
+    handshakes: JoinSet<io::Result<(TlsStream<TcpStream>, SocketAddr)>>,
+}
 
-    fn oauth() -> Auth {
-        Auth::new(
-            "localhost:5000",
-            Some(AuthConfig {
-                client_id: "test".into(),
-                client_secret: "test".into(),
-                auth_url: "https://identity.example/authorize".into(),
-                token_url: "https://identity.example/token".into(),
-                revoke_url: None,
-                profile_url: "https://identity.example/profile".into(),
-                profile_scope: "profile".into(),
-                profile_key: "id".into(),
-            }),
-        )
-    }
+impl Listener for TlsListener {
+    type Io = TlsStream<TcpStream>;
 
-    #[tokio::test]
-    async fn frontend_requires_login_for_every_path_and_method() {
-        let app = frontend(oauth(), topcoat::router::Router::builder().build());
-        for (method, path) in [
-            ("GET", "/"),
-            ("GET", "/books"),
-            ("GET", "/assets/test.js"),
-            ("POST", "/runtime"),
-        ] {
-            let response = app
-                .clone()
-                .oneshot(
-                    Request::builder()
-                        .method(method)
-                        .uri(path)
-                        .body(Body::empty())
-                        .unwrap(),
-                )
-                .await
-                .unwrap();
-            assert_eq!(response.status(), StatusCode::TEMPORARY_REDIRECT);
-            assert_eq!(response.headers()[LOCATION], "/auth/login");
+    async fn accept(&mut self) -> io::Result<(Self::Io, Option<SocketAddr>)> {
+        loop {
+            tokio::select! {
+                accepted = self.listener.accept(), if self.handshakes.len() < 128 => {
+                    let (stream, peer) = accepted?;
+                    let acceptor = self.acceptor.clone();
+                    // A stalled handshake must not block other clients or grow without bound.
+                    self.handshakes.spawn(async move {
+                        let stream = tokio::time::timeout(Duration::from_secs(10), acceptor.accept(stream))
+                            .await.map_err(io::Error::other)??;
+                        Ok((stream, peer))
+                    });
+                }
+                result = self.handshakes.join_next(), if !self.handshakes.is_empty() => {
+                    match result {
+                        Some(Ok(Ok((stream, peer)))) => return Ok((stream, Some(peer))),
+                        Some(Ok(Err(error))) => debug!(%error, "TLS handshake failed"),
+                        Some(Err(error)) => warn!(%error, "TLS handshake task failed"),
+                        None => {}
+                    }
+                }
+            }
         }
     }
 
-    #[tokio::test]
-    async fn oauth_login_is_public() {
-        let auth = oauth();
-        let app = app(auth, topcoat::router::Router::builder().build());
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/auth/login")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-        assert_eq!(response.status(), StatusCode::SEE_OTHER);
-        assert!(
-            response.headers()[LOCATION]
-                .to_str()
-                .unwrap()
-                .starts_with("https://identity.example/authorize?")
-        );
-    }
-
-    #[tokio::test]
-    async fn frontend_without_oauth_reaches_topcoat() {
-        let app = frontend(Auth::None, topcoat::router::Router::builder().build());
-        let response = app
-            .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
-            .await
-            .unwrap();
-        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    fn tcp_addr(&self) -> Option<SocketAddr> {
+        self.listener.local_addr().ok()
     }
 }
 
-/// TLS configuration
+/// TLS configuration, enabled only when both paths are supplied.
 pub struct Tls {
     pub cert: PathBuf,
     pub key: PathBuf,
@@ -227,5 +178,152 @@ impl Tls {
             .with_no_client_auth()
             .with_single_cert(certs, key.into())
             .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use topcoat::router::{request::Request, route};
+
+    #[route(GET "/guarded")]
+    async fn guarded(cx: &Cx) -> topcoat::Result<&'static str> {
+        require_login(cx).await?;
+        Ok("ok")
+    }
+
+    #[tokio::test]
+    async fn no_auth_reaches_native_router() {
+        let app = app(Auth::None, Router::builder().route(guarded));
+        let response = app
+            .handle(
+                Request::builder()
+                    .uri("/guarded")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await;
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[topcoat::router::page("/runtime-test")]
+    async fn runtime_page(cx: &Cx) -> topcoat::Result<impl topcoat::view::View> {
+        require_login(cx).await?;
+        Ok(topcoat::view::view! { <p>"Preloaded page"</p> })
+    }
+
+    #[route(GET "/rewrite-test")]
+    async fn rewritten(_cx: &Cx) -> topcoat::Result<()> {
+        Err(topcoat::router::error::rewrite("/guarded", Body::empty()).into())
+    }
+
+    #[tokio::test]
+    async fn internal_rewrites_reach_the_router() {
+        let app = app(
+            Auth::None,
+            Router::builder().route(rewritten).route(guarded),
+        );
+        let response = app
+            .handle(
+                Request::builder()
+                    .uri("/rewrite-test")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await;
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = topcoat::router::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        assert_eq!(body.as_ref(), b"ok");
+    }
+
+    #[tokio::test]
+    async fn runtime_preloads_return_page_frames() {
+        let app = app(Auth::None, Router::builder().page(runtime_page));
+        let response = app
+            .handle(
+                Request::builder()
+                    .method("POST")
+                    .uri("/runtime-test")
+                    .header("x-topcoat-runtime", "true")
+                    .header("content-type", "application/json")
+                    .header("accept", "application/x-ndjson")
+                    .body(Body::from(r#"{"signals":{}}"#))
+                    .unwrap(),
+            )
+            .await;
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.headers()["content-type"], "application/x-ndjson");
+        let body = topcoat::router::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let frames: Vec<serde_json::Value> = String::from_utf8(body.to_vec())
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect();
+        assert!(frames.iter().any(|frame| frame["t"] == "snapshot"
+            && frame["html"].as_str().unwrap().contains("Preloaded page")));
+        assert!(frames.iter().all(|frame| frame["t"] != "error"));
+    }
+
+    #[route(GET "/failure-test")]
+    async fn failure(_cx: &Cx) -> topcoat::Result<()> {
+        Err(topcoat::Error::msg("Underlying database failure").context("Could not load books"))
+    }
+
+    #[tokio::test]
+    async fn handler_errors_log_context_without_exposing_details() {
+        use std::io::Write;
+        use std::sync::Mutex;
+
+        struct LogWriter(Arc<Mutex<Vec<u8>>>);
+        impl Write for LogWriter {
+            fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+                self.0.lock().unwrap().write(bytes)
+            }
+
+            fn flush(&mut self) -> io::Result<()> {
+                Ok(())
+            }
+        }
+
+        let logs = Arc::new(Mutex::new(Vec::new()));
+        let writer = logs.clone();
+        let subscriber = tracing_subscriber::fmt()
+            .with_ansi(false)
+            .with_writer(move || LogWriter(writer.clone()))
+            .finish();
+        let _guard = tracing::subscriber::set_default(subscriber);
+        let app = app(Auth::None, Router::builder().route(failure));
+        let response = app
+            .handle(
+                Request::builder()
+                    .uri("/failure-test?secret=not-for-logs")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await;
+        assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
+        let body = topcoat::router::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        assert_eq!(body.as_ref(), b"internal server error");
+        let logs = String::from_utf8(logs.lock().unwrap().clone()).unwrap();
+        assert!(logs.contains("Request failed"));
+        assert!(logs.contains("Could not load books"));
+        assert!(logs.contains("Underlying database failure"));
+        assert!(logs.contains("/failure-test"));
+        assert!(logs.contains("GET"));
+        assert!(!logs.contains("not-for-logs"));
+    }
+
+    #[test]
+    fn explicit_address_is_preserved() {
+        assert_eq!(
+            address(Some("[::1]:5000".parse().unwrap())).unwrap(),
+            ("::1".into(), 5000)
+        );
     }
 }

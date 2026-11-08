@@ -3,17 +3,6 @@ use std::fmt;
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use axum::extract::{FromRef, FromRequestParts, Query, State};
-use axum::http::header::SET_COOKIE;
-use axum::http::request::Parts;
-use axum::response::{IntoResponse, Redirect, Response};
-use axum::routing::get;
-use axum::{Json, RequestPartsExt, Router};
-use axum_extra::TypedHeader;
-use axum_extra::headers::Cookie;
-use base64::Engine;
-use base64::engine::general_purpose::STANDARD as BASE64;
-use hyper::{HeaderMap, StatusCode};
 use oauth2::basic::{BasicClient, BasicErrorResponse, BasicTokenResponse};
 use oauth2::{
     AuthUrl, AuthorizationCode, AuthorizationRequest, ClientId, ClientSecret, CodeTokenRequest,
@@ -21,11 +10,18 @@ use oauth2::{
     TokenUrl,
 };
 use serde::{Deserialize, Serialize};
+use topcoat::{
+    context::{Cx, app_context, memoize},
+    cookie::{Cookie, Cookies, RouterBuilderCookieExt, SameSite, cookies, time},
+    router::{
+        RouterBuilder,
+        error::{SeeOther, bad_request, redirect, see_other},
+        href, parse_query_params, route,
+    },
+    session::{self, RouterBuilderSessionExt, SessionConfig, TokenHash},
+};
 use tracing::{debug, error, info, warn};
 
-use crate::error::{Error, Result};
-
-const COOKIE_NAME: &str = "SESSION";
 const CSRF_COOKIE: &str = "OAUTH_CSRF";
 const SESSION_CHECK_SEC: u64 = 8 * 60 * 60; // 8h
 const SESSION_EXPIRE_SEC: u64 = 2 * 24 * 60 * 60; // 2d
@@ -60,16 +56,17 @@ pub struct AuthConfig {
 }
 
 /// The routes required for login and logout
-pub fn routes(auth: Auth) -> Router {
-    match auth {
-        Auth::None => Router::new(),
-        Auth::OAuth(auth) => Router::new()
-            .route("/login", get(login_redirect))
-            .route("/authorized", get(login_authorized))
-            .route("/logout", get(logout))
-            .fallback(|| async { (StatusCode::NOT_FOUND, Json(Error::NothingFound)) })
-            .with_state(auth),
-    }
+pub fn routes(builder: RouterBuilder) -> RouterBuilder {
+    builder
+        .route(login_redirect)
+        .route(login_authorized)
+        .route(logout)
+        .sessions(
+            SessionConfig::builder()
+                .lifetime(Duration::from_secs(SESSION_EXPIRE_SEC))
+                .build(),
+        )
+        .cookies()
 }
 
 /// Background task to clean up expired sessions
@@ -115,8 +112,8 @@ pub enum Auth {
 impl Auth {
     /// Initialize the authentication.
     ///
-    /// This requires the public domain of the webserver used for redirections
-    pub fn new(domain: &str, config: Option<AuthConfig>) -> Self {
+    /// This requires the public origin of the webserver used for redirections
+    pub fn new(origin: &str, config: Option<AuthConfig>) -> Self {
         if let Some(AuthConfig {
             client_id,
             client_secret,
@@ -128,7 +125,7 @@ impl Auth {
             profile_key,
         }) = config
         {
-            let redirect = format!("https://{domain}/auth/authorized");
+            let redirect = format!("{}/auth/authorized", origin.trim_end_matches('/'));
             let client = BasicClient::new(ClientId::new(client_id))
                 .set_client_secret(ClientSecret::new(client_secret))
                 .set_auth_uri(AuthUrl::new(auth_url).unwrap())
@@ -185,7 +182,7 @@ impl Client {
 /// The internal authentication state
 pub struct OAuthState {
     client: Client,
-    sessions: RwLock<HashMap<Session, Login>>,
+    sessions: RwLock<HashMap<TokenHash, Login>>,
     profile_url: String,
     profile_scope: String,
     profile_key: String,
@@ -202,88 +199,64 @@ impl fmt::Debug for OAuthState {
     }
 }
 
-/// A unique session for a logged in user.
-/// The session does not reuse the oauth token.
-#[derive(Clone, Hash, PartialEq, Eq)]
-struct Session([u8; Self::N]);
-impl Session {
-    const N: usize = 32;
-    fn new() -> Self {
-        Self(rand::random())
-    }
-    fn from_cookie(cookie: &str) -> Result<Self> {
-        let mut data = [0; Self::N + 8]; // has to be larger due to wrong estimates!
-        let len = BASE64
-            .decode_slice(cookie, &mut data)
-            .map_err(|_| Error::Network)?;
-        if len == Self::N {
-            Ok(Self(data[..Self::N].try_into().unwrap()))
-        } else {
-            Err(Error::Network)
-        }
-    }
-    fn to_cookie(&self) -> String {
-        BASE64.encode(self.0)
-    }
-}
-impl fmt::Debug for Session {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_tuple("Session")
-            .field(&BASE64.encode(self.0))
-            .finish()
-    }
-}
-
-async fn login_redirect(State(auth): State<Arc<OAuthState>>) -> impl IntoResponse {
+#[route(GET "/auth/login")]
+async fn login_redirect(cx: &Cx) -> topcoat::Result<SeeOther> {
+    let Auth::OAuth(auth) = app_context(cx) else {
+        return Ok(see_other(href!(crate::web::_index::page).resolve(cx)));
+    };
     let (auth_url, csrf_token) = auth
         .client
         .authorize_url(CsrfToken::new_random)
         .add_scope(Scope::new(auth.profile_scope.clone()))
         .url();
-
-    // Store csrf token in a short-lived cookie
-    let set_csrf = format!(
-        "{CSRF_COOKIE}={}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age={LOGIN_EXPIRE_SEC}",
-        csrf_token.secret(),
+    cookies(cx).add(
+        Cookie::build((CSRF_COOKIE, csrf_token.secret().to_owned()))
+            .http_only(true)
+            .secure(true)
+            .same_site(SameSite::Lax)
+            .path("/")
+            .max_age(time::Duration::seconds(LOGIN_EXPIRE_SEC as i64))
+            .build(),
     );
-
-    let mut headers = HeaderMap::new();
-    headers.insert(SET_COOKIE, set_csrf.parse().unwrap());
-
-    (headers, Redirect::to(auth_url.as_ref()))
+    Ok(see_other(auth_url.as_str()))
 }
 
-async fn logout(
-    State(auth): State<Arc<OAuthState>>,
-    TypedHeader(cookies): TypedHeader<Cookie>,
-) -> Result<impl IntoResponse> {
-    if let Some(cookie) = cookies.get(COOKIE_NAME) {
-        let session = Session::from_cookie(cookie)?;
-        auth.sessions.write().unwrap().remove(&session);
+#[route(POST "/auth/logout")]
+async fn logout(cx: &Cx) -> topcoat::Result<SeeOther> {
+    let hash = session::stop(cx).await?;
+    if let (Auth::OAuth(auth), Some(hash)) = (app_context::<Auth>(cx), hash) {
+        auth.sessions.write().unwrap().remove(&hash);
     }
-    Ok(Redirect::to("/"))
+    Ok(see_other(href!(crate::web::_index::page).resolve(cx)))
 }
 
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
+#[derive(Deserialize)]
 struct AuthRequest {
     code: String,
     state: String,
 }
 
-#[tracing::instrument]
-async fn login_authorized(
-    Query(query): Query<AuthRequest>,
-    State(auth): State<Arc<OAuthState>>,
-    TypedHeader(cookies): TypedHeader<Cookie>,
-) -> Result<impl IntoResponse> {
+#[route(GET "/auth/authorized")]
+async fn login_authorized(cx: &Cx) -> topcoat::Result<()> {
+    let Auth::OAuth(auth) = app_context(cx) else {
+        return Err(redirect(href!(crate::web::_index::page).resolve(cx)).into());
+    };
+    let query: AuthRequest =
+        parse_query_params(cx).map_err(|_| bad_request("Invalid OAuth callback"))?;
+    let csrf = cookies(cx).get(CSRF_COOKIE);
+    if query.state.is_empty()
+        || csrf.as_ref().map(|cookie| cookie.value()) != Some(query.state.as_str())
     {
-        // Check CSRF
-        if cookies.get(CSRF_COOKIE) != Some(&query.state) {
-            error!("Invalid CSRF token");
-            return Err(Error::Network);
-        }
+        return Err(bad_request("Invalid OAuth state").into());
     }
+    cookies(cx).remove(
+        Cookie::build((CSRF_COOKIE, ""))
+            .http_only(true)
+            .secure(true)
+            .same_site(SameSite::Lax)
+            .path("/")
+            .build(),
+    );
 
     let http_client = reqwest::Client::builder()
         // Following redirects opens the client up to SSRF.
@@ -314,17 +287,17 @@ async fn login_authorized(
     for part in auth.profile_key.split('.') {
         let Some(map) = curr.as_object() else {
             error!("Invalid user data, expected dict: {data:?}");
-            return Err(Error::Network);
+            return Err(topcoat::Error::msg("Invalid OAuth profile"));
         };
         let Some(val) = map.get(part) else {
             error!("Invalid user data, key '{part:?}' not found: {data:?}");
-            return Err(Error::Network);
+            return Err(topcoat::Error::msg("Invalid OAuth profile"));
         };
         curr = val;
     }
     let Some(id) = curr.as_str() else {
         error!("Invalid user id, expected string: {curr:?}");
-        return Err(Error::Network);
+        return Err(topcoat::Error::msg("Invalid OAuth profile"));
     };
 
     warn!("Login: {id:?}");
@@ -334,7 +307,7 @@ async fn login_authorized(
         info!("Revoke access");
         if let Err(e) = auth
             .revoke_token(token.access_token().into())
-            .map_err(|_| Error::Network)?
+            .map_err(|_| topcoat::Error::msg("OAuth revocation unavailable"))?
             .request_async(&http_client)
             .await
         {
@@ -342,74 +315,48 @@ async fn login_authorized(
         }
     }
 
-    // Create a new session filled with user data
-    let session = Session::new();
-
-    // Set cookie
-    let set_session = format!(
-        "{COOKIE_NAME}={}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age={SESSION_EXPIRE_SEC}",
-        session.to_cookie()
-    );
-    let clear_csrf = format!("{CSRF_COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0");
-
+    let session = session::start(cx).await?;
     let login = Login {
         id: id.into(),
-        expires: unix_secs() + SESSION_EXPIRE_SEC,
+        expires: session
+            .expires_at
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs(),
     };
-    auth.sessions.write().unwrap().insert(session, login);
-
-    let mut headers = HeaderMap::new();
-    headers.append(SET_COOKIE, set_session.parse().unwrap());
-    headers.append(SET_COOKIE, clear_csrf.parse().unwrap());
-    Ok((headers, Redirect::to("/")))
+    auth.sessions
+        .write()
+        .unwrap()
+        .insert(session.token_hash, login);
+    Err(redirect(href!(crate::web::_index::page).resolve(cx)).into())
 }
 
-impl<S> FromRequestParts<S> for Login
-where
-    Auth: FromRef<S>,
-    S: Send + Sync,
-{
-    // If anything goes wrong or no session is found, redirect to the auth page
-    type Rejection = AuthRedirect;
-
-    async fn from_request_parts(
-        parts: &mut Parts,
-        state: &S,
-    ) -> std::result::Result<Self, Self::Rejection> {
-        let auth = Auth::from_ref(state);
-        let Auth::OAuth(auth) = auth else {
-            return Ok(Login {
-                id: String::new(),
-                expires: 0,
-            });
-        };
-        let sessions = &auth.sessions;
-
-        let cookies = parts
-            .extract::<TypedHeader<Cookie>>()
-            .await
-            .map_err(|_| AuthRedirect)?;
-
-        let cookie = cookies.get(COOKIE_NAME).ok_or(AuthRedirect)?;
-        let session = Session::from_cookie(cookie).map_err(|_| AuthRedirect)?;
-        let guard = sessions.read().unwrap();
-        let login = guard.get(&session).ok_or(AuthRedirect)?;
-        if unix_secs() > login.expires {
-            drop(guard); // prevent dead-lock
-            sessions.write().unwrap().remove(&session);
-            Err(AuthRedirect)
-        } else {
-            Ok(login.clone())
+#[memoize]
+async fn current_login(cx: &Cx) -> topcoat::Result<Option<Login>> {
+    let Auth::OAuth(auth) = app_context(cx) else {
+        return Ok(Some(Login::default()));
+    };
+    let Some(hash) = session::token_hash(cx).await? else {
+        return Ok(None);
+    };
+    let login = auth.sessions.read().unwrap().get(&hash).cloned();
+    match login {
+        Some(login) if login.expires > unix_secs() => Ok(Some(login)),
+        Some(_) => {
+            auth.sessions.write().unwrap().remove(&hash);
+            Ok(None)
         }
+        None => Ok(None),
     }
 }
 
-pub struct AuthRedirect;
-
-impl IntoResponse for AuthRedirect {
-    fn into_response(self) -> Response {
-        Redirect::temporary("/auth/login").into_response()
-    }
+pub async fn require_login(cx: &Cx) -> topcoat::Result<Login> {
+    current_login(cx)
+        .await
+        .as_ref()
+        .map_err(Clone::clone)?
+        .clone()
+        .ok_or_else(|| redirect(href!(login_redirect).resolve(cx)).into())
 }
 
 fn unix_secs() -> u64 {
@@ -420,14 +367,188 @@ fn unix_secs() -> u64 {
 }
 
 #[cfg(test)]
-mod test {
-    use super::Session;
+mod tests {
+    use super::*;
+    use topcoat::router::{Method, StatusCode, header, request::Request, response::Response};
+    use topcoat::{
+        router::{Body, ModuleRouterBuilder, Router},
+        session::Token,
+    };
 
-    #[test]
-    fn session() {
-        let session = Session::new();
-        let cookie = session.to_cookie();
-        let parsed = Session::from_cookie(&cookie).unwrap();
-        assert_eq!(session, parsed);
+    #[route(GET "/guard-test")]
+    async fn guarded(cx: &Cx) -> topcoat::Result<&'static str> {
+        require_login(cx).await?;
+        Ok("ok")
+    }
+
+    fn oauth() -> Auth {
+        Auth::new(
+            "https://example.com",
+            Some(AuthConfig {
+                client_id: "client".into(),
+                client_secret: "secret".into(),
+                auth_url: "https://provider.example/authorize".into(),
+                token_url: "https://provider.example/token".into(),
+                revoke_url: None,
+                profile_url: "https://provider.example/profile".into(),
+                profile_scope: "profile".into(),
+                profile_key: "id".into(),
+            }),
+        )
+    }
+
+    fn router(auth: Auth) -> Router {
+        let builder: RouterBuilder =
+            ModuleRouterBuilder::new(concat!(env!("CARGO_CRATE_NAME"), "::web"))
+                .page(crate::web::_index::page)
+                .into();
+        routes(builder.app_context(auth).route(guarded)).build()
+    }
+
+    async fn request(router: &Router, method: Method, uri: &str, cookie: Option<&str>) -> Response {
+        let mut builder = Request::builder().method(method).uri(uri);
+        if let Some(cookie) = cookie {
+            builder = builder.header(header::COOKIE, cookie);
+        }
+        router.handle(builder.body(Body::empty()).unwrap()).await
+    }
+
+    #[tokio::test]
+    async fn public_login_and_invalid_csrf() {
+        let router = router(oauth());
+        let response = request(&router, Method::GET, "/auth/login", None).await;
+        assert_eq!(response.status(), StatusCode::SEE_OTHER);
+        let location = response
+            .headers()
+            .get(header::LOCATION)
+            .unwrap()
+            .to_str()
+            .unwrap();
+        let url = reqwest::Url::parse(location).unwrap();
+        assert!(
+            url.query_pairs().any(|(key, value)| key == "redirect_uri"
+                && value == "https://example.com/auth/authorized")
+        );
+        let cookie = response
+            .headers()
+            .get(header::SET_COOKIE)
+            .unwrap()
+            .to_str()
+            .unwrap();
+        assert!(
+            cookie.contains("Secure")
+                && cookie.contains("HttpOnly")
+                && cookie.contains("SameSite=Lax")
+        );
+        let response = request(
+            &router,
+            Method::GET,
+            "/auth/authorized?code=abc&state=wrong",
+            Some("OAUTH_CSRF=other"),
+        )
+        .await;
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        for (uri, cookie) in [
+            ("/auth/authorized?code=abc&state=missing", None),
+            ("/auth/authorized?code=abc&state=", Some("OAUTH_CSRF=")),
+        ] {
+            assert_eq!(
+                request(&router, Method::GET, uri, cookie).await.status(),
+                StatusCode::BAD_REQUEST
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn sessions_and_logout() {
+        let auth = oauth();
+        let Auth::OAuth(state) = &auth else {
+            unreachable!()
+        };
+        let token = Token::random();
+        let cookie = format!("__Host-session={}", token.encode());
+        state.sessions.write().unwrap().insert(
+            token.hash(),
+            Login {
+                id: "user".into(),
+                expires: unix_secs() + 60,
+            },
+        );
+        let router = router(auth.clone());
+        for cookie in [None, Some("__Host-session=invalid")] {
+            assert_eq!(
+                request(&router, Method::GET, "/guard-test", cookie)
+                    .await
+                    .status(),
+                StatusCode::TEMPORARY_REDIRECT
+            );
+        }
+        assert_eq!(
+            request(&router, Method::GET, "/guard-test", Some(&cookie))
+                .await
+                .status(),
+            StatusCode::OK
+        );
+        let response = request(&router, Method::GET, "/auth/logout", Some(&cookie)).await;
+        assert_eq!(response.status(), StatusCode::METHOD_NOT_ALLOWED);
+        let response = router
+            .handle(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/auth/logout")
+                    .header(header::HOST, "example.com")
+                    .header(header::ORIGIN, "https://evil.example")
+                    .header(header::COOKIE, &cookie)
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await;
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+        assert_eq!(
+            request(&router, Method::GET, "/guard-test", Some(&cookie))
+                .await
+                .status(),
+            StatusCode::OK
+        );
+        let response = request(&router, Method::POST, "/auth/logout", Some(&cookie)).await;
+        assert_eq!(response.status(), StatusCode::SEE_OTHER);
+        assert!(
+            response
+                .headers()
+                .get_all(header::SET_COOKIE)
+                .iter()
+                .any(|v| v.to_str().unwrap().contains("__Host-session="))
+        );
+        assert_eq!(
+            request(&router, Method::GET, "/guard-test", Some(&cookie))
+                .await
+                .status(),
+            StatusCode::TEMPORARY_REDIRECT
+        );
+        state.sessions.write().unwrap().insert(
+            token.hash(),
+            Login {
+                id: "user".into(),
+                expires: unix_secs(),
+            },
+        );
+        assert_eq!(
+            request(&router, Method::GET, "/guard-test", Some(&cookie))
+                .await
+                .status(),
+            StatusCode::TEMPORARY_REDIRECT
+        );
+        assert!(!state.sessions.read().unwrap().contains_key(&token.hash()));
+    }
+
+    #[tokio::test]
+    async fn no_auth_bypasses_guard() {
+        let router = router(Auth::None);
+        assert_eq!(
+            request(&router, Method::GET, "/guard-test", None)
+                .await
+                .status(),
+            StatusCode::OK
+        );
     }
 }

@@ -21,31 +21,17 @@ codegen-units = 1
 strip = true
 
 [dependencies]
-axum = { version = "0.8", default-features = false, features = [
-    "json",
-    "query",
-    "tokio",
-    "tower-log",
-    "tracing",
-] }
-axum-extra = { version = "0.12", features = ["typed-header"] }
-
-hyper = "1.9"
-hyper-util = { version = "0.1", features = ["server-auto", "tokio"] }
 rustls = { version = "0.23", default-features = false }
 rustls-pemfile = "2.2"
 tokio-rustls = { version = "0.26", default-features = false }
-tower = { version = "0.5", features = ["util", "timeout"] }
-tower-http = { version = "0.6", features = ["trace", "compression-deflate"] }
-tower-service = "0.3"
 tokio = { version = "1.53.3", features = ["rt-multi-thread", "macros"] }
 topcoat = { version = "0.11.0", features = [
     "font-fontsource",
     "icon-iconify",
+    "l10n-fluent",
     "tailwind",
     "ui",
 ] }
-base64 = "0.22"
 chrono = "0.4"
 clap = { version = "4.6", features = ["derive"] }
 csv = "1.4"
@@ -76,6 +62,9 @@ topcoat = { version = "0.11.0", default-features = false, features = [
     "icon-iconify",
     "tailwind",
 ] }
+
+[dev-dependencies]
+criterion = "0.8"
 
 [features]
 default = []
