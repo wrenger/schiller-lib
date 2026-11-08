@@ -89,57 +89,62 @@ pub async fn dividing_layout(
         >
             sidebar_provider(
                 app_sidebar(id: SIDEBAR_ID, open: &open, mobile_open: &mobile_open)
-                sidebar_inset(sidebar_header_slim(
-                    <div class="grid grid-cols-1 md:grid-cols-[max(37%,275px)_auto_1fr] w-full">
-                        <div class="flex h-14 items-center gap-3 px-4">
-                            sidebar_trigger(
-                                open: $(open.get()),
-                                attrs: attributes! {
-                                    class="max-md:hidden cursor-pointer"
-                                    aria-controls=(SIDEBAR_ID)
-                                    @click=$(|_e: Event| {
-                                        open.toggle();
-                                        raw!(r#"localStorage.setItem("schiller.sidebar.open", String(${open}.get()))"#);
-                                    })
-                                }
+                sidebar_inset(
+                    sidebar_header_slim(
+                        <div
+                            class="grid grid-cols-1 md:grid-cols-[max(37%,298px)_auto_1fr] w-full"
+                        >
+                            <div class="flex h-14 items-center gap-3 px-4">
+                                sidebar_trigger(
+                                    open: $(open.get()),
+                                    attrs: attributes! {
+                                        class="max-md:hidden cursor-pointer"
+                                        aria-controls=(SIDEBAR_ID)
+                                        @click=$(|_e: Event| {
+                                            open.toggle();
+                                            raw!(
+                                                r#"localStorage.setItem("schiller.sidebar.open", String(${open}.get()))"#,
+                                            );
+                                        })
+                                    }
+                                )
+                                sidebar_trigger(
+                                    open: $(mobile_open.get()),
+                                    attrs: attributes! {
+                                        class="md:hidden cursor-pointer"
+                                        aria-controls=(&SIDEBAR_ID)
+                                        @click=$(|_e: Event| mobile_open.toggle())
+                                    }
+                                )
+                                separator(
+                                    orientation: SeparatorOrientation::Vertical,
+                                    attrs: attributes! { class="h-5!" }
+                                )
+                                (list_header)
+                            </div>
+
+                            separator(
+                                orientation: SeparatorOrientation::Vertical,
+                                attrs: attributes! { class="hidden md:block" }
                             )
-                            sidebar_trigger(
-                                open: $(mobile_open.get()),
-                                attrs: attributes! {
-                                    class="md:hidden cursor-pointer"
-                                    aria-controls=(&SIDEBAR_ID)
-                                    @click=$(|_e: Event| mobile_open.toggle())
-                                }
-                            )
-                            separator(orientation: SeparatorOrientation::Vertical, attrs: attributes! {
-                                class="h-5!"
-                            })
-                            (list_header)
+
+                            <div class="h-14 items-center gap-3 px-4 hidden md:block">
+                                (display_header)
+                            </div>
                         </div>
+                    )
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-[max(37%,298px)_auto_1fr] h-full w-full"
+                    >
+                        <div class="p-4 gap-3">(list)</div>
 
-                        separator(orientation: SeparatorOrientation::Vertical, attrs: attributes! {
-                            class="hidden md:block"
-                        })
+                        separator(
+                            orientation: SeparatorOrientation::Vertical,
+                            attrs: attributes! { class="hidden md:block" }
+                        )
 
-                        <div class="flex h-14 items-center gap-3 px-4 hidden md:block">
-                            (display_header)
-                        </div>
+                        <div class="p-4 gap-3 hidden md:block">(display)</div>
                     </div>
-
-                )
-                <div class="grid grid-cols-1 md:grid-cols-[max(37%,275px)_auto_1fr] h-full w-full">
-                    <div class="p-4 gap-3">
-                        (list)
-                    </div>
-
-                    separator(orientation: SeparatorOrientation::Vertical, attrs: attributes! {
-                        class="hidden md:block"
-                    })
-
-                    <div class="p-4 gap-3 hidden md:block">
-                        (display)
-                    </div>
-                </div>
                 )
             )
         </body>
@@ -167,7 +172,8 @@ pub async fn simplified_layout(cx: &Cx, header: Child<'_>, main: Child<'_>) -> R
         >
             sidebar_provider(
                 app_sidebar(id: SIDEBAR_ID, open: &open, mobile_open: &mobile_open)
-                sidebar_inset(sidebar_header_slim(
+                sidebar_inset(
+                    sidebar_header_slim(
                         <div class="flex h-14 items-center gap-3 px-4">
                             sidebar_trigger(
                                 open: $(open.get()),
@@ -176,7 +182,9 @@ pub async fn simplified_layout(cx: &Cx, header: Child<'_>, main: Child<'_>) -> R
                                     aria-controls=(SIDEBAR_ID)
                                     @click=$(|_e: Event| {
                                         open.toggle();
-                                        raw!(r#"localStorage.setItem("schiller.sidebar.open", String(${open}.get()))"#);
+                                        raw!(
+                                            r#"localStorage.setItem("schiller.sidebar.open", String(${open}.get()))"#,
+                                        );
                                     })
                                 }
                             )
@@ -188,15 +196,14 @@ pub async fn simplified_layout(cx: &Cx, header: Child<'_>, main: Child<'_>) -> R
                                     @click=$(|_e: Event| mobile_open.toggle())
                                 }
                             )
-                            separator(orientation: SeparatorOrientation::Vertical, attrs: attributes! {
-                                class="h-5!"
-                            })
+                            separator(
+                                orientation: SeparatorOrientation::Vertical,
+                                attrs: attributes! { class="h-5!" }
+                            )
                             (header)
                         </div>
                     )
-                <div class="p-4 h-full w-full">
-                    (main)
-                </div>
+                    <div class="p-4 h-full w-full">(main)</div>
                 )
             )
         </body>
@@ -219,20 +226,27 @@ async fn app_sidebar(
                 id=(id)
                 aria-label="Schiller library navigation"
                 @keydown=$(|e: Event| {
-                    if e.key == "Escape" { mobile_open.set(false); }
+                    if e.key == "Escape" {
+                        mobile_open.set(false);
+                    }
                 })
                 @click=$(|e: Event| {
-                    if e.target.id == id { mobile_open.set(false); }
+                    if e.target.id == id {
+                        mobile_open.set(false);
+                    }
                 })
             },
             sidebar_header(
                 <div class="flex items-center gap-1 py-2">
                     <a
                         href=(href!("/"))
-                        class=(class!(sidebar_menu_button_variants(
-                            SidebarMenuButtonVariant::Default,
-                            SidebarMenuButtonSize::Lg,
-                        ), "h-10"))
+                        class=(class!(
+                            sidebar_menu_button_variants(
+                                SidebarMenuButtonVariant::Default,
+                                SidebarMenuButtonSize::Lg,
+                            ),
+                            "h-10",
+                        ))
                     >
                         <img src=(FAVICON) class="h-6 w-6" />
                         <span class="font-semibold">"Schiller Library"</span>

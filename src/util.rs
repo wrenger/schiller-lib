@@ -10,6 +10,27 @@ pub const PKG_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 pub const PKG_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 pub const PKG_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
+#[derive(Debug)]
+pub struct About {
+    pub name: &'static str,
+    pub version: &'static str,
+    pub repository: &'static str,
+    pub authors: Vec<&'static str>,
+    pub description: &'static str,
+    pub license: &'static str,
+}
+
+pub fn about() -> About {
+    About {
+        name: PKG_NAME,
+        version: PKG_VERSION,
+        repository: PKG_REPOSITORY,
+        authors: PKG_AUTHORS.split(':').collect(),
+        description: PKG_DESCRIPTION,
+        license: PKG_LICENSE,
+    }
+}
+
 /// initialize tracing
 pub fn logging() {
     use tracing_subscriber::EnvFilter;

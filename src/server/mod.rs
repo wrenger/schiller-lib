@@ -10,7 +10,6 @@ use axum::body::Body;
 use axum::error_handling::HandleErrorLayer;
 
 use axum::http::StatusCode;
-use axum::middleware::from_extractor_with_state;
 
 use hyper::Request;
 use hyper::body::Incoming;
@@ -26,7 +25,7 @@ use tower_service::Service;
 use tracing::{debug, error, info};
 
 use crate::db::AtomicDatabase;
-use crate::server::auth::Login;
+pub use crate::server::auth::Login;
 
 mod auth;
 use auth::Auth;
@@ -67,15 +66,15 @@ fn app(auth: Auth, web: topcoat::router::Router) -> Router {
 fn frontend(auth: Auth, web: topcoat::router::Router) -> Router {
     let web = Arc::new(web);
     Router::new()
-        .fallback(move |request: Request<Body>| {
+        .fallback(move |login: Login, request: Request<Body>| {
             let web = web.clone();
             async move {
-                web.handle(request.map(topcoat::router::Body::new))
+                web.handle_with(request.map(topcoat::router::Body::new), (login,))
                     .await
                     .map(Body::new)
             }
         })
-        .layer(from_extractor_with_state::<Login, Auth>(auth))
+        .with_state(auth)
 }
 
 async fn handle_error(error: BoxError) -> StatusCode {
