@@ -26,3 +26,4 @@ lib-view/src/lib/api.ts
 .DS_Store
 *~*
 .direnv/
+/lib-view/
