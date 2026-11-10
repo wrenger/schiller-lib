@@ -1,4 +1,7 @@
-use crate::t;
+use crate::{
+    components::separator::{SeparatorOrientation, separator},
+    t,
+};
 
 use topcoat::{
     Result,
@@ -62,13 +65,14 @@ pub async fn book_view(
 
     Ok(view! {
         <div class="h-full w-full space-y-4 overflow-y-auto p-4">
-            <div class="border-b pb-3">
+            <div>
                 <h2 class="text-xl font-semibold">(book.title)</h2>
                 <p class="text-md">
                     <span class="text-sm text-muted-foreground">(t!(book_id))": "</span>
                     (if book.id.is_empty() { t!(action_empty).resolve(cx).into_owned() } else { book.id })
                 </p>
             </div>
+            separator(orientation: SeparatorOrientation::Horizontal)
             for (label, value) in fields {
                 <div>
                     <h3 class="text-sm text-muted-foreground">(label)</h3>
